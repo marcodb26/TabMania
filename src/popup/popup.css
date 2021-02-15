@@ -1,0 +1,466 @@
+/* Put our CSS *after* the Bootstrap CSS, to make sure we get priority for any rules overlap
+   See: https://stackoverflow.com/questions/15670631/does-the-order-of-classes-listed-on-an-item-affect-the-css
+*/
+
+.tm-bstabs-body {
+	min-width: 310px;
+	height: 500px;
+	/* Make scrollbars show on this div, not on the outer top level (requires setting "height" (above) */
+	/* I would like to have the "overflow: auto;" here, but it messes up with the inner scrollbar
+	   when the search is in place.
+	   TBD TBD to be fixed.
+	*/
+	/*overflow: auto;*/
+}
+
+/* I don't like the unselected tabs to have blue text. You could obtain the
+   same result by changing <a> to <span>, but since the Bootstrap documentation
+   doesn't mention anything about <span>, best to stick with what they say you
+   should use, and just override the color information
+*/
+.tm-nav-link, .tm-nav-link:hover {
+	color: #495057;
+}
+
+.tm-scrollable-tab-body {
+	/* Make scrollbars show on this div, not on the outer top level */
+	height: 100%;
+	overflow: auto;
+}
+
+.tm-searchbox {
+	padding-left: 2rem;
+	padding-right: 0.5rem;
+}
+
+/* Alignment for Font Awesome icons, taken from Font Awesome class "svg-inline--fa" */
+.tm-fa-align {
+	width: 1em;
+    height: 1em;
+    vertical-align: -.125em;
+}
+
+/* See https://stackoverflow.com/questions/20804016/editing-input-type-search-pseudo-element-button-x */
+.tm-searchbox::-webkit-search-cancel-button {
+	/* Leave room for the overlay with the search results count.
+	   "4rem" still looks ok when the overlay shows "999+"
+	*/
+	margin-left: 4rem;
+}
+
+.tm-searchbox-count {
+	right: 2rem;
+}
+
+.tm-searchbox-icon {
+	left: 0.5rem;
+}
+
+.tm-tile-small {
+	/* Bootstrap "small" is still too big for our tiles */
+	font-size: .75em;
+	/* line-height: 1; */
+	margin-right: 1rem;
+}
+
+.tm-tile-url {
+	/* Bootstrap "small" is still too big for our tiles */
+	font-size: .75em;
+	/* line-height: 1; */
+	margin-right: 0.75rem;
+	margin-bottom: 0rem;
+}
+
+.tm-tile-title {
+	/* Bootstrap "small" is still too big for our tiles */
+	font-size: .9em;
+	line-height: 1;
+	/* When an icon is missing, the vertical size of the title can get smaller than 16px... */
+	min-height: 16px;
+}
+
+.tm-indent-right {
+	padding: 0.1rem 0.1rem 0.1rem 1.25rem;
+}
+
+.tm-favicon-16 {
+	min-width: 16px;
+	max-width: 16px;
+	height: auto; 
+}
+
+.tm-favicon-24 {
+	min-width: 24px;
+	max-width: 24px;
+	height: auto; 
+}
+
+.tm-hide {
+	display: none;
+}
+
+.tm-shaded {
+	box-shadow: 0 0 2px black;
+}
+
+/* Make the icon black&white */
+/* See https://developer.mozilla.org/en-US/docs/Web/CSS/filter */
+.tm-favicon-bw {
+	filter: grayscale(100%);
+}
+
+.tm-min-empty-container {
+	position: relative;
+    min-height: 2rem;
+}
+
+.tm-vertical-center {
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+}
+
+.tm-horizontal-center {
+	position: absolute;
+	left: 50%;
+	transform: translateX(-50%);
+}
+
+.tm-overlay {
+	z-index: 2;
+	position: absolute;
+}
+
+.tm-full-size {
+	top: 0px;
+	height: 100%;
+	width: 100%;
+}
+
+.tm-pointer-no {
+	pointer-events: none;
+}
+
+.tm-pointer-all {
+	pointer-events: all;
+}
+
+.tm-stacked-below {
+	position: relative;
+	z-index: 1;
+}
+
+/* To be used in conjunction with Bootstrap's "badge" class.
+   Bootstrap's "badge" class is "vertical-align: baseline;", we prefer "middle".
+*/
+.tm-text-badge {
+	vertical-align: middle;
+}
+
+.tm-number-badge {
+	vertical-align: text-bottom;
+}
+
+.tm-icon-badge {
+	vertical-align: middle;
+	/* Half of Bootstrap's "p-1" */
+	padding: 0.125rem;
+	opacity: 0.60;
+	min-width: 2em;
+}
+
+/* translateY(50%) vertically centers the circle, provided the parent <div> has 100% height */
+.tm-circle {
+	position: relative;
+	top: 50%;
+	transform: translateY(-50%);
+
+	margin-left: 0.5rem;
+
+	height: 2.5rem;
+	width: 2.5rem;
+	border-radius: 50%;
+	text-align: center;
+	background: white;
+	font-weight: bolder;
+
+	box-shadow: 0 0 5px black;
+}
+
+.tm-round-toggle {
+	border-radius: 50%;
+	/*box-shadow: 0 0 5px black;*/
+}
+
+.tm-rounded-btn {
+	border-radius: 25%;
+}
+
+.tm-dropdown-item {
+	/* Override Bootstrap's "dropdown-item", which has "white-space: nowrap;".
+	   "nowrap" is a better option for standard menu items, but we want to also
+	   visualize long things in a container fashion
+	 */
+	white-space: normal;
+	font-size: 0.75em;
+}
+
+.tm-dropdown-menu {
+	min-width: 20rem;
+}
+
+.tm-dropdown-toggle {
+	opacity: 0.75;
+	width: 2.5em;
+}
+
+.tm-dropdown-toggle::after {
+	/* Bootstrap's dropdown-toggle puts some left margin before the caret, assuming
+	   there's going to be text on the left of the caret. This causes the caret to
+	   be slightly off to the right when the toggle is used without text.
+	   Implementing a behavior similar to Bootstrap's dropdown-toggle-split, except
+	   that dropdown-toggle-split completely removes the dropdown-toggle's "margin-left: 0.255em",
+	   and that makes the toggle nudged a bit too much to the left (fr whatever reason,
+	   I didn't understand it, maybe we should investigate this more), while here we just
+	   want the left margin to push the caret perfectly to the center.
+	   Note that dropdown-toggle-split also makes the toggle too narrow, but we fix the
+	   width of the toggle in tm-dropdown-toggle, so that wouldn't be an issu.
+	*/
+	margin-left: .14em;
+}
+
+.tm-tile-toggle-center {
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	margin-left: 0.5rem;
+}
+
+/* This is a copy of Bootstrap's "invalid-feedback". Copied it because the
+   Bootstrap original has a "display: none" that completely defeats the purpose...
+*/
+.tm-invalid-feedback {
+	width: 100%;
+	margin-top: .25rem;
+	font-size: .875em;
+	color: #dc3545;
+}
+
+.tm-icon-badge-pos {
+	position: absolute;
+	/*top: 50%;*/
+	transform: translateY(-50%);
+	left: 0.4rem;
+}
+
+.tm-float-right {
+	float: right;
+}
+
+/*
+  See close-icon.svg (created with Method Draw - http://github.com/duopixel/Method-Draw/ (MIT License))
+
+<svg role="img" viewBox="0 0 448 300" xmlns="http://www.w3.org/2000/svg">
+  <rect rx="50" stroke="null" id="svg_1" height="300" width="448" y="0" x="0" fill-opacity="null" stroke-opacity="null" stroke-width="null" fill="currentColor"/>
+  <rect transform="rotate(-45 224,149.99999999999994) " stroke="null" rx="10" id="svg_2" height="56" width="248" y="122" x="100" stroke-opacity="null" stroke-width="null" fill="#ffffff"/>
+  <rect transform="rotate(45 224.00000000000003,150) " stroke="null" rx="10" id="svg_3" height="56" width="248" y="122" x="100" stroke-opacity="null" stroke-width="null" fill="#ffffff"/>
+</svg>
+
+<svg role="img" viewBox="0 0 448 300" xmlns="http://www.w3.org/2000/svg"><rect rx="50" height="300" width="448" y="0" x="0" fill="currentColor"/><rect transform="rotate(-45 224,145) " rx="10" height="56" width="248" y="122" x="100" fill="#fff"/><rect transform="rotate(45 224,150) " rx="10" height="56" width="248" y="122" x="100" fill="#fff"/></svg>
+
+Encoded with https://www.base64encode.org/
+
+*/
+.tm-close-icon-icon {
+	width: 1em;
+    height: 1em;
+
+	background-image: url(data:image/svg+xml;base64,PHN2ZyByb2xlPSJpbWciIHZpZXdCb3g9IjAgMCA0NDggMzAwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHJ4PSI1MCIgaGVpZ2h0PSIzMDAiIHdpZHRoPSI0NDgiIHk9IjAiIHg9IjAiIGZpbGw9ImN1cnJlbnRDb2xvciIvPjxyZWN0IHRyYW5zZm9ybT0icm90YXRlKC00NSAyMjQsMTQ1KSAiIHJ4PSIxMCIgaGVpZ2h0PSI1NiIgd2lkdGg9IjI0OCIgeT0iMTIyIiB4PSIxMDAiIGZpbGw9IiNmZmYiLz48cmVjdCB0cmFuc2Zvcm09InJvdGF0ZSg0NSAyMjQsMTUwKSAiIHJ4PSIxMCIgaGVpZ2h0PSI1NiIgd2lkdGg9IjI0OCIgeT0iMTIyIiB4PSIxMDAiIGZpbGw9IiNmZmYiLz48L3N2Zz4=);
+}
+
+.tm-close-icon {
+/*	font-size: 0.75em;*/
+	font-weight: 700;
+/*	line-height: 1;*/
+	line-height: 0.7;
+	text-align: center;
+	white-space: nowrap;
+	opacity: 0.75;
+
+	margin-right: 0.5em;
+	margin-top: 0.2em;
+	vertical-align: top;
+
+	/* For some reason the <button> class seems to show a dark shade at the bottom, and
+	   that goes away when you set the border-style to solid
+	*/
+	border-style: solid;
+}
+
+.tm-close-icon:focus {
+	/* When clicking a "close" button, the button outline shows up, and it's a thin
+	   line much darker than the background color, so it looks ugly. Forcing removal
+	   of the button outline.
+	*/
+	outline: 0;
+	/* When clicking there's also a shadow that's too big, so replacing it with something
+	   smaller. Note the use of "!important", without it this override doesn't work and
+	   the ugly large shadow band shows up
+	*/
+	box-shadow: 0 0 3px black!important;
+}
+
+/*.tm-close-icon::after {
+	display: inline-block;
+*/	/* "\00d7" is the "times" characters, "\002b" is the "plus" character */
+/*	content: "\00d7";
+	color: white;
+	transform: rotate(45deg);
+}*/
+
+/* Applies to class "tm-hover-target" of an element descendent of an element of class "tm-hover".
+   See "descendent combinator" in https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors
+ */
+.tm-hover .tm-hover-target {
+	visibility: hidden;
+}
+
+/* Applies to class "tm-hover-target" of an element descendent of an element of class "tm-hover"
+   when the element of class "tm-hover" is in state "hover".
+   See "pseudo classes" in https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors
+ */
+.tm-hover:hover .tm-hover-target {
+	transition-delay: 0.5s;
+	visibility: visible;
+}
+
+/* Inspired from Bootstrap's "callout" class, which is described in the docs of
+   Bootstrap 5, but then doesn't seem to exist in the actual CSS as of the
+   alpha version of Bootstrap 5
+*/
+.tm-callout {
+    margin-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    border: 1px solid #e9ecef;
+    border-left-width: .25rem;
+    border-radius: .25rem;
+}
+
+/* Matching the Bootstrap colors for consistency */
+.tm-callout-grey {
+    border-left-color: #6c757d;
+}
+
+.tm-callout-blue {
+    border-left-color: #0d6efd;
+}
+
+.tm-callout-red {
+    border-left-color: #dc3545;
+}
+
+.tm-callout-yellow {
+    border-left-color: #ffc107;
+}
+
+.tm-callout-green {
+    border-left-color: #198754;
+}
+
+.tm-callout-cyan {
+    border-left-color: #0dcaf0;
+}
+
+/* Bootstrap's "form-check-input" uses a white dot when a radio item
+   is checked. That breaks when the background color of the radio item
+   is really light or white. This class covers that case (SVG sourced
+   from "form-check-input" with color changed from white to black).
+
+   Note that the syntax should be:
+
+   background-image: url(data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'><circle r='2' fill='%23000'/></svg>);
+
+   but that doesn't seem to work (Chrome says "Invalid property value"),
+   then I found this and encoded the string above into base64:
+   https://stackoverflow.com/a/21626701/10791475
+*/
+.tm-check-reversed:checked[type=radio] {
+	background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9Jy00IC00IDggOCc+PGNpcmNsZSByPScyJyBmaWxsPScjMDAwJy8+PC9zdmc+);
+}
+
+.tm-blink {
+    animation-name: tm-blink-animation;
+    animation-duration: 0.2s;
+}
+
+@keyframes tm-blink-animation {  
+    from { background: red; }
+    to   { background: default; }
+}
+
+.tm-shrink {
+    animation-name: tm-shrink-animation;
+    animation-duration: 0.3s;
+}
+
+@keyframes tm-shrink-animation {  
+    from { transform: scale(1); }
+    to   { transform: scale(0); }
+}
+
+/* Stupid test, tried to see what happens to a search box if you use
+   "pointer-events" to redirect the "x" pseudo-element clicks to the
+   <input> element by disabling the input clicks altogether.
+   Well, nothing good happens, you can't select the text box anymore :-)
+   https://stackoverflow.com/questions/7478336/only-detect-click-event-on-pseudo-element
+
+input[type="search"] {
+	pointer-events: none;
+}
+
+input[type="search"]::-webkit-search-cancel-button {
+	pointer-events: auto;
+}
+*/
+
+/* From Chris Coyier's codepen: https://codepen.io/chriscoyier/pen/XWKEVLy
+   Codepen license is MIT: https://blog.codepen.io/documentation/licensing/
+*/
+.tm-autosize {
+  /* easy way to plop the elements on top of each other and have them both sized based on the tallest one's height */
+  display: grid;
+}
+
+.tm-autosize::after {
+  /* Note the weird space! Needed to preventy jumpy behavior */
+  content: attr(data-replicated-value) " ";
+  /* This is how textarea text behaves */
+  white-space: pre-wrap;
+  /* Hidden from view, clicks, and screen readers */
+  visibility: hidden;
+}
+
+.tm-autosize > textarea {
+  /* You could leave this, but after a user resizes, then it ruins the auto sizing */
+  resize: none;
+  /* Firefox shows scrollbar on growth, you can hide like this. */
+  overflow: hidden;
+}
+
+.tm-autosize > textarea,
+.tm-autosize::after {
+  /* Identical styling required!! */
+  border: 1px solid black;
+
+  /* Need to set padding identical to Bootstrap's "form-floating".
+     If you're not using "form-floating", you should set it back
+	 to "padding: 0.5rem;"
+  */
+  /* padding: 0.5rem; */
+  padding-top: 1.625rem;
+  padding-bottom: .625rem;
+
+  font: inherit;
+  /* Place on top of each other */
+  grid-area: 1 / 1 / 2 / 2;
+}
