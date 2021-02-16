@@ -370,9 +370,20 @@ Classes.SearchableTabViewer = Classes.TabViewer.subclass({
 	// for details.
 	_bodyElem: null,
 
+	// _activateSearchCb() needs to be added and removed as an event listener depending on whether
+	// or not the searchable bstab is active (see _bstabActivatedCb()/_bstabDeactivatedCb()).
+	// Since removeEventListener() relies on the call info to be the same as addEventListener(),
+	// we can't call each with "this._activateSearchCb.bind(this)", because each call to bind()
+	// generates a different function pointer. We need to store the same bound function pointer
+	// to have it at all time.
+	_activateSearchCbBoundFn: null,
+
 _init: function(tabLabelHtml) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.TabViewer._init.apply(this, arguments);
+
+	// See _activateSearchCbBoundFn above for details
+	this._activateSearchCbBoundFn = this._activateSearchCb.bind(this);
 
 	this._SearchableTabViewer_initBodyElem();
 
@@ -380,7 +391,7 @@ _init: function(tabLabelHtml) {
 	// Don't call _activateSearchBox() (see _activateSearchBox() for details).
 	this._SearchableTabViewer_searchBoxInactiveInner();
 	// Classes.TabViewer starts all Bootstrap tabs as inactive, so we don't need to
-	// explicitly call _tabActivatedCb(), the event will fire when the tab gets
+	// explicitly call _bstabActivatedCb(), the event will fire when the tab gets
 	// activated for the first time
 },
 
@@ -462,22 +473,33 @@ _SearchableTabViewer_initBodyElem: function() {
 	this._bodyElem = this.getElementById(bodyId);
 
 	// Note that we need to attach to the end of the tab activation, because the
-	// _tabActivatedCb() call needs to set focus on the search box, and if you attach
+	// _bstabActivatedCb() call needs to set focus on the search box, and if you attach
 	// to the start of the tab activation, that focus gets lost again as part of the
 	// activation process
-	this.addTabActivationEndListener(this._tabActivatedCb.bind(this));
-	this.addTabDeactivationEndListener(this._tabDeactivatedCb.bind(this));
+	this.addTabActivationEndListener(this._bstabActivatedCb.bind(this));
+	this.addTabDeactivationEndListener(this._bstabDeactivatedCb.bind(this));
 },
 
-_tabActivatedCb: function(ev) {
-	window.addEventListener("keydown", this._activateSearchCb.bind(this), true);
+_bstabActivatedCb: function(ev) {
+	const logHead = "SearchableTabViewer::_bstabActivatedCb(): ";
+	this._log(logHead + "searchable tab activated");
+
+	// We're setting the listener very broadly to "window" instead of putting a more
+	// restricted scope, because we want the search to activate regardless of where
+	// the focus might currently be.
+	// See _activateSearchCbBoundFn above for details on this._activateSearchCbBoundFn here.
+	window.addEventListener("keydown", this._activateSearchCbBoundFn, true);
 	if(this._searchActive) {
 		this._searchBoxElem.focus();
 	}
 },
 
-_tabDeactivatedCb: function(ev) {
-	window.removeEventListener("keydown", this._activateSearchCb.bind(this), true);
+_bstabDeactivatedCb: function(ev) {
+	const logHead = "SearchableTabViewer::_bstabDeactivatedCb(): ";
+	this._log(logHead + "searchable tab deactivated");
+
+	// See _activateSearchCbBoundFn above for details on this._activateSearchCbBoundFn here.
+	window.removeEventListener("keydown", this._activateSearchCbBoundFn, true);
 },
 
 // See _activateSearchBox() and _init() for why we split this call out of

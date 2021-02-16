@@ -117,24 +117,25 @@ _renderHeadingAndBody: function() {
 
 	this._rootElem.classList.add("accordion");
 
-	var headingExtraClasses = "collapsed";
-	var bodyExtraClasses = "";
-	var bodyInnerExtraClasses = "";
+	var headingExtraClasses = [];
+	var bodyExtraClasses = [];
+	var bodyInnerExtraClasses = [];
 
 	if(this._options.border) {
 		// This class just seems to add a border to the accordion body.
 		// Strange name for that
-		bodyExtraClasses += "accordion-collapse";
-		bodyInnerExtraClasses += "tm-indent-right";
+		bodyExtraClasses.push("accordion-collapse");
+		bodyInnerExtraClasses.push("tm-indent-right");
 	}
 	if(this._options.startExpanded) {
-		headingExtraClasses = "";
-		bodyExtraClasses += "show";
+		bodyExtraClasses.push("show");
+	} else {
+		headingExtraClasses.push("collapsed");
 	}
 
 	const headingHtml = `
 		<h2 class="accordion-header" id="${headingId}">
-			<button id=${headingInnerId} class="accordion-button ${headingExtraClasses} p-2" type="button" data-bs-toggle="collapse"
+			<button id=${headingInnerId} class="accordion-button ${headingExtraClasses.join(" ")} p-2" type="button" data-bs-toggle="collapse"
 						data-bs-target="#${bodyId}"	aria-expanded="true" aria-controls="${bodyId}">
 			</button>
 		</h2>
@@ -145,8 +146,8 @@ _renderHeadingAndBody: function() {
 	// However, "accordion-body" seems to just be indentation, and overrides my desired indentation,
 	// so I got rid of it.
 	const bodyHtml = `
-		<div id="${bodyId}" class="collapse ${bodyExtraClasses}" aria-labelledby="${headingId}" data-bs-parent="#${this._id}">
-			<div id="${bodyInnerId}" class="${bodyInnerExtraClasses}">
+		<div id="${bodyId}" class="collapse ${bodyExtraClasses.join(" ")}" aria-labelledby="${headingId}" data-bs-parent="#${this._id}">
+			<div id="${bodyInnerId}" class="${bodyInnerExtraClasses.join(" ")}">
 			</div>
 		</div>
 	`;
@@ -295,8 +296,8 @@ _initActiveTabId: function(results) {
 	this.getTabViewerById(this._activeBsTabId).activate();
 },
 
-_tabActivatedCb: function(ev) {
-	const logHead = "PopupViewer::_tabActivatedCb(" + ev.target.id + "): ";
+_bstabActivatedCb: function(ev) {
+	const logHead = "PopupViewer::_bstabActivatedCb(" + ev.target.id + "): ";
 	this._log(logHead + "tab activated", ev);
 
 	this._activeBsTabId = ev.target.id;
@@ -309,7 +310,7 @@ _createTab: function(suffix, htmlLabel, tabViewerSubclass) {
 	
 	var retVal = this._tabViewersDict[tabId] = tabViewerSubclass.createAs(tabId, htmlLabel);
 
-	this._tabViewersDict[tabId].addTabActivationStartListener(this._tabActivatedCb.bind(this));
+	this._tabViewersDict[tabId].addTabActivationStartListener(this._bstabActivatedCb.bind(this));
 	this.append(this._tabViewersDict[tabId]);
 
 	return retVal;

@@ -96,19 +96,12 @@ Stop too much logging during tiles rendering
 - BUG: when creating a new custom group, the tabs re-query re-render doesn't
   seem to get triggered automatically
 
-- BUG: accordion tiles don't remain open anymore
-
-- Add support for wildcards in "matchList" of custom groups
-
 - BUG: Since 2021.02.05, access to "chrome://" URLs seems to be prevented from
   within the popup, and the links in Settings are dead
   * The error message in the console is "Not allowed to load local resource"
   * https://chromereleases.googleblog.com/
   * https://www.theverge.com/2021/2/5/22267872/chrome-88-zero-day-vulnerability-government-backed-hackers-security-researchers
  
-- BUG: TabsTabViewer enter search mode when typing in an <input> of SettingsTabViewer.
-  This should not happens, what happens in SettingsTabViewer stays in SettingsTabViewer.
-
 - Remove artificial settings initialized in popup.js before release
 
 - Implement TileMenuViewer._updateShortcutMenuItems()
@@ -152,8 +145,6 @@ Stop too much logging during tiles rendering
   the Chrome window and stay on the same tab (like it happens when "back" from a
   "-1" window
 
-- Add copyright header to files
-
 - Disable Base._assert() for production code
 
 - When a tab has a load error (which prevents injection of inject-getMeta.js)
@@ -176,14 +167,14 @@ Stop too much logging during tiles rendering
 
 - Add settings
 
-- Publish on github 
-
 - Find out how to package for release
 
 - Include also bookmarks in the search results, not only open tabs
   * https://developer.chrome.com/docs/extensions/reference/bookmarks/#method-search
   * If a bookmark is in a tab, it should not show up twice
   * Should also add a badge mentioning a tab is bookmarked?
+
+- Show current tab in current window at the top of the tabs list?
 
 
 DONE
@@ -367,8 +358,45 @@ DONE
 - Allow users to specify custom groups hostnames as regular text, not
   standard regex
 
+- Publish on github 
+
+- Add copyright header to files
+  * Per github convention, added info only in LICENSE file
+
+- BUG: accordion tiles don't remain open anymore
+
+- BUG: TabsTabViewer enter search mode when typing in an <input> of SettingsTabViewer.
+  This should not happen, what happens in SettingsTabViewer stays in SettingsTabViewer.
+
 
 PUNTED TO NEXT RELEASE
+
+- Add support for wildcards in "matchList" of custom groups
+
+- Sort/group tabs by other means (by window, etc.)
+
+- Display details about video
+  * For Zoom video playback, you can use:
+	"-webkit-media-controls-timeline"
+	<input type="range" step="any" pseudo="-webkit-media-controls-timeline" max="2733.408" aria-label="video time scrubber 0:00 / 45:33" aria-valuetext="elapsed time: 0:00">
+  * Or:
+    <input type="button" pseudo="-webkit-media-controls-play-button" aria-label="play" class="pause" style="">
+	<div aria-label="elapsed time: 0:00" pseudo="-webkit-media-controls-current-time-display" style="">0:00</div>
+	(though the time seems to be stuck at "0:00")
+
+  * Actually this has all the data (updated in real time):	
+	<div class="vjs-control-bar" dir="ltr">
+	  <div class="vjs-progress-control vjs-control">
+	    <div tabindex="0" class="vjs-progress-holder vjs-slider vjs-slider-horizontal" role="slider" aria-valuenow="NaN" aria-valuemin="0" aria-valuemax="100" aria-label="Progress Bar" aria-valuetext="04:40 of 45:33">
+		[...]
+		  <div class="vjs-time-tooltip" aria-hidden="true" style="right: -23.0156px;">14:45</div>
+		  <div class="vjs-time-tooltip" aria-hidden="true">04:38</div>
+
+  * For Youtube can use:
+    <div class="ytp-time-display notranslate" style="">
+	  <span class="ytp-time-current">0:22</span>
+	  <span class="ytp-time-separator"> / </span>
+	  <span class="ytp-time-duration">2:00:21</span>
 
 - Add logic to let "www.google.com" be recognized as a valid URL, even though new URL()
   won't consider it valie
