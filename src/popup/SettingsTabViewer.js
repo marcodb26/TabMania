@@ -20,9 +20,14 @@ Classes.SettingsItemViewer = Classes.HtmlViewer.subclass({
 		</div>
 	`,
 
+	// Which key in storageSettings will trigger updates?
+	// Subclasses leave it "null" if they want to trigger updates for any
+	// storage key change.
+	_trackedUpdateKey: null,
+
 // Using ES6 destructuring syntax to help with the proliferation of optional parameters
 // in the settings logic...
-_init: function({ setFn, getFn, label }) {
+_init: function({ setFn, getFn, label, updateKey }) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.HtmlViewer._init.call(this, this._rootHtml);
 	this.debug();
@@ -35,6 +40,7 @@ _init: function({ setFn, getFn, label }) {
 	this._getFn = getFn;
 
 	this._label = label;
+	this._trackedUpdateKey = updateKey;
 	this._enabled = true;
 
 	this._startListeners();
@@ -45,16 +51,14 @@ _init: function({ setFn, getFn, label }) {
 // The worst case is receiving an event before the _init() of the subclass has been
 // completed, and therefore _inputElem is still null.
 _startListeners: function() {
-	// We listen for all updates, and trigger a refresh, even if the update
-	// did not affect the exact property we're tracking. A bit crude, but
-	// Settings updates should be rare, so being efficient is not a real
-	// priority here.
-	// The event should include "details.key" to identify at least the object
-	// that was modified, so if needed, we could add logic to make this class
-	// aware of the "key" we care about, but for now it seems ok to go broad.
-	settingsStore.addEventListener(Classes.EventManager.Events.UPDATED, function(ev) {
-		this.setValue(this._getFn());
-	}.bind(this));
+	// We listen for updates to specific keys, as determined by the instance of the subclass
+	settingsStore.addEventListener(Classes.EventManager.Events.UPDATED,
+		function(ev) {
+			if(this._trackedUpdateKey == null || this._trackedUpdateKey == ev.detail.key) {
+				this.setValue(this._getFn());
+			}
+		}.bind(this)
+	);
 },
 
 _setAttributesHtml: function(extraAttrs) {
@@ -110,7 +114,7 @@ Classes.SettingsTextItemViewer = Classes.SettingsItemViewer.subclass({
 	_setFn: null,
 	_getFn: null,
 
-_init: function({ setFn, getFn, label, placeholderText, helpHtml }) {
+_init: function({ setFn, getFn, label, placeholderText, helpHtml, updateKey }) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.SettingsItemViewer._init.apply(this, arguments);
 	this.debug();
@@ -276,7 +280,7 @@ Classes.SettingsTextAreaItemViewer = Classes.SettingsItemViewer.subclass({
 	_setFn: null,
 	_getFn: null,
 
-_init: function({ setFn, getFn, label, placeholderText, helpHtml }) {
+_init: function({ setFn, getFn, label, placeholderText, helpHtml, updateKey }) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.SettingsItemViewer._init.apply(this, arguments);
 	this.debug();
@@ -373,7 +377,7 @@ Classes.SettingsCheckboxItemViewer = Classes.SettingsItemViewer.subclass({
 	_setFn: null,
 	_getFn: null,
 
-_init: function({ setFn, getFn, label }) {
+_init: function({ setFn, getFn, label, updateKey }) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.SettingsItemViewer._init.apply(this, arguments);
 	this.debug();
@@ -452,7 +456,7 @@ Classes.SettingsColorsItemViewer = Classes.SettingsItemViewer.subclass({
 
 	_radioElemByColor: null,
 
-_init: function({ setFn, getFn }) {
+_init: function({ setFn, getFn, updateKey }) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.SettingsItemViewer._init.apply(this, arguments);
 	this.debug();
@@ -952,6 +956,7 @@ _renderCustomGroupSettings: function() {
 	let color = Classes.SettingsColorsItemViewer.create({
 		setFn: this._applyColorChange.bind(this),
 		getFn: this._getProp.bind(this, "color"),
+		updateKey: "customGroups"
 	});
 	this.append(color);
 	this._allInputsCanDisable.push(color);
@@ -968,7 +973,8 @@ _renderCustomGroupSettings: function() {
 		getFn: this._getGroupName.bind(this),
 		label: "Group name",
 		placeholderText: "",
-		helpHtml: help
+		helpHtml: help,
+		updateKey: "customGroups"
 	});
 
 	this.append(this._groupNameInput);
@@ -978,7 +984,8 @@ _renderCustomGroupSettings: function() {
 		getFn: this._getProp.bind(this, "favIconUrl"),
 		label: "Icon URL for this group",
 		placeholderText: "",
-		helpHtml: "Optional, if not specified, one will be taken from tabs in the custom group"
+		helpHtml: "Optional, if not specified, one will be taken from tabs in the custom group",
+		updateKey: "customGroups"
 	});
 
 	this.append(favIconUrl);
@@ -989,7 +996,8 @@ _renderCustomGroupSettings: function() {
 		getFn: this._getProp.bind(this, "matchList"),
 		label: "List of hostnames to match the group",
 		placeholderText: "",
-		helpHtml: this._safeText("One hostname match expression per line")
+		helpHtml: "One hostname match expression per line",
+		updateKey: "customGroups"
 	});
 
 	this.append(matchList);
@@ -1028,7 +1036,8 @@ _renderShortcutSettings: function() {
 		getFn: settingsStore.getOptionSearchUrl.bind(settingsStore),
 		label: "Search URL for launch/search shortcut",
 		placeholderText: "https://www.google.com/search?q=%s",
-		helpHtml: this._safeText("Use %s to indicate where the text from the clipboard should get pasted")
+		helpHtml: this._safeText("Use %s to indicate where the text from the clipboard should get pasted"),
+		updateKey: "options"
 	});
 
 	this.append(searchUrl);
@@ -1061,7 +1070,8 @@ _renderShortcutSettings: function() {
 		getFn: sm.getShortcutHostnameOrUrl.bind(sm, this._shortcutKey),
 		label: "Hostname or URL",
 		placeholderText: "e.g.: www.google.com",
-		helpHtml: this._safeText("Use %s to indicate where the text from the clipboard should get pasted")
+		helpHtml: this._safeText("Use %s to indicate where the text from the clipboard should get pasted"),
+		updateKey: this._shortcutKey
 	});
 
 	this.append(hostnameOrUrl);
@@ -1070,6 +1080,7 @@ _renderShortcutSettings: function() {
 		setFn: sm.setShortcutProp.bind(sm, this._shortcutKey, "alwaysNewTab"),
 		getFn: sm.getShortcutProp.bind(sm, this._shortcutKey, "alwaysNewTab"),
 		label: "Always open shortcut in new tab",
+		updateKey: this._shortcutKey
 	});
 
 	this.append(alwaysNewTab);
@@ -1078,6 +1089,7 @@ _renderShortcutSettings: function() {
 		setFn: sm.setShortcutProp.bind(sm, this._shortcutKey, "useClipboard"),
 		getFn: sm.getShortcutProp.bind(sm, this._shortcutKey, "useClipboard"),
 		label: "Enable search of clipboard contents",
+		updateKey: this._shortcutKey
 	});
 
 	this.append(useClipboard);
@@ -1219,6 +1231,7 @@ _renderSettings: function() {
 		setFn: settingsStore.setOptionShowTabId.bind(settingsStore),
 		getFn: settingsStore.getOptionShowTabId.bind(settingsStore),
 		label: "Display extended tab ID badge",
+		updateKey: "options",
 	});
 
 	this._generalSettingsContainer.append(showTabId);
@@ -1227,6 +1240,7 @@ _renderSettings: function() {
 		setFn: settingsStore.setOptionAdvancedMenu.bind(settingsStore),
 		getFn: settingsStore.getOptionAdvancedMenu.bind(settingsStore),
 		label: "Show advanced items in tab tiles menu",
+		updateKey: "options",
 	});
 
 	this._generalSettingsContainer.append(advancedMenu);
@@ -1263,9 +1277,9 @@ _renderSettings: function() {
 
 	this._renderExtensionShortcutsLink();
 
-	let lostShortcut = Classes.SettingsLosShortcutViewer.create("Shortcut launch/search");
+	let losShortcut = Classes.SettingsLosShortcutViewer.create("Shortcut launch/search");
 
-	this._shortcutsContainer.append(lostShortcut);
+	this._shortcutsContainer.append(losShortcut);
 
 	let sm = settingsStore.getShortcutsManager();
 	sm.getShortcutKeys().forEach(
@@ -1320,8 +1334,14 @@ _delCustomGroups: function(namesList) {
 },
 
 _updatedCb: function(ev) {
-	const logHead = "SettingsTabViewer::_updatedCb(): ";
-	this._log(logHead + "entering", ev.detail);
+	const logHead = "SettingsTabViewer::_updatedCb(" + ev.detail.key + "): ";
+
+	if(ev.detail.key != "customGroups") {
+		this._log(logHead + "ignoring key");
+		return;
+	}
+
+	this._log(logHead + "processing change", ev.detail);
 
 	// We need to do a diff of the names we know vs. the names in settingsStore
 	let newNames = settingsStore.getCustomGroupNames().sort();

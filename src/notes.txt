@@ -370,6 +370,10 @@ DONE
 
 - BUG: GroupsBuilder was triggering an update even when the changed key was not "customGroups"
 
+- Reduced number of unnecessary settings refreshes. Each settings viewer now listens only
+  to changes for a specific event "key"
+
+
 PUNTED TO NEXT RELEASE
 
 - Add support for wildcards in "matchList" of custom groups
