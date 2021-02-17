@@ -584,8 +584,8 @@ _activateSearchCb: function(ev) {
 },
 
 _searchBoxInputListenerCb: function(ev) {
-	const logHead = "SearchableTabViewer::_searchBoxInputListenerCb(value: " +
-					ev.target.value + ", " + "time: " + Date.now() + "): ";
+	const logHead = "SearchableTabViewer::_searchBoxInputListenerCb(value: \"" +
+					ev.target.value + "\", " + "time: " + Date.now() + "): ";
 
 	this._log(logHead + "searchbox changed");
 	if(ev.target.value == "") {
