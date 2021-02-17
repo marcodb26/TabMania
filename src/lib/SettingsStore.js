@@ -41,7 +41,7 @@ _init: function(tabs) {
 	this._tabs = optionalWithDefault(tabs, []);
 	this.debug();
 
-	this._normalizeAll();
+	this.normalizeAll();
 },
 
 // Static function
@@ -146,6 +146,85 @@ formatExtendedId: function(tab) {
 	return tab.windowId + ":" + tab.id + "/" + tab.index;
 },
 
+_addNormalizedShortcutBadges: function(tab, secondary) {
+	//const logHead = "NormalizedTabs::_addNormalizedShortcutBadges(" + tab.tm.hostname + "): ";
+
+	let sm = settingsStore.getShortcutsManager();
+	let scKeys = sm.getShortcutKeysForTab(tab, !secondary);
+
+	let array = tab.tm.primaryShortcutBadges;
+	if(secondary) {
+		array = tab.tm.secondaryShortcutBadges;
+	}
+
+	scKeys.forEach(
+		function(key) {
+			let keyAsString = sm.keyToUiString(key);
+			// See description in normalizeTab() for why we add these badges
+			// in two places
+			array.push(keyAsString);
+			tab.tm.hiddenSearchBadges.push(keyAsString.toLowerCase());
+		}.bind(this)
+	);
+},
+
+updateShortcutBadges: function(tab) {
+	// First candidates
+	this._addNormalizedShortcutBadges(tab, false);
+	// Not first candidate next
+	this._addNormalizedShortcutBadges(tab, true);
+},
+
+// The badges need to be normalized to lower case to properly support
+// case insensitive search.
+// "hidden" determines whether the search badge will be visible or hidden,
+// see normalizeTab() for details.
+_addNormalizedSearchBadge: function(tab, badge, hidden) {
+	hidden = optionalWithDefault(hidden, false);
+
+	if(hidden) {
+		tab.tm.hiddenSearchBadges.push(badge.toLowerCase());
+	} else {
+		tab.tm.searchBadges.push(badge.toLowerCase());
+	}
+},
+
+updateSearchBadges: function(tab) {
+	if(tab.discarded) {
+		this._addNormalizedSearchBadge(tab, "discarded");
+	}
+
+	if(tab.highlighted) {
+		this._addNormalizedSearchBadge(tab, "highlighted");
+	}
+
+	if(tab.incognito) {
+		this._addNormalizedSearchBadge(tab, "incognito", true);
+	}
+
+	if(tab.status != null) {
+		switch(tab.status) {
+			// "unloaded" and "complete" are hidden search badges, all other
+			// states are visible badges
+			case "unloaded":
+			case "complete":
+				this._addNormalizedSearchBadge(tab, tab.status, true);
+				break;
+
+			default:
+				this._addNormalizedSearchBadge(tab, tab.status);
+				break;
+		}
+	}
+
+	if(tab.pinned) {
+		this._addNormalizedSearchBadge(tab, "pinned");
+	}
+
+	// We always want this to appear last, if the user configured it to be visible
+	this._addNormalizedSearchBadge(tab, tab.tm.extId, !settingsStore.getOptionShowTabId());
+},
+
 // This can be used as a static function of the class, it doesn't
 // need any state from "this".
 normalizeTab: function(tab) {
@@ -172,14 +251,34 @@ normalizeTab: function(tab) {
 		// letting the tile itself decide how to populate it to support
 		// search. Search won't (or at least, should not) happen anyway until
 		// after the tiles are rendered.
-		// These badges will have to be normalized to lower case to properly
-		// support case insensitive search.
-		searchBadges: []
+		searchBadges: [],
+
+		// Some search badges will be displayed in the tiles, some will not be
+		// displayed in the tiles, but still searchable
+		// For example, "incognito" gets rendered by a darker tile, so the badge
+		// doesn't need to be shown, but it's still good to allow searching of
+		// just "incognito" tabs.
+		hiddenSearchBadges: [],
+
+		// The following two are shortcut badges for visualization, not for search,
+		// and as such the text should show up in the case (upper/lower) combination
+		// determined for the UI. These badges will also appear in the "hidden"
+		// search badges with their normalized lower case representation.
+		// See _addNormalizedShortcutBadges().
+		primaryShortcutBadges: [],
+		secondaryShortcutBadges: [],
 	};
+	this.updateShortcutBadges(tab);
+	this.updateSearchBadges(tab);
 },
 
-_normalizeAll: function() {
+// Call this function if you need a full refresh of all search/shortcut badges due
+// to a configuration change
+normalizeAll: function() {
+	perfProf.mark("normalizeStart");
 	this._tabs.forEach(this.normalizeTab.bind(this));
+	perfProf.mark("normalizeEnd");
+	perfProf.measure("Normalize", "normalizeStart", "normalizeEnd");
 },
 
 // Since the tabs are normalized at initialization, this function always
@@ -210,10 +309,22 @@ getTabByTabId: function(searchTabId) {
 	return this._tabs[tabIdx];
 },
 
-updateTab: function(newTab) {
+// Returns "null" if the "tabIdx" is invalid, a tab otherwise
+getTabByTabIndex: function(tabIdx) {
+	if(tabIdx < 0 || tabIdx > this._tabs.length) {
+		return null;
+	}
+
+	return this._tabs[tabIdx];
+},
+
+// tabIdx is optional, defaults to "search it". Use it to pass in the tabIdx
+// if you already know it because you called getTabIndexByTabId() before,
+// and avoid another linear search again in this function.
+updateTab: function(newTab, tabIdx) {
 	this.normalizeTab(newTab);
 
-	let tabIdx = this.getTabIndexByTabId(newTab.id);
+	tabIdx = optionalWithDefault(tabIdx, this.getTabIndexByTabId(newTab.id));
 
 	if(tabIdx == -1) {
 		// Add new tab at the end

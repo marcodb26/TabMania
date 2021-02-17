@@ -120,7 +120,9 @@ _settingsStoreUpdatedCb: function(ev) {
 		this._queryAndRenderJob.run(this._queryAndRenderDelay);
 		return;
 	}
-	// Not a search case, just render the tiles
+	// Not a search case, just normalize the search badges (configuration changes
+	// can cause changes to the visible badges) and then render the tiles
+	this._normTabs.normalizeAll()
 	this._renderTileBodies();
 },
 
@@ -161,11 +163,15 @@ _tabUpdatedByTabCb: function(cbType, tabId, activeChangeRemoveInfo, tab) {
 			break;
 		case Classes.TabUpdatesTracker.CbType.ACTIVATED:
 			if(this._queryAndRenderDelay != null && this._queryAndRenderDelay != 0) {
-				let tab = this._normTabs.getTabByTabId(tabId);
+				let tabIdx = this._normTabs.getTabIndexByTabId(tabId);
+				let tab = this._normTabs.getTabByTabIndex(tabIdx);
 				this._assert(tab != null);
 				tab.highlighted = true;
-				// No need to call this._normTabs.updateTab(tab), the tab object
-				// we just updated is already in there.
+				// We need to call this._normTabs.updateTab(tab), because even though the
+				// tab object we just updated is already in there, since we changed
+				// a property that affects the search badges, we need to re-normalize
+				// the tab to get the change reflected in the search badges
+				this._normTabs.updateTab(tab, tabIdx);
 				this._tilesByTabId[tabId].update(tab);
 			}
 			this._queryAndRenderJob.run(this._queryAndRenderDelay);
@@ -173,7 +179,8 @@ _tabUpdatedByTabCb: function(cbType, tabId, activeChangeRemoveInfo, tab) {
 		case Classes.TabUpdatesTracker.CbType.MOVED:
 		case Classes.TabUpdatesTracker.CbType.ATTACHED:
 			if(this._queryAndRenderDelay != null && this._queryAndRenderDelay != 0) {
-				let tab = this._normTabs.getTabByTabId(tabId);
+				let tabIdx = this._normTabs.getTabIndexByTabId(tabId);
+				let tab = this._normTabs.getTabByTabIndex(tabIdx);
 				this._assert(tab != null);
 
 				if(cbType == Classes.TabUpdatesTracker.CbType.ATTACHED) {
@@ -183,8 +190,9 @@ _tabUpdatedByTabCb: function(cbType, tabId, activeChangeRemoveInfo, tab) {
 					tab.index = activeChangeRemoveInfo.toIndex;
 					tab.windowId = activeChangeRemoveInfo.windowId;
 				}
-				// No need to call this._normTabs.updateTab(tab), the tab object
-				// we just updated is already in there.
+				// We need to call this._normTabs.updateTab(tab), same reasons as
+				// for the previous case
+				this._normTabs.updateTab(tab, tabIdx);
 
 				// Since a tab has moved, we need to update the shortcutsManager
 				settingsStore.getShortcutsManager().updateTabs(this._normTabs.getTabs());
@@ -299,27 +307,49 @@ _queryAndRenderTabs: function() {
 	perfProf.mark("queryStart");
 	return this._tabsAsyncQuery().then(
 		function(tabs) {
+			perfProf.mark("queryEnd");
+			this._tilesByTabId = {};
+
 			try {
-				this._tilesByTabId = {};
 				// Normalize the incoming tabs. Note that the normalization
 				// and sorting happens in place in "tabs", so after create()
 				// we can just ignore the "normTabs" object... but to be
 				// good future-proof citizens, let's call the right interface...
-				perfProf.mark("normalizeStart");
 				this._normTabs = Classes.NormalizedTabs.create(tabs);
 
 				perfProf.mark("shortcutsStart");
 				// Note that we need to make this call only when the tabs change,
 				// not when the settingsStore configuration changes (in that case
-				// updateTabs() is done automatically inside the shortcutManager
+				// updateTabs() is done automatically inside the shortcutManager)
 				settingsStore.getShortcutsManager().updateTabs(this._normTabs.getTabs());
+				// Classes.NormalizedTabs.create() automatically normalizes the tabs,
+				// but when it's done, the ShortcutsManager is not configured, so
+				// the tabs are normalized without accurate shortcut badges. This
+				// means that we update ShortcutsManager, we must update the normalization
+				// to make sure it reflets the potentially updated shortcut badges.
+				// Note that we can't normalize only once, because ShortcutManager
+				// needs some elements of normalization in order to prepare the
+				// shortcut information correctly. Calling normalization twice is
+				// unavoidable, though if this was really a performance problem
+				// (it doesn't seem to be) we could add a flag to normalizeAll()
+				// to instruct it to skip shortcut badges, or to only do shortcut
+				// badges, and that way, each normalizeAll() would actually normalize
+				// disjoint subsets of information, and we'd have no duplication.
+				// Given the profiling results, this optimization doesn't seem to
+				// be worth the effort... though it's tempting, as it would be
+				// a cleaner solution. The real effort would be in the fact that
+				// when we update the shortcut badges we also need to update the
+				// hidden search badges, and to keep them "clean" (no duplications)
+				// we'd always need to refresh all search badges from scratch (or
+				// do some proper diffs of the hidden search badges)... too much
+				// work.
+				this._normTabs.normalizeAll();
 
 				perfProf.mark("renderStart");
 				this._renderTabs(this._normTabs.getTabs());
 				perfProf.mark("renderEnd");
 				
-				perfProf.measure("Query", "queryStart", "normalizeStart");
-				perfProf.measure("Normalize", "normalizeStart", "shortcutsStart");
+				perfProf.measure("Query", "queryStart", "queryEnd");
 				perfProf.measure("Shortcuts", "shortcutsStart", "renderStart");
 				perfProf.measure("Rendering", "renderStart", "renderEnd");
 
@@ -569,17 +599,27 @@ _isTabInCurrentSearch: function(tab) {
 		return true;
 	}
 
-	// Note that "extId" could also be in a search badge, but that depends
-	// on user configuration, and we want to be able to search by extended ID
-	// regardless of whether or not the badge is visually there, so we need
-	// to search here explicitly.
-	// No need for ".toLowerCase()" here.
-	if(tab.tm.extId.includes(this._currentSearchInput)) {
-		return true;
-	}
+// Now "tab.tm.extId" is always either in searchBadges or in hiddenSearchBadges,
+// (depending on whether it's configured visible), so there's no more need to
+// special-case it
+//
+//	// Note that "extId" could also be in a search badge, but that depends
+//	// on user configuration, and we want to be able to search by extended ID
+//	// regardless of whether or not the badge is visually there, so we need
+//	// to search here explicitly.
+//	// No need for ".toLowerCase()" here.
+//	if(tab.tm.extId.includes(this._currentSearchInput)) {
+//		return true;
+//	}
 
 	for(let i = 0; i < tab.tm.searchBadges.length; i++) {
 		if(tab.tm.searchBadges[i].includes(this._currentSearchInput)) {
+			return true;
+		}
+	}
+
+	for(let i = 0; i < tab.tm.hiddenSearchBadges.length; i++) {
+		if(tab.tm.hiddenSearchBadges[i].includes(this._currentSearchInput)) {
 			return true;
 		}
 	}

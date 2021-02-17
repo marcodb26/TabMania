@@ -66,7 +66,7 @@ _renderEmptyTile: function() {
 },
 
 // "secondary" is a flag (default "false") that determines the color
-// of te badge
+// of the badge
 _badgeHtml: function(txt, secondary) {
 	secondary = optionalWithDefault(secondary, false);
 	let bgColor = "bg-dark";
@@ -74,55 +74,30 @@ _badgeHtml: function(txt, secondary) {
 		bgColor = "bg-secondary";
 	}
 
-	// Important to normalize the badge to lower case for search...
-	this._tab.tm.searchBadges.push(txt.toLowerCase());
 	return `<span class="badge tm-text-badge ${bgColor}">${txt}</span>`;
 },
 
-_addShortcutBadgesInner: function(properties, scKeys, secondary) {
-	let sm = settingsStore.getShortcutsManager();
-	scKeys.forEach(
-		function(key) {
-			properties.push(this._badgeHtml(sm.keyToUiString(key), secondary));
+_addBadgesHtml: function(visibleBadgesHtml, badgesList, secondary) {
+//	const logHead = "TabTileViewer::_addBadgesHtml(" + this._tab.id + "): ";
+//	this._log(logHead, badgesList);
+	badgesList.forEach(
+		function(badge) {
+			visibleBadgesHtml.push(this._badgeHtml(badge, secondary));
 		}.bind(this)
 	);
 },
 
-_addShortcutBadges: function(properties) {
-	//const logHead = "TabTileViewer::_addShortcutBadges(" + this._tab.tm.hostname + "): ";
-	let sm = settingsStore.getShortcutsManager();
-
-	// First candidate first
-	let scKeys = sm.getShortcutKeysForTab(this._tab);
-	this._addShortcutBadgesInner(properties, scKeys);
-
-	// Not first candidate next
-	scKeys = sm.getShortcutKeysForTab(this._tab, false);
-	this._addShortcutBadgesInner(properties, scKeys, true);
-},
-
 renderBody: function() {
-	let properties = [];
-	let titleExtraClasses = "";
+	let visibleBadgesHtml = [];
+	let titleExtraClasses = [];
 	let textMuted = "text-muted";
-	let imgExtraClasses = "";
+	let imgExtraClasses = [];
 
-	// Reinitialize the tab searchBadges in case they've changed (?)
-	// We're setting them inside _badgeHtml().
-	this._tab.tm.searchBadges = [];
-
-	this._addShortcutBadges(properties);
-
-	if(this._tab.discarded) {
-		properties.push(this._badgeHtml("discarded"));
-	}
-
-	if(this._tab.highlighted) {
-		properties.push(this._badgeHtml("highlighted"));
-	}
+	this._addBadgesHtml(visibleBadgesHtml, this._tab.tm.primaryShortcutBadges);
+	this._addBadgesHtml(visibleBadgesHtml, this._tab.tm.secondaryShortcutBadges, true);
+	this._addBadgesHtml(visibleBadgesHtml, this._tab.tm.searchBadges);
 
 	if(this._tab.incognito) {
-		properties.push(this._badgeHtml("incognito"));
 		this.addClasses("bg-secondary", "text-light", "border-dark");
 		// Bootstrap "text-muted" only works for light backgrounds
 		textMuted = "";
@@ -131,24 +106,16 @@ renderBody: function() {
 	if(this._tab.status != null) {
 		switch(this._tab.status) {
 			case "unloaded":
-				titleExtraClasses = "fst-italic";
-				imgExtraClasses = "tm-favicon-bw";
+				titleExtraClasses.push("fst-italic");
+				imgExtraClasses.push("tm-favicon-bw");
 				break;
 			case "complete":
 				// Don't add any visual clue if the tab is fully loaded
 				break;
 			default:
-				properties.push(this._badgeHtml(this._tab.status));
+				// Don't add any visual clue if the tab is fully loaded
 				break;
 		}
-	}
-
-	if(this._tab.pinned) {
-		properties.push(this._badgeHtml("pinned"));
-	}
-
-	if(settingsStore.getOptionShowTabId()) {
-		properties.push(this._badgeHtml(this._tab.tm.extId));
 	}
 
 	// See https://getbootstrap.com/docs/5.0/components/card/
@@ -156,8 +123,8 @@ renderBody: function() {
 	// and max-width settings of tm-favicon-16 enough?
 	const bodyHtml = `
 		<p class="card-title text-truncate tm-tile-title mb-0">
-			<span class="pe-2"><img class="tm-favicon-16 ${imgExtraClasses}" src="${this._imgUrl}"></span>
-			<span class="${textMuted} ${titleExtraClasses}">${this._safeText(this._title)}</span>
+			<span class="pe-2"><img class="tm-favicon-16 ${imgExtraClasses.join(" ")}" src="${this._imgUrl}"></span>
+			<span class="${textMuted} ${titleExtraClasses.join(" ")}">${this._safeText(this._title)}</span>
 		</p>
 		<div class="d-flex">
 			<p class="flex-grow-1 align-self-center text-truncate tm-tile-url">
@@ -165,7 +132,7 @@ renderBody: function() {
 			</p>
 			<p> </p>
 			<p class="align-self-center card-text small" style="text-align: right;">
-				${properties.join(" ")}
+				${visibleBadgesHtml.join(" ")}
 			</p>
 		</div>
 	`;
