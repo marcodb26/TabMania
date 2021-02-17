@@ -38,6 +38,7 @@ _settingStoreUpdatedCb: function(ev) {
 	// take this action if it's actually changed
 	if(ev.detail.key != "customGroups") {
 		this._log(logHead + "ignoring key");
+		return;
 	}
 
 	this._log(logHead + "processing update");

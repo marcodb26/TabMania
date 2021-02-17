@@ -368,6 +368,7 @@ DONE
 - BUG: TabsTabViewer enter search mode when typing in an <input> of SettingsTabViewer.
   This should not happen, what happens in SettingsTabViewer stays in SettingsTabViewer.
 
+- BUG: GroupsBuilder was triggering an update even when the changed key was not "customGroups"
 
 PUNTED TO NEXT RELEASE
 
