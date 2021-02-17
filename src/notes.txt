@@ -408,6 +408,12 @@ DONE
 - BUG: "active" badge doesn't get removed from tab in search result when a different
   tab becomes active
 
+- Added icons for audible and muted
+
+- Added "mute/unmute" menu item
+
+- Cleaned up use of Font Awesome icons
+
 
 PUNTED TO NEXT RELEASE
 
