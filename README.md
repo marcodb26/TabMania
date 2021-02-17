@@ -23,3 +23,6 @@ For example, if you search for "loaded", you'll match both the "loaded" search b
 "unloaded" search badge (since "loaded" is contained in "unloaded"). This will likely leave you with
 all the tabs you have (unless some are "loading"). If you only want to find the "loaded" tabs, type
 "^loaded", and the "unloaded" tabs won't be selected.
+
+## Geek notes
+Call "tmStats()" on the dev tools console of the popup to see some popup performance statistics.
