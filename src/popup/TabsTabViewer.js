@@ -29,6 +29,8 @@ Classes.TabsTabViewer = Classes.SearchableTabViewer.subclass({
 
 	// This will be initialized by the first call to _activateSearchBox()
 	_currentSearchInput: null,
+	// This is only for debugging, the actual processing depends on _searchCompareFn()
+	_currentSearchMode: null,
 
 	_queryAndRenderJob: null,
 	// Delay before a full re-render happens. Use this to avoid causing too many re-renders
@@ -273,8 +275,10 @@ _enableNotificationsForTabs: function(tabs) {
 			tabUpdatesTracker.updateRegisterByTabList(this._updatesTrackerHandleIdByTab, list);
 		}
 	} else {
-		tabUpdatesTracker.unregisterByTabList(this._updatesTrackerHandleIdByTab);
-		this._updatesTrackerHandleIdByTab = null;
+		if(this._updatesTrackerHandleIdByTab != null) {
+			tabUpdatesTracker.unregisterByTabList(this._updatesTrackerHandleIdByTab);
+			this._updatesTrackerHandleIdByTab = null;
+		} // Else, if it's already "null", nothing to do...
 	}
 },
 
@@ -538,6 +542,7 @@ _processTabGroupsCb: function(tabGroups) {
 _TabsTabViewer_searchBoxInactiveInner: function() {
 	this._currentSearchResults = null;
 	this._currentSearchInput = "";
+	this._currentSearchMode = "[ uninitialized ]";
 	this._renderTabs = this._standardRenderTabs;
 },
 
@@ -569,6 +574,30 @@ _activateSearchBox: function(active) {
 
 // Override this function from Classes.SearchableTabViewer
 _searchBoxProcessData: function(value) {
+	// If value.length == 0, this function doesn't get called...
+	this._assert(value.length != 0);
+
+	let searchMode = [];
+	this._isTabInCurrentSearch = this._isTabInCurrentSearchPositive.bind(this);
+
+	if(value[0] == "!") {
+		searchMode.push("neg");
+		this._isTabInCurrentSearch = this._isTabInCurrentSearchNegative.bind(this);
+		// Move to the next character, the first character has been used
+		value = value.substring(1);
+	}
+
+	if(value.length != 0 && value[0] == "^") {
+		searchMode.push("startsWith");
+		this._searchCompareFn = this._searchCompareFnInner.bind(this, "startsWith");
+		value = value.substring(1);
+	} else {
+		searchMode.push("includes");
+		this._searchCompareFn = this._searchCompareFnInner.bind(this, "includes");
+	}
+
+	this._currentSearchMode = searchMode.join("-");
+
 	// Search is case insensitive
 	this._currentSearchInput = value.toLowerCase();
 	// Redraw the tab list.
@@ -590,12 +619,21 @@ _respondToEnterKey: function(searchBoxText) {
 	chromeUtils.activateTab(this._currentSearchResults[0].id);
 },
 
-_isTabInCurrentSearch: function(tab) {
-	if(tab.tm.lowerCaseTitle.includes(this._currentSearchInput)) {
+_searchCompareFnInner: function(fnName, targetString, searchString) {
+	return targetString[fnName](searchString);
+},
+
+// Unlike _searchCompareFnInner(), _searchCompareFn has signature
+// _searchCompareFn(targetString, searchString), that is, the "fnName"
+// argument has been bound when the _searchCompareFn value has been assigned
+_searchCompareFn: null,
+
+_isTabInCurrentSearchPositive: function(tab) {
+	if(this._searchCompareFn(tab.tm.lowerCaseTitle, this._currentSearchInput)) {
 		return true;
 	}
 
-	if(tab.tm.lowerCaseUrl.includes(this._currentSearchInput)) {
+	if(this._searchCompareFn(tab.tm.lowerCaseUrl, this._currentSearchInput)) {
 		return true;
 	}
 
@@ -608,18 +646,18 @@ _isTabInCurrentSearch: function(tab) {
 //	// regardless of whether or not the badge is visually there, so we need
 //	// to search here explicitly.
 //	// No need for ".toLowerCase()" here.
-//	if(tab.tm.extId.includes(this._currentSearchInput)) {
+//	if(this._searchCompareFn(tab.tm.extId, this._currentSearchInput)) {
 //		return true;
 //	}
 
 	for(let i = 0; i < tab.tm.searchBadges.length; i++) {
-		if(tab.tm.searchBadges[i].includes(this._currentSearchInput)) {
+		if(this._searchCompareFn(tab.tm.searchBadges[i], this._currentSearchInput)) {
 			return true;
 		}
 	}
 
 	for(let i = 0; i < tab.tm.hiddenSearchBadges.length; i++) {
-		if(tab.tm.hiddenSearchBadges[i].includes(this._currentSearchInput)) {
+		if(this._searchCompareFn(tab.tm.hiddenSearchBadges[i], this._currentSearchInput)) {
 			return true;
 		}
 	}
@@ -627,8 +665,17 @@ _isTabInCurrentSearch: function(tab) {
 	return false;
 },
 
+_isTabInCurrentSearchNegative: function(tab) {
+	return !this._isTabInCurrentSearchPositive(tab)
+},
+
+// Similar to _searchCompareFn(), this function gets selected (between _isTabInCurrentSearchPositive
+// and _isTabInCurrentSearchNegative) as the user types the search input
+_isTabInCurrentSearch: null,
+
 _filterByCurrentSearch: function(inputTabs) {
-	const logHead = "TabsTabViewer::_filterByCurrentSearch(): ";
+	const logHead = "TabsTabViewer::_filterByCurrentSearch(value: \"" + this._currentSearchInput +
+						"\", mode: " + this._currentSearchMode + "): ";
 	this._log(logHead + "inputTabs = ", inputTabs);
 	return inputTabs.reduce(
 		function(result, tab) {

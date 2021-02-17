@@ -93,14 +93,6 @@ Stop too much logging during tiles rendering
 "Render tiles":			222ms	222ms	260ms	243ms
 "Attach tiles cont.":	9.9ms	14.1ms	4.3ms	4.1ms
 
-- BUG: unfortunately "loaded" is a substring of "unloaded", so now when we search
-  for "loaded" it matches both "loaded" and "unloaded", making it impossible to search
-  only for "loaded" things...
-  * As a workaround, maybe we should make sure that no search badge (visible or hidden)
-    is a substring of another search badge
-  * Alternatively, we could add a regex like syntax to indicate "search starting here",
-    something like "^loaded" to allow only "loaded" and not "unloaded", but what would
-	that do to standard title searches?
 
 - BUG: when creating a new custom group, the tabs re-query re-render doesn't
   seem to get triggered automatically
@@ -395,6 +387,15 @@ DONE
 
 - Added more search badges, switched to use "active" instead of "highlighted", and translated
   the hidden status "complete" to "loaded" for UX-friendly symmetry with "unloaded"
+
+- BUG: unfortunately "loaded" is a substring of "unloaded", so now when we search
+  for "loaded" it matches both "loaded" and "unloaded", making it impossible to search
+  only for "loaded" things...
+  * Implemented special characters at the beginning of the search string:
+    - "^": regex-like syntax to indicate "search strings starting with",
+	- "!": negation, indicating to match tabs that don't contain the search string
+	- "!^": negation of regex-like syntax, that is, "search strings not starting with"
+    - E.g. "^loaded" matches only "loaded" and not "unloaded" hidden badges
 
 
 PUNTED TO NEXT RELEASE
