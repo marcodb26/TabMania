@@ -5,10 +5,10 @@
 //
 // Properties stored in chrome.storage.sync by this extension:
 //
-// settings_pinnedGroups: the set of pinned groups
-// settings_options: a dictionary of options
-// settings_customGroups: the definition of the custom groups
-// settings_shortcut0[1-5]: the definition of the behavior for the 5 custom
+// pinnedGroups: the set of pinned groups
+// options: a dictionary of options
+// customGroups: the definition of the custom groups
+// shortcut0[1-5]: the definition of the behavior for the 5 custom
 //    keyboard shortcuts
 
 
