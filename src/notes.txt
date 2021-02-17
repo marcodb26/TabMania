@@ -405,6 +405,9 @@ DONE
 
 - Added tmStats() to be called directly from the Chrome devtools console of the popup
 
+- BUG: "active" badge doesn't get removed from tab in search result when a different
+  tab becomes active
+
 
 PUNTED TO NEXT RELEASE
 

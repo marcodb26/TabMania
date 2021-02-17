@@ -81,7 +81,13 @@ _onTabActivatedCb: function(activeInfo) {
 	const logHead = "TabUpdatesTracker::_onTabActivatedCb(tabId " + tabId + ", time: " + Date.now() + "): ";
 	this._log(logHead + "activeInfo: ", activeInfo);
 
-	this._iterateRegisteredCb(Classes.TabUpdatesTracker.CbType.ACTIVATED, tabId, activeInfo);
+	// When a tab1 becomes active, a tab2 becomes inactive. Unfortunately Chrome only generates
+	// an "onActivated" (and probably "onHighlighted") for tab1, but no "onUpdated" for tab2 (because
+	// "onUpdated" doesn't include either "active" or "highlighted".
+	// For this reason, short of figuring out which tab2 got updated, we let the listeners listen
+	// by property for the "active" property, which is a "fake" property, as it never appears in
+	// any of the events. We're injecting it here so the logic below can capture it.
+	this._iterateRegisteredCb(Classes.TabUpdatesTracker.CbType.ACTIVATED, tabId, { ...activeInfo, active: true });
 },
 
 _onTabRemovedCb: function(tabId, removeInfo) {

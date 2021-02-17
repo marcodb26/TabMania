@@ -218,11 +218,15 @@ _tabUpdatedByPropCb: function(cbType, tabId, activeChangeRemoveInfo, tab) {
 		this._log(logHead + "ignoring - not in search mode");
 		return;
 	}
-	// We only need to track UPDATED, for all other cases, we can drop
-	// the notification here, because we've also received one in the
+	// We only need to track UPDATED and ACTIVATED, for all other cases, we
+	// can drop the notification here, because we've also received one in the
 	// _tabUpdatedByTabCb() callback.
-	if(cbType != Classes.TabUpdatesTracker.CbType.UPDATED) {
-		this._log(logHead + "ignoring - not an update event");
+	// ACTIVATED is a special case because activation of tab1 means deactivation
+	// of tab2, but "deactivation of tab2" doesn't appear in any event, and if
+	// tab2 is part of the search results, we must refresh its badges.
+	if(cbType != Classes.TabUpdatesTracker.CbType.UPDATED &&
+		cbType != Classes.TabUpdatesTracker.CbType.ACTIVATED) {
+		this._log(logHead + "ignoring - not an update or activate event");
 		return;
 	}
 	if(tabId in this._tilesByTabId) {
@@ -232,26 +236,37 @@ _tabUpdatedByPropCb: function(cbType, tabId, activeChangeRemoveInfo, tab) {
 		return;
 	}
 
-	// If we get here, we're receiving an UPDATED notification for a tab
-	// we're not monitoring via the tabList (_tabUpdatedByTabCb()).
-	// The goal is to find out if the tab should become part of the search
-	// results based on the update that just happened.
-	// This tracks new tabs just opened, or tabs that have navigated to a
-	// new URL, or tabs that had their title changed for whatever reason.
-	//
-	// This is a new "tab" (and "tab" is non-null for UPDATED), so we need
-	// to run the normalization logic on it, before we can call 
-	// _isTabInCurrentSearch().
-	this._normTabs.normalizeTab(tab);
-	if(this._isTabInCurrentSearch(tab)) {
-		// The tab should become part of the search results, let's trigger
-		// the crude full re-render (otherwise we need to write code to compute
-		// the sorting order for this tab, and where to insert the corresponding
-		// tile (right now we just append() after a full tabs query.
-		this._log(logHead + "processing");
-		this._queryAndRenderJob.run();
+	if(cbType == Classes.TabUpdatesTracker.CbType.UPDATED) {
+		// If we get here, we're receiving an UPDATED notification for a tab
+		// we're not monitoring via the tabList (_tabUpdatedByTabCb()).
+		// The goal is to find out if the tab should become part of the search
+		// results based on the update that just happened.
+		// This tracks new tabs just opened, or tabs that have navigated to a
+		// new URL, or tabs that had their title changed for whatever reason.
+
+		// This is a new "tab" (and "tab" is non-null for UPDATED), so we need
+		// to run the normalization logic on it, before we can call _isTabInCurrentSearch().
+		this._normTabs.normalizeTab(tab);
+		if(this._isTabInCurrentSearch(tab)) {
+			// The tab should become part of the search results, let's trigger
+			// the crude full re-render (otherwise we need to write code to compute
+			// the sorting order for this tab, and where to insert the corresponding
+			// tile (right now we just append() after a full tabs query.
+			this._log(logHead + "processing update");
+			this._queryAndRenderJob.run();
+		} else {
+			this._log(logHead + "ignoring update - not candidate for search results");
+		}
 	} else {
-		this._log(logHead + "ignoring - not candidate for search results");
+		// ACTIVATED event
+
+		// We would like to be more specific, but the "active" event happens only
+		// for the tab1 that's becomeing active, though of course there's another
+		// tab2 that's becoming inactive as a result of this tab1 becoming active.
+		// If tab2 is in the search results, there's no other way but a full refresh
+		// to find out and remove the "active" badge from it.
+		this._log(logHead + "processing activation");
+		this._queryAndRenderJob.run();
 	}
 },
 
@@ -738,11 +753,12 @@ Classes.AllTabsTabViewer = Classes.TabsTabViewer.subclass({
 	// that are part of the search result, and a new full query/re-render cycle
 	// is initiated.
 	// "status" is guaranteed to generate updates because the tab is loading.
+	// Similar problem for the "active" property.
 	//
 	// A similar problem should be happening (without this fix) when an existing
 	// tab has navigation to a new URL that matches the search query. As the tab
 	// loads, it falls out of the tabList during search, and can't get back on.
-	_trackingPropList: [ "status" ],
+	_trackingPropList: [ "status", "active" ],
 	_emptyContainerString: "No tabs",
 
 _init: function(tabLabelHtml) {
