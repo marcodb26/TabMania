@@ -94,6 +94,9 @@ Stop too much logging during tiles rendering
 "Attach tiles cont.":	9.9ms	14.1ms	4.3ms	4.1ms
 
 
+- Remove "https://" from URL displayed in tiles (but only "https://", leave any
+  other protocol visible, matching what Chrome does in the omnibar)
+
 - BUG: when creating a new custom group, the tabs re-query re-render doesn't
   seem to get triggered automatically
 
@@ -147,6 +150,9 @@ Stop too much logging during tiles rendering
 - Include custom group names (non-hostname) in search badges, and possibly in badges
   too while in search mode (while not in search mode there's no reason to do that
   since all tiles are grouped under the group name)
+
+- Color badges from custom groups (not very useful when inside the groups, but possibly
+  useful when the tile is in a search result)
 
 - "Candidate tabs" behavior should apply also for hostnames and URLs not in "search mode"
   ("useClipboard")
@@ -396,6 +402,8 @@ DONE
 	- "!": negation, indicating to match tabs that don't contain the search string
 	- "!^": negation of regex-like syntax, that is, "search strings not starting with"
     - E.g. "^loaded" matches only "loaded" and not "unloaded" hidden badges
+
+- Added tmStats() to be called directly from the Chrome devtools console of the popup
 
 
 PUNTED TO NEXT RELEASE
