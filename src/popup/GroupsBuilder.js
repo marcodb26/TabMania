@@ -32,7 +32,6 @@ _init: function() {
 
 _settingStoreUpdatedCb: function(ev) {
 	const logHead = "GroupsBuilder::_settingStoreUpdatedCb(" + ev.detail.key + "): ";
-	this._log(logHead + "entering");
 
 	// Since rebuilding the groups database can be a bit expensive, let's only
 	// take this action if it's actually changed
