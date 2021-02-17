@@ -190,16 +190,35 @@ _addNormalizedSearchBadge: function(tab, badge, hidden) {
 },
 
 updateSearchBadges: function(tab) {
+	if(tab.active) {
+		this._addNormalizedSearchBadge(tab, "active");
+	}
+
+	if(tab.audible) {
+		this._addNormalizedSearchBadge(tab, "audible");
+	}
+
 	if(tab.discarded) {
 		this._addNormalizedSearchBadge(tab, "discarded");
 	}
 
 	if(tab.highlighted) {
-		this._addNormalizedSearchBadge(tab, "highlighted");
+		// The difference between "active" and "highlighted" is that the "active"
+		// tab is the tab that's currently visible in a window, while the set of
+		// "highlighted" tabs are those selected by holding SHIFT and clicking on
+		// multiple tabs. The "active" tab is always "highlighted, so we choose
+		// here to only show the "active" badge, and keep the "highlighted" badge
+		// hidden, to avoid what seems like redundancy (unless you press the SHIFT
+		// key to multi-select tabs in a window).
+		this._addNormalizedSearchBadge(tab, "highlighted", true);
 	}
 
 	if(tab.incognito) {
 		this._addNormalizedSearchBadge(tab, "incognito", true);
+	}
+
+	if(tab.mutedInfo.muted) {
+		this._addNormalizedSearchBadge(tab, "muted");
 	}
 
 	if(tab.status != null) {
@@ -207,11 +226,18 @@ updateSearchBadges: function(tab) {
 			// "unloaded" and "complete" are hidden search badges, all other
 			// states are visible badges
 			case "unloaded":
-			case "complete":
 				this._addNormalizedSearchBadge(tab, tab.status, true);
 				break;
 
+			case "complete":
+				// We're making an exception here, we're translating "complete"
+				// to "loaded", because the symmetry unloaded/loaded seems to
+				// make more sense from a search perspective
+				this._addNormalizedSearchBadge(tab, "loaded", true);
+				break;
+
 			default:
+				// Right now this only means the "loading" status
 				this._addNormalizedSearchBadge(tab, tab.status);
 				break;
 		}

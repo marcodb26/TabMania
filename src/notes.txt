@@ -393,6 +393,9 @@ DONE
     for "loaded" it matches both "loaded" and "unloaded", making it impossible to search
 	only for "loaded" things...
 
+- Added more search badges, switched to use "active" instead of "highlighted", and translated
+  the hidden status "complete" to "loaded" for UX-friendly symmetry with "unloaded"
+
 
 PUNTED TO NEXT RELEASE
 
