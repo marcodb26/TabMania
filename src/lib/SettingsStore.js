@@ -163,7 +163,7 @@ _addNormalizedShortcutBadges: function(tab, secondary) {
 			// See description in normalizeTab() for why we add these badges
 			// in two places
 			array.push(keyAsString);
-			tab.tm.hiddenSearchBadges.push(keyAsString.toLowerCase());
+			tab.tm.searchBadges.push(keyAsString.toLowerCase());
 		}.bind(this)
 	);
 },
@@ -177,29 +177,29 @@ updateShortcutBadges: function(tab) {
 
 // The badges need to be normalized to lower case to properly support
 // case insensitive search.
-// "hidden" determines whether the search badge will be visible or hidden,
+// "visible" determines whether the search badge will be visible or hidden,
 // see normalizeTab() for details.
-_addNormalizedSearchBadge: function(tab, badge, hidden) {
-	hidden = optionalWithDefault(hidden, false);
+_addNormalizedVisualBadge: function(tab, badge, visible) {
+	visible = optionalWithDefault(visible, true);
 
-	if(hidden) {
-		tab.tm.hiddenSearchBadges.push(badge.toLowerCase());
-	} else {
-		tab.tm.searchBadges.push(badge.toLowerCase());
+	if(visible) {
+		tab.tm.visualBadges.push(badge);
 	}
+
+	tab.tm.searchBadges.push(badge.toLowerCase());
 },
 
 updateSearchBadges: function(tab) {
 	if(tab.active) {
-		this._addNormalizedSearchBadge(tab, "active");
+		this._addNormalizedVisualBadge(tab, "active");
 	}
 
 	if(tab.audible) {
-		this._addNormalizedSearchBadge(tab, "audible", true);
+		this._addNormalizedVisualBadge(tab, "audible", false);
 	}
 
 	if(tab.discarded) {
-		this._addNormalizedSearchBadge(tab, "discarded");
+		this._addNormalizedVisualBadge(tab, "discarded");
 	}
 
 	if(tab.highlighted) {
@@ -210,15 +210,15 @@ updateSearchBadges: function(tab) {
 		// here to only show the "active" badge, and keep the "highlighted" badge
 		// hidden, to avoid what seems like redundancy (unless you press the SHIFT
 		// key to multi-select tabs in a window).
-		this._addNormalizedSearchBadge(tab, "highlighted", true);
+		this._addNormalizedVisualBadge(tab, "highlighted", false);
 	}
 
 	if(tab.incognito) {
-		this._addNormalizedSearchBadge(tab, "incognito", true);
+		this._addNormalizedVisualBadge(tab, "incognito", false);
 	}
 
 	if(tab.mutedInfo.muted) {
-		this._addNormalizedSearchBadge(tab, "muted", true);
+		this._addNormalizedVisualBadge(tab, "muted", false);
 	}
 
 	if(tab.status != null) {
@@ -226,29 +226,29 @@ updateSearchBadges: function(tab) {
 			// "unloaded" and "complete" are hidden search badges, all other
 			// states are visible badges
 			case "unloaded":
-				this._addNormalizedSearchBadge(tab, tab.status, true);
+				this._addNormalizedVisualBadge(tab, tab.status, false);
 				break;
 
 			case "complete":
 				// We're making an exception here, we're translating "complete"
 				// to "loaded", because the symmetry unloaded/loaded seems to
 				// make more sense from a search perspective
-				this._addNormalizedSearchBadge(tab, "loaded", true);
+				this._addNormalizedVisualBadge(tab, "loaded", false);
 				break;
 
 			default:
 				// Right now this only means the "loading" status
-				this._addNormalizedSearchBadge(tab, tab.status);
+				this._addNormalizedVisualBadge(tab, tab.status);
 				break;
 		}
 	}
 
 	if(tab.pinned) {
-		this._addNormalizedSearchBadge(tab, "pinned");
+		this._addNormalizedVisualBadge(tab, "pinned");
 	}
 
 	// We always want this to appear last, if the user configured it to be visible
-	this._addNormalizedSearchBadge(tab, tab.tm.extId, !settingsStore.getOptionShowTabId());
+	this._addNormalizedVisualBadge(tab, tab.tm.extId, settingsStore.getOptionShowTabId());
 },
 
 // This can be used as a static function of the class, it doesn't
@@ -267,6 +267,10 @@ normalizeTab: function(tab) {
 		normTitle: Classes.NormalizedTabs.normalizeLowerCaseTitle(lowerCaseTitle),
 		extId: Classes.NormalizedTabs.formatExtendedId(tab),
 
+		// "visualBadges" are the badges displayed by the tiles, and are case
+		// sensitive. "searchBadges" can repeat the "visualBadges" as case
+		// insensitive to support searches, and add extra "hidden" badges in search.
+		visualBadges: [],
 		// Listing the badges explicitly is needed to support search
 		// by badge label. Some badges could be added here, but some badges
 		// depend on shortcutManager (which is going to be out of sync
@@ -278,13 +282,6 @@ normalizeTab: function(tab) {
 		// search. Search won't (or at least, should not) happen anyway until
 		// after the tiles are rendered.
 		searchBadges: [],
-
-		// Some search badges will be displayed in the tiles, some will not be
-		// displayed in the tiles, but still searchable
-		// For example, "incognito" gets rendered by a darker tile, so the badge
-		// doesn't need to be shown, but it's still good to allow searching of
-		// just "incognito" tabs.
-		hiddenSearchBadges: [],
 
 		// The following two are shortcut badges for visualization, not for search,
 		// and as such the text should show up in the case (upper/lower) combination

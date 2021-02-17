@@ -112,7 +112,7 @@ renderBody: function() {
 
 	this._addBadgesHtml(visibleBadgesHtml, this._tab.tm.primaryShortcutBadges);
 	this._addBadgesHtml(visibleBadgesHtml, this._tab.tm.secondaryShortcutBadges, true);
-	this._addBadgesHtml(visibleBadgesHtml, this._tab.tm.searchBadges);
+	this._addBadgesHtml(visibleBadgesHtml, this._tab.tm.visualBadges);
 
 	if(this._tab.incognito) {
 		this.addClasses("bg-secondary", "text-light", "border-dark");

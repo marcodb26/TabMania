@@ -232,7 +232,7 @@ _tabUpdatedByPropCb: function(cbType, tabId, activeChangeRemoveInfo, tab) {
 	if(tabId in this._tilesByTabId) {
 		// We only care to monitor tabs that we're not already tracking.
 		// If we have a tile for a tabId, then we're already tracking it.
-		this._log(logHead + "ignoring - _tabUpdatedByTabCb() has handled");
+		this._log(logHead + "ignoring - _tabUpdatedByTabCb() has handled", this._tilesByTabId);
 		return;
 	}
 
@@ -667,12 +667,6 @@ _isTabInCurrentSearchPositive: function(tab) {
 
 	for(let i = 0; i < tab.tm.searchBadges.length; i++) {
 		if(this._searchCompareFn(tab.tm.searchBadges[i], this._currentSearchInput)) {
-			return true;
-		}
-	}
-
-	for(let i = 0; i < tab.tm.hiddenSearchBadges.length; i++) {
-		if(this._searchCompareFn(tab.tm.hiddenSearchBadges[i], this._currentSearchInput)) {
 			return true;
 		}
 	}
