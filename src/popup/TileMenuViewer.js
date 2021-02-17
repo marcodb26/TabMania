@@ -194,6 +194,10 @@ _initMenuItems: function() {
 								this._actionPinToggleCb.bind(this));
 	this.append(this._pinMenuItem);
 
+	this._muteMenuItem = Classes.MenuItemViewer.create(this._tab.mutedInfo.muted ? "Unmute" : "Mute",
+								this._actionMuteToggleCb.bind(this));
+	this.append(this._muteMenuItem);
+
 	this._discardMenuItem = Classes.MenuItemViewer.create("Discard from memory",
 								this._actionDiscardCb.bind(this));
 	if(!settingsStore.getOptionAdvancedMenu()) {
@@ -222,6 +226,16 @@ _actionPinToggleCb: function(ev) {
 	const logHead = "TileMenuViewer::_actionPinToggleCb(" + this._tab.id + "): ";
 	chromeUtils.wrap(chrome.tabs.update, logHead,
 					this._tab.id, { pinned: !this._tab.pinned } ).then(
+		function() {
+			this._log(logHead + "completed");
+		}.bind(this)
+	);
+},
+
+_actionMuteToggleCb: function(ev) {
+	const logHead = "TileMenuViewer::_actionMuteToggleCb(" + this._tab.id + "): ";
+	chromeUtils.wrap(chrome.tabs.update, logHead,
+					this._tab.id, { muted: !this._tab.mutedInfo.muted } ).then(
 		function() {
 			this._log(logHead + "completed");
 		}.bind(this)

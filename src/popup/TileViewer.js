@@ -93,6 +93,23 @@ renderBody: function() {
 	let textMuted = "text-muted";
 	let imgExtraClasses = [];
 
+	// "audible" and "muted" are not mutually exclusive, but we want to show a
+	// single icon, so we're using the arbitrary convention of making the muted
+	// icon gray if there's no current audio (meaning "if there was audio, it
+	// would be muted"), and black if there's current audio (meaning "your audio
+	// is currently muted")
+	if(this._tab.audible) {
+		if(this._tab.mutedInfo.muted) {
+			visibleBadgesHtml.push(icons.volumeMuted());
+		} else {
+			visibleBadgesHtml.push(icons.volumeAudible);
+		}
+	} else {
+		if(this._tab.mutedInfo.muted) {
+			visibleBadgesHtml.push(icons.volumeMuted(["text-secondary"]));
+		}
+	}
+
 	this._addBadgesHtml(visibleBadgesHtml, this._tab.tm.primaryShortcutBadges);
 	this._addBadgesHtml(visibleBadgesHtml, this._tab.tm.secondaryShortcutBadges, true);
 	this._addBadgesHtml(visibleBadgesHtml, this._tab.tm.searchBadges);

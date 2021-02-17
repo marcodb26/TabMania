@@ -195,7 +195,7 @@ updateSearchBadges: function(tab) {
 	}
 
 	if(tab.audible) {
-		this._addNormalizedSearchBadge(tab, "audible");
+		this._addNormalizedSearchBadge(tab, "audible", true);
 	}
 
 	if(tab.discarded) {
@@ -218,7 +218,7 @@ updateSearchBadges: function(tab) {
 	}
 
 	if(tab.mutedInfo.muted) {
-		this._addNormalizedSearchBadge(tab, "muted");
+		this._addNormalizedSearchBadge(tab, "muted", true);
 	}
 
 	if(tab.status != null) {
