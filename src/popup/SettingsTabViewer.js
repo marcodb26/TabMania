@@ -20,7 +20,9 @@ Classes.SettingsItemViewer = Classes.HtmlViewer.subclass({
 		</div>
 	`,
 
-_init: function(setFn, getFn, label) {
+// Using ES6 destructuring syntax to help with the proliferation of optional parameters
+// in the settings logic...
+_init: function({ setFn, getFn, label }) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.HtmlViewer._init.call(this, this._rootHtml);
 	this.debug();
@@ -108,9 +110,9 @@ Classes.SettingsTextItemViewer = Classes.SettingsItemViewer.subclass({
 	_setFn: null,
 	_getFn: null,
 
-_init: function(setFn, getFn, label, placeholderText, helpHtml) {
+_init: function({ setFn, getFn, label, placeholderText, helpHtml }) {
 	// Overriding the parent class' _init(), but calling that original function first
-	Classes.SettingsItemViewer._init.call(this, setFn, getFn, label);
+	Classes.SettingsItemViewer._init.apply(this, arguments);
 	this.debug();
 
 	this._placeholderText = this._safeText(placeholderText);
@@ -274,13 +276,13 @@ Classes.SettingsTextAreaItemViewer = Classes.SettingsItemViewer.subclass({
 	_setFn: null,
 	_getFn: null,
 
-_init: function(setFn, getFn, label, placeholder, help) {
+_init: function({ setFn, getFn, label, placeholderText, helpHtml }) {
 	// Overriding the parent class' _init(), but calling that original function first
-	Classes.SettingsItemViewer._init.call(this, setFn, getFn, label);
+	Classes.SettingsItemViewer._init.apply(this, arguments);
 	this.debug();
 
-	this._placeholder = placeholder;
-	this._help = help;
+	this._placeholderText = this._safeText(placeholderText);
+	this._helpHtml = helpHtml;
 
 	this._renderTextAreaItem();
 },
@@ -316,7 +318,7 @@ _renderTextAreaItem: function() {
 //		<textarea id="${inputId}" class="form-control" ${extraAttrs.join(" ")}
 //				aria-describedby="${helpId}">${this._safeText(currentText)}</textarea>
 //	</div>
-//	<div id="${helpId}" class="form-text">${this._help}</div>
+//	<div id="${helpId}" class="form-text">${this._helpHtml}</div>
 //	`;
 
 	// The explicit style "height: auto;" is needed to override the calculated height
@@ -328,7 +330,7 @@ _renderTextAreaItem: function() {
 				aria-describedby="${helpId}">${this._safeText(currentText)}</textarea>
 		<label for="${inputId}" class="form-label pt-2">${this._label}</label>
 	</div>
-	<div id="${helpId}" class="form-text ms-2">${this._help}</div>
+	<div id="${helpId}" class="form-text ms-2">${this._helpHtml}</div>
 	`;
 
 	this.setHtml(bodyHtml);
@@ -371,7 +373,7 @@ Classes.SettingsCheckboxItemViewer = Classes.SettingsItemViewer.subclass({
 	_setFn: null,
 	_getFn: null,
 
-_init: function(setFn, getFn, label) {
+_init: function({ setFn, getFn, label }) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.SettingsItemViewer._init.apply(this, arguments);
 	this.debug();
@@ -450,7 +452,7 @@ Classes.SettingsColorsItemViewer = Classes.SettingsItemViewer.subclass({
 
 	_radioElemByColor: null,
 
-_init: function(setFn, getFn) {
+_init: function({ setFn, getFn }) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.SettingsItemViewer._init.apply(this, arguments);
 	this.debug();
@@ -765,13 +767,13 @@ _renderAddItem: function() {
 	let buttonElem = this._buttonViewer.getElementById(buttonId);
 	buttonElem.addEventListener("click", this._onButtonClickCb.bind(this), false);
 
-	this._inputViewer = Classes.SettingsTextItemViewer.create(
-		this._inputSet.bind(this), // setFn()
-		emptyFn, // getFn()
-		"Group name",
-		this._safeText(""),
-		this._safeText("")
-	);
+	this._inputViewer = Classes.SettingsTextItemViewer.create({
+		setFn: this._inputSet.bind(this),
+		getFn: emptyFn,
+		label: "Group name",
+		placeholderText: "",
+		helpHtml: ""
+	});
 
 	this._buttonViewer.show();
 	this._inputViewer.hide();
@@ -1031,10 +1033,10 @@ _renderCustomGroupSettings: function() {
 
 	let ss = settingsStore;
 
-	let color = Classes.SettingsColorsItemViewer.create(
-		this._applyColorChange.bind(this),
-		this._getProp.bind(this, "color"),
-	);
+	let color = Classes.SettingsColorsItemViewer.create({
+		setFn: this._applyColorChange.bind(this),
+		getFn: this._getProp.bind(this, "color"),
+	});
 	this.append(color);
 	this._allInputsCanDisable.push(color);
 	color.addEventListener(Classes.EventManager.Events.UPDATED, this._colorUpdatedCb.bind(this));
@@ -1045,32 +1047,35 @@ _renderCustomGroupSettings: function() {
 		help = "Assign a unique name to start using this custom group";
 	}
 
-	this._groupNameInput = Classes.SettingsTextItemViewer.create(
-		this._renameCustomGroup.bind(this),
-		this._getGroupName.bind(this),
-		"Group name",
-		this._safeText(""),
-		this._safeText(help)
-	);
+	this._groupNameInput = Classes.SettingsTextItemViewer.create({
+		setFn: this._renameCustomGroup.bind(this),
+		getFn: this._getGroupName.bind(this),
+		label: "Group name",
+		placeholderText: "",
+		helpHtml: help
+	});
+
 	this.append(this._groupNameInput);
 
-	let favIconUrl = Classes.SettingsTextItemViewer.create(
-		this._setProp.bind(this, "favIconUrl"),
-		this._getProp.bind(this, "favIconUrl"),
-		"Icon URL for this group",
-		this._safeText(""),
-		this._safeText("Optional, if not specified, one will be taken from tabs in the custom group")
-	);
+	let favIconUrl = Classes.SettingsTextItemViewer.create({
+		setFn: this._setProp.bind(this, "favIconUrl"),
+		getFn: this._getProp.bind(this, "favIconUrl"),
+		label: "Icon URL for this group",
+		placeholderText: "",
+		helpHtml: "Optional, if not specified, one will be taken from tabs in the custom group"
+	});
+
 	this.append(favIconUrl);
 	this._allInputsCanDisable.push(favIconUrl);
 
-	let matchList = Classes.SettingsTextAreaItemViewer.create(
-		this._setProp.bind(this, "matchList"),
-		this._getProp.bind(this, "matchList"),
-		"List of hostnames to match the group",
-		this._safeText(""),
-		this._safeText("One hostname match expression per line")
-	);
+	let matchList = Classes.SettingsTextAreaItemViewer.create({
+		setFn: this._setProp.bind(this, "matchList"),
+		getFn: this._getProp.bind(this, "matchList"),
+		label: "List of hostnames to match the group",
+		placeholderText: "",
+		helpHtml: this._safeText("One hostname match expression per line")
+	});
+
 	this.append(matchList);
 	this._allInputsCanDisable.push(matchList);
 
@@ -1102,12 +1107,14 @@ _init: function(title) {
 
 _renderShortcutSettings: function() {
 	let searchUrl = Classes.SettingsTextItemViewer.create(
-		settingsStore.setOptionSearchUrl.bind(settingsStore),
-		settingsStore.getOptionSearchUrl.bind(settingsStore),
-		"Search URL for launch/search shortcut",
-		this._safeText("https://www.google.com/search?q=%s"),
-		this._safeText("Use %s to indicate where the text from the clipboard should get pasted")
-	);
+	{
+		setFn: settingsStore.setOptionSearchUrl.bind(settingsStore),
+		getFn: settingsStore.getOptionSearchUrl.bind(settingsStore),
+		label: "Search URL for launch/search shortcut",
+		placeholderText: "https://www.google.com/search?q=%s",
+		helpHtml: this._safeText("Use %s to indicate where the text from the clipboard should get pasted")
+	});
+
 	this.append(searchUrl);
 },
 
@@ -1133,27 +1140,30 @@ _init: function(shortcutKey, title) {
 _renderShortcutSettings: function() {
 	let sm = settingsStore.getShortcutsManager();
 
-	let hostnameOrUrl = Classes.SettingsTextItemViewer.create(
-		sm.setShortcutHostnameOrUrl.bind(sm, this._shortcutKey),
-		sm.getShortcutHostnameOrUrl.bind(sm, this._shortcutKey),
-		"Hostname or URL",
-		this._safeText("e.g.: www.google.com"),
-		this._safeText("Use %s to indicate where the text from the clipboard should get pasted")
-	);
+	let hostnameOrUrl = Classes.SettingsTextItemViewer.create({
+		setFn: sm.setShortcutHostnameOrUrl.bind(sm, this._shortcutKey),
+		getFn: sm.getShortcutHostnameOrUrl.bind(sm, this._shortcutKey),
+		label: "Hostname or URL",
+		placeholderText: "e.g.: www.google.com",
+		helpHtml: this._safeText("Use %s to indicate where the text from the clipboard should get pasted")
+	});
+
 	this.append(hostnameOrUrl);
 
-	let alwaysNewTab = Classes.SettingsCheckboxItemViewer.create(
-		sm.setShortcutProp.bind(sm, this._shortcutKey, "alwaysNewTab"),
-		sm.getShortcutProp.bind(sm, this._shortcutKey, "alwaysNewTab"),
-		"Always open shortcut in new tab"
-	);
+	let alwaysNewTab = Classes.SettingsCheckboxItemViewer.create({
+		setFn: sm.setShortcutProp.bind(sm, this._shortcutKey, "alwaysNewTab"),
+		getFn: sm.getShortcutProp.bind(sm, this._shortcutKey, "alwaysNewTab"),
+		label: "Always open shortcut in new tab",
+	});
+
 	this.append(alwaysNewTab);
 
-	let useClipboard = Classes.SettingsCheckboxItemViewer.create(
-		sm.setShortcutProp.bind(sm, this._shortcutKey, "useClipboard"),
-		sm.getShortcutProp.bind(sm, this._shortcutKey, "useClipboard"),
-		"Enable search of clipboard contents"
-	);
+	let useClipboard = Classes.SettingsCheckboxItemViewer.create({
+		setFn: sm.setShortcutProp.bind(sm, this._shortcutKey, "useClipboard"),
+		getFn: sm.getShortcutProp.bind(sm, this._shortcutKey, "useClipboard"),
+		label: "Enable search of clipboard contents",
+	});
+
 	this.append(useClipboard);
 },
 
@@ -1289,18 +1299,20 @@ _renderSettings: function() {
 //	this._generalSettingsContainer.addCollapsedListener(this._containerCollapsedCb.bind(this));
 	this.append(this._generalSettingsContainer);
 
-	let showTabId = Classes.SettingsCheckboxItemViewer.create(
-		settingsStore.setOptionShowTabId.bind(settingsStore),
-		settingsStore.getOptionShowTabId.bind(settingsStore),
-		"Display extended tab ID badge"
-	);
+	let showTabId = Classes.SettingsCheckboxItemViewer.create({
+		setFn: settingsStore.setOptionShowTabId.bind(settingsStore),
+		getFn: settingsStore.getOptionShowTabId.bind(settingsStore),
+		label: "Display extended tab ID badge",
+	});
+
 	this._generalSettingsContainer.append(showTabId);
 	
-	let advancedMenu = Classes.SettingsCheckboxItemViewer.create(
-		settingsStore.setOptionAdvancedMenu.bind(settingsStore),
-		settingsStore.getOptionAdvancedMenu.bind(settingsStore),
-		"Show advanced items in tab tiles menu"
-	);
+	let advancedMenu = Classes.SettingsCheckboxItemViewer.create({
+		setFn: settingsStore.setOptionAdvancedMenu.bind(settingsStore),
+		getFn: settingsStore.getOptionAdvancedMenu.bind(settingsStore),
+		label: "Show advanced items in tab tiles menu",
+	});
+
 	this._generalSettingsContainer.append(advancedMenu);
 
 	this._renderIncognitoInfo();
