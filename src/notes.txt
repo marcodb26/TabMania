@@ -122,11 +122,6 @@ Stop too much logging during tiles rendering
 
 - Disable Base._assert() for production code
 
-- When a tab has a load error (which prevents injection of inject-getMeta.js)
-  display a special error icon to identify the tab failed to load (e.g. because
-  of network down) (search "network down" in the code to find the place where
-  this check is made)
-
 - Include custom group names (non-hostname) in search badges, and possibly in badges
   too while in search mode (while not in search mode there's no reason to do that
   since all tiles are grouped under the group name)
@@ -134,16 +129,11 @@ Stop too much logging during tiles rendering
 - Color badges from custom groups (not very useful when inside the groups, but possibly
   useful when the tile is in a search result)
 
-- "Candidate tabs" behavior should apply also for hostnames and URLs not in "search mode"
-  ("useClipboard")
-
 - Add action menu to containers
 
 - Manage incognito tabs (same view, different BS-tab, hide, etc)
 
 - Document keyboard shortcuts
-
-- Add settings
 
 - Find out how to package for release
 
@@ -152,7 +142,7 @@ Stop too much logging during tiles rendering
   * If a bookmark is in a tab, it should not show up twice
   * Should also add a badge mentioning a tab is bookmarked?
 
-- Show current tab in current window at the top of the tabs list?
+
 
 
 DONE
@@ -405,6 +395,11 @@ DONE
 
 PUNTED TO NEXT RELEASE
 
+- Show current tab in current window at the top of the tabs list?
+
+- "Candidate tabs" behavior should apply also for hostnames and URLs not in "search mode"
+  ("useClipboard")
+
 - Add support for wildcards in "matchList" of custom groups
 
 - Sort/group tabs by other means (by window, etc.)
@@ -538,3 +533,8 @@ PUNTED TO NEXT RELEASE
   * Should we poll?
 
 - Find a better way to implement chromeUtils.getExtensionId()
+
+- When a tab has a load error (which prevents injection of inject-getMeta.js)
+  display a special error icon to identify the tab failed to load (e.g. because
+  of network down) (search "network down" in the code to find the place where
+  this check is made)

@@ -1,16 +1,25 @@
 # tab-manager
+## Tile badges and icons
+Tab tiles show badges describing the state of the tile. The visible badges include: "active", "discarded",
+"loading", "pinned", plus the "SC1", "SC2", "SC3", "SC4" and "SC5" shortcuts.
+
+If a tab is muted and is not currently attempting to play any sound, the mute icon will be in gray,
+while it will be in black if the tab is muted but it's intending to currently play sound ("audible").
+If the tab is not muted, the audible icon will be displayed instead.
+
 ## Search
 Start typing to enter search mode. The search string is case insensitive. It will be matched against
 title, URL and search badges.
 Search badges are a combination of the badges you see on the tile, plus hidden badges added for search
-convenience. The visible badges include "active", "audible", "discarded", "muted", "loading", "pinned",
-plus the "SC1", "SC2", "SC3", "SC4" and "SC5" shortcuts.
-The hidden badges include "highlighted", "incognito", "unloaded", "loaded".
+convenience. The hidden badges include "audible", "muted", "highlighted", "incognito", "unloaded", "loaded".
 
-The results are sorted alphabetically by title.
+Example: a tab is playing sounds and you want to mute it; type "audible" to get a list of tabs that
+are currently playing sounds, and mute it by clicking the "mute" menu option in the search results tile.
+
+Search results are sorted alphabetically by title.
 
 Once you've typed enough characters to easily find what you were looking for, you can click on the
-tab to open it. Alternatively, you can press Enter to open the first tab in the list of results.
+tab tile to open it. Alternatively, you can press Enter to open the first tab in the list of results.
 
 A couple of search modifiers are available to change the search behavior. They must be specified at
 the very beginning of the search string:
