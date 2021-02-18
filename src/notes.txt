@@ -94,9 +94,6 @@ Stop too much logging during tiles rendering
 "Attach tiles cont.":	9.9ms	14.1ms	4.3ms	4.1ms
 
 
-- BUG: when creating a new custom group, the tabs re-query re-render doesn't
-  seem to get triggered automatically
-
 - BUG: Since 2021.02.05, access to "chrome://" URLs seems to be prevented from
   within the popup, and the links in Settings are dead
   * The error message in the console is "Not allowed to load local resource"
@@ -118,8 +115,9 @@ Stop too much logging during tiles rendering
 
 - Disable Base._assert() for production code
 
-- BUG: custom group container tile doesn't update color callout when color changed
-  * The tiles inside the container do change color...
+- BUG: Custom groups with pinned tabs don't get pushed to the top, they
+  follow standard sorting
+  * Hostname-based groups get pushed to the top instead
 
 - Explicitly show badge for custom group (colored?)
 
@@ -406,6 +404,12 @@ DONE
   the Chrome window and stay on the same tab (like it happens when "back" from a
   "-1" window)
   * It worked out of the box after the workaround for the Chrome bug...
+
+- BUG: when creating a new custom group, the tabs re-query re-render doesn't
+  seem to get triggered automatically
+
+- BUG: custom group container tile doesn't update color callout when color changed
+  * The tiles inside the container do change color...
 
 
 PUNTED TO NEXT RELEASE

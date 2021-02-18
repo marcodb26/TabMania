@@ -155,7 +155,12 @@ _settingsStoreUpdatedCb: function(ev) {
 	// their sorting order or group membership has not changed). The only
 	// exception is search mode, because an update to configuration can
 	// change the composition of the search results.
-	if(this.isSearchActive()) {
+	//
+	// UPDATE: the previous comment is incorrect. When a change happens
+	// to the settings, it could be a change in the definition of custom
+	// group, and that definitely can have an impact on group membership.
+	// So it's incorrect to say "group membership has not changed"
+	if(this.isSearchActive() || ev.detail.key == "customGroups") {
 		this._queryAndRenderJob.run(this._queryAndRenderDelay);
 		return;
 	}
