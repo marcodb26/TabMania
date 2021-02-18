@@ -116,10 +116,6 @@ Stop too much logging during tiles rendering
 - Display <meta> tag information in dropdown, under title
   * Only "description"? Or also "image" when available?
 
-- BUG: "back" needs to support the "global" case, and in that case just bring up
-  the Chrome window and stay on the same tab (like it happens when "back" from a
-  "-1" window
-
 - Disable Base._assert() for production code
 
 - BUG: custom group container tile doesn't update color callout when color changed
@@ -400,6 +396,16 @@ DONE
 
 - Color badges from custom groups (not very useful when inside the groups, but possibly
   useful when the tile is in a search result)
+
+- Workaround for Chrome bug: chrome.window.onFocusChange doesn't fire when switching from
+  a Chrome window to the window of another application
+  * Need to fix it for the "back" command to work properly when switching back from another
+    app to the last opened Chrome tab
+
+- BUG: "back" needs to support the "global" case, and in that case just bring up
+  the Chrome window and stay on the same tab (like it happens when "back" from a
+  "-1" window)
+  * It worked out of the box after the workaround for the Chrome bug...
 
 
 PUNTED TO NEXT RELEASE

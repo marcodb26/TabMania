@@ -37,6 +37,9 @@ Classes.TabsManager = Classes.Base.subclass({
 	_updateScAllTabsJob: null,
 	_updateScAllTabsDelay: 1000,
 
+	_windowFocusLossPoller: null,
+	_windowFocusLossInterval: 1000,
+
 	// _tabsCountPoller is a recurring job that monitors the tabsCount to make sure
 	// no discrepancies are introduced vie the tabs events. It's only for debugging,
 	// and should probably be disabled for production
@@ -59,6 +62,9 @@ _init: function() {
 	// Run job once now to initialize this._normTabs
 	this._updateScAllTabsJob.run();
 
+	this._windowFocusLossPoller = Classes.ScheduledJob.create(this._windowFocusLossCb.bind(this));
+	this._windowFocusLossPoller.debug();
+
 	// Note that _setActiveTabId() is asynchronous, so it's possible (though unlikely) that this
 	// call might complete after the rest of the logic has started operating and we started
 	// reading this._activeTabId. The real issue is that in that case _setActiveTabId() could
@@ -70,6 +76,7 @@ _init: function() {
 			const logHead = "TabsManager::_init().then(): ";
 			this._log(logHead + "entering");
 			this._addAllListeners();
+			this._windowFocusLossPoller.start(this._windowFocusLossInterval);
 		}.bind(this)
 	);
 
@@ -186,6 +193,42 @@ _setPopupBadge: function(tabsCount) {
 	// Note that if you specify an integer for "text", the function fails, we need to cast
 	// the number to string explicitly.
 	return chromeUtils.wrap(chrome.browserAction.setBadgeText, logHead, { text: tabsCount.toString() });
+},
+
+// There seems to be a bug in Chrome that causes the event "onFocusChanged" to only fire
+// when switching between Chrome windows, not when switching from Chrome windows to the
+// windows of other applications. On the other hand, if you poll chrome.windows.getCurrent(),
+// when the focus goes to another application "window.focused" correctly switches to "false"
+// for the current Chrome window (never mind that the current Chrome window also changes
+// to a different window ID when that happens (not sure why, but it always goes to the window
+// with the highest ID in the few tests I ran).
+// You simulate a loss of focus, but since Chrome doesn't know the focus was lost, it won't
+// generate a focus change also when you go back to the Chrome window (which is odd because
+// the window ID changes again in getCurrent(), so it should generate a focus change just for
+// the switch from Chrome window to Chrome window). So you also need to simulate a recovery
+// of focus by doing the reverse check. And when you move to a DevTools window you could end
+// up with a little duplication, see _onWindowFocusChangeCb() for details.
+_windowFocusLossCb: function() {
+	const logHead = "TabsManager::_windowFocusLossCb(): ";
+
+	chromeUtils.wrap(chrome.windows.getCurrent, logHead, null).then(
+		function(window) {
+			if(this._isActiveWindowIdNone && window.focused) {
+				// We think we don't have focus, but we actually do, let's simulate a
+				// focus restored event
+				this._log(logHead + "focus restored, simulate focus change event: ", window);
+				this._onWindowFocusChangeCb(window.id);
+				return;
+			}
+			if(!this._isActiveWindowIdNone && !window.focused) {
+				// We've lost focus and we didn't receive an event, let's simulate one
+				this._log(logHead + "lost focus, simulate focus change event: ", window);
+				this._onWindowFocusChangeCb(chrome.windows.WINDOW_ID_NONE);
+				return;
+			}
+			//this._log(logHead + "current state: ", this._isActiveWindowIdNone, window.focused);
+		}.bind(this)
+	);
 },
 
 _onTabCreatedCb: function(tab) {
@@ -338,10 +381,20 @@ _onWindowFocusChangeCb: function(windowId) {
 	// No actions to take on behalf of shortcutsManager when the window's focus changes
 
 	if(windowId == chrome.windows.WINDOW_ID_NONE) {
-		// Note that this case is about going to a DevTools window (still Chrome), not
-		// about going to the window of a different application
-		this._log(logHead + "all Chrome windows have lost focus");
-		this._isActiveWindowIdNone = true;
+		// Note that natively this case seems to happen only when going from a
+		// standard window to a DevTools window (still Chrome), not about going
+		// to the window of a different application. That's why we're simulating
+		// the event in _windowFocusLossCb().
+		if(this._isActiveWindowIdNone) {
+			// The duplication occurs when the simulated event identifies the loss
+			// of focus correctly, then you put in focus a DevTools window, and
+			// Chrome thinks it's lost focus at that point (but in a way, it actually
+			// got it back from a different application)
+			this._log(logHead + "duplicated event");
+		} else {
+			this._log(logHead + "all Chrome windows have lost focus");
+			this._isActiveWindowIdNone = true;
+		}
 		return;
 	}
 
