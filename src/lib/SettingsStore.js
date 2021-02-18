@@ -199,7 +199,7 @@ updateSearchBadges: function(tab) {
 	}
 
 	if(tab.discarded) {
-		this._addNormalizedVisualBadge(tab, "discarded");
+		this._addNormalizedVisualBadge(tab, "discarded", false);
 	}
 
 	if(tab.highlighted) {
@@ -244,7 +244,7 @@ updateSearchBadges: function(tab) {
 	}
 
 	if(tab.pinned) {
-		this._addNormalizedVisualBadge(tab, "pinned");
+		this._addNormalizedVisualBadge(tab, "pinned", false);
 	}
 
 	if(tab.tm.customGroupName != null) {

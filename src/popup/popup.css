@@ -46,6 +46,12 @@
     vertical-align: -.36em;
 }
 
+.tm-fa-thumbtack-align {
+	width: 1em;
+    height: 1em;
+    vertical-align: -.3em;
+}
+
 /* See https://stackoverflow.com/questions/20804016/editing-input-type-search-pseudo-element-button-x */
 .tm-searchbox::-webkit-search-cancel-button {
 	/* Leave room for the overlay with the search results count.

@@ -136,6 +136,11 @@ renderBody: function() {
 	this._addBadgesHtml(visibleBadgesHtml, this._tab.tm.secondaryShortcutBadges, true);
 	this._addBadgesHtml(visibleBadgesHtml, this._tab.tm.visualBadges);
 
+	// The pinned thumbtack is always the rightmost badge
+	if(this._tab.pinned) {
+		visibleBadgesHtml.push(icons.thumbtack);
+	}
+
 	if(this._tab.incognito) {
 		this.addClasses("bg-secondary", "text-light", "border-dark");
 		// Bootstrap "text-muted" only works for light backgrounds
