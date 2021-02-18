@@ -404,6 +404,8 @@ DONE
 
 PUNTED TO NEXT RELEASE
 
+- Remember recent searches
+
 - Add action menu to containers
 
 - Display <meta> tag information in dropdown, under title
