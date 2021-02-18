@@ -113,7 +113,7 @@ _tabGroupsToArrays: function(tabGroups) {
 				break;
 
 			case Classes.GroupsBuilder.Type.CUSTOM:
-				if(settingsStore.isGroupPinned(groupName)) {
+				if(settingsStore.isGroupPinned(groupName) || this._tabsHasPinnedTab(data.tabs)) {
 					pinned.push(this._tabGroupEntryToObj(groupName, data));
 				} else {
 					unpinned.push(this._tabGroupEntryToObj(groupName, data));

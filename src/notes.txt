@@ -115,10 +115,6 @@ Stop too much logging during tiles rendering
 
 - Disable Base._assert() for production code
 
-- BUG: Custom groups with pinned tabs don't get pushed to the top, they
-  follow standard sorting
-  * Hostname-based groups get pushed to the top instead
-
 - Add action menu to containers
 
 - Manage incognito tabs (same view, different BS-tab, hide, etc)
@@ -410,6 +406,10 @@ DONE
   * The tiles inside the container do change color...
 
 - Explicitly show badge for custom group (colored?)
+
+- BUG: Custom groups with pinned tabs don't get pushed to the top, they
+  follow standard sorting
+  * Hostname-based groups get pushed to the top instead
 
 
 PUNTED TO NEXT RELEASE
