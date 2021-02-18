@@ -396,6 +396,8 @@ DONE
   * Decided to avoid calling it "select/unselect" because we want to support tiles
     selection later, and that's a different thing
 
+- Don't try to render space for favicon if a favicon is not available
+
 
 PUNTED TO NEXT RELEASE
 

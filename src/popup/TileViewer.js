@@ -135,12 +135,19 @@ renderBody: function() {
 		}
 	}
 
+	let imgHtml = "";
+	if(this._imgUrl != "") {
+		imgHtml = `
+			<span class="pe-2"><img class="tm-favicon-16 ${imgExtraClasses.join(" ")}" src="${this._imgUrl}"></span>
+		`;
+	}
+
 	// See https://getbootstrap.com/docs/5.0/components/card/
 	// Do we need the attribute "width='16px'" in the <img> below, or are the min-width
 	// and max-width settings of tm-favicon-16 enough?
 	const bodyHtml = `
 		<p class="card-title text-truncate tm-tile-title mb-0">
-			<span class="pe-2"><img class="tm-favicon-16 ${imgExtraClasses.join(" ")}" src="${this._imgUrl}"></span>
+			${imgHtml}
 			<span class="${textMuted} ${titleExtraClasses.join(" ")}">${this._safeText(this._title)}</span>
 		</p>
 		<div class="d-flex">
