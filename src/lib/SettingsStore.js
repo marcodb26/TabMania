@@ -258,8 +258,10 @@ updateSearchBadges: function(tab) {
 // This can be used as a static function of the class, it doesn't
 // need any state from "this".
 normalizeTab: function(tab) {
-	// Sometimes "tab.url" is empty, because "tab.pendingUrl" is still loading
-	let url = (tab.url != "") ? tab.url : tab.pendingUrl;
+	// Sometimes "tab.url" is empty, because "tab.pendingUrl" is still loading.
+	// But in some cases, tab.url is empty, and tab.pendingUrl doesn't even exist,
+	// so we use optionalWithDefault() to cover that last corner case.
+	let url = optionalWithDefault((tab.url != "") ? tab.url : tab.pendingUrl, "");
 	let lowerCaseTitle = tab.title.toLowerCase();
 	let [ protocol, hostname ] = Classes.NormalizedTabs.getProtocolHostname(url);
 	tab.tm = {
