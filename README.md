@@ -1,6 +1,6 @@
 # tab-manager
 ## Tile badges and icons
-Tab tiles show badges describing the state of the tile. The visible badges include: "active", "discarded",
+Tab tiles show badges describing the state of the tile. The visible badges include: "active",
 "loading", plus the "SC1", "SC2", "SC3", "SC4" and "SC5" shortcuts.
 
 If a tab is muted and is not currently attempting to play any sound, the mute icon will be in gray,
@@ -12,7 +12,7 @@ Start typing to enter search mode. The search string is case insensitive. It wil
 title, URL and search badges.
 Search badges are a combination of the badges you see on the tile, plus hidden badges added for search
 convenience. The hidden badges include "audible", "muted", "highlighted", "incognito", "pinned",
-"unloaded", "loaded".
+"discarded", "unloaded", "loaded".
 
 Example: a tab is playing sounds and you want to mute it; type "audible" to get a list of tabs that
 are currently playing sounds, and mute it by clicking the "mute" menu option in the search results tile.

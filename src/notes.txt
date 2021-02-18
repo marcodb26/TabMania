@@ -401,6 +401,12 @@ DONE
   * https://chromereleases.googleblog.com/
   * https://www.theverge.com/2021/2/5/22267872/chrome-88-zero-day-vulnerability-government-backed-hackers-security-researchers
 
+- Added thumbtack icon and removed badge for "pinned"
+
+- Remove visible badge for "discarded" (it's just confusing, too similar to "unloaded")
+
+- Made pinning configurable for custom groups
+
 
 PUNTED TO NEXT RELEASE
 
