@@ -166,6 +166,10 @@
 	z-index: 1;
 }
 
+.tm-customgroup-header {
+	line-height: 1.7;
+}
+
 /* To be used in conjunction with Bootstrap's "badge" class.
    Bootstrap's "badge" class is "vertical-align: baseline;", we prefer "middle".
 */
@@ -469,7 +473,6 @@ input[type="search"]::-webkit-search-cancel-button {
 .tm-autosize > textarea,
 .tm-autosize::after {
   /* Identical styling required!! */
-/*  border: 1px solid black; */
 
   /* Need to set padding identical to Bootstrap's "form-floating".
      If you're not using "form-floating", you should set it back

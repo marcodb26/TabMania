@@ -466,7 +466,9 @@ _renderTabsByGroup: function(tabGroups) {
 
 				if(tabGroup.type == Classes.GroupsBuilder.Type.CUSTOM) {
 					let cgm = settingsStore.getCustomGroupsManager();
-					innerContainer.addHeadingClasses("tm-callout", cgm.getCustomGroupCss(tabGroup.title));
+					innerContainer.addHeadingClasses("tm-customgroup-header", "tm-callout", cgm.getCustomGroupCss(tabGroup.title));
+				} else {
+					innerContainer.addHeadingClasses("tm-customgroup-header");
 				}
 				this._containerViewer.append(innerContainer);
 				this._renderTabsFlatInner(innerContainer, tabs, tabGroup);
