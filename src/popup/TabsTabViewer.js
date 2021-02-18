@@ -160,7 +160,7 @@ _settingsStoreUpdatedCb: function(ev) {
 	// to the settings, it could be a change in the definition of custom
 	// group, and that definitely can have an impact on group membership.
 	// So it's incorrect to say "group membership has not changed"
-	if(this.isSearchActive() || ev.detail.key == "customGroups") {
+	if(this.isSearchActive() || ev.detail.key == "customGroups" || ev.detail.key == "pinnedGroups") {
 		this._queryAndRenderJob.run(this._queryAndRenderDelay);
 		return;
 	}

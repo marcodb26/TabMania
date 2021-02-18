@@ -404,7 +404,7 @@ _renderCheckboxItem: function() {
 
 	const bodyHtml = `
 	<div class="form-check form-switch">
-	  <input class="form-check-input" type="checkbox" id="${checkboxId}" ${extraAttrs}>
+	  <input class="form-check-input tm-align-checkbox" type="checkbox" id="${checkboxId}" ${extraAttrs}>
 	  <label class="form-check-label" for="${checkboxId}">${this._label}</label>
 	</div>
 	`;
@@ -902,6 +902,15 @@ _renameCustomGroup: function(newName) {
 		return;
 	}
 
+	// Now we can start the name change. Remember that we also need to transfer
+	// the pinnedGroup information to the new name. We need to take these actions
+	// before we switch name, otherwise we can't use these functions...
+	// Note that we don't check 'if(this._groupName != "")' because these pin
+	// functions are robust for that case.
+	let isPinned = this._isCustomGroupPinned();
+	// To keep things clean, we unpin the old name, so it doesn't take any storage
+	this._pinCustomGroup(false);
+
 	// Set _groupName to the new name first, because the calls to settingsStore
 	// trigger events that cause setValue() to be invoked, and setValue() for
 	// the group name uses a _getFn() that's actually reading _groupName...
@@ -921,6 +930,10 @@ _renameCustomGroup: function(newName) {
 		//this._enableSettings();
 		this.closeCard(false);
 	}
+	// Let's set the pinnedGroup only after the new group has actually been
+	// created to make sure if it fails, we don't end up with some non-existing
+	// group name pinned
+	this._pinCustomGroup(isPinned);
 
 	this.setTitle(this._formatDefaultTitle(newName));
 },
@@ -937,6 +950,27 @@ _setProp: function(prop, value) {
 
 _colorUpdatedCb: function(ev) {
 	this.setCardColor(ev.detail.color);
+},
+
+_pinCustomGroup: function(flag) {
+	if(this._groupName == "") {
+		// This should not happen because the checkbox is disabled while the name
+		// is unset, but we call this function also inside _renameCustomGroup(),
+		// and there this check is relevant
+		return;
+	}
+	if(flag) {
+		settingsStore.pinGroup(this._groupName);
+	} else {
+		settingsStore.unpinGroup(this._groupName);
+	}
+},
+
+_isCustomGroupPinned: function() {
+	if(this._groupName == "") {
+		return false;
+	}
+	return settingsStore.isGroupPinned(this._groupName);
 },
 
 _renderCustomGroupSettings: function() {
@@ -967,8 +1001,16 @@ _renderCustomGroupSettings: function() {
 		helpHtml: help,
 		updateKey: "customGroups"
 	});
-
 	this.append(this._groupNameInput);
+
+	let pinnedInput = Classes.SettingsCheckboxItemViewer.create({
+		setFn: this._pinCustomGroup.bind(this),
+		getFn: this._isCustomGroupPinned.bind(this),
+		label: "Pin group",
+		updateKey: "pinnedGroups",
+	});
+	this.append(pinnedInput);
+	this._allInputsCanDisable.push(pinnedInput);
 
 	let favIconUrl = Classes.SettingsTextItemViewer.create({
 		setFn: this._setProp.bind(this, "favIconUrl"),
