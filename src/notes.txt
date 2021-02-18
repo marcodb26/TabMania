@@ -392,6 +392,10 @@ DONE
 - Remove "https://" from URL displayed in tiles (but only "https://", leave any
   other protocol visible, matching what Chrome does in the omnibar)
 
+- Added "highlight / remove-highlight" menu item
+  * Decided to avoid calling it "select/unselect" because we want to support tiles
+    selection later, and that's a different thing
+
 
 PUNTED TO NEXT RELEASE
 

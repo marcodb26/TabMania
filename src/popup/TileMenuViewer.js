@@ -198,6 +198,10 @@ _initMenuItems: function() {
 								this._actionMuteToggleCb.bind(this));
 	this.append(this._muteMenuItem);
 
+	this._highlightMenuItem = Classes.MenuItemViewer.create(this._tab.highlighted ? "Remove highlight" : "Highlight",
+								this._actionHighlightToggleCb.bind(this));
+	this.append(this._highlightMenuItem);
+
 	this._discardMenuItem = Classes.MenuItemViewer.create("Discard from memory",
 								this._actionDiscardCb.bind(this));
 	if(!settingsStore.getOptionAdvancedMenu()) {
@@ -236,6 +240,16 @@ _actionMuteToggleCb: function(ev) {
 	const logHead = "TileMenuViewer::_actionMuteToggleCb(" + this._tab.id + "): ";
 	chromeUtils.wrap(chrome.tabs.update, logHead,
 					this._tab.id, { muted: !this._tab.mutedInfo.muted } ).then(
+		function() {
+			this._log(logHead + "completed");
+		}.bind(this)
+	);
+},
+
+_actionHighlightToggleCb: function(ev) {
+	const logHead = "TileMenuViewer::_actionHighlightToggleCb(" + this._tab.id + "): ";
+	chromeUtils.wrap(chrome.tabs.update, logHead,
+					this._tab.id, { highlighted: !this._tab.highlighted } ).then(
 		function() {
 			this._log(logHead + "completed");
 		}.bind(this)
