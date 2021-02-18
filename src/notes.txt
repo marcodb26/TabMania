@@ -94,6 +94,7 @@ Stop too much logging during tiles rendering
 "Attach tiles cont.":	9.9ms	14.1ms	4.3ms	4.1ms
 
 
+- Figure out how to center "x" button to close tiles, it's a disgrace...
 
 - Remove artificial settings initialized in popup.js before release
 
@@ -102,15 +103,7 @@ Stop too much logging during tiles rendering
 - Take out the whole FontAwesome and include only the icons we need, ideally
   without any CSS (to speed up window.onLoad performance)
 
-- BUG: the popup icon badge shows the wrong count when entering search mode, it
-  seems to be getting updated to the number of tabs in the search results...
-
-- Display <meta> tag information in dropdown, under title
-  * Only "description"? Or also "image" when available?
-
 - Disable Base._assert() for production code
-
-- Add action menu to containers
 
 - Manage incognito tabs (same view, different BS-tab, hide, etc)
 
@@ -118,10 +111,6 @@ Stop too much logging during tiles rendering
 
 - Find out how to package for release
 
-- Include also bookmarks in the search results, not only open tabs
-  * https://developer.chrome.com/docs/extensions/reference/bookmarks/#method-search
-  * If a bookmark is in a tab, it should not show up twice
-  * Should also add a badge mentioning a tab is bookmarked?
 
 
 DONE
@@ -414,6 +403,19 @@ DONE
 
 
 PUNTED TO NEXT RELEASE
+
+- Add action menu to containers
+
+- Display <meta> tag information in dropdown, under title
+  * Only "description"? Or also "image" when available?
+
+- Include also bookmarks in the search results, not only open tabs
+  * https://developer.chrome.com/docs/extensions/reference/bookmarks/#method-search
+  * If a bookmark is in a tab, it should not show up twice
+  * Should also add a badge mentioning a tab is bookmarked?
+
+- BUG: the popup icon badge shows the wrong count when entering search mode, it
+  seems to be getting updated to the number of tabs in the search results...
 
 - Show current tab in current window at the top of the tabs list?
 
