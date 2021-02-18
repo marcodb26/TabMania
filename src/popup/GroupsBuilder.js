@@ -14,115 +14,16 @@
 
 Classes.GroupsBuilder = Classes.Base.subclass({
 
-	_groups: null,
-
-	// See https://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript
-	_regexEscapePatternObj: /[-\/\\^$*+?.()|[\]{}]/g,
-
 _init: function() {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.Base._init.call(this);
 
 	this.debug();
-
-	this._buildCustomGroups();
-
-	settingsStore.addEventListener(Classes.EventManager.Events.UPDATED, this._settingStoreUpdatedCb.bind(this));
-},
-
-_settingStoreUpdatedCb: function(ev) {
-	const logHead = "GroupsBuilder::_settingStoreUpdatedCb(" + ev.detail.key + "): ";
-
-	// Since rebuilding the groups database can be a bit expensive, let's only
-	// take this action if it's actually changed
-	if(ev.detail.key != "customGroups") {
-		this._log(logHead + "ignoring key");
-		return;
-	}
-
-	this._log(logHead + "processing update");
-	this._buildCustomGroups();
-},
-
-_regexEscape: function(simpleRegEx) {
-	// See https://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript
-	return simpleRegEx.replace(this._regexEscapePatternObj, '\\$&');
-},
-
-// Each line of the string "matchList" is a simplified-regex (or an empty line)
-_parseRegex: function(matchList) {
-	const logHead = "GroupsBuilder::_parseRegex(" + matchList + "): ";
-
-	if(matchList == null) {
-		return null;
-	}
-
-	let list = matchList.split("\n");
-
-	let trimmedList = [];
-	list.forEach(
-		function(regex) {
-			let trimmedRegex = regex.trim();
-			if(trimmedRegex != "") {
-				// Skip empty strings
-				trimmedList.push("(" + this._regexEscape(trimmedRegex) + ")");
-			}
-		}.bind(this)
-	)
-
-	let fullExpr = trimmedList.join("|")
-	this._log(logHead + "after split: " , fullExpr);
-
-	try {
-		return new RegExp(fullExpr);
-	} catch(e) {
-		this._err(logHead + "unable to parse regex", e);
-		return null;
-	}
-},
-
-_buildCustomGroups: function() {
-	const logHead = "GroupsBuilder::_buildCustomGroups(): ";
-	this._groups = {};
-
-	let groupTitles = settingsStore.getCustomGroupNames();
-	groupTitles.forEach(
-		function(title) {
-			this._groups[title] = settingsStore.getCustomGroup(title);
-			this._log(logHead + "processing group \"" + title + "\": ", this._groups[title]);
-			// We could have done this in the variable initialization itself, but let's start
-			// behaving as if we're parsing this from a file...
-			this._groups[title].parsedRegex = this._parseRegex(this._groups[title].matchList);
-		}.bind(this)
-	);
-},
-
-// Returns "null" if no custom group is defined for "hostname", otherwise returns the
-// "title" of the custom group
-_getCustomGroupByHostname: function(hostname) {
-	let titles = Object.keys(this._groups);
-
-	for(let i = 0; i < titles.length; i++) {
-		if(this._groups[titles[i]].parsedRegex != null &&
-			this._groups[titles[i]].parsedRegex.test(hostname)) {
-			return titles[i];
-		}
-	}
-
-	return null;
 },
 
 // Returns null if a hostname could not be parsed
 _getHostname: function(tab) {
 	return tab.tm.hostname;
-// This is now done in Classes.NormalizedTabs
-//	try {
-//		var urlObj = new URL(tab.url);
-//		return urlObj.hostname;
-//	} catch(e) {
-//		// Should check if it's a TypeError, but let's assume it's always a TypeError
-//		return null;
-//	}
 },
 
 _getWindowId: function(tab) {
@@ -130,10 +31,10 @@ _getWindowId: function(tab) {
 },
 
 _findFavIconUrl: function(groupName, tabs) {
-	let groupProps = this.getGroupProperties(groupName);
+	let favIconUrl = settingsStore.getCustomGroupsManager().getCustomGroupProp(groupName, "favIconUrl");
 
-	if(groupProps != null && groupProps.favIconUrl != null) {
-		return groupProps.favIconUrl;
+	if(favIconUrl != null) {
+		return favIconUrl;
 	}
 
 	// Default case, grab the first favicon you find in the list of tabs
@@ -144,26 +45,6 @@ _findFavIconUrl: function(groupName, tabs) {
 	}
 	return "";
 },
-
-// Now done in Classes.NormalizedTabs
-//
-// To normalize, move everything to upper case, then drop "WWW." at the beginning
-// of each title, since that makes sorting very ugly to watch. Eventually we could
-// get more sophisticated with this function (remove articles like "the "), and possibly
-// do that in a locale dependent way... but not now.
-//_normalizeTitle: function(title) {
-//	let upperTitle = title.toUpperCase();
-//
-//	// We could use upperTitle.replace() here, but it seems silly to use regex logic when
-//	// you just want to drop a fixed size substring occurring at the beginning of the string.
-//	// It should be less expensive to do surgery on the string knowing the constraints
-//	// (but we should validate this).
-//	if(upperTitle.startsWith("WWW.")) {
-//		return upperTitle.substring(4);
-//	}
-//
-//	return upperTitle;
-//},
 
 _tabGroupEntryToObj: function(groupName, data) {
 	let retVal = {
@@ -196,36 +77,6 @@ _tabGroupEntryToObj: function(groupName, data) {
 
 	return retVal;
 },
-
-// Moved to Classes.NormalizedTabs
-//
-//// See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort
-//// Return -1 if a < b, 0 if a == b and 1 if b < a
-//// Used to sort the arrays with elements created by _tabGroupEntryToObj(), or to sort tabs
-//// in the tabs array (since both have the "title" property).
-//// Titles are compared case insensitive.
-//_compareGroupsFn: function(a, b) {
-//	// See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare
-//	// Eventually we should also specify the locale configured for the browser, but not now...
-//	return a.normalizedTitle.localeCompare(b.normalizedTitle);
-//},
-//
-//_compareTabsFn: function(a, b) {
-//	// Pinned tabs are always before unpinned tabs.
-//	// By construction, a group is pinned if the group is explicitly pinned or if
-//	// at least one of its tabs is pinned. So not all tabs in a group have to be
-//	// pinned, but pinned tabs should always show first. See _tabGroupsToArrays()
-//	if(a.pinned && !b.pinned) {
-//		return -1;
-//	}
-//
-//	if(b.pinned && !a.pinned) {
-//		return 1;
-//	}
-//
-//	// If we get here, both groups are pinned or unpinned
-//	return this._compareGroupsFn(a, b);
-//},
 
 _tabsHasPinnedTab: function(tabs) {
 	for(let i = 0; i < tabs.length; i++) {
@@ -288,25 +139,6 @@ _tabGroupsToArrays: function(tabGroups) {
 			unpinned.sort(Classes.NormalizedTabs.compareTitlesFn) ];
 },
 
-// Not needed anymore, see TabsTabViewer
-//
-//// This function is a bit odd, it doesn't really belong to the rest of the flow, it's
-//// used in the search case, when no grouping is required. Since all the normalization
-//// and sorting logic is in this class, we'll just adopt this function here...
-//_normalizeAndSort: function(tabs) {
-//	tabs.forEach(
-//		function(tab) {
-//			// The normalized title is what we'll use for sorting.
-//			// A bit uncomfortable modifying tabs coming from chrome.tabs, but
-//			// it would take more work (and more time at runtime) to have to
-//			// deep copy every tab... let's hope this doesn't break anything...
-//			tab.normalizedTitle = this._normalizeTitle(tab.title);
-//		}.bind(this)
-//	);
-//
-//	return tabs.sort(this._compareTabsFn.bind(this));
-//},
-
 // criterionFn(tab) is a function that returns a key to use for grouping the current
 // tab, or "null" if a key can't be generated (in which case the tab will be dropped
 // and not displayed). Note that at this point every tab can get grouped, even if most
@@ -327,13 +159,6 @@ _groupByCriterion: function(tabs, criterionFn, type) {
 				this._err(logHead + "unable to generate key for tab ", tab);
 				return;
 			}
-
-// This is now done by Classes.NormalizedTabs
-//			// The normalized title is what we'll use for sorting.
-//			// A bit uncomfortable modifying tabs coming from chrome.tabs, but
-//			// it would take more work (and more time at runtime) to have to
-//			// deep copy every tab... let's hope this doesn't break anything...
-//			tab.normalizedTitle = this._normalizeTitle(tab.title);
 
 			if(key in tabGroups) {
 				tabGroups[key].tabs.push(tab);
@@ -363,11 +188,13 @@ _addCustomGroups: function(inputTabGroups) {
 	// The "disadvantage" is that we need to loop through the hostname groups after they've
 	// been created by _groupByCriterion().
 
+	let cgm = settingsStore.getCustomGroupsManager();
+
 	// "key" is a hostname.
 	for (const [key, data] of Object.entries(inputTabGroups)) {
 		let tabs = data.tabs;
 
-		let title = this._getCustomGroupByHostname(key);
+		let title = cgm.getCustomGroupByHostname(key);
 		let type = Classes.GroupsBuilder.Type.CUSTOM;
 
 		if(title == null) {

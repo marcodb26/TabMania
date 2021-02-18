@@ -458,6 +458,11 @@ _renderTabsByGroup: function(tabGroups) {
 				innerContainer.setHeadingHtml(this._groupHeadingHtml(tabGroup));
 				innerContainer.addExpandedListener(this._containerExpandedCb.bind(this, tabGroup.title));
 				innerContainer.addCollapsedListener(this._containerCollapsedCb.bind(this, tabGroup.title));
+
+				if(tabGroup.type == Classes.GroupsBuilder.Type.CUSTOM) {
+					let cgm = settingsStore.getCustomGroupsManager();
+					innerContainer.addHeadingClasses("tm-callout", cgm.getCustomGroupCss(tabGroup.title));
+				}
 				this._containerViewer.append(innerContainer);
 				this._renderTabsFlatInner(innerContainer, tabs, tabGroup);
 			}

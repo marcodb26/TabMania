@@ -653,7 +653,7 @@ _init: function(titleHtml, canClose) {
 	}
 
 	const rootHtml = `
-	<div class="tm-callout tm-hover tm-stacked-below">
+	<div class="tm-callout tm-callout-settings-card tm-hover tm-stacked-below">
 		<div id="${titleId}" class="ms-2 fw-bold">${titleHtml}</div>
 		<div id="${bodyId}"></div>
 		${closeHtml}
@@ -671,17 +671,6 @@ _init: function(titleHtml, canClose) {
 	}
 },
 
-_colorData: {
-	// "none" is the color we'll show when no color is set
-	none: "tm-callout-none",
-	grey: "tm-callout-grey",
-	blue: "tm-callout-blue",
-	red: "tm-callout-red",
-	yellow: "tm-callout-yellow",
-	green: "tm-callout-green",
-	cyan: "tm-callout-cyan"
-},
-
 setCardColor: function(color) {
 	const logHead = "SettingsCardViewer::setCardColor(" + color + "): ";
 	if(this._cardColor == color) {
@@ -690,14 +679,15 @@ setCardColor: function(color) {
 		return;
 	}
 
+	let cgm = settingsStore.getCustomGroupsManager();
 	if(this._cardColor != null) {
 		this._log(logHead + "removing old color " + this._cardColor);
-		this.removeClasses(this._colorData[this._cardColor]);
+		this.removeClasses(cgm.getCustomGroupCssByColor(this._cardColor));
 	}
 
 	if(color != null) {
 		this._log(logHead + "adding color");
-		this.addClasses(this._colorData[color]);
+		this.addClasses(cgm.getCustomGroupCssByColor(color));
 	}
 
 	this._cardColor = color;
@@ -831,7 +821,7 @@ _init: function(groupName, htmlTitle) {
 
 	this._groupName = groupName;
 	if(groupName != "") {
-		this.setCardColor(settingsStore.getCustomGroupProp(groupName, "color"));
+		this.setCardColor(settingsStore.getCustomGroupsManager().getCustomGroupProp(groupName, "color"));
 	}
 	this._renderCustomGroupSettings();
 
@@ -854,7 +844,7 @@ _onCloseClickCb: function(ev) {
 	this.closeCard();
 
 	if(this._groupName != "") {
-		settingsStore.delCustomGroup(this._groupName);
+		settingsStore.getCustomGroupsManager().delCustomGroup(this._groupName);
 	}
 },
 
@@ -863,7 +853,7 @@ _applyColorChange: function(color) {
 		// No action can be taken until a group name is set
 		return;
 	}
-	settingsStore.setCustomGroupProp(this._groupName, "color", color);
+	settingsStore.getCustomGroupsManager().setCustomGroupProp(this._groupName, "color", color);
 },
 
 _getGroupName: function() {
@@ -903,9 +893,10 @@ _renameCustomGroup: function(newName) {
 		this._err(logHead + "the title is a string of whitespaces");
 		return;
 	}
-	
+
+	let cgm = settingsStore.getCustomGroupsManager()
 	// Check hasCustomGroup() with ignoreCase = true
-	if(settingsStore.hasCustomGroup(newName, true)) {
+	if(cgm.hasCustomGroup(newName, true)) {
 		this._showGroupNameError(`A group named <i>${newName}</i> already exists`);
 		this._err(logHead + "the title already exists");
 		return;
@@ -918,10 +909,10 @@ _renameCustomGroup: function(newName) {
 	this._groupName = newName;
 
 	if(oldName != "") {
-		settingsStore.renameCustomGroup(oldName, newName);
+		cgm.renameCustomGroup(oldName, newName);
 	} else {
 		// We need to create the new object in settingsStore
-		settingsStore.setCustomGroup(newName, {});
+		cgm.setCustomGroup(newName, {});
 		// Once settingsStore generates its notification, SettingsTabViewer
 		// will do its diffs and discover it needs to add a new card with
 		// the newName we just set. It so happens the card already exists
@@ -937,11 +928,11 @@ _renameCustomGroup: function(newName) {
 // We need these small wrappers because groups can change names, so we can't
 // bind a fixed name in the event callbacks
 _getProp: function(prop) {
-	return settingsStore.getCustomGroupProp(this._groupName, prop);
+	return settingsStore.getCustomGroupsManager().getCustomGroupProp(this._groupName, prop);
 },
 
 _setProp: function(prop, value) {
-	return settingsStore.setCustomGroupProp(this._groupName, prop, value);
+	return settingsStore.getCustomGroupsManager().setCustomGroupProp(this._groupName, prop, value);
 },
 
 _colorUpdatedCb: function(ev) {
@@ -1263,7 +1254,7 @@ _renderSettings: function() {
 	this._customGroupsContainer.addClasses("tm-min-empty-container");
 	outerCustomGroupsContainer.append(this._customGroupsContainer);
 	this._customGroupsByName = [];
-	this._addCustomGroups(settingsStore.getCustomGroupNames());
+	this._addCustomGroups(settingsStore.getCustomGroupsManager().getCustomGroupNames());
 
 	let addCustomGroupButton = Classes.SettingsAddCustomGroupViewer.create(this._customGroupsContainer);
 	outerCustomGroupsContainer.append(addCustomGroupButton);
@@ -1344,7 +1335,7 @@ _updatedCb: function(ev) {
 	this._log(logHead + "processing change", ev.detail);
 
 	// We need to do a diff of the names we know vs. the names in settingsStore
-	let newNames = settingsStore.getCustomGroupNames().sort();
+	let newNames = settingsStore.getCustomGroupsManager().getCustomGroupNames().sort();
 	let oldNames = Object.keys(this._customGroupsByName).sort();
 
 	let toBeDeleted = [];

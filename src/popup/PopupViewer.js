@@ -171,6 +171,10 @@ setHeadingHtml: function(html) {
 	this._headingElem.innerHTML = html;
 },
 
+addHeadingClasses: function(...args) {
+	this._headingElem.classList.add(...args);
+},
+
 // The signature of the callback is function(event).
 // Note that the event happens on the parent of _bodyElem, so watch out.
 addCollapsedListener: function(fn) {

@@ -122,12 +122,8 @@ Stop too much logging during tiles rendering
 
 - Disable Base._assert() for production code
 
-- Include custom group names (non-hostname) in search badges, and possibly in badges
-  too while in search mode (while not in search mode there's no reason to do that
-  since all tiles are grouped under the group name)
-
-- Color badges from custom groups (not very useful when inside the groups, but possibly
-  useful when the tile is in a search result)
+- BUG: custom group container tile doesn't update color callout when color changed
+  * The tiles inside the container do change color...
 
 - Add action menu to containers
 
@@ -141,8 +137,6 @@ Stop too much logging during tiles rendering
   * https://developer.chrome.com/docs/extensions/reference/bookmarks/#method-search
   * If a bookmark is in a tab, it should not show up twice
   * Should also add a badge mentioning a tab is bookmarked?
-
-
 
 
 DONE
@@ -397,6 +391,13 @@ DONE
     selection later, and that's a different thing
 
 - Don't try to render space for favicon if a favicon is not available
+
+- Include custom group names (non-hostname) in search badges, and possibly in badges
+  too while in search mode (while not in search mode there's no reason to do that
+  since all tiles are grouped under the group name)
+
+- Color badges from custom groups (not very useful when inside the groups, but possibly
+  useful when the tile is in a search result)
 
 
 PUNTED TO NEXT RELEASE

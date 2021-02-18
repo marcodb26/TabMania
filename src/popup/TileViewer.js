@@ -93,6 +93,11 @@ renderBody: function() {
 	let textMuted = "text-muted";
 	let imgExtraClasses = [];
 
+	if(this._tab.tm.customGroupName != null) {
+		let cgm = settingsStore.getCustomGroupsManager();
+		this.addClasses("tm-callout", cgm.getCustomGroupCss(this._tab.tm.customGroupName));
+	}
+
 	// "audible" and "muted" are not mutually exclusive, but we want to show a
 	// single icon, so we're using the arbitrary convention of making the muted
 	// icon gray if there's no current audio (meaning "if there was audio, it

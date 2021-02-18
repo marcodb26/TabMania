@@ -86,7 +86,7 @@
 }
 
 .tm-indent-right {
-	padding: 0.1rem 0.1rem 0.1rem 1.25rem;
+	padding: 0.1rem 0.1rem 0.1rem 0.5rem;
 }
 
 .tm-favicon-16 {
@@ -345,11 +345,14 @@ Encoded with https://www.base64encode.org/
    alpha version of Bootstrap 5
 */
 .tm-callout {
-    margin-top: 0.5rem;
-    padding-bottom: 0.5rem;
     border: 1px solid #e9ecef;
     border-left-width: .25rem;
     border-radius: .25rem;
+}
+
+.tm-callout-settings-card {
+    margin-top: 0.5rem;
+    padding-bottom: 0.5rem;
 }
 
 /* Matching the Bootstrap colors for consistency */

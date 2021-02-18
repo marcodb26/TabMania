@@ -247,6 +247,10 @@ updateSearchBadges: function(tab) {
 		this._addNormalizedVisualBadge(tab, "pinned");
 	}
 
+	if(tab.tm.customGroupName != null) {
+		this._addNormalizedVisualBadge(tab, tab.tm.customGroupName, false);
+	}
+
 	// We always want this to appear last, if the user configured it to be visible
 	this._addNormalizedVisualBadge(tab, tab.tm.extId, settingsStore.getOptionShowTabId());
 },
@@ -264,6 +268,7 @@ normalizeTab: function(tab) {
 		// with that
 		protocol: protocol,
 		hostname: hostname,
+		customGroupName: settingsStore.getCustomGroupsManager().getCustomGroupByHostname(hostname),
 		lowerCaseUrl: url.toLowerCase(),
 		lowerCaseTitle: lowerCaseTitle,
 		normTitle: Classes.NormalizedTabs.normalizeLowerCaseTitle(lowerCaseTitle),
@@ -361,6 +366,197 @@ updateTab: function(newTab, tabIdx) {
 },
 
 }); // Classes.NormalizedTabs
+
+
+// CLASS CustomGroupsManager
+//
+// This class generates events Classes.EventManager.Events.UPDATED, with "detail" set
+// to { target: <this object>, key: "customGroups" }
+Classes.CustomGroupsManager = Classes.AsyncBase.subclass({
+	_storageKeyPrefix: null,
+	_customGroupsStore: null,
+	_parsedCustomGroups: null,
+
+	_eventManager: null,
+
+	// See https://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript
+	_regexEscapePatternObj: /[-\/\\^$*+?.()|[\]{}]/g,
+
+// We need to override _init() to capture the constructor parameters
+_init: function(storageKeyPrefix) {
+	// Do this initialization before calling the parent's _init(), because
+	// that's where _asyncInit() gets invoked (and we might end up overriding
+	// the initialization done there).
+	this._storageKeyPrefix = storageKeyPrefix;
+
+	this.debug();
+
+	this._eventManager = Classes.EventManager.create();
+	this._eventManager.attachRegistrationFunctions(this);
+
+	// Overriding the parent class' _init(), but calling that original function first
+	Classes.AsyncBase._init.call(this);
+},
+
+_asyncInit: function() {
+	// Overriding the parent class' _asyncInit(), but calling that original function first.
+	// We know that AsyncBase doesn't need to take any action, but let's use the right
+	// pattern and include the parent class' promise as part of the list of promises
+	// to wait for.
+	let promiseArray = [ Classes.AsyncBase._asyncInit() ];
+
+	this._customGroupsStore = Classes.PersistentDict.createAs(this._storageKeyPrefix + "customGroups", chrome.storage.sync);
+
+	promiseArray.push(this._customGroupsStore.getInitPromise());
+	this._customGroupsStore.addEventListener(Classes.EventManager.Events.UPDATED, this._onUpdatedCb.bind(this));
+
+	return Promise.all(promiseArray).then(this._buildCustomGroups.bind(this));
+},
+
+_onUpdatedCb: function(ev) {
+	let key = ev.detail.target.getId();
+	const logHead = "CustomGroupsManager::_onUpdatedCb(" + key + "): ";
+	this._log(logHead + "processing update");
+
+	this._buildCustomGroups();
+
+	this._eventManager.notifyListeners(Classes.EventManager.Events.UPDATED, { key: key });
+},
+
+_regexEscape: function(simpleRegEx) {
+	// See https://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript
+	return simpleRegEx.replace(this._regexEscapePatternObj, '\\$&');
+},
+
+// Each line of the string "matchList" is a simplified-regex (or an empty line)
+_parseRegex: function(matchList) {
+	const logHead = "CustomGroupsManager::_parseRegex(" + matchList + "): ";
+
+	if(matchList == null) {
+		return null;
+	}
+
+	let list = matchList.split("\n");
+
+	let trimmedList = [];
+	list.forEach(
+		function(regex) {
+			let trimmedRegex = regex.trim();
+			if(trimmedRegex != "") {
+				// Skip empty strings
+				trimmedList.push("(" + this._regexEscape(trimmedRegex) + ")");
+			}
+		}.bind(this)
+	)
+
+	let fullExpr = trimmedList.join("|")
+	this._log(logHead + "after split: " , fullExpr);
+
+	try {
+		return new RegExp(fullExpr);
+	} catch(e) {
+		this._err(logHead + "unable to parse regex", e);
+		return null;
+	}
+},
+
+_buildCustomGroups: function() {
+	const logHead = "CustomGroupsManager::_buildCustomGroups(): ";
+	this._parsedCustomGroups = {};
+
+	let groupTitles = this.getCustomGroupNames();
+	groupTitles.forEach(
+		function(title) {
+			this._parsedCustomGroups[title] = this.getCustomGroup(title);
+			this._log(logHead + "processing group \"" + title + "\": ", this._parsedCustomGroups[title]);
+			// We could have done this in the variable initialization itself, but let's start
+			// behaving as if we're parsing this from a file...
+			this._parsedCustomGroups[title].parsedRegex = this._parseRegex(this._parsedCustomGroups[title].matchList);
+		}.bind(this)
+	);
+},
+
+// Returns "null" if no custom group is defined for "hostname", otherwise returns the
+// "title" of the custom group
+getCustomGroupByHostname: function(hostname) {
+	let titles = this.getCustomGroupNames()
+
+	for(let i = 0; i < titles.length; i++) {
+		if(this._parsedCustomGroups[titles[i]].parsedRegex != null &&
+			this._parsedCustomGroups[titles[i]].parsedRegex.test(hostname)) {
+			return titles[i];
+		}
+	}
+
+	return null;
+},
+
+hasCustomGroup: function(name, ignoreCase) {
+	return this._customGroupsStore.has(name, ignoreCase);
+},
+
+getCustomGroupNames: function() {
+	return this._customGroupsStore.getAllKeys();
+},
+
+getCustomGroup: function(name) {
+	return this._customGroupsStore.get(name);
+},
+
+setCustomGroup: function(name, obj) {
+	return this._customGroupsStore.set(name, obj);
+},
+
+renameCustomGroup: function(name, newName) {
+	return this._customGroupsStore.rename(name, newName);
+},
+
+delCustomGroup: function(name) {
+	return this._customGroupsStore.del(name);
+},
+
+getCustomGroupProp: function(name, prop) {
+	if(!this._customGroupsStore.has(name)) {
+		return null;
+	}
+
+	return this._customGroupsStore.get(name)[prop];
+},
+
+setCustomGroupProp: function(name, prop, value) {
+	const logHead = "CustomGroupsManager::setCustomGroupProp(" + name + ", " + prop + "): ";
+	if(!this._customGroupsStore.has(name)) {
+		this._err(logHead + "custom group not found");
+		return Promise.reject();
+	}
+
+	this._log(logHead + "setting value: ", value);
+	let groupInfo = this.getCustomGroup(name);
+	groupInfo[prop] = value;
+	return this.setCustomGroup(name, groupInfo);
+},
+
+_colorToCss: {
+	// "none" is the color we'll show when no color is set
+	none: "tm-callout-none",
+	grey: "tm-callout-grey",
+	blue: "tm-callout-blue",
+	red: "tm-callout-red",
+	yellow: "tm-callout-yellow",
+	green: "tm-callout-green",
+	cyan: "tm-callout-cyan"
+},
+
+getCustomGroupCssByColor: function(color) {
+	return this._colorToCss[color];
+},
+
+getCustomGroupCss: function(groupName) {
+	let color = optionalWithDefault(this.getCustomGroupProp(groupName, "color"), "none");
+	return this.getCustomGroupCssByColor(color);
+},
+
+}); // Classes.CustomGroupsManager
 
 
 // CLASS ShortcutsManager
@@ -826,9 +1022,9 @@ _asyncInit: function() {
 	// { favIconUrl, color, matchList }
 	// Note that "matchList" is actually a string made of match strings separated
 	// by newlines
-	this._customGroups = Classes.PersistentDict.createAs(this._storageKeyPrefix + "customGroups", chrome.storage.sync);
-	promiseArray.push(this._customGroups.getInitPromise());
-	this._customGroups.addEventListener(Classes.EventManager.Events.UPDATED, this._onUpdatedCb.bind(this));
+	this._customGroupsManager = Classes.CustomGroupsManager.create(this._storageKeyPrefix);
+	promiseArray.push(this._customGroupsManager.getInitPromise());
+	this._customGroupsManager.addEventListener(Classes.EventManager.Events.UPDATED, this._onUpdatedCb.bind(this));
 
 	this._pinnedGroups = Classes.PersistentSet.createAs(this._storageKeyPrefix + "pinnedGroups", chrome.storage.sync);
 	promiseArray.push(this._pinnedGroups.getInitPromise());
@@ -847,25 +1043,14 @@ _asyncInit: function() {
 
 _onUpdatedCb: function(ev) {
 	let key = ev.detail.key;
-	// "ev.detail.key" is set only for events from "this._shortcutsManager"
+	// "ev.detail.key" is set only for events from "this._shortcutsManager" or "this._customGroupsManager"
 	if(key == null) {
-		// The notification did not originate from the shortcutsManager
+		// The notification did not originate from shortcutsManager/customGroupsManager
 		key = ev.detail.target.getId();
 	}
 
 	this._eventManager.notifyListeners(Classes.EventManager.Events.UPDATED, { key: key });
-	//this._notifyListeners(key);
 },
-
-// Now replaced by:
-//     	this._eventManager.notifyListeners(Classes.EventManager.Events.UPDATED);
-//
-//_notifyListeners: function(key) {
-//	this._eventManager.dispatchEvent(Classes.EventManager.Events.UPDATED, {
-//		target: this,
-//		key: key
-//	});
-//},
 
 // Returns a PersistentDict() with all the options. Typically you shouldn't call
 // this function, we should have a wrapper for each value in the options
@@ -911,51 +1096,6 @@ setOptionSearchUrl: function(value) {
 	return this._setOption("searchUrl", value);
 },
 
-hasCustomGroup: function(name, ignoreCase) {
-	return this._customGroups.has(name, ignoreCase);
-},
-
-getCustomGroupNames: function() {
-	return this._customGroups.getAllKeys();
-},
-
-getCustomGroup: function(name) {
-	return this._customGroups.get(name);
-},
-
-setCustomGroup: function(name, obj) {
-	return this._customGroups.set(name, obj);
-},
-
-renameCustomGroup: function(name, newName) {
-	return this._customGroups.rename(name, newName);
-},
-
-delCustomGroup: function(name) {
-	return this._customGroups.del(name);
-},
-
-getCustomGroupProp: function(name, prop) {
-	if(!this._customGroups.has(name)) {
-		return null;
-	}
-
-	return this._customGroups.get(name)[prop];
-},
-
-setCustomGroupProp: function(name, prop, value) {
-	const logHead = "SettingsStore::setCustomGroupProp(" + name + ", " + prop + "): ";
-	if(!this._customGroups.has(name)) {
-		this._err(logHead + "custom group not found");
-		return Promise.reject();
-	}
-
-	this._log(logHead + "setting value: ", value);
-	let groupInfo = this.getCustomGroup(name);
-	groupInfo[prop] = value;
-	return this.setCustomGroup(name, groupInfo);
-},
-
 getPinnedGroups: function() {
 	this._assert(this.isInitialized());
 	return this._pinnedGroups;
@@ -973,9 +1113,11 @@ unpinGroup: function(groupName) {
 	return this._pinnedGroups.del(groupName);
 },
 
-// Unlike the other variables, we don't want to provide wrappers for all the
-// fields inside a shortcut setting, we just return the PersistentDict, which
-// means we don't even need a "set" function.
+getCustomGroupsManager: function() {
+	this._assert(this.isInitialized());
+	return this._customGroupsManager;
+},
+
 getShortcutsManager: function() {
 	this._assert(this.isInitialized());
 	return this._shortcutsManager;
