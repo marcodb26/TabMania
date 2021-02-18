@@ -22,8 +22,7 @@
 //
 // Current commands list
 //
-// - "getWifiSignalHistory"
-// - "getRequestsHistory"
+// - "launchUrl": popup request to launch a URL in a new window. 
 // - "testNative": receives a request from the popup to invoke a "test" command to NMH.
 Classes.InBrowserMsgServer = Classes.MsgServer.subclass({
 
@@ -103,12 +102,6 @@ _processMsgCb: function(request) {
 
 // CLASS NmhClient
 // Use the ID of the Native Extension as ID for the class instance (in NmhClient.createAs())
-//
-// Current commands list
-//
-// - "getWifiData"
-// - "poll"
-// - "test"
 //
 Classes.NmhClient = Classes.MsgClient.subclass({
 _init: function() {

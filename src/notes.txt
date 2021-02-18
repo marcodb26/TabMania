@@ -94,12 +94,7 @@ Stop too much logging during tiles rendering
 "Attach tiles cont.":	9.9ms	14.1ms	4.3ms	4.1ms
 
 
-- BUG: Since 2021.02.05, access to "chrome://" URLs seems to be prevented from
-  within the popup, and the links in Settings are dead
-  * The error message in the console is "Not allowed to load local resource"
-  * https://chromereleases.googleblog.com/
-  * https://www.theverge.com/2021/2/5/22267872/chrome-88-zero-day-vulnerability-government-backed-hackers-security-researchers
- 
+
 - Remove artificial settings initialized in popup.js before release
 
 - Implement TileMenuViewer._updateShortcutMenuItems()
@@ -410,6 +405,12 @@ DONE
 - BUG: Custom groups with pinned tabs don't get pushed to the top, they
   follow standard sorting
   * Hostname-based groups get pushed to the top instead
+
+- BUG: Since 2021.02.05, access to "chrome://" URLs seems to be prevented from
+  within the popup, and the links in Settings are dead
+  * The error message in the console is "Not allowed to load local resource"
+  * https://chromereleases.googleblog.com/
+  * https://www.theverge.com/2021/2/5/22267872/chrome-88-zero-day-vulnerability-government-backed-hackers-security-researchers
 
 
 PUNTED TO NEXT RELEASE

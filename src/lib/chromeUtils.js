@@ -77,6 +77,7 @@ activateTab: function(tabId) {
 
 // tabId is optional, if specified, load in the tab, otherwise create a new tab.
 // Also takes the window with the new tab to the foreground.
+// Use "tabId = -1" to open in a new window.
 loadUrl: function(url, tabId) {
 	const logHead = "ChromeUtils::loadUrl(): ";
 
@@ -86,8 +87,13 @@ loadUrl: function(url, tabId) {
 	let promiseB = null;
 
 	if(tabId != null) {
-		promiseA = chromeUtils.activateTab(tabId);
-		promiseB = this.wrap(chrome.tabs.update, logHead, tabId, { url: url });
+		if(tabId != -1) {
+			promiseA = chromeUtils.activateTab(tabId);
+			promiseB = this.wrap(chrome.tabs.update, logHead, tabId, { url: url });
+		} else {
+			// Open in a new window, only one command, return the single promise immediately
+			return this.wrap(chrome.windows.create, logHead, { focused: true, url: url });
+		}
 	} else {
 		promiseA = this.wrap(chrome.tabs.create, logHead, { url: url });
 		// Assume the tab will be opened in the current window, and avoid the

@@ -864,7 +864,7 @@ _printTabInfo: function(tab) {
 	return "[extension]";
 },
 
-_processMsgInner: function(request) {
+_processMsgInner: function(request, sender, sendResponse) {
 	// Note that there are some assumptions about this function's behavior made in
 	// _processMsgCb(), so if you make changes here, make sure you don't break them,
 	// or go change that code too.
@@ -885,7 +885,7 @@ _processMsgCb: function(request, sender, sendResponse) {
 	const logHead = "MsgServer::_processMsgCb(from tab " + this._printTabInfo(sender.tab) + "): ";
 	this._log(logHead + JSON.stringify(request), sender);
 
-	var response = this._processMsgInner(request);
+	var response = this._processMsgInner.apply(this, arguments);
 
 	if(response == null) {
 		// Note that given the way _processMsgInner() behaves, "response == null" can be
@@ -926,24 +926,6 @@ addCmd: function(cmd, fn, needResponse) {
 			return this.formatErrMsg(e.message, e.toString());
 		}.bind(this)
 	);
-
-	this._cmdMap[cmd] = { fn: cmdWrapper, needResponse: needResponse };
-},
-
-OLDaddCmd: function(cmd, fn, needResponse) {
-	needResponse = optionalWithDefault(needResponse, true);
-
-	function cmdWrapper() {
-		try {
-			// apply(null) should leave the context set by the bind() used when
-			// passing the function "fn" in.
-			// Or at least that's the claim here: https://stackoverflow.com/a/40277458
-			return fn.apply(null, arguments)
-		} catch(e) {
-			this._err("cmd \"" + cmd + "\" generated an exception: ", e);
-			return this.formatErrMsg(e.message, e.toString());
-		}
-	};
 
 	this._cmdMap[cmd] = { fn: cmdWrapper, needResponse: needResponse };
 },
