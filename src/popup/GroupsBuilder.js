@@ -307,7 +307,7 @@ _tabGroupsToArrays: function(tabGroups) {
 //	return tabs.sort(this._compareTabsFn.bind(this));
 //},
 
-// criterionFn(tab) {} is a function that returns a key to use for grouping the current
+// criterionFn(tab) is a function that returns a key to use for grouping the current
 // tab, or "null" if a key can't be generated (in which case the tab will be dropped
 // and not displayed). Note that at this point every tab can get grouped, even if most
 // groups will be groups of one tab. The rendering logic will take care of that.

@@ -110,18 +110,6 @@ Stop too much logging during tiles rendering
 
 - Implement TileMenuViewer._updateShortcutMenuItems()
 
-- BUG: with the new logic for TabsTabViewer._tabUpdatedByPropCb(), the call to
-  TabsTabViewer._isTabInCurrentSearch() is insufficient. Since the tab to be
-  validated is not currently in a tile (it's new), its search badges have not
-  been populated, and therefore any search by search badges will fail to consider
-  the new tab a part of the search results.
-  This problem exists regardless of _tabUpdatedByPropCb(), even if you do a full
-  query and re-render, in search mode the rendering happens only for tabs that
-  are found to be part of the search results, so if you need a search badge to
-  become part of the search results, you're out of luck.
-  * Fixing the location of the search badges normalization (away from the tiles
-    and to the beginning of the query/render cycle) didn't fix this issue
-
 - Take out the whole FontAwesome and include only the icons we need, ideally
   without any CSS (to speed up window.onLoad performance)
 
@@ -130,11 +118,6 @@ Stop too much logging during tiles rendering
 
 - Display <meta> tag information in dropdown, under title
   * Only "description"? Or also "image" when available?
-
-- BUG: tab info normalization happens only on query, it doesn't happen for "tab"
-  info coming from update listeners
-  * Fixed, but with scheduledJob delay set to zero, impossible to verify,
-    need to add a >0 delay and test more
 
 - BUG: "back" needs to support the "global" case, and in that case just bring up
   the Chrome window and stay on the same tab (like it happens when "back" from a
@@ -413,6 +396,11 @@ DONE
 - Added "mute/unmute" menu item
 
 - Cleaned up use of Font Awesome icons
+
+- Removed the logic that tried to avoid unnecessary re-query/re-render cycles, as it was
+  too brittle due to the issues with the lack of info in the Chrome tab events
+  * Now full refreshes occur for every event, with a little 200ms debouncing, and
+    we should be done with things not updating in search mode
 
 
 PUNTED TO NEXT RELEASE

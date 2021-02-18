@@ -35,7 +35,7 @@ Classes.TabsTabViewer = Classes.SearchableTabViewer.subclass({
 	_queryAndRenderJob: null,
 	// Delay before a full re-render happens. Use this to avoid causing too many re-renders
 	// if there are too many events.
-	_queryAndRenderDelay: 0, //2000,
+	_queryAndRenderDelay: 200, //2000,
 
 	// Dictionary tracking all the tab tiles, in case we need to update their contents
 	_tilesByTabId: null,
@@ -62,15 +62,45 @@ _init: function(tabLabelHtml) {
 	this._TabsTabViewer_searchBoxInactiveInner();
 	this._TabsTabViewer_render();
 
-	this._updatesTrackerHandleIdByProp =
-			tabUpdatesTracker.registerByPropList(this._trackingPropList,
-												this._tabUpdatedByPropCb.bind(this));
-
-	// See TabUpdatesTracker._init() for why we don't go through that class
-	// for this event
-	chrome.tabs.onCreated.addListener(this._tabCreatedCb.bind(this));
+	this._registerChromeCallbacks();
 
 	settingsStore.addEventListener(Classes.EventManager.Events.UPDATED, this._settingsStoreUpdatedCb.bind(this));
+},
+
+// These Chrome callbacks are very incomplete, and the only reasonable action to take
+// on receiving them is to re-query/re-render everything. We tried to be smarter about
+// it, but the lack of information is too much:
+// - When you get onActivated for tab1, you don't know which tab2 has been deactivated
+// - When you get onHighlighted, you only know when a tab gained highlighted, not when
+//   it lost it
+// - When you get onMoved, you know the new index of the tab that was moved, but not the
+//   shifted indices of all the other tabs that have been pushed around because of the move
+// - Similarly, when you get onRemoved, all the indices of the tabs to the right of the
+//   removed tab change, but you don't get notified about it
+// - When you get onCreated, the tab is not completely ready, and you need to wait for
+//   onUpdated anyway.
+_registerChromeCallbacks: function() {
+	// https://developer.chrome.com/docs/extensions/reference/tabs/#event-onCreated
+	chrome.tabs.onCreated.addListener(this._tabCreatedCb.bind(this));
+
+	// https://developer.chrome.com/docs/extensions/reference/tabs/#event-onUpdated
+	// Note that chrome.tabs.onUpdated does NOT include updated to the "active" and
+	// "highlighted" property of a tab. For that you need to listen to chrome.tabs.onActivated
+	// and onHighlighted, though you'll only be able to learn which tabs are gaining
+	// "active" and "highlighted", not which tabs are losing them.
+	chrome.tabs.onUpdated.addListener(this._tabUpdatedCb.bind(this, Classes.TabsTabViewer.CbType.UPDATED));
+	// https://developer.chrome.com/docs/extensions/reference/tabs/#event-onActivated
+	chrome.tabs.onActivated.addListener(this._tabActivatedHighlightedCb.bind(this, Classes.TabsTabViewer.CbType.ACTIVATED));
+	// https://developer.chrome.com/docs/extensions/reference/tabs/#event-onHighlighted
+	chrome.tabs.onHighlighted.addListener(this._tabActivatedHighlightedCb.bind(this, Classes.TabsTabViewer.CbType.HIGHLIGHTED));
+	// Unfortunately closing a tab doesn't get considered an update to the tab, so we must
+	// register for this other event too...
+	// https://developer.chrome.com/docs/extensions/reference/tabs/#event-onRemoved
+	chrome.tabs.onRemoved.addListener(this._tabUpdatedCb.bind(this, Classes.TabsTabViewer.CbType.REMOVED));
+	// https://developer.chrome.com/docs/extensions/reference/tabs/#event-onAttached
+	chrome.tabs.onAttached.addListener(this._tabUpdatedCb.bind(this, Classes.TabsTabViewer.CbType.ATTACHED));
+	// https://developer.chrome.com/docs/extensions/reference/tabs/#event-onMoved
+	chrome.tabs.onMoved.addListener(this._tabUpdatedCb.bind(this, Classes.TabsTabViewer.CbType.MOVED));
 },
 
 _tabCreatedCb: function(tab) {
@@ -95,13 +125,20 @@ _tabCreatedCb: function(tab) {
 	this._queryAndRenderJob.run();
 },
 
+_tabActivatedHighlightedCb: function(cbType, activeHighlightInfo) {
+	// We want to reintroduce the initial "tabId" to make the callbacks of this class
+	// more uniform. Note that only "onActivated" has "activeHighlightInfo.tabId", while
+	// "onHighlighted" will set the field to "undefined" (which is ok).
+	this._tabUpdatedCb(cbType, activeHighlightInfo.tabId, activeHighlightInfo);
+},
+
 _renderTileBodies: function() {
 	// Object iteration, ECMAScript 2017 style
 	// See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries
 	try {
-	for(const [ tabId, tile ] of Object.entries(this._tilesByTabId)) {
-		tile.renderBody();
-	}
+		for(const [ tabId, tile ] of Object.entries(this._tilesByTabId)) {
+			tile.renderBody();
+		}
 	} catch(e) {
 		this._err(e, "this._tilesByTabId: ", this._tilesByTabId);
 	}
@@ -128,14 +165,34 @@ _settingsStoreUpdatedCb: function(ev) {
 	this._renderTileBodies();
 },
 
-_tabUpdatedByTabCb: function(cbType, tabId, activeChangeRemoveInfo, tab) {
-	const logHead = "TabsTabViewer::_tabUpdatedByTabCb(" + tabId + ", " + cbType + "): ";
+_setTabProp: function(prop, tabId) {
+	const logHead = "TabsTabViewer::_setTabProp(" + tabId + "): ";
+	if(!(tabId in this._tilesByTabId)) {
+		this._log(logHead + "skipping processing, no tile for this tab");
+		return;
+	}
+
+	let tabIdx = this._normTabs.getTabIndexByTabId(tabId);
+	let tab = this._normTabs.getTabByTabIndex(tabIdx);
+	this._assert(tab != null);
+
+	tab[prop] = true;
+	// We need to call this._normTabs.updateTab(tab), because even though the
+	// tab object we just updated is already in there, since we changed
+	// a property that affects the search badges, we need to re-normalize
+	// the tab to get the change reflected in the search badges
+	this._normTabs.updateTab(tab, tabIdx);
+	this._tilesByTabId[tabId].update(tab);
+},
+
+_tabUpdatedCb: function(cbType, tabId, activeChangeRemoveInfo, tab) {
+	const logHead = "TabsTabViewer::_tabUpdatedCb(" + cbType + ", " + tabId + "): ";
 	// Very crude... we re-render everything for every update. But at least we try
 	// to reduce the frequency of the re-render in some cases.
 	this._log(logHead + "entering");
 
 	switch(cbType) {
-		case Classes.TabUpdatesTracker.CbType.REMOVED:
+		case Classes.TabsTabViewer.CbType.REMOVED:
 			// Like in the case of onCreated, when a tab is removed we want to run the
 			// full re-render immediately.
 			//
@@ -143,49 +200,53 @@ _tabUpdatedByTabCb: function(cbType, tabId, activeChangeRemoveInfo, tab) {
 			// have any delay before a full re-query/re-render
 			this._queryAndRenderJob.run();
 			break;
-		case Classes.TabUpdatesTracker.CbType.UPDATED:
+		case Classes.TabsTabViewer.CbType.UPDATED:
 			// Only in case of a real update we can afford to delay the full re-render,
-			// provided we at least re-render the affected tile...
-			this._assert(tabId in this._tilesByTabId);
+			// provided we at least re-render the affected tile... we can only re-render
+			// the affected tile if we already have the affected tile, not if it's new.
+			// See _tabCreatedCb() for search cases where we ignore the creation event
+			// and just wait for the follwing update to arrive (that's a case where we
+			// won't have the tile in place when the update arrives).
 			if(this._queryAndRenderDelay != null && this._queryAndRenderDelay != 0) {
-				// Note that only "Classes.TabUpdatesTracker.CbType.UPDATED" includes "tab".
-				// All other types don't.
-				// Anyway TileViewer.update() is protected against "tab == null".
+				if(tabId in this._tilesByTabId) {
+					// Note that only "Classes.TabsTabViewer.CbType.UPDATED" includes "tab".
+					// All other types don't.
+					// Anyway TileViewer.update() is protected against "tab == null".
 
-				// First we want to normalize the updated tab (so there are no problems
-				// rendering it in the tile), and replace it in the list, so that search can
-				// find it with the right attributes
-				this._normTabs.updateTab(tab);
-				// Then update the shortcuts info, if needed
-				settingsStore.getShortcutsManager().updateTabs(this._normTabs.getTabs());
-				// Then we update the tile with the normalized info in place
-				this._tilesByTabId[tabId].update(tab);
+					// First we want to normalize the updated tab (so there are no problems
+					// rendering it in the tile), and replace it in the list, so that search can
+					// find it with the right attributes
+					this._normTabs.updateTab(tab);
+					// Then update the shortcuts info, if needed
+					settingsStore.getShortcutsManager().updateTabs(this._normTabs.getTabs());
+					// Then we update the tile with the normalized info in place
+					this._tilesByTabId[tabId].update(tab);
+				} else {
+					this._log(logHead + "skipping processing, no tile for this tab");
+				}
 			}
 			this._queryAndRenderJob.run(this._queryAndRenderDelay);
 			break;
-		case Classes.TabUpdatesTracker.CbType.ACTIVATED:
+		case Classes.TabsTabViewer.CbType.ACTIVATED:
+			if(this._queryAndRenderDelay != null && this._queryAndRenderDelay != 0) {
+				this._setTabProp("active", tabId);
+			}
+			this._queryAndRenderJob.run(this._queryAndRenderDelay);
+			break;
+		case Classes.TabsTabViewer.CbType.HIGHLIGHTED:
+			if(this._queryAndRenderDelay != null && this._queryAndRenderDelay != 0) {
+				activeChangeRemoveInfo.tabIds.forEach(this._setTabProp.bind(this, "highlighted"));
+			}
+			this._queryAndRenderJob.run(this._queryAndRenderDelay);
+			break;
+		case Classes.TabsTabViewer.CbType.MOVED:
+		case Classes.TabsTabViewer.CbType.ATTACHED:
 			if(this._queryAndRenderDelay != null && this._queryAndRenderDelay != 0) {
 				let tabIdx = this._normTabs.getTabIndexByTabId(tabId);
 				let tab = this._normTabs.getTabByTabIndex(tabIdx);
 				this._assert(tab != null);
-				tab.highlighted = true;
-				// We need to call this._normTabs.updateTab(tab), because even though the
-				// tab object we just updated is already in there, since we changed
-				// a property that affects the search badges, we need to re-normalize
-				// the tab to get the change reflected in the search badges
-				this._normTabs.updateTab(tab, tabIdx);
-				this._tilesByTabId[tabId].update(tab);
-			}
-			this._queryAndRenderJob.run(this._queryAndRenderDelay);
-			break;
-		case Classes.TabUpdatesTracker.CbType.MOVED:
-		case Classes.TabUpdatesTracker.CbType.ATTACHED:
-			if(this._queryAndRenderDelay != null && this._queryAndRenderDelay != 0) {
-				let tabIdx = this._normTabs.getTabIndexByTabId(tabId);
-				let tab = this._normTabs.getTabByTabIndex(tabIdx);
-				this._assert(tab != null);
 
-				if(cbType == Classes.TabUpdatesTracker.CbType.ATTACHED) {
+				if(cbType == Classes.TabsTabViewer.CbType.ATTACHED) {
 					tab.index = activeChangeRemoveInfo.newPosition;
 					tab.windowId = activeChangeRemoveInfo.newWindowId;
 				} else { // MOVED
@@ -198,102 +259,19 @@ _tabUpdatedByTabCb: function(cbType, tabId, activeChangeRemoveInfo, tab) {
 
 				// Since a tab has moved, we need to update the shortcutsManager
 				settingsStore.getShortcutsManager().updateTabs(this._normTabs.getTabs());
-				this._tilesByTabId[tabId].update(tab);
+				if(tabId in this._tilesByTabId) {
+					// This check can only be done this late in this case, because
+					// when a tab moves, all the shortcuts candidates can be impacted
+					// and need to be refreshed... the refresh of all relevant tiles
+					// will be triggered by the event generated by the ShortcutManager.
+					this._tilesByTabId[tabId].update(tab);
+				}
 			}
 			this._queryAndRenderJob.run(this._queryAndRenderDelay);
 			break;
 		default:
 			this._err(logHead + "unknown callback type");
 			break;
-	}
-},
-
-_tabUpdatedByPropCb: function(cbType, tabId, activeChangeRemoveInfo, tab) {
-	const logHead = "TabsTabViewer::_tabUpdatedByPropCb(tabId = " + tabId + "): ";
-
-	// We use the "prop" notifications for the specific purpose to allow
-	// insertion of new tabs in the notifications tabList in search mode.
-	// See top of AllTabsTabViewer for more details about the problem.
-	if(!this.isSearchActive()) {
-		this._log(logHead + "ignoring - not in search mode");
-		return;
-	}
-	// We only need to track UPDATED and ACTIVATED, for all other cases, we
-	// can drop the notification here, because we've also received one in the
-	// _tabUpdatedByTabCb() callback.
-	// ACTIVATED is a special case because activation of tab1 means deactivation
-	// of tab2, but "deactivation of tab2" doesn't appear in any event, and if
-	// tab2 is part of the search results, we must refresh its badges.
-	if(cbType != Classes.TabUpdatesTracker.CbType.UPDATED &&
-		cbType != Classes.TabUpdatesTracker.CbType.ACTIVATED) {
-		this._log(logHead + "ignoring - not an update or activate event");
-		return;
-	}
-	if(tabId in this._tilesByTabId) {
-		// We only care to monitor tabs that we're not already tracking.
-		// If we have a tile for a tabId, then we're already tracking it.
-		this._log(logHead + "ignoring - _tabUpdatedByTabCb() has handled", this._tilesByTabId);
-		return;
-	}
-
-	if(cbType == Classes.TabUpdatesTracker.CbType.UPDATED) {
-		// If we get here, we're receiving an UPDATED notification for a tab
-		// we're not monitoring via the tabList (_tabUpdatedByTabCb()).
-		// The goal is to find out if the tab should become part of the search
-		// results based on the update that just happened.
-		// This tracks new tabs just opened, or tabs that have navigated to a
-		// new URL, or tabs that had their title changed for whatever reason.
-
-		// This is a new "tab" (and "tab" is non-null for UPDATED), so we need
-		// to run the normalization logic on it, before we can call _isTabInCurrentSearch().
-		this._normTabs.normalizeTab(tab);
-		if(this._isTabInCurrentSearch(tab)) {
-			// The tab should become part of the search results, let's trigger
-			// the crude full re-render (otherwise we need to write code to compute
-			// the sorting order for this tab, and where to insert the corresponding
-			// tile (right now we just append() after a full tabs query.
-			this._log(logHead + "processing update");
-			this._queryAndRenderJob.run();
-		} else {
-			this._log(logHead + "ignoring update - not candidate for search results");
-		}
-	} else {
-		// ACTIVATED event
-
-		// We would like to be more specific, but the "active" event happens only
-		// for the tab1 that's becomeing active, though of course there's another
-		// tab2 that's becoming inactive as a result of this tab1 becoming active.
-		// If tab2 is in the search results, there's no other way but a full refresh
-		// to find out and remove the "active" badge from it.
-		this._log(logHead + "processing activation");
-		this._queryAndRenderJob.run();
-	}
-},
-
-// Add or change the listener to be notified only about the tabs that are
-// currently of interest.
-_enableNotificationsForTabs: function(tabs) {
-	var list = [];
-
-	tabs.forEach(
-		function(tab) {
-			list.push(tab.id);
-		}
-	);
-
-	// Update tabUpdatesTracker registration, or unregister
-	if(list.length > 0) {
-		if(this._updatesTrackerHandleIdByTab == null) {
-			this._updatesTrackerHandleIdByTab =
-				tabUpdatesTracker.registerByTabList(list, this._tabUpdatedByTabCb.bind(this));
-		} else {
-			tabUpdatesTracker.updateRegisterByTabList(this._updatesTrackerHandleIdByTab, list);
-		}
-	} else {
-		if(this._updatesTrackerHandleIdByTab != null) {
-			tabUpdatesTracker.unregisterByTabList(this._updatesTrackerHandleIdByTab);
-			this._updatesTrackerHandleIdByTab = null;
-		} // Else, if it's already "null", nothing to do...
 	}
 },
 
@@ -372,8 +350,6 @@ _queryAndRenderTabs: function() {
 				perfProf.measure("Shortcuts", "shortcutsStart", "renderStart");
 				perfProf.measure("Rendering", "renderStart", "renderEnd");
 
-				//perfProf.log();
-
 				// This piece of logic will need to be added when "chrome tab groups"
 				// APIs become available.
 				//this._getAllTabGroups().then(this._processTabGroupsCb.bind(this));
@@ -402,8 +378,6 @@ _standardRenderTabs: function(tabs) {
 	perfProf.mark("groupEnd");
 	this._log(logHead + "pinnedGroups = ", pinnedGroups);
 	this._log(logHead + "unpinnedGroups = ", unpinnedGroups);
-
-	this._enableNotificationsForTabs(tabs);
 
 	perfProf.mark("tilesStart");
 	if(tabs == null || tabs.length == 0) {
@@ -576,7 +550,10 @@ _activateSearchBox: function(active) {
 		this._log(logHead, "switching to standard render");
 		// Switch back to the standard view
 		this._TabsTabViewer_searchBoxInactiveInner();
-		// Since we're exiting the search, we need to re-render the standard view
+		// Since we're exiting the search, we need to re-render the standard view:
+		// since we didn't have tiles for some of the tabs, some updates have not
+		// been processed in the _normTabs info, and we can't rely on what we have
+		// there to be updated.
 		this._queryAndRenderTabs();
 	} else {
 		this._log(logHead, "switching to search render");
@@ -713,8 +690,6 @@ _searchRenderTabs: function(tabs) {
 	// Tabs are already normalized with the "tm" data we need to sort them
 	tabs = tabs.sort(Classes.NormalizedTabs.compareTabsFn); // this._groupsBuilder._normalizeAndSort(tabs);
 
-	this._enableNotificationsForTabs(tabs);
-
 	this._setSearchBoxCount(tabs.length);
 
 	if(tabs == null || tabs.length == 0) {
@@ -728,6 +703,13 @@ _searchRenderTabs: function(tabs) {
 
 }); // Classes.TabsTabViewer
 
+Classes.Base.roDef(Classes.TabsTabViewer, "CbType", {});
+Classes.Base.roDef(Classes.TabsTabViewer.CbType, "ACTIVATED", "activated");
+Classes.Base.roDef(Classes.TabsTabViewer.CbType, "HIGHLIGHTED", "highlighted");
+Classes.Base.roDef(Classes.TabsTabViewer.CbType, "UPDATED", "updated");
+Classes.Base.roDef(Classes.TabsTabViewer.CbType, "REMOVED", "removed");
+Classes.Base.roDef(Classes.TabsTabViewer.CbType, "ATTACHED", "attached");
+Classes.Base.roDef(Classes.TabsTabViewer.CbType, "MOVED", "moved");
 
 // CLASS AllTabsTabViewer
 //

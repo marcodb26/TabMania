@@ -254,15 +254,17 @@ updateSearchBadges: function(tab) {
 // This can be used as a static function of the class, it doesn't
 // need any state from "this".
 normalizeTab: function(tab) {
+	// Sometimes "tab.url" is empty, because "tab.pendingUrl" is still loading
+	let url = (tab.url != "") ? tab.url : tab.pendingUrl;
 	let lowerCaseTitle = tab.title.toLowerCase();
-	let [ protocol, hostname ] = Classes.NormalizedTabs.getProtocolHostname(tab.url);
+	let [ protocol, hostname ] = Classes.NormalizedTabs.getProtocolHostname(url);
 	tab.tm = {
 		// We could use "this" here, but since we decided these
 		// we're invoking are static functions, let's follow through
 		// with that
 		protocol: protocol,
 		hostname: hostname,
-		lowerCaseUrl: tab.url.toLowerCase(),
+		lowerCaseUrl: url.toLowerCase(),
 		lowerCaseTitle: lowerCaseTitle,
 		normTitle: Classes.NormalizedTabs.normalizeLowerCaseTitle(lowerCaseTitle),
 		extId: Classes.NormalizedTabs.formatExtendedId(tab),
@@ -334,7 +336,7 @@ getTabByTabId: function(searchTabId) {
 
 // Returns "null" if the "tabIdx" is invalid, a tab otherwise
 getTabByTabIndex: function(tabIdx) {
-	if(tabIdx < 0 || tabIdx > this._tabs.length) {
+	if(tabIdx == null || tabIdx < 0 || tabIdx > this._tabs.length) {
 		return null;
 	}
 
