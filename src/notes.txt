@@ -94,9 +94,6 @@ Stop too much logging during tiles rendering
 "Attach tiles cont.":	9.9ms	14.1ms	4.3ms	4.1ms
 
 
-- Remove "https://" from URL displayed in tiles (but only "https://", leave any
-  other protocol visible, matching what Chrome does in the omnibar)
-
 - BUG: when creating a new custom group, the tabs re-query re-render doesn't
   seem to get triggered automatically
 
@@ -401,6 +398,9 @@ DONE
   too brittle due to the issues with the lack of info in the Chrome tab events
   * Now full refreshes occur for every event, with a little 200ms debouncing, and
     we should be done with things not updating in search mode
+
+- Remove "https://" from URL displayed in tiles (but only "https://", leave any
+  other protocol visible, matching what Chrome does in the omnibar)
 
 
 PUNTED TO NEXT RELEASE

@@ -229,6 +229,18 @@ _onTileCloseCb: function(ev) {
 	ev.stopPropagation();
 },
 
+_cleanupUrl: function(url) {
+	if(url == "chrome://newtab/") {
+		return "[new tab]";
+	}
+
+	if(url.startsWith("https://")) {
+		return url.substring(8); // "https://".length == 8
+	}
+
+	return url;
+},
+
 // "tabGroup" is optional
 update: function(tab, tabGroup) {
 	if(tab == null) {
@@ -251,11 +263,7 @@ update: function(tab, tabGroup) {
 	} // Otherwise keep whatever tabGroup was already there
 
 	this._title = tab.title;
-	if(tab.url != "chrome://newtab/") {
-		this._url = tab.url;
-	} else {
-		this._url = "[new tab]";
-	}
+	this._url = this._cleanupUrl(tab.url);
 
 	if(tab.favIconUrl != null) {
 		this._imgUrl = tab.favIconUrl;
