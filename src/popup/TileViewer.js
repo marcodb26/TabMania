@@ -65,16 +65,25 @@ _renderEmptyTile: function() {
 	this.setClickCloseHandler(this._onTileCloseCb.bind(this));
 },
 
+_colorToBgCss: {
+	// "none" is the color we'll show when no color is set
+	none: "bg-light",
+	grey: "bg-secondary",
+	blue: "bg-primary",
+	red: "bg-danger",
+	yellow: "bg-warning",
+	green: "bg-success",
+	cyan: "bg-info",
+},
+
 // "secondary" is a flag (default "false") that determines the color
 // of the badge
-_badgeHtml: function(txt, secondary) {
-	secondary = optionalWithDefault(secondary, false);
-	let bgColor = "bg-dark";
-	if(secondary) {
-		bgColor = "bg-secondary";
-	}
+_badgeHtml: function(txt, bgColor) {
+	// "bg-dark" is not in the list of _colorToBgCss, so when the input parameter
+	// "bgColor" is set to "null", we'll pick "bg-dark".
+	let bgClass = optionalWithDefault(this._colorToBgCss[bgColor], "bg-dark");
 
-	return `<span class="badge tm-text-badge ${bgColor}">${txt}</span>`;
+	return `<span class="badge tm-text-badge ${bgClass}">${txt}</span>`;
 },
 
 _addBadgesHtml: function(visibleBadgesHtml, badgesList, secondary) {
@@ -82,7 +91,7 @@ _addBadgesHtml: function(visibleBadgesHtml, badgesList, secondary) {
 //	this._log(logHead, badgesList);
 	badgesList.forEach(
 		function(badge) {
-			visibleBadgesHtml.push(this._badgeHtml(badge, secondary));
+			visibleBadgesHtml.push(this._badgeHtml(badge, secondary ? "grey" : null));
 		}.bind(this)
 	);
 },
@@ -93,16 +102,13 @@ renderBody: function() {
 	let textMuted = "text-muted";
 	let imgExtraClasses = [];
 
-	if(this._tab.tm.customGroupName != null) {
-		let cgm = settingsStore.getCustomGroupsManager();
-		this.addClasses("tm-callout", cgm.getCustomGroupCss(this._tab.tm.customGroupName));
-	}
-
 	// "audible" and "muted" are not mutually exclusive, but we want to show a
 	// single icon, so we're using the arbitrary convention of making the muted
 	// icon gray if there's no current audio (meaning "if there was audio, it
 	// would be muted"), and black if there's current audio (meaning "your audio
-	// is currently muted")
+	// is currently muted").
+	// We follow the same convention for incognito tabs, but in reverse (lighter
+	// means active audio, darker means no audio).
 	if(this._tab.audible) {
 		if(this._tab.mutedInfo.muted) {
 			visibleBadgesHtml.push(icons.volumeMuted());
@@ -111,8 +117,19 @@ renderBody: function() {
 		}
 	} else {
 		if(this._tab.mutedInfo.muted) {
-			visibleBadgesHtml.push(icons.volumeMuted(["text-secondary"]));
+			if(!this._tab.incognito) {
+				visibleBadgesHtml.push(icons.volumeMuted(["text-secondary"]));
+			} else {
+				visibleBadgesHtml.push(icons.volumeMuted(["text-white-50"]));
+			}
 		}
+	}
+
+	if(this._tab.tm.customGroupName != null) {
+		let cgm = settingsStore.getCustomGroupsManager();
+		this.addClasses("tm-callout", cgm.getCustomGroupCss(this._tab.tm.customGroupName));
+		let bgColor = cgm.getCustomGroupProp(this._tab.tm.customGroupName, "color");
+		visibleBadgesHtml.push(this._badgeHtml(this._tab.tm.customGroupName, bgColor));
 	}
 
 	this._addBadgesHtml(visibleBadgesHtml, this._tab.tm.primaryShortcutBadges);

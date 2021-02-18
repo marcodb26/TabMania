@@ -538,7 +538,7 @@ setCustomGroupProp: function(name, prop, value) {
 	return this.setCustomGroup(name, groupInfo);
 },
 
-_colorToCss: {
+_colorToCalloutCss: {
 	// "none" is the color we'll show when no color is set
 	none: "tm-callout-none",
 	grey: "tm-callout-grey",
@@ -550,7 +550,7 @@ _colorToCss: {
 },
 
 getCustomGroupCssByColor: function(color) {
-	return this._colorToCss[color];
+	return this._colorToCalloutCss[color];
 },
 
 getCustomGroupCss: function(groupName) {

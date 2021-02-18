@@ -119,8 +119,6 @@ Stop too much logging during tiles rendering
   follow standard sorting
   * Hostname-based groups get pushed to the top instead
 
-- Explicitly show badge for custom group (colored?)
-
 - Add action menu to containers
 
 - Manage incognito tabs (same view, different BS-tab, hide, etc)
@@ -410,6 +408,8 @@ DONE
 
 - BUG: custom group container tile doesn't update color callout when color changed
   * The tiles inside the container do change color...
+
+- Explicitly show badge for custom group (colored?)
 
 
 PUNTED TO NEXT RELEASE
