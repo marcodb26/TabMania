@@ -28,6 +28,10 @@
 	overflow: auto;
 }
 
+.tm-align-checkbox {
+	margin-top: 0.39em;
+}
+
 .tm-searchbox {
 	padding-left: 2rem;
 	padding-right: 0.5rem;
@@ -465,7 +469,7 @@ input[type="search"]::-webkit-search-cancel-button {
 .tm-autosize > textarea,
 .tm-autosize::after {
   /* Identical styling required!! */
-  border: 1px solid black;
+/*  border: 1px solid black; */
 
   /* Need to set padding identical to Bootstrap's "form-floating".
      If you're not using "form-floating", you should set it back
