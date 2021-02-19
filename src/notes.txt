@@ -103,8 +103,6 @@ Stop too much logging during tiles rendering
 
 - Disable Base._assert() for production code
 
-- Manage incognito tabs (same view, different BS-tab, hide, etc)
-
 - Document keyboard shortcuts
 
 - Find out how to package for release
@@ -420,6 +418,8 @@ DONE
 
 
 PUNTED TO NEXT RELEASE
+
+- Manage incognito tabs (same view, different BS-tab, hide, etc)
 
 - BUG: if a group has a long name and it's pinned, it's thumbtack is slighty off
   to the right compared to the other pinned groups/tiles around it
