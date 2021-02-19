@@ -96,8 +96,6 @@ Stop too much logging during tiles rendering
 
 - Remove artificial settings initialized in popup.js before release
 
-- Implement TileMenuViewer._updateShortcutMenuItems()
-
 - Take out the whole FontAwesome and include only the icons we need, ideally
   without any CSS (to speed up window.onLoad performance)
 
@@ -582,3 +580,7 @@ PUNTED TO NEXT RELEASE
   display a special error icon to identify the tab failed to load (e.g. because
   of network down) (search "network down" in the code to find the place where
   this check is made)
+
+- Implement TileMenuViewer._updateShortcutMenuItems()
+  * Or do we really care, given that most of the times we need to rebuild the
+    entire set of tabs from scratch

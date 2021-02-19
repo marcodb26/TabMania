@@ -1,7 +1,6 @@
 {
-	"name": "Simple Tab Manager",
-	// While testing, the Extension ID was set to ID: olalecillcaoojlgobjbjpkpkjokjlmf
-	"version": "0.9",
+	"name": "TabMania",
+	"version": "1.0",
 	"description": "A simple tab manager enabling some essential keyboard shortcuts",
 	"permissions": [
 		"activeTab",
@@ -85,15 +84,6 @@
 			"global": true
 		}
 	},
-
-//	"content_scripts":[
-//		{
-//			"matches":[
-//				"<all_urls>"
-//			],
-//			"js": ["content/content.js"]
-//		}
-//	],
 
 	"browser_action": {
 		"default_popup": "popup/popup.html",
