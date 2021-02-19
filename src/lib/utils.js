@@ -1071,6 +1071,13 @@ function optionalWithDefault(value, defaultValue) {
 	return value;
 }
 
+function optArrayWithDefault(value, defaultValue) {
+	if(typeof(value) === "undefined" || value == null || value.length == 0) {
+		return defaultValue;
+	}
+	return value;
+}
+
 // In a number of places we need to use empty functions as markers. They work
 // better than "null" because they don't require extra checks before calling
 // a function returned by another function, and have no side effects.

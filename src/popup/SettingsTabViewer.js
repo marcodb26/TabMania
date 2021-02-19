@@ -844,6 +844,11 @@ _onCloseClickCb: function(ev) {
 	this.closeCard();
 
 	if(this._groupName != "") {
+		// Need to unpin the group explicitly, otherwise it will survive as
+		// a ghost (unfortunately pinnedGroups is separate from the custom
+		// groups definitions, so this could become a problem also if we
+		// allow pinning of hostname-based groups...).
+		settingsStore.unpinGroup(this._groupName);
 		settingsStore.getCustomGroupsManager().delCustomGroup(this._groupName);
 	}
 },

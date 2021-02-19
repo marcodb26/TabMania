@@ -1,3 +1,136 @@
+// CLASS TilesGroupViewer
+Classes.TilesGroupViewer = Classes.CollapsibleContainerViewer.subclass({
+	__idPrefix: "TilesGroupViewer",
+
+	_tabGroup: null,
+	groupName: null,
+	_expandedGroups: null,
+
+_init: function(tabGroup, expandedGroups) {
+	this._tabGroup = tabGroup;
+	this._groupName = tabGroup.title;
+	this._expandedGroups = expandedGroups;
+
+	let options = {
+		startExpanded: this._expandedGroups.has(this._groupName),
+		htmlWhenEmpty: "",
+		border: true,
+	};
+
+	// Overriding the parent class' _init(), but calling that original function first
+	Classes.CollapsibleContainerViewer._init.call(this, options);
+	const logHead = "TilesGroupViewer::_init(): ";
+
+	this._TilesGroupViewer_render();
+
+	// Note that we don't set a listener for this._expandedGroups, because we don't care
+	// to auto-open the accordion if it gets open in the popup of another window...
+},
+
+_groupHeadingHtml: function() {
+	let iconBadgeHtml = `
+		<div class="tm-overlay tm-full-size">
+			<div class="tm-icon-badge-pos small">
+				<span class="badge tm-icon-badge bg-dark">${this._tabGroup.tabs.length}</span>
+			</div>
+		</div>
+	`;
+
+	// No icon badge for empty groups (pinned groups can show up empty)
+	if(this._tabGroup.tabs.length == 0) {
+		iconBadgeHtml = "";
+	}
+
+	let pinnedIconHtml = "";
+	// If the group is pinned, add a thumbtack icon
+	if(this._tabGroup.tm.pinned) {
+		let extraClasses = [];
+		if(!settingsStore.isGroupPinned(this._groupName)) {
+			// If the group is not itself pinned, then it must be pinned due
+			// to some of its inner tabs...
+			extraClasses.push("text-secondary");
+		}
+		pinnedIconHtml = `
+		<p class="m-0 pe-2">
+			<span>${icons.thumbtack("tm-fa-thumbtack-group", ...extraClasses)}</span>
+		</p>`;
+	}
+
+	// Do we need the attribute "width='16px'" in the <img> below, or are the min-width
+	// and max-width settings of "tm-favicon-16" enough?
+	// "width: 95%" because we don't want to push the caret on the right too far out
+	// when the group title is long.
+	// "text-align: left;" is required because we're inside a button (the accordion button),
+	// and that sets center alignment.
+	let retVal = `
+		<div class="tm-stacked-below" style="width: 95%;">
+			<div class="d-flex">
+				<p class="flex-grow-1 m-0 text-nowrap text-truncate" style="text-align: left;">
+					<span class="pe-2"><img class="tm-favicon-16" src="${this._tabGroup.favIconUrl}"></span>
+					<span>${this._groupName}</span>
+				</p>
+				${pinnedIconHtml}
+			</div>
+			${iconBadgeHtml}
+		</div>
+	`;
+	return retVal;
+},
+
+_TilesGroupViewer_render: function() {
+	this.setHeadingHtml(this._groupHeadingHtml());
+	this.addExpandedListener(this._containerExpandedCb.bind(this));
+	this.addCollapsedListener(this._containerCollapsedCb.bind(this));
+
+	if(this._tabGroup.type == Classes.GroupsBuilder.Type.CUSTOM) {
+		let cgm = settingsStore.getCustomGroupsManager();
+		this.addHeadingClasses("tm-customgroup-header", "tm-callout", cgm.getCustomGroupCss(this._groupName));
+	} else {
+		this.addHeadingClasses("tm-customgroup-header");
+	}
+},
+
+// This function tracks whether a specific group key is currently expanded or collapsed.
+// This info must be stored in chrome.storage.local because we want to remember which
+// tabs are collapsed/expanded across opening and closing the popup.
+// Note that the current storage strategy might cause old group keys to persist in
+// chrome.storage.local even if the group disappears. This is the main reason why we
+// only store "expanded" state, and delete when the state goes back to "collapsed".
+// This way at least only the groups that disappeared expanded stay stored.
+// Once we implement expand/collapse all will be able to clear completely the persistent
+// state when "collapse all" is done.
+_storeExpandedGroup: function(expanded) {
+	expanded = optionalWithDefault(expanded, true);
+	//const logHead = "TilesGroupViewer::_storeExpandedGroup(" + this._groupName + ", " + expanded + "): ";
+
+	if(expanded) {
+		this._expandedGroups.add(this._groupName);
+	} else {
+		this._expandedGroups.del(this._groupName);
+	}
+},
+
+_containerExpandedCb: function(ev) {
+	const logHead = "TilesGroupViewer::_containerExpandedCb(" + this._groupName + ", " + ev.target.id + "): ";
+	this._log(logHead + "container expanded", ev);
+
+	// The animation and visualization is done by Bootstrap, we just need to remember
+	// whether it's collapsed or expanded
+	this._storeExpandedGroup();
+},
+
+_containerCollapsedCb: function(ev) {
+	const logHead = "TilesGroupViewer::_containerCollapsedCb(" + this._groupName + ", " + ev.target.id + "): ";
+	this._log(logHead + "container collapsed", ev);
+
+	// The animation and visualization is done by Bootstrap, we just need to remember
+	// whether it's collapsed or expanded
+	this._storeExpandedGroup(false);
+},
+
+}); // Classes.TilesGroupViewer
+
+
 // CLASS TabsTabViewer
 //
 // Abstract class, parent of all Viewers of tab lists
@@ -20,9 +153,6 @@ Classes.TabsTabViewer = Classes.SearchableTabViewer.subclass({
 
 	// This is a sorted list of tabs, as they appear in the search results
 	_currentSearchResults: null,
-
-	// Subclasses set here what tab properties they want to track
-	_trackingPropList: null,
 
 	// String to show when the container is empty
 	_emptyContainerString: null,
@@ -50,8 +180,8 @@ _init: function(tabLabelHtml) {
 	const logHead = "TabsTabViewer::_init(): ";
 	this.debug();
 
-	this._assert((this._trackingPropList != null && this._expandedGroups != null),
-				logHead + "subclasses must define _trackingPropList and _expandedGroups");
+	this._assert(this._expandedGroups != null,
+				logHead + "subclasses must define _expandedGroups");
 
 	this._queryAndRenderJob = Classes.ScheduledJob.create(this._queryAndRenderTabs.bind(this));
 	this._queryAndRenderJob.debug();
@@ -413,34 +543,6 @@ _renderTabsFlatInner: function(containerViewer, tabs, tabGroup) {
 	);
 },
 
-_groupHeadingHtml: function(tabGroup) {
-	let iconBadgeHtml = `
-		<div class="tm-overlay tm-full-size">
-			<div class="tm-icon-badge-pos small">
-				<span class="badge tm-icon-badge bg-dark">${tabGroup.tabs.length}</span>
-			</div>
-		</div>
-	`;
-
-	// No icon badge for empty groups (pinned groups can show up empty)
-	if(tabGroup.tabs.length == 0) {
-		iconBadgeHtml = "";
-	}
-
-	// Do we need the attribute "width='16px'" in the <img> below, or are the min-width
-	// and max-width settings of "tm-favicon-16" enough?
-	let retVal = `
-		<div class="tm-stacked-below">
-			<p class="m-0 text-nowrap text-truncate">
-				<span class="pe-2"><img class="tm-favicon-16" src="${tabGroup.favIconUrl}"></span>
-				<span>${tabGroup.title}</span>
-			</p>
-			${iconBadgeHtml}
-		</div>
-	`;
-	return retVal;
-},
-
 _renderTabsByGroup: function(tabGroups) {
 	const logHead = "TabsTabViewer::_renderTabsByGroup(): ";
 
@@ -454,24 +556,9 @@ _renderTabsByGroup: function(tabGroups) {
 				// Multiple tabs under a title, or required container (pinned).
 				// Generate an inner container to attach to "this._containerViewer", then call
 				// this._renderTabsFlatInner(<newContainerViewer>, tabs, tabGroup);
-
-				// Not providing a value for "textWhenEmpty". If the container is empty,
-				// we just don't want to show anything
-				var innerContainer = Classes.CollapsibleContainerViewer.create({
-					startExpanded: this._expandedGroups.has(tabGroup.title)
-				});
-				innerContainer.setHeadingHtml(this._groupHeadingHtml(tabGroup));
-				innerContainer.addExpandedListener(this._containerExpandedCb.bind(this, tabGroup.title));
-				innerContainer.addCollapsedListener(this._containerCollapsedCb.bind(this, tabGroup.title));
-
-				if(tabGroup.type == Classes.GroupsBuilder.Type.CUSTOM) {
-					let cgm = settingsStore.getCustomGroupsManager();
-					innerContainer.addHeadingClasses("tm-customgroup-header", "tm-callout", cgm.getCustomGroupCss(tabGroup.title));
-				} else {
-					innerContainer.addHeadingClasses("tm-customgroup-header");
-				}
-				this._containerViewer.append(innerContainer);
-				this._renderTabsFlatInner(innerContainer, tabs, tabGroup);
+				let tilesGroupViewer = Classes.TilesGroupViewer.create(tabGroup, this._expandedGroups);
+				this._containerViewer.append(tilesGroupViewer);
+				this._renderTabsFlatInner(tilesGroupViewer, tabs, tabGroup);
 			}
 		}.bind(this)
 	);
@@ -485,44 +572,6 @@ _renderTile: function(containerViewer, tabGroup, tab) {
 	this._tilesByTabId[tab.id] = tile;
 },
 
-// This function tracks whether a specific group key is currently expanded or collapsed.
-// This info must be stored in chrome.storage.local because we want to remember which
-// tabs are collapsed/expanded across opening and closing the popup.
-// Note that the current storage strategy might cause old group keys to persist in
-// chrome.storage.local even if the group disappears. This is the main reason why we
-// only store "expanded" state, and delete when the state goes back to "collapsed".
-// This way at least only the groups that disappeared expanded stay stored.
-// Once we implement expand/collapse all will be able to clear completely the persistent
-// state when "collapse all" is done.
-_storeExpandedGroup: function(groupName, expanded) {
-	expanded = optionalWithDefault(expanded, true);
-	//const logHead = "TabsTabViewer::_storeExpandedGroup(" + groupName + ", " + expanded + "): ";
-
-	if(expanded) {
-		this._expandedGroups.add(groupName);
-	} else {
-		this._expandedGroups.del(groupName);
-	}
-},
-
-_containerExpandedCb: function(key, ev) {
-	const logHead = "TabsTabViewer::_containerExpandedCb(" + key + ", " + ev.target.id + "): ";
-	this._log(logHead + "container expanded", ev);
-
-	// The animation and visualization is done by Bootstrap, we just need to remember
-	// whether it's collapsed or expanded
-	this._storeExpandedGroup(key);
-},
-
-_containerCollapsedCb: function(key, ev) {
-	const logHead = "TabsTabViewer::_containerCollapsedCb(" + key + ", " + ev.target.id + "): ";
-	this._log(logHead + "container collapsed", ev);
-
-	// The animation and visualization is done by Bootstrap, we just need to remember
-	// whether it's collapsed or expanded
-	this._storeExpandedGroup(key, false);
-},
-
 _getAllTabGroups: function() {
 	const logHead = "TabsTabViewer::_getAllTabGroups(): ";
 	// This call is still failing on the default channel (only available in the dev channel)
@@ -530,6 +579,7 @@ _getAllTabGroups: function() {
 	return chromeUtils.wrap(chrome.tabGroups.query, logHead, {});
 },
 
+// TBD when Chrome tabGrops APIs become generally available
 _processTabGroupsCb: function(tabGroups) {
 	const logHead = "TabsTabViewer::_processTabGroupsCb(): ";
 	this._log(logHead, tabGroups);
@@ -727,26 +777,6 @@ Classes.Base.roDef(Classes.TabsTabViewer.CbType, "MOVED", "moved");
 //
 Classes.AllTabsTabViewer = Classes.TabsTabViewer.subclass({
 
-	// We must specify the "status" property, otherwise in search mode search
-	// results won't get updated when a new tab is created (that matches the
-	// search query). The problem is that we register to receive updates only
-	// for tabs that are part of the search result. We also do a full query
-	// and re-render when a new tab is created, but that happens too early,
-	// before the tab has been loaded (so the title is not populated yet, and
-	// maybe not even the URL, per the documentation of onCreated). We run
-	// through the full query, and the new tab doesn't match (yet). At that
-	// point the tab doesn't make it to the tabList for further notifications,
-	// and the tab won't show up regardless of how many updates happen to it.
-	// The new tab will show up only when an update occurs to one of the tabs
-	// that are part of the search result, and a new full query/re-render cycle
-	// is initiated.
-	// "status" is guaranteed to generate updates because the tab is loading.
-	// Similar problem for the "active" property.
-	//
-	// A similar problem should be happening (without this fix) when an existing
-	// tab has navigation to a new URL that matches the search query. As the tab
-	// loads, it falls out of the tabList during search, and can't get back on.
-	_trackingPropList: [ "status", "active" ],
 	_emptyContainerString: "No tabs",
 
 _init: function(tabLabelHtml) {

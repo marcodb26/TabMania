@@ -46,7 +46,10 @@ _findFavIconUrl: function(groupName, tabs) {
 	return "";
 },
 
-_tabGroupEntryToObj: function(groupName, data) {
+// "pinned" is optional, default "false"
+_tabGroupEntryToObj: function(groupName, data, pinned) {
+	pinned = optionalWithDefault(pinned, false);
+
 	let retVal = {
 		// Sort the tabs array as you store it
 		tabs: data.tabs.sort(Classes.NormalizedTabs.compareTabsFn),
@@ -74,6 +77,7 @@ _tabGroupEntryToObj: function(groupName, data) {
 	// objects we're about to return
 	retVal.tm.lowerCaseTitle = retVal.title.toLowerCase();
 	retVal.tm.normTitle = Classes.NormalizedTabs.normalizeLowerCaseTitle(retVal.tm.lowerCaseTitle);
+	retVal.tm.pinned = pinned;
 
 	return retVal;
 },
@@ -106,7 +110,7 @@ _tabGroupsToArrays: function(tabGroups) {
 		switch(data.type) {
 			case Classes.GroupsBuilder.Type.HOSTNAME:
 				if(settingsStore.isGroupPinned(groupName) || this._tabsHasPinnedTab(data.tabs)) {
-					pinned.push(this._tabGroupEntryToObj(groupName, data));
+					pinned.push(this._tabGroupEntryToObj(groupName, data, true));
 				} else {
 					unpinned.push(this._tabGroupEntryToObj(groupName, data));
 				}
@@ -114,7 +118,7 @@ _tabGroupsToArrays: function(tabGroups) {
 
 			case Classes.GroupsBuilder.Type.CUSTOM:
 				if(settingsStore.isGroupPinned(groupName) || this._tabsHasPinnedTab(data.tabs)) {
-					pinned.push(this._tabGroupEntryToObj(groupName, data));
+					pinned.push(this._tabGroupEntryToObj(groupName, data, true));
 				} else {
 					unpinned.push(this._tabGroupEntryToObj(groupName, data));
 				}
@@ -122,7 +126,7 @@ _tabGroupsToArrays: function(tabGroups) {
 
 			case Classes.GroupsBuilder.Type.PINNEDEMPTY:
 				// This should be in the pinned array by definition
-				pinned.push(this._tabGroupEntryToObj(groupName, data));
+				pinned.push(this._tabGroupEntryToObj(groupName, data, true));
 				break;
 
 			default:

@@ -50,10 +50,17 @@
     vertical-align: -.36em;
 }
 
-.tm-fa-thumbtack-align {
+.tm-fa-thumbtack-tile {
 	width: 1em;
     height: 1em;
     vertical-align: -.3em;
+}
+
+.tm-fa-thumbtack-group {
+	/* Keep it the same size of .tm-fa-thumbtack-tile, which is 1em in the context of a 0.875em font size */
+	width: 0.875em;
+    height: 0.875em;
+    vertical-align: -.1em;
 }
 
 /* See https://stackoverflow.com/questions/20804016/editing-input-type-search-pseudo-element-button-x */
@@ -269,7 +276,8 @@
 .tm-icon-badge-pos {
 	position: absolute;
 	/*top: 50%;*/
-	transform: translateY(-50%);
+	bottom: 40%;
+	/*transform: translateY(-50%);*/
 	left: 0.4rem;
 }
 

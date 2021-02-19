@@ -51,7 +51,7 @@ function testSettings() {
 //		regexList: "jira\\.rvbdtechlabs\\.net\nwiki\\.rvbdtechlabs\\.net\nrvbdtech\\.sharepoint\\.com"
 		matchList: "jira.rvbdtechlabs.net\n  wiki.rvbdtechlabs.net    \n rvbdtech.sharepoint.com"
 	});
-	settingsStore.getCustomGroupsManager().setCustomGroup("Companies", {
+	settingsStore.getCustomGroupsManager().setCustomGroup("Companies (very long name to see what happens with truncation)", {
 		color: "green",
 //		regexList: "crunchbase\\.com\nowler\\.com"
 		matchList: "crunchbase.com\nowler.com"

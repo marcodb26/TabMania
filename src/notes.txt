@@ -407,8 +407,19 @@ DONE
 
 - Made pinning configurable for custom groups
 
+- Increased vertical size of container tiles, to be closer to the size of tab tiles
+
+- Added thumbtack to container tiles
+  * Black if the group is pinned, gray if one of the tiles inside is pinned
+  * No need to worry about Incognito color inversion, custom group accordion
+    headers are never dark, even if they only contain incognito tabs
+  * Restructured TabsTabViewer.js (extracted class TilesGroupViewer) in preparation
+    for supporting more decorations of the container tiles
 
 PUNTED TO NEXT RELEASE
+
+- BUG: if a group has a long name and it's pinned, it's thumbtack is slighty off
+  to the right compared to the other pinned groups/tiles around it
 
 - Remember recent searches
 

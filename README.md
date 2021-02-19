@@ -34,5 +34,19 @@ For example, if you search for "loaded", you'll match both the "loaded" search b
 all the tabs you have (unless some are "loading"). If you only want to find the "loaded" tabs, type
 "^loaded", and the "unloaded" tabs won't be selected.
 
+## Custom groups
+If you don't specify a favicon for a custom group, it will pick one from one of the matching tabs
+listed inside.
+
+## Pinning
+You can pin tabs (either via the Chrome tab menu or the extension tab tile menu), and you can pin
+custom groups. Pinned tabs and custom groups are listed on top, before all other tabs and custom
+groups. A group (hostname-based or custom) will be considered pinned if it's explicitly pinned, or
+if it includes at least one pinned tab. If it's explicitly pinned, its thumbtack icon will be black,
+while if it's inheriting pinning from one of its contained tiles, its thumbtack icon will be grey.
+Normally custom groups don't show up in the list if they're empty, but pinned custom groups will
+be included even if empty. An empty custom group can be easily identified by the fact that it doesn't
+have a counting badge on top of its icon.
+
 ## Geek notes
 Call "tmStats()" on the dev tools console of the popup to see some popup performance statistics.

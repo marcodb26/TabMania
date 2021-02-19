@@ -118,9 +118,9 @@ renderBody: function() {
 	} else {
 		if(this._tab.mutedInfo.muted) {
 			if(!this._tab.incognito) {
-				visibleBadgesHtml.push(icons.volumeMuted(["text-secondary"]));
+				visibleBadgesHtml.push(icons.volumeMuted("text-secondary"));
 			} else {
-				visibleBadgesHtml.push(icons.volumeMuted(["text-white-50"]));
+				visibleBadgesHtml.push(icons.volumeMuted("text-white-50"));
 			}
 		}
 	}
@@ -138,7 +138,7 @@ renderBody: function() {
 
 	// The pinned thumbtack is always the rightmost badge
 	if(this._tab.pinned) {
-		visibleBadgesHtml.push(icons.thumbtack);
+		visibleBadgesHtml.push(icons.thumbtack());
 	}
 
 	if(this._tab.incognito) {
@@ -165,7 +165,7 @@ renderBody: function() {
 	let imgHtml = "";
 	if(this._imgUrl != "") {
 		imgHtml = `
-			<span class="pe-2"><img class="tm-favicon-16 ${imgExtraClasses.join(" ")}" src="${this._imgUrl}"></span>
+			<span class="pe-1"><img class="tm-favicon-16 ${imgExtraClasses.join(" ")}" src="${this._imgUrl}"></span>
 		`;
 	}
 
