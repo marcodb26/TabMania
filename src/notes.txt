@@ -414,6 +414,9 @@ DONE
 
 - Figured out how to center the "x" button to close tiles and delete custom groups
 
+- Changed Github repository name to TabMania and updated local repo to https://github.com/marcodb26/TabMania.git
+  * git remote set-url origin https://github.com/marcodb26/TabMania.git
+
 
 PUNTED TO NEXT RELEASE
 

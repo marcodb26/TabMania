@@ -1,4 +1,4 @@
-# tab-manager
+# TabMania
 ## Tile badges and icons
 Tab tiles show badges describing the state of the tile. The visible badges include: "active",
 "loading", plus the "SC1", "SC2", "SC3", "SC4" and "SC5" shortcuts.
