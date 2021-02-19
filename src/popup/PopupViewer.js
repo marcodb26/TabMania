@@ -46,8 +46,13 @@ _containerViewerRender: function() {
 },
 
 _renderEmptyContainer: function() {
+	//const html = `
+	//<div class="tm-vertical-center tm-horizontal-center">
+	//	<span>${this._htmlWhenEmpty}</span>
+	//</div>
+	//`;
 	const html = `
-	<div class="tm-vertical-center tm-horizontal-center">
+	<div class="tm-all-center">
 		<span>${this._htmlWhenEmpty}</span>
 	</div>
 	`;
@@ -93,16 +98,19 @@ Classes.CollapsibleContainerViewer = Classes.ContainerViewer.subclass({
 // - "border", a flag describing whether or not the container should have a border
 //   and some margins (default "true")
 _init: function(options) {
+//	this.debug();
+//	const logHead = "CollapsibleContainerViewer::_init(): ";
+//	this._log(logHead, options);
 	options = optionalWithDefault(options, {});
 	options.startExpanded = optionalWithDefault(options.startExpanded, false);
 	options.htmlWhenEmpty = optionalWithDefault(options.htmlWhenEmpty, "");
 	options.border = optionalWithDefault(options.border, true);
 
 	this._options = options;
+//	this._log(logHead, this._options);
 
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.ContainerViewer._init.call(this, this._options.htmlWhenEmpty);
-	const logHead = "CollapsibleContainerViewer::_init(): ";
 
 	this._renderHeadingAndBody();
 },
@@ -145,8 +153,9 @@ _renderHeadingAndBody: function() {
 	// <div id="${bodyInnerId}" class="tm-indent-right accordion-body">
 	// However, "accordion-body" seems to just be indentation, and overrides my desired indentation,
 	// so I got rid of it.
+	// "tm-min-empty-container" is needed to center properly the "_htmlWhenEmpty" text.
 	const bodyHtml = `
-		<div id="${bodyId}" class="collapse ${bodyExtraClasses.join(" ")}" aria-labelledby="${headingId}" data-bs-parent="#${this._id}">
+		<div id="${bodyId}" class="collapse tm-min-empty-container ${bodyExtraClasses.join(" ")}" aria-labelledby="${headingId}" data-bs-parent="#${this._id}">
 			<div id="${bodyInnerId}" class="${bodyInnerExtraClasses.join(" ")}">
 			</div>
 		</div>
@@ -165,6 +174,10 @@ _renderHeadingAndBody: function() {
 	this._headingElem = this.getElementById(headingInnerId);
 	//this._log(logHead + "_headingElem = ", this._headingElem, this);
 	this._bodyElem = this.getElementById(bodyInnerId);
+
+	// Since we've overwritten the original DOM of our parent class, let's reset it
+	// into the new _bodyElem.
+	this._renderEmptyContainer();
 },
 
 setHeadingHtml: function(html) {

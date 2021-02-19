@@ -149,6 +149,17 @@
 	transform: translateX(-50%);
 }
 
+/* We can't use both "tm-horizontal-center" and "tm-vertical-center" in the same
+   element, because "transform:" of one overrides "transform:" of the other...
+   I wish they were cumulative instead...
+ */
+.tm-all-center {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+}
+
 .tm-overlay {
 	z-index: 2;
 	position: absolute;

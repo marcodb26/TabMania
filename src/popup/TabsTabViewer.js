@@ -13,7 +13,7 @@ _init: function(tabGroup, expandedGroups) {
 
 	let options = {
 		startExpanded: this._expandedGroups.has(this._groupName),
-		htmlWhenEmpty: "",
+		htmlWhenEmpty: `<i class="text-muted small">No tabs</i>`,
 		border: true,
 	};
 
