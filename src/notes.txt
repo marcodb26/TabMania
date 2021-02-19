@@ -416,6 +416,10 @@ DONE
   * Restructured TabsTabViewer.js (extracted class TilesGroupViewer) in preparation
     for supporting more decorations of the container tiles
 
+- Improved rendering of badges when some badges are too long (the name of the custom
+  groups have no length limits, and they show up in badges)
+
+
 PUNTED TO NEXT RELEASE
 
 - BUG: if a group has a long name and it's pinned, it's thumbtack is slighty off

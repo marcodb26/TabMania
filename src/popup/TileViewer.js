@@ -79,11 +79,24 @@ _colorToBgCss: {
 // "secondary" is a flag (default "false") that determines the color
 // of the badge
 _badgeHtml: function(txt, bgColor) {
+	let extraClasses = [];
 	// "bg-dark" is not in the list of _colorToBgCss, so when the input parameter
 	// "bgColor" is set to "null", we'll pick "bg-dark".
-	let bgClass = optionalWithDefault(this._colorToBgCss[bgColor], "bg-dark");
+	extraClasses.push(optionalWithDefault(this._colorToBgCss[bgColor], "bg-dark"))
 
-	return `<span class="badge tm-text-badge ${bgClass}">${txt}</span>`;
+	if(txt.length > 20) {
+		// If a badge is too long, the rendering of the tile gets very messed up.
+		// Tried adding "text-truncate" and changing the max-width at various levels,
+		// but never got to a satisfactory rendering (some badges get cutoff because
+		// an earlier badge is too long, the URL doesn't display at all even though
+		// the badges take a limited amount of the line, etc.)
+		// Let's just trim long badges here, and hope for the best.
+		// "Lon badges": the name of the custom groups have no length limits, and
+		// they show up in badges.
+		txt = txt.substring(0, 20) + "...";
+	}
+
+	return `<span class="badge tm-text-badge ${extraClasses.join(" ")}">${txt}</span>`;
 },
 
 _addBadgesHtml: function(visibleBadgesHtml, badgesList, secondary) {
