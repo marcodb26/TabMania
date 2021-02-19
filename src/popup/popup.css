@@ -296,66 +296,107 @@
 	float: right;
 }
 
-/*
-  See close-icon.svg (created with Method Draw - http://github.com/duopixel/Method-Draw/ (MIT License))
+.tm-close-icon-button {
+	/* Make the button containing the <span class="tm-close-icon"> disappear */
+	background-color: transparent;
+	border: transparent;
+	outline: transparent;
+}
 
-<svg role="img" viewBox="0 0 448 300" xmlns="http://www.w3.org/2000/svg">
-  <rect rx="50" stroke="null" id="svg_1" height="300" width="448" y="0" x="0" fill-opacity="null" stroke-opacity="null" stroke-width="null" fill="currentColor"/>
-  <rect transform="rotate(-45 224,149.99999999999994) " stroke="null" rx="10" id="svg_2" height="56" width="248" y="122" x="100" stroke-opacity="null" stroke-width="null" fill="#ffffff"/>
-  <rect transform="rotate(45 224.00000000000003,150) " stroke="null" rx="10" id="svg_3" height="56" width="248" y="122" x="100" stroke-opacity="null" stroke-width="null" fill="#ffffff"/>
-</svg>
+.tm-close-icon-button:active {
+	/* Make the button containing the <span class="tm-close-icon"> disappear */
+	outline: transparent;
+}
 
-<svg role="img" viewBox="0 0 448 300" xmlns="http://www.w3.org/2000/svg"><rect rx="50" height="300" width="448" y="0" x="0" fill="currentColor"/><rect transform="rotate(-45 224,145) " rx="10" height="56" width="248" y="122" x="100" fill="#fff"/><rect transform="rotate(45 224,150) " rx="10" height="56" width="248" y="122" x="100" fill="#fff"/></svg>
-
-Encoded with https://www.base64encode.org/
-
-*/
-.tm-close-icon-icon {
-	width: 1em;
-    height: 1em;
-
-	background-image: url(data:image/svg+xml;base64,PHN2ZyByb2xlPSJpbWciIHZpZXdCb3g9IjAgMCA0NDggMzAwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHJ4PSI1MCIgaGVpZ2h0PSIzMDAiIHdpZHRoPSI0NDgiIHk9IjAiIHg9IjAiIGZpbGw9ImN1cnJlbnRDb2xvciIvPjxyZWN0IHRyYW5zZm9ybT0icm90YXRlKC00NSAyMjQsMTQ1KSAiIHJ4PSIxMCIgaGVpZ2h0PSI1NiIgd2lkdGg9IjI0OCIgeT0iMTIyIiB4PSIxMDAiIGZpbGw9IiNmZmYiLz48cmVjdCB0cmFuc2Zvcm09InJvdGF0ZSg0NSAyMjQsMTUwKSAiIHJ4PSIxMCIgaGVpZ2h0PSI1NiIgd2lkdGg9IjI0OCIgeT0iMTIyIiB4PSIxMDAiIGZpbGw9IiNmZmYiLz48L3N2Zz4=);
+.tm-close-icon-button:focus {
+	/* Make the button containing the <span class="tm-close-icon"> disappear */
+	outline: transparent;
 }
 
 .tm-close-icon {
-/*	font-size: 0.75em;*/
-	font-weight: 700;
-/*	line-height: 1;*/
-	line-height: 0.7;
-	text-align: center;
-	white-space: nowrap;
+	outline: transparent;
+}
+
+.tm-close-icon::after {
+	width: 1.5em;
+    height: 1em;
+
 	opacity: 0.75;
+	/* Same color as Bootstrap's .btn-secondary */
+	background-color: #6c757d;
+	border-radius: .25rem;
 
-	margin-right: 0.5em;
-	margin-top: 0.2em;
-	vertical-align: top;
+	content: "";
 
-	/* For some reason the <button> class seems to show a dark shade at the bottom, and
-	   that goes away when you set the border-style to solid
-	*/
-	border-style: solid;
+    display: inline-block;
+
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: 1em;
+
+/*
+See close-icon.svg (created with Method Draw - http://github.com/duopixel/Method-Draw/ (MIT License))
+
+<svg role="img" viewBox="0 0 448 300" xmlns="http://www.w3.org/2000/svg"><rect transform="rotate(-45 224,145)" rx="10" height="56" width="248" y="122" x="100" fill="#fff"/><rect transform="rotate(45 224,150)" rx="10" height="56" width="248" y="122" x="100" fill="#fff"/></svg>
+
+Encoded with https://www.base64encode.org/
+*/
+	background-image: url(data:image/svg+xml;base64,PHN2ZyByb2xlPSJpbWciIHZpZXdCb3g9IjAgMCA0NDggMzAwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHRyYW5zZm9ybT0icm90YXRlKC00NSAyMjQsMTQ1KSIgcng9IjEwIiBoZWlnaHQ9IjU2IiB3aWR0aD0iMjQ4IiB5PSIxMjIiIHg9IjEwMCIgZmlsbD0iI2ZmZiIvPjxyZWN0IHRyYW5zZm9ybT0icm90YXRlKDQ1IDIyNCwxNTApIiByeD0iMTAiIGhlaWdodD0iNTYiIHdpZHRoPSIyNDgiIHk9IjEyMiIgeD0iMTAwIiBmaWxsPSIjZmZmIi8+PC9zdmc+);
 }
 
-.tm-close-icon:focus {
-	/* When clicking a "close" button, the button outline shows up, and it's a thin
-	   line much darker than the background color, so it looks ugly. Forcing removal
-	   of the button outline.
-	*/
-	outline: 0;
-	/* When clicking there's also a shadow that's too big, so replacing it with something
-	   smaller. Note the use of "!important", without it this override doesn't work and
-	   the ugly large shadow band shows up
-	*/
-	box-shadow: 0 0 3px black!important;
+.tm-close-icon:hover::after {
+	/* Same color as .btn-secondary:hover */
+	background-color: #5c636a;
 }
 
-/*.tm-close-icon::after {
-	display: inline-block;
-*/	/* "\00d7" is the "times" characters, "\002b" is the "plus" character */
-/*	content: "\00d7";
-	color: white;
-	transform: rotate(45deg);
-}*/
+.tm-close-icon:active::after {
+	/* Same color as .btn-secondary:active */
+	background-color: #5c636a;
+	box-shadow: 0 0 3px black;
+}
+
+.tm-close-icon-light {
+	outline: transparent;
+}
+
+.tm-close-icon-light::after {
+	width: 1.5em;
+    height: 1em;
+
+	opacity: 0.75;
+	/* Same color as Bootstrap's .btn-light */
+	background-color: #f8f9fa;
+	border-radius: .25rem;
+
+	content: "";
+
+    display: inline-block;
+
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: 1em;
+
+/*
+See close-icon.svg (created with Method Draw - http://github.com/duopixel/Method-Draw/ (MIT License)),
+this is the version edited to use black color for the "x"
+
+<svg role="img" viewBox="0 0 448 300" xmlns="http://www.w3.org/2000/svg"><rect transform="rotate(-45 224,145)" rx="10" height="56" width="248" y="122" x="100" fill="#000"/><rect transform="rotate(45 224,150)" rx="10" height="56" width="248" y="122" x="100" fill="#000"/></svg>
+
+Encoded with https://www.base64encode.org/
+*/
+	background-image: url(data:image/svg+xml;base64,PHN2ZyByb2xlPSJpbWciIHZpZXdCb3g9IjAgMCA0NDggMzAwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHRyYW5zZm9ybT0icm90YXRlKC00NSAyMjQsMTQ1KSIgcng9IjEwIiBoZWlnaHQ9IjU2IiB3aWR0aD0iMjQ4IiB5PSIxMjIiIHg9IjEwMCIgZmlsbD0iIzAwMCIvPjxyZWN0IHRyYW5zZm9ybT0icm90YXRlKDQ1IDIyNCwxNTApIiByeD0iMTAiIGhlaWdodD0iNTYiIHdpZHRoPSIyNDgiIHk9IjEyMiIgeD0iMTAwIiBmaWxsPSIjMDAwIi8+PC9zdmc+);
+}
+
+.tm-close-icon-light:hover::after {
+	/* Same color as btn-light:hover */
+	background-color: #f9fafb;
+}
+
+.tm-close-icon-light:active::after {
+	/* Same color as btn-light:active */
+	background-color: #f9fafb;
+	box-shadow: 0 0 3px white;
+}
 
 /* Applies to class "tm-hover-target" of an element descendent of an element of class "tm-hover".
    See "descendent combinator" in https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors

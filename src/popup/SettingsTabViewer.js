@@ -644,8 +644,8 @@ _init: function(titleHtml, canClose) {
 		closeHtml = `
 		<div class="tm-overlay tm-full-size tm-hover-target tm-pointer-no">
 			<div class="tm-float-right">
-				<button type="button" id="${closeId}" class="tm-pointer-all btn-secondary tm-rounded-btn mt-1 tm-close-icon close" aria-label="Close">
-					<span aria-hidden="true">&times;</span>
+				<button type="button" id="${closeId}" class="tm-pointer-all tm-close-icon-button mt-1" aria-label="Close">
+					<span aria-hidden="true" class="tm-close-icon"></span>
 				</button>
 			</div>
 		</div>

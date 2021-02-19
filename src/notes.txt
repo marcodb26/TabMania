@@ -94,8 +94,6 @@ Stop too much logging during tiles rendering
 "Attach tiles cont.":	9.9ms	14.1ms	4.3ms	4.1ms
 
 
-- Figure out how to center "x" button to close tiles, it's a disgrace...
-
 - Remove artificial settings initialized in popup.js before release
 
 - Implement TileMenuViewer._updateShortcutMenuItems()
@@ -110,7 +108,6 @@ Stop too much logging during tiles rendering
 - Document keyboard shortcuts
 
 - Find out how to package for release
-
 
 
 DONE
@@ -418,6 +415,8 @@ DONE
 
 - Improved rendering of badges when some badges are too long (the name of the custom
   groups have no length limits, and they show up in badges)
+
+- Figured out how to center the "x" button to close tiles and delete custom groups
 
 
 PUNTED TO NEXT RELEASE

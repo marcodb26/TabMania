@@ -34,11 +34,9 @@ _renderEmptyTile: function() {
 	const menuId = this._id + "-menu";
 	const closeId = this._id + "-close";
 
-	const btnColor = this._tab.incognito ? "btn-light" : "btn-secondary";
+	const closeIconClass = this._tab.incognito ? "tm-close-icon-light" : "tm-close-icon";
 
-	const closeIcon = `<span aria-hidden="true">&times;</span>`;
-//	const closeIcon = `<span aria-hidden="true" class="tm-close-icon-icon"></span>`;
-//	const closeIcon = `<svg role="img" viewBox="0 0 448 300" xmlns="http://www.w3.org/2000/svg"><rect rx="50" height="300" width="448" y="0" x="0" fill="currentColor"/><rect transform="rotate(-45 224,145) " rx="10" height="56" width="248" y="122" x="100" fill="#fff"/><rect transform="rotate(45 224,150) " rx="10" height="56" width="248" y="122" x="100" fill="#fff"/></svg>`;
+	const closeIcon = `<span aria-hidden="true" class="${closeIconClass}"></span>`;
 
 	const rootHtml = `
 	<div style="cursor: default" class="card tm-hover">
@@ -48,7 +46,7 @@ _renderEmptyTile: function() {
 			<div id="${menuId}" class="tm-tile-toggle-center">
 			</div>
 			<div class="tm-float-right">
-				<button type="button" id="${closeId}" class="${btnColor} tm-rounded-btn tm-close-icon close" aria-label="Close">
+				<button type="button" id="${closeId}" class="tm-close-icon-button" aria-label="Close">
 					${closeIcon}
 				</button>
 			</div>
