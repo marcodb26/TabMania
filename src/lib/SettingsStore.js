@@ -1066,6 +1066,24 @@ _getOption: function(prop) {
 	return this._options.get(prop);
 },
 
+_getBooleanOption: function(prop) {
+	// When a PersistentDict is empty, it returns "undefined" for every key you
+	// ask. We must turn that "undefined" to "false" here, since this is the lowest
+	// layer that understands "showTabId" should be a boolean (PersistentDict doesn't
+	// know what type of values are stored for each key, and this._getOption() must
+	// remain generic too).
+	// The real reason why we need this conversion is because in some cases we use
+	// optionalWithDefault() and optionalWithDefault() turns "undefined" to a default,
+	// while it doesn't turn "false" to a default.
+	let retVal = this._getOption(prop);
+	if(retVal == null) {
+		this._err("returning false for " + prop);
+		return false;
+	}
+	this._err("for " + prop + " returning: ", retVal);
+	return retVal;
+},
+
 _setOption: function(prop, value) {
 	this._assert(this.isInitialized());
 	return this._options.set(prop, value);
@@ -1075,7 +1093,7 @@ _setOption: function(prop, value) {
 // https://nemisj.com/why-getterssetters-is-a-bad-idea-in-javascript/
 // It's easy enough to have a typo, it's nice to have a syntax check against that...
 getOptionShowTabId: function() {
-	return this._getOption("showTabId");
+	return this._getBooleanOption("showTabId");
 },
 
 setOptionShowTabId: function(value) {
@@ -1083,7 +1101,7 @@ setOptionShowTabId: function(value) {
 },
 
 getOptionAdvancedMenu: function() {
-	return this._getOption("advancedMenu");
+	return this._getBooleanOption("advancedMenu");
 },
 
 setOptionAdvancedMenu: function(value) {
