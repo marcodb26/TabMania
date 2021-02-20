@@ -41,23 +41,30 @@ function testSettings() {
 			useClipboard: true,
 		}
 	);
+	settingsStore.getShortcutsManager().setShortcut(window.ExtCommands.SHORTCUT03,
+		{
+			url: "https://en.wikipedia.org/wiki/%s",
+			useClipboard: true,
+		}
+	);
 
 	settingsStore.getCustomGroupsManager().setCustomGroup("Microsoft", {
 		favIconUrl: "https://azurecomcdn.azureedge.net/cvt-5a6d098bd41d86e10abc9c93a784dea7f4f9eccc980ab08c0ffe9f3c2412a6e8/images/icon/favicon.ico",
 		color: "red",
-//		regexList: ".*\\.microsoft\\.com"
 		matchList: ".microsoft.com"
 	});
 	settingsStore.getCustomGroupsManager().setCustomGroup("Work", {
 		favIconUrl: "https://community.atlassian.com/html/assets/favicon-16x16.png",
 		color: "blue",
-//		regexList: "jira\\.rvbdtechlabs\\.net\nwiki\\.rvbdtechlabs\\.net\nrvbdtech\\.sharepoint\\.com"
-		matchList: "jira.rvbdtechlabs.net\n  wiki.rvbdtechlabs.net    \n rvbdtech.sharepoint.com"
+		matchList: "jira.\n  wiki.    \n .sharepoint.com"
 	});
 	settingsStore.getCustomGroupsManager().setCustomGroup("Companies (very long name to see what happens with truncation)", {
 		color: "green",
-//		regexList: "crunchbase\\.com\nowler\\.com"
 		matchList: "crunchbase.com\nowler.com"
+	});
+	settingsStore.getCustomGroupsManager().setCustomGroup("Wikipedia", {
+		color: "cyan",
+		matchList: "wikipedia.org"
 	});
 }
 
