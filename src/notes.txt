@@ -420,6 +420,23 @@ DONE
 
 PUNTED TO NEXT RELEASE
 
+- Given the trouble we've been having chasing the popup console when the popup itself
+  closes (e.g. when trying to trigger opening a tab from the popup), should we force
+  all this._log() calls to go to the background console instead?
+  * See multiLog() at popup.js to see how to do it
+  * We'll need to understand the performance penalty of choosing to go always and only
+    to the console of the background page instead of going to the console of the popup,
+	but if we can, avoiding to have to always reopen the console every time you reopen
+	the popup would be a great benefit...
+	- Maybe only in DEV mode and not in prod mode?
+
+- Find a way to support autocomplete for the search input
+  * https://stackoverflow.com/questions/15462991/trigger-autocomplete-without-submitting-a-form
+    - The HTML5 <input autocomplete="On"> only works if you
+	  * Give a fixed ID to the input field (we might need changes to make that happen)
+	  * Force a real form submission
+  * Alternatively, find a library to do something custom with it...
+
 - "Clipboard launch/search" assumes there's something in the clipboard, should we
   have an alternate shortcut that simply opens a new empty tab?
   * If you have Chrome opened, that's very trivial to do natively, but the shortcut
@@ -592,3 +609,77 @@ PUNTED TO NEXT RELEASE
 - Implement TileMenuViewer._updateShortcutMenuItems()
   * Or do we really care, given that most of the times we need to rebuild the
     entire set of tabs from scratch
+
+
+ENVIRONMENT
+
+- Upgraded GIT to v.2.30.1.windows.1
+  * To upgrade:
+    > git update-git-for-windows
+  * Repo at: https://github.com/marcodb26/TabMania.git
+  * To clone
+    > git clone https://github.com/marcodb26/TabMania.git
+
+- Upgraded NPM to v.7.5.4
+  * To upgrade:
+    - Run PowerShell as Administrator
+      > Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force
+      > npm install -g npm-windows-upgrade
+      > npm-windows-upgrade
+  * Created project with "npm init"
+    - Edited package.json to make project private
+	  * Add line after "description":
+		> "private": true,
+
+- Installed uglify-js v.3.12.8
+  > npm install uglify-js --save-dev
+
+- Installed csso-cli v.3.0.0 (https://www.npmjs.com/package/csso-cli)
+  > npm install csso-cli --save-dev
+  * Really liked the documentation of cssnano (https://cssnano.co/docs/getting-started), but
+    decided to go with csso because it seemed to be more "independent" of other modules
+
+PREPARING DIST
+
+- Copy /src/manifest.json to /dist/manifest.json
+
+- With /dist/manifest.json
+  * Replace all background.scripts with just "background.js"
+  * Remove permissions "tabGroups" (until they become available in the main channel)
+  * Rename "default_popup" from "popup/popup.html" to "popup.html"
+  * Remove all comments
+  * Remove "https://cdnjs.cloudflare.com" from "content_security_policy" at the bottom,
+    since that's only needed for Font Awesome
+
+- Copy /src/popup/popup.html to /dist/popup.html
+
+- With /dist/popup.html
+  * Replace all local <script> tags (including all "inject" tags) with just "popup.js" (no "/popup/" folder)
+  * Remove Font Awesome stuff
+	- <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" rel="stylesheet">
+	- <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/js/all.min.js"></script>
+  * Remove all comments
+
+- Copy /src/images to /dist/images
+
+- Create /dist/content
+
+- Run "npm run uglifyBg" to minify dist/background.js
+  * "uglifyBg" should include the option "--compress", but that option triggers strange
+    warnings (it reshuffles uses of variables and starts finding "Dropping duplicated definition
+	of variable [xyz]"), plus it discards the unused "tmStats()" (which we'd like not to discard)
+	- All of this for a gain of 2KB (from 52KB to 50KB, without "--mangle"), not worth it
+	- We also tried --mangle, without "--compress" it takes the code down from 52KB to 45KB,
+	  but again you lose "tmStats()"
+	- We'll clean this up later and possibly add back --compress and --mangle
+	  * And also add back --source-map once we understand if we really need it
+
+- Run "npm run uglifyPopup" to minify dist/popup.js
+  * Try to use "--compress" temporarily just to see if it comes up with any useful warnings...
+  * Without --compress the code amounts to 113KB, with it (but no --mangle) it's 109KB
+    - No difference at all...
+	- With --mangle --compress we're down to 95KB (but again, for now let's build without these options)
+
+- Run "npm run css" to minify dist/popup.css
+
+- Run "npm run inject" to minify dist/content/inject-getMeta.js
