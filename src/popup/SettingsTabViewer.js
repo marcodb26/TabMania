@@ -993,7 +993,7 @@ _renderCustomGroupSettings: function() {
 	let help = "";
 	if(this._groupName == "") {
 		// Special help message for the new custom group placeholder
-		help = "Assign a unique name to start using this custom group";
+		help = "Assign a unique name and press <i>Enter</i> to start using this custom group";
 	}
 
 	this._groupNameInput = Classes.SettingsTextItemViewer.create({
