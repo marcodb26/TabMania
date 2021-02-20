@@ -888,14 +888,14 @@ _renameCustomGroup: function(newName) {
 
 	if(newName == "") {
 		this._showGroupNameError(`A group must have a non-empty name`);
-		this._err(logHead + "the title is an empty string");
+		this._log(logHead + "user error: the title is an empty string");
 		return;
 	}
 
 	newName = newName.trim();
 	if(newName == "") {
 		this._showGroupNameError(`A group name can't be only made of whitespaces`);
-		this._err(logHead + "the title is a string of whitespaces");
+		this._log(logHead + "user error: the title is a string of whitespaces");
 		return;
 	}
 
@@ -903,7 +903,7 @@ _renameCustomGroup: function(newName) {
 	// Check hasCustomGroup() with ignoreCase = true
 	if(cgm.hasCustomGroup(newName, true)) {
 		this._showGroupNameError(`A group named <i>${newName}</i> already exists`);
-		this._err(logHead + "the title already exists");
+		this._log(logHead + "user error: the title already exists");
 		return;
 	}
 
