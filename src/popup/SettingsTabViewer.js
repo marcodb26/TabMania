@@ -388,7 +388,7 @@ _init: function({ setFn, getFn, label, updateKey }) {
 // Override parent class
 _setAttributesHtml: function(extraAttrs) {
 	const currentlyChecked = this._getFn();
-	if(currentlyChecked != null && currentlyChecked == true) {
+	if(currentlyChecked != null && currentlyChecked) {
 		extraAttrs.push(`checked`);
 	}
 
@@ -471,7 +471,7 @@ _init: function({ setFn, getFn, updateKey }) {
 // Override parent class
 _setAttributesHtml: function(extraAttrs) {
 	const currentlyChecked = this._getFn();
-	if(currentlyChecked != null && currentlyChecked == true) {
+	if(currentlyChecked != null && currentlyChecked) {
 		extraAttrs.push(`checked`);
 	}
 
@@ -980,8 +980,6 @@ _isCustomGroupPinned: function() {
 
 _renderCustomGroupSettings: function() {
 	this._allInputsCanDisable = [];
-
-	let ss = settingsStore;
 
 	let color = Classes.SettingsColorsItemViewer.create({
 		setFn: this._applyColorChange.bind(this),

@@ -113,8 +113,8 @@ _genLogFn: function(consoleFn, setPrefix) {
 // With highlight:
 //	const context = "%c[" + this._id + "]";
 //	return Function.prototype.bind.call(consoleFn, console, context, "font-weight:bold;");
-	const context = "[" + this._id + "]";
-	return Function.prototype.bind.call(consoleFn, console, context);
+
+	return Function.prototype.bind.call(consoleFn, console, "[" + this._id + "]");
 },
 
 //_activeAssert: function(conditionToBeTrue, errMsg) {
@@ -1101,14 +1101,18 @@ function delay(delayTime) {
 // return a value even in case of failures (or if you want to do something else
 // when a failure occurs). If you don't specify one, the wrapper returns "undefined"
 // in case of errors.
-function safeFnWrapper(fn, errMsgPrefix, errFn) {
+//
+// Note that uglifyjs tends t inline this function, and it will complain about
+// duplicated definitions of variables if you call "fnToWrap" as "fn" and the caller
+// uses "fn" too... best to give "fn" here a unique name...
+function safeFnWrapper(fnToWrap, errMsgPrefix, errFn) {
 	return function() {
 		try {
 			// apply(null) should leave the context set by the bind() used when
-			// passing the function "fn" in.
+			// passing the function "fnToWrap" in.
 			// Or at least that's the claim here: https://stackoverflow.com/a/40277458
 			// Anyway we can use the spread operator and avoid the entire problem...
-			return fn(...arguments);
+			return fnToWrap(...arguments);
 		} catch(e) {
 			if(errMsgPrefix != null) {
 				log.error(errMsgPrefix + e.message, e);
