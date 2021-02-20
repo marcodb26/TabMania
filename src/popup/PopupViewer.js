@@ -52,7 +52,7 @@ _renderEmptyContainer: function() {
 	//</div>
 	//`;
 	const html = `
-	<div class="tm-all-center">
+	<div class="tm-all-center text-center">
 		<span>${this._htmlWhenEmpty}</span>
 	</div>
 	`;
