@@ -420,6 +420,11 @@ DONE
 
 PUNTED TO NEXT RELEASE
 
+- "Clipboard launch/search" assumes there's something in the clipboard, should we
+  have an alternate shortcut that simply opens a new empty tab?
+  * If you have Chrome opened, that's very trivial to do natively, but the shortcut
+    could save you a tiny bit of time if you're in another application...
+
 - Manage incognito tabs (same view, different BS-tab, hide, etc)
 
 - BUG: if a group has a long name and it's pinned, it's thumbtack is slighty off
