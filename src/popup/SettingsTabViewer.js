@@ -1108,7 +1108,7 @@ _renderShortcutSettings: function() {
 		getFn: sm.getShortcutHostnameOrUrl.bind(sm, this._shortcutKey),
 		label: "Hostname or URL",
 		placeholderText: "e.g.: www.google.com",
-		helpHtml: this._safeText("Use %s to indicate where the text from the clipboard should get pasted"),
+		helpHtml: this._safeText("If enabling search, use %s to indicate where the text from the clipboard should get pasted"),
 		updateKey: this._shortcutKey
 	});
 
