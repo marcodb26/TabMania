@@ -94,16 +94,10 @@ Stop too much logging during tiles rendering
 "Attach tiles cont.":	9.9ms	14.1ms	4.3ms	4.1ms
 
 
-- Remove artificial settings initialized in popup.js before release
-
-- Take out the whole FontAwesome and include only the icons we need, ideally
-  without any CSS (to speed up window.onLoad performance)
-
 - Disable Base._assert() for production code
 
-- Document keyboard shortcuts
-
 - Find out how to package for release
+  * https://developer.chrome.com/docs/webstore/publish/
 
 
 DONE
@@ -417,6 +411,16 @@ DONE
 - Changed Github repository name to TabMania and updated local repo to https://github.com/marcodb26/TabMania.git
   * git remote set-url origin https://github.com/marcodb26/TabMania.git
 
+- Completed documentation for v1.0
+
+- Cleaned up prod vs. dev selection, by adding a prod.js to be included only in prod builds
+
+- Started documenting release process and steps
+  * Added some scripts to the NPM's package.json
+
+- Manually populated /dist directory for 1.0 release
+  * We'll worry about automating the build later...
+
 - BUG: uninitialized "options" PersistentDict leads to showing extTabId badge (it shouldn't)
 
 - BUG: User input validation logic puts an _err() on the console when a user input is
@@ -430,6 +434,9 @@ PUNTED TO NEXT RELEASE
   * It's very annoying to click "x" on a tile to remove a tab, and have the entire popup
     disappear
 	- Maybe it disappears only if the active tab is being removed?
+
+- Support undocking the popup so that it always stays open regardless to what happens to
+  tabs in other windows
 
 - Review code to verify there are no other silly this._err() in there (like those attached
   to user input validation, that didn't make sense)
