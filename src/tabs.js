@@ -576,7 +576,7 @@ _getClipboardAsText: function() {
 	textAreaElem.focus();
 	// See https://developer.mozilla.org/en-US/docs/Web/API/Document/execCommand
 	// It says execCommand() is deprecated, let's see...
-	if(backgroundPage.document.execCommand("paste") == false) {
+	if(!backgroundPage.document.execCommand("paste")) {
 		this._err(logHead + "paste command not supported");
 		return null;
 	}

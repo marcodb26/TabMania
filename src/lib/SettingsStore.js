@@ -743,7 +743,7 @@ _computeByUrlNoSearch: function(sc, forceNewTab) {
 	}
 
 	let tabs = this._propertySearch("lowerCaseUrl", sc.get("url").toLowerCase());
-	if(tabs.length = 0) {
+	if(tabs.length == 0) {
 		// Open URL in new tab
 		return { url: sc.get("url") };
 	}
@@ -755,7 +755,7 @@ _computeByUrl: function(sc) {
 	let forceNewTab = optionalWithDefault(sc.get("alwaysNewTab"), false);
 	let useClipboard = optionalWithDefault(sc.get("useClipboard"), false);
 	
-	if(useClipboard == false) {
+	if(!useClipboard) {
 		return this._computeByUrlNoSearch(sc, forceNewTab);
 	}
 
