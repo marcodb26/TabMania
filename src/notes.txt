@@ -420,6 +420,9 @@ DONE
 
 PUNTED TO NEXT RELEASE
 
+- Find a good way to manage console.log() in inject files (leveraging lib/prod.js)
+  * Then add lib/prod.js to the "npm run inject" script
+
 - Given the trouble we've been having chasing the popup console when the popup itself
   closes (e.g. when trying to trigger opening a tab from the popup), should we force
   all this._log() calls to go to the background console instead?
@@ -549,6 +552,7 @@ PUNTED TO NEXT RELEASE
 - Organize groups by host name inside top level groups (second level)
 
 - Implement "recent" tabs
+  * Start with TabsManager::_notifyPopup()
 
 - Keyboard navigation through tiles
 
@@ -682,4 +686,4 @@ PREPARING DIST
 
 - Run "npm run css" to minify dist/popup.css
 
-- Run "npm run inject" to minify dist/content/inject-getMeta.js
+- Run "npm run uglifyInject" to minify dist/content/inject-getMeta.js
