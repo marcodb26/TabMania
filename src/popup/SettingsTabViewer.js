@@ -1307,14 +1307,16 @@ _renderSettings: function() {
 //	this._generalSettingsContainer.addCollapsedListener(this._containerCollapsedCb.bind(this));
 	this.append(this._generalSettingsContainer);
 
-	let showTabId = Classes.SettingsCheckboxItemViewer.create({
-		setFn: settingsStore.setOptionShowTabId.bind(settingsStore),
-		getFn: settingsStore.getOptionShowTabId.bind(settingsStore),
-		label: "Display extended tab ID badge",
-		updateKey: "options",
-	});
-
-	this._generalSettingsContainer.append(showTabId);
+// To be added back later via devMode()
+//
+//	let showTabId = Classes.SettingsCheckboxItemViewer.create({
+//		setFn: settingsStore.setOptionShowTabId.bind(settingsStore),
+//		getFn: settingsStore.getOptionShowTabId.bind(settingsStore),
+//		label: "Display extended tab ID badge",
+//		updateKey: "options",
+//	});
+//
+//	this._generalSettingsContainer.append(showTabId);
 	
 	let advancedMenu = Classes.SettingsCheckboxItemViewer.create({
 		setFn: settingsStore.setOptionAdvancedMenu.bind(settingsStore),

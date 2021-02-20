@@ -427,12 +427,14 @@ DONE
 - BUG: User input validation logic puts an _err() on the console when a user input is
   validated as invalid
 
+- Moved the documentation for developers to README-DEV.md
+
 
 PUNTED TO NEXT RELEASE
 
 - Move option for "show extended tab ID" under a devMode() call, so that non-developers
   don't see that as the first option
-  * Also move the documentation for developers to README-DEV.md
+  * And add back display of "showTabId" SettingsTabViewer::_renderSettings()
 
 - Show a badge/icon if a tab is in full screen
   * https://stackoverflow.com/questions/4296005/determining-if-chrome-is-in-fullscreen-mode-for-extension-development
