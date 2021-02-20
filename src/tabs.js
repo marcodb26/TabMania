@@ -469,8 +469,10 @@ _closeOldActiveTab: function(oldActiveTabId) {
 },
 
 _notifyPopup: function() {
-	this._popupClient.sendNotification("tabsList",
-						{ activeTabId: this._activeTabId, recent: this._backTabs.peek(10) });
+	// To be implemented
+	//
+	//this._popupClient.sendNotification("tabsList",
+	//					{ activeTabId: this._activeTabId, recent: this._backTabs.peek(10) });
 },
 
 _goBack: function(closeCurrentTab) {

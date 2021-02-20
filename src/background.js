@@ -1,16 +1,19 @@
 chrome.runtime.onInstalled.addListener(
 	function() {
-		console.log("onInstalled.addListener() called");
-		//alert("background.js: onInstalled.addListener() called");
+		if(!isProd()) {
+			console.log("onInstalled.addListener() called");
+		}
 	}
 );
 
-window.addEventListener("error",
-	function(e) {
-		console.log("Unhandled exception: " + e.error.message);
-		return false;
-	}
-);
+if(!isProd()) {
+	window.addEventListener("error",
+		function(e) {
+			console.log("Unhandled exception: " + e.error.message);
+			return false;
+		}
+	);
+}
 
 window.addEventListener("load", init);
 

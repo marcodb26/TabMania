@@ -32,25 +32,11 @@
 //   _errorMustSubclass() to track potential calls of the function in a subclass that didn't
 //   properly override.
 
-function setProd(flag) {
-	Object.defineProperty(window, "productionCode", {
-		value: flag,
-		// You must use "configurable: true" to be able to change a property again by
-		// calling Object.defineProperty() multiple times on the same property (or to
-		// delete the property).
-		// See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
-		configurable: false,
-		enumerable: false,
-		writable: false
-	});
-}
 
+// See lib/prod.js for the source of "window.productionCode"
 function isProd() {
-	return window.productionCode;
+	return optionalWithDefault(window.productionCode, false);
 }
-
-setProd(false);
-
 
 Classes = {};
 
