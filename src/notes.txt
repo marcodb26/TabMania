@@ -94,6 +94,7 @@ Stop too much logging during tiles rendering
 "Attach tiles cont.":	9.9ms	14.1ms	4.3ms	4.1ms
 
 
+- CHANGE NAME FROM "tabmania" to "tabsmania"(?)
 - Disable Base._assert() for production code
 
 - Find out how to package for release
@@ -428,6 +429,16 @@ DONE
 
 
 PUNTED TO NEXT RELEASE
+
+- Move option for "show extended tab ID" under a devMode() call, so that non-developers
+  don't see that as the first option
+  * Also move the documentation for developers to README-DEV.md
+
+- Show a badge/icon if a tab is in full screen
+  * https://stackoverflow.com/questions/4296005/determining-if-chrome-is-in-fullscreen-mode-for-extension-development
+  * And set/remove full screen?
+    - https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullScreen
+	- Probably hard to detect in general which elements need to call the API
 
 - Find a way to keep the popup open when it triggers the creation or removal of a tab in
   the same window
