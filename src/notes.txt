@@ -419,7 +419,14 @@ DONE
 
 - BUG: uninitialized "options" PersistentDict leads to showing extTabId badge (it shouldn't)
 
+- BUG: User input validation logic puts an _err() on the console when a user input is
+  validated as invalid
+
+
 PUNTED TO NEXT RELEASE
+
+- Review code to verify there are no other silly this._err() in there (like those attached
+  to user input validation, that didn't make sense)
 
 - BUG: creating a custom group with just name and no other settings leads to no group
   displayed
