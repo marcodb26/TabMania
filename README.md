@@ -1,5 +1,21 @@
 # TabMania
 
+TabMania organizes all your browser tabs across all your windows. TabMania makes windows disappear,
+so you can focus on just your tabs, wherever they might be on your system. Find a lost tab; group
+tabs in ways that are meaningful to you, not by window; use keyboard shortcuts to navigate back to
+a previous tab from anywhere in the system; attach specific tabs to keyboard shortcuts so they're
+always one keypress away from view, regardless of how many tabs in how many windows you might have
+open.
+
+## Home view
+The home view is where most of the action is. The home view is where all your browser tabs are listed
+alphabetically by title. Browser tabs loaded with URLs from the same location (hostname) will be
+automatically grouped together. You can change this default grouping behavior by configuring _custom groups_
+(see _Custom groups_ below for more details).
+
+Pinned tabs and groups are listed first, before all other unpinned tabs (see __Pinned tabs and groups__
+below for more details).
+
 ## Understanding browser tab tiles
 TabMania lists Chrome tabs as tiles within the _Home_ (ehm...) tab of the extension. Each tile includes
 a few visible bits of information about the state of a browser tab:
@@ -7,14 +23,8 @@ a few visible bits of information about the state of a browser tab:
   and its favicon, if the page has one.
 * The second line of the tile includes the URL of the page associated to the browser tab, and
   some icons and badges providing some more info about the browser tab
-* If the URL starts with "https://", TabMania omits the obvious to leave a tad more room to see
-  the URL. Note that only "https://" is omitted, any other protocol will be displayed (including "http://").
-* If a tile displays in black&white and its title is italicized, then the browser tab is in state
-  `unloaded` (search keyword). The tab exists, but Chrome has not fully loaded it yet. Note that
-  you can also explicitly unload a browser tab by using the advanced menu action _Discard from memory_;
-  you can search for all tabs you've discarded this way with the search keyword `discarded`.
-* A browser tab displays the `loading` (search keyword) badge while it's loading a page, then the badge disappears,
-  indicating the tab is fully `loaded` (search keyword)
+* If the URL starts with `https://`, TabMania omits the obvious to leave a tad more room to see
+  the URL. Note that only `https://` is omitted, any other protocol will be displayed (including `http://`).
 * Browser tabs with an active audio source show an `audible` (search keyword) icon.
 * Muted tabs show a `muted` (search keyword) icon. The icon is in black if the browser tab has an
   actively muted audio source, that is, if it would become `audible` if unmuted. Muted tabs without
@@ -22,9 +32,6 @@ a few visible bits of information about the state of a browser tab:
 * The `active` (search keyword) badge indicates the browser tab is the tab currently visible in its window
 * A `pinned` (search keyword) tab displays a thumbtack icon. You can pin a browser tab using the
   menu action _Pin_ (see __Pinned tabs and groups__ below for more details).
-* If you enable the _Display extended tab ID badge_ option, the extended tab ID badge will be
-  visible in every tile. Note that you can search by extended tab ID even if this option is disabled.
-  (see __Extended tab ID__ below for more details)
 * If you grant TabMania access to your incognito tabs, `incognito` (search keyword) tabs will show
   alongside other tabs. Incognito tabs are easily identifiable for their reversed color scheme (dark
   background)
@@ -34,19 +41,16 @@ a few visible bits of information about the state of a browser tab:
   shortcut (see __Keyboard shortcuts__ below for more details)
 * If you hover your pointer over a browser tab tile, the menu dropdown button and the close button
   appear. You can use the close button to close the tab without bringing it to the foreground.
-
-## Home view
-The home view organizes all your browser tabs across all your windows alphabetically by title.
-TabMania makes windows disappear, so you can focus on just your tabs, wherever they might be on your
-system. Browser tabs loaded with URLs from the same location (hostname) will be automatically
-grouped together. You can change this default grouping behavior by configuring _custom groups_
-(see _Custom groups__ below for more details).
-
-Pinned tabs and groups are listed first, before all other unpinned tabs (see __Pinned tabs and groups__
-below for more details).
+* If a tile displays in black&white and its title is italicized, then the browser tab is in state
+  `unloaded` (search keyword). The tab exists, but Chrome has not fully loaded it yet. Note that
+  you can also explicitly unload a browser tab by using the advanced menu action _Discard from memory_;
+  you can search for all tabs you've discarded this way with the search keyword `discarded`.
+* A browser tab displays the `loading` (search keyword) badge while it's loading a page, then the badge disappears,
+  indicating the tab is fully `loaded` (search keyword)
 
 ## Custom groups
-TBD
+[ Work in progress - section missing ]
+
 If you don't specify a favicon for a custom group, it will pick one from one of the matching tabs
 listed inside.
 
@@ -71,9 +75,9 @@ are currently playing sounds, and mute it by clicking the "mute" menu action in 
 
 A couple of search modifiers are available to change the standard search behavior ("match anywhere").
 They must be specified at the very beginning of the search string:
-* __!__ (exclamation mark) inverts the search to match all browser tab tiles _not_ matching the search string
-* __^__ (caret) matches title, URL or search keywords starting with the search string
-* __!^__ combines the two
+* `!` (exclamation mark) inverts the search to match all browser tab tiles _not_ matching the search string
+* `^` (caret) matches title, URL or search keywords starting with the search string
+* `!^` combines the two
 
 __Example__: if your search string is _loaded_, you'll match both the `loaded` search keyword, as well
 as the `unloaded` search keyword (since "loaded" is contained in `unloaded`). This will likely generate
@@ -104,7 +108,7 @@ make more sense for you.
 ### Shortcut to activate TabMania
 It can be useful to add a shortcut to open TabMania without the need to click on TabMania's icon.
 
-__Suggested keyboard shortcuts__: CTRL+SHIFT+ArrowUp
+__Suggested keyboard shortcuts__: `CTRL+SHIFT+ArrowUp`
 
 ### Navigation shortcuts ("tabs history")
 TabMania remembers the sequence of browser tabs you're visiting, and offers shortcuts to move back
@@ -113,7 +117,7 @@ If you choose to assign these shortcuts in `Global` mode, you can even jump righ
 browser tab you were reading, after your little detour to other applications (regardless of how
 many applications you've visited in the meantime, unlike, say, ALT+Tab).
 
-__Suggested keyboard shortcuts__: CTRL+SHIFT+ArrowLeft (for "back") and CTRL+SHIFT+ArrowRight (for "forward")
+__Suggested keyboard shortcuts__: `CTRL+SHIFT+ArrowLeft` (for "back") and `CTRL+SHIFT+ArrowRight` (for "forward")
 
 TabMania also offers a variation to the navigation shortcuts that allows you to automatically close
 the current tab before jumping back/forward to another browser tab. Why is this useful?
@@ -131,13 +135,13 @@ the current tab before jumping back/forward to another browser tab. Why is this 
 TabMania includes a keyboard shortcut to quickly open a new tab, and load the contents of your current
 clipboard data in it. The exact behavior depends on what's in the clipboard:
 * If the clipboard contains a full URL, that URL will be loaded
-  * Note that a string like "www.google.com" is not a valid URL per the standard specification,
-    while "https://www.google.com" is
+  * Note that a string like `www.google.com` is not a valid URL per the standard specification,
+    while `https://www.google.com` is
 * If the clipboard contains text that doesn't match the specification of a URL, the text will be
   used to launch a web search. The default search engine is google.com, but you can configure a
   different search engine in the _Shortcuts settings_ section of TabMania's  _Settings_ tab.
 
-__Suggested keyboard shortcuts__: CTRL+SHIFT+ArrowDown
+__Suggested keyboard shortcuts__: `CTRL+SHIFT+ArrowDown`
 
 ### Custom shortcuts
 TabMania includes up to 5 custom shortcuts. These shortcuts can be used to jump to a specific tab
@@ -162,13 +166,13 @@ For each custom shortcut:
     shortcut in new tab_ option, which will cause the shortcut to always open a new tab, and
 	never reuse existing tabs
 * When using a target URL, you can select the _Enable search of clipbord contents_ option to enable
-  the shortcut to replace the first occurrence of the string "%s" in the configured URL with the
+  the shortcut to replace the first occurrence of the string `%s` in the configured URL with the
   contents of the clipboard (shortcut "search mode")
-  * "%s" must be lowercase, "%S" won't match
-  * "%s" can't be part of the hostname
+  * `%s` must be lowercase, `%S` won't match
+  * `%s` can't be part of the hostname
   * This behavior is similar to the behavior of the custom search engines in the Chrome omnibar,
     except that it uses the clipboard contents as input
-* After the "%s" replacement, if _Always open shortcut in new tab_ is not selected, the shortcut
+* After the `%s` replacement, if _Always open shortcut in new tab_ is not selected, the shortcut
   will try to match the exact URL of an existing tab, and if a match is found, activate that tab.
   If a match is not found, the positionally left-most tab matching the hostname of the search URL
   (the target tab) will be opened
@@ -181,13 +185,13 @@ For each custom shortcut:
 * You can search for tabs targeted by custom shortcuts by typing the shortcut shorthand
   in the searchbox
 
-__Suggested keyboard shortcuts__: CTRL+SHIFT+1, ..., CTRL+SHIFT+5
+__Suggested keyboard shortcuts__: `CTRL+SHIFT+1`, ..., `CTRL+SHIFT+5`
 
 
 ## Geek notes
-* Call "tmStats()" on the dev tools console of the popup to see some popup performance statistics.
+* Call `tmStats()` on the dev tools console of the popup to see some popup performance statistics.
 
-* What's the difference between this and chrome://inspect/#pages
+* Why should I not just use `chrome://inspect/#pages` to make sense of my tabs?
   * Chrome inspect pages is a DevTool, and shows info for developers, so for each page you'll also
   see iFrames or other embedded things
 
@@ -198,3 +202,6 @@ number. It may come in handy to also know the window ID where the tab is located
 tab index, which is the relative position of the tab among the tabs in a window (0-based). This last
 one is used to determine the target tab for a custom shortcut. We combine these three identifiers
 into a string of the form `[windowId]:[tabId]/[tabIndex]`, the extended tab ID.
+
+If you enable the _Display extended tab ID badge_ option, the extended tab ID badge will be visible in
+every tile. Note that you can search by extended tab ID even if this option is disabled.
