@@ -147,7 +147,7 @@ renderBody: function() {
 	this._addBadgesHtml(visibleBadgesHtml, this._tab.tm.secondaryShortcutBadges, true);
 	this._addBadgesHtml(visibleBadgesHtml, this._tab.tm.visualBadges);
 
-	// The pinned thumbtack is always the rightmost badge
+	// The pinned thumbtack is always the rightmost badge/icon
 	if(this._tab.pinned) {
 		visibleBadgesHtml.push(icons.thumbtack());
 	}

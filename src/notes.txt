@@ -417,6 +417,7 @@ DONE
 - Changed Github repository name to TabMania and updated local repo to https://github.com/marcodb26/TabMania.git
   * git remote set-url origin https://github.com/marcodb26/TabMania.git
 
+- BUG: uninitialized "options" PersistentDict leads to showing extTabId badge (it shouldn't)
 
 PUNTED TO NEXT RELEASE
 
@@ -649,7 +650,7 @@ PREPARING DIST
 
 - With /dist/manifest.json
   * Replace all background.scripts with just "background.js"
-  * Remove permissions "tabGroups" (until they become available in the main channel)
+  * Remove permissions "tabGroups" (until they become available in the stable channel)
   * Rename "default_popup" from "popup/popup.html" to "popup.html"
   * Remove all comments
   * Remove "https://cdnjs.cloudflare.com" from "content_security_policy" at the bottom,
