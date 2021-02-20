@@ -425,6 +425,12 @@ DONE
 
 PUNTED TO NEXT RELEASE
 
+- Find a way to keep the popup open when it triggers the creation or removal of a tab in
+  the same window
+  * It's very annoying to click "x" on a tile to remove a tab, and have the entire popup
+    disappear
+	- Maybe it disappears only if the active tab is being removed?
+
 - Review code to verify there are no other silly this._err() in there (like those attached
   to user input validation, that didn't make sense)
 
