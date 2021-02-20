@@ -1077,10 +1077,8 @@ _getBooleanOption: function(prop) {
 	// while it doesn't turn "false" to a default.
 	let retVal = this._getOption(prop);
 	if(retVal == null) {
-		this._err("returning false for " + prop);
 		return false;
 	}
-	this._err("for " + prop + " returning: ", retVal);
 	return retVal;
 },
 
