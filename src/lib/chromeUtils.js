@@ -123,6 +123,9 @@ inject: function(tabId, jsFile) {
 				case Classes.ChromeUtils.Error.INJECT_ERRORPAGE:
 					this._log(logHead + "tab has an error (network down?)");
 					return Promise.resolve(null);
+				case Classes.ChromeUtils.Error.INJECT_EXTGALLERY:
+					this._log(logHead + "can't inject in the extensions gallery");
+					return Promise.resolve(null);
 				default:
 					this._err(logHead + "unknown error: " + chromeLastError.message);
 					return Promise.reject(chromeLastError);
@@ -216,7 +219,9 @@ Classes.Base.roDef(Classes.ChromeUtils.Error, "INJECT_NOFRAME", "The frame was r
 // be loaded if there had not been an error.
 Classes.Base.roDef(Classes.ChromeUtils.Error, "INJECT_ERRORPAGE", 
 "Cannot access contents of url \"chrome-error://chromewebdata/\". Extension manifest must request permission to access this host.");
-
+// Started getting the following error for the tab with URL
+// https://chrome.google.com/webstore/search/tabmania?hl=en&_category=extensions
+Classes.Base.roDef(Classes.ChromeUtils.Error, "INJECT_EXTGALLERY", "The extensions gallery cannot be scripted.");
 
 // Create a global variable "chromeUtils", but force it readonly, so it doesn't get
 // overwritten by mistake.
