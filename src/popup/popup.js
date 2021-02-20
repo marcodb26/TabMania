@@ -1,13 +1,16 @@
-function multiLog(msg) {
-	if(isProd()) {
-		return;
-	}
-
-	console.log("popup.js - " + msg);
-	// In some cases it's convenient to show log messages all in the same place,
-	// and the background page is a good place for that
-	chrome.extension.getBackgroundPage().console.log("popup.js - " + msg);
-}
+// Leaving this here as a reference in case later we find a need to dump stuff from
+// the popup to the background console...
+//
+//function multiLog(msg) {
+//	if(isProd()) {
+//		return;
+//	}
+//
+//	console.log("popup.js - " + msg);
+//	// In some cases it's convenient to show log messages all in the same place,
+//	// and the background page is a good place for that
+//	chrome.extension.getBackgroundPage().console.log("popup.js - " + msg);
+//}
 
 window.addEventListener("error",
 	function(e) {
@@ -59,8 +62,6 @@ function testSettings() {
 }
 
 function init() {
-	//multiLog("Popup loaded");
-
 	perfProf.mark("windowLoaded");
 
 	// Waiting for the async initialization of the settingsStore before starting
