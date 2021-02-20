@@ -421,6 +421,19 @@ DONE
 
 PUNTED TO NEXT RELEASE
 
+- BUG: creating a custom group with just name and no other settings leads to no group
+  displayed
+  * Sequence
+    - First create a group A with some properties
+	- Then create a group B with only a name
+	- Now delete the group A
+	- Close the popup and reopen it, group B is gone, but its name can't be reassigned
+	  to another group
+	- Eventually group B shows up again (weird)
+
+- Test behavior of this._errorMustSubclass(), the changes made to help uglifyjs
+  feel suspicious
+
 - Find a good way to manage console.log() in inject files (leveraging lib/prod.js)
   * Then add lib/prod.js to the "npm run inject" script
 
