@@ -1047,6 +1047,12 @@ function tmStats() {
 	);
 }
 
+// This function is intended to be called from the Chrome dev tools console
+function tmStorage() {
+	chrome.storage.local.get(function(result){console.log(result)});
+	chrome.storage.sync.get(function(result){console.log(result)});
+}
+
 // Note that this function sets a default value even if value is "null", not
 // only if it's "undefined". Don't use this function if you care about the
 // "null" value
