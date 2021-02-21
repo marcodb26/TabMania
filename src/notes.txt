@@ -761,6 +761,8 @@ PREPARING DIST
     very manual, and if we've tested from /src, better to include from /src, in case
 	we forgot to update these files in /src when we (thought we) upgraded Bootstrap
 
+- Remove sourcemap comment from the bottom of /dist/bootstrap.min.css and /dist/bootstrap.bundle.min.js
+
 - With /dist/popup.html
   * Replace all local <script> tags (including all "inject" tags) with just "popup.js"
   * Remove Font Awesome stuff
