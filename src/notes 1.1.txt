@@ -1,0 +1,391 @@
+- Disable Base._assert() for production code
+
+- Point users directly to https://github.com/marcodb26/TabMania#readme for documentation
+
+- BUG: between the scrollbar on the right and the extension border you can see a bit of background,
+  you shouldn't see it
+  * See for example the screenshot used to publish the extension
+
+- Upgrade bootstrap to 5.0.0-beta2
+
+- Change the icon of the extension popup to red in dev mode when there's a this._err()
+  or a console.error()
+  * And send all errors also to the background page! (otherwise they get lost when the
+    popup gets closed)
+
+- Expanded accordions have a bothering blue tint
+  * Remove the tint, or, for custom groups, align it to the color of the custom group
+
+- Move option for "show extended tab ID" under a devMode() call, so that non-developers
+  don't see that as the first option
+  * And add back display of "showTabId" SettingsTabViewer::_renderSettings()
+
+- Show a badge/icon if a tab is in full screen
+  * https://stackoverflow.com/questions/4296005/determining-if-chrome-is-in-fullscreen-mode-for-extension-development
+  * And set/remove full screen?
+    - https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullScreen
+	- Probably hard to detect in general which elements need to call the API
+
+- Find a way to keep the popup open when it triggers the creation or removal of a tab in
+  the same window
+  * It's very annoying to click "x" on a tile to remove a tab, and have the entire popup
+    disappear
+	- Maybe it disappears only if the active tab is being removed?
+
+- Support undocking the popup so that it always stays open regardless to what happens to
+  tabs in other windows
+
+- Review code to verify there are no other silly this._err() in there (like those attached
+  to user input validation, that didn't make sense)
+
+- BUG: creating a custom group with just name and no other settings leads to no group
+  displayed
+  * Sequence
+    - First create a group A with some properties
+	- Then create a group B with only a name
+	- Now delete the group A
+	- Close the popup and reopen it, group B is gone, but its name can't be reassigned
+	  to another group
+	- Eventually group B shows up again (weird)
+
+- Test behavior of this._errorMustSubclass(), the changes made to help uglifyjs
+  feel suspicious
+
+- Find a good way to manage console.log() in inject files (leveraging lib/prod.js)
+  * Then add lib/prod.js to the "npm run inject" script
+
+- Given the trouble we've been having chasing the popup console when the popup itself
+  closes (e.g. when trying to trigger opening a tab from the popup), should we force
+  all this._log() calls to go to the background console instead?
+  * See multiLog() at popup.js to see how to do it
+  * We'll need to understand the performance penalty of choosing to go always and only
+    to the console of the background page instead of going to the console of the popup,
+	but if we can, avoiding to have to always reopen the console every time you reopen
+	the popup would be a great benefit...
+	- Maybe only in DEV mode and not in prod mode?
+
+- Find a way to support autocomplete for the search input
+  * https://stackoverflow.com/questions/15462991/trigger-autocomplete-without-submitting-a-form
+    - The HTML5 <input autocomplete="On"> only works if you
+	  * Give a fixed ID to the input field (we might need changes to make that happen)
+	  * Force a real form submission
+  * Alternatively, find a library to do something custom with it...
+
+- "Clipboard launch/search" assumes there's something in the clipboard, should we
+  have an alternate shortcut that simply opens a new empty tab?
+  * If you have Chrome opened, that's very trivial to do natively, but the shortcut
+    could save you a tiny bit of time if you're in another application...
+
+- Manage incognito tabs (same view, different BS-tab, hide, etc)
+
+- BUG: if a group has a long name and it's pinned, it's thumbtack is slighty off
+  to the right compared to the other pinned groups/tiles around it
+
+- Remember recent searches
+
+- Add action menu to containers
+
+- Display <meta> tag information in dropdown, under title
+  * Only "description"? Or also "image" when available?
+
+- Include also bookmarks in the search results, not only open tabs
+  * https://developer.chrome.com/docs/extensions/reference/bookmarks/#method-search
+  * If a bookmark is in a tab, it should not show up twice
+  * Should also add a badge mentioning a tab is bookmarked?
+
+- BUG: the popup icon badge shows the wrong count when entering search mode, it
+  seems to be getting updated to the number of tabs in the search results...
+
+- Show current tab in current window at the top of the tabs list?
+
+- "Candidate tabs" behavior should apply also for hostnames and URLs not in "search mode"
+  ("useClipboard")
+
+- Add support for wildcards in "matchList" of custom groups
+
+- Sort/group tabs by other means (by window, etc.)
+
+- Display details about video
+  * For Zoom video playback, you can use:
+	"-webkit-media-controls-timeline"
+	<input type="range" step="any" pseudo="-webkit-media-controls-timeline" max="2733.408" aria-label="video time scrubber 0:00 / 45:33" aria-valuetext="elapsed time: 0:00">
+  * Or:
+    <input type="button" pseudo="-webkit-media-controls-play-button" aria-label="play" class="pause" style="">
+	<div aria-label="elapsed time: 0:00" pseudo="-webkit-media-controls-current-time-display" style="">0:00</div>
+	(though the time seems to be stuck at "0:00")
+
+  * Actually this has all the data (updated in real time):	
+	<div class="vjs-control-bar" dir="ltr">
+	  <div class="vjs-progress-control vjs-control">
+	    <div tabindex="0" class="vjs-progress-holder vjs-slider vjs-slider-horizontal" role="slider" aria-valuenow="NaN" aria-valuemin="0" aria-valuemax="100" aria-label="Progress Bar" aria-valuetext="04:40 of 45:33">
+		[...]
+		  <div class="vjs-time-tooltip" aria-hidden="true" style="right: -23.0156px;">14:45</div>
+		  <div class="vjs-time-tooltip" aria-hidden="true">04:38</div>
+
+  * For Youtube can use:
+    <div class="ytp-time-display notranslate" style="">
+	  <span class="ytp-time-current">0:22</span>
+	  <span class="ytp-time-separator"> / </span>
+	  <span class="ytp-time-duration">2:00:21</span>
+
+- Add logic to let "www.google.com" be recognized as a valid URL, even though new URL()
+  won't consider it valid
+  * Make it behave like the browser's omnibar...
+
+- Fix the domElem.addEventListener(event, fn, true), sometimes we say "true", sometimes
+  we say "false", can we do it more accurately than random?
+
+- Reorganize TabsTabViewer to leverage a separate "TabsSet" object to manage the querying
+  and maintenance of tabs subsets (instead of spreading that logic within the class code
+  * One such object for the standard view, one for the search view, in future possibly
+    one separate object for the incognito view (which needs to behave like standard view,
+	but on a different subset of tabs)
+
+- BUG: sometimes some websites blink the title continouosly between two
+  different titles, e.g.:
+  https://www.snowflake.com/data-warehousing-difference-sql-nosql/
+  switching between normal title and "(1) new message" because of the
+  "bear" with the chat with a pending advertisement
+  - How do we throttle that to avoid too much blinking of the bsTab and
+    too much re-rendering of the popup?
+
+- Remove from SettingsStore.js the stuff that doesn't belong there
+  * See comment at top of file. Dose background.js really need the
+    "NormalizedTabs" class or the "ShortcutManager" class?
+	- Yes to both (see TabsManager)
+
+- BUG: console.log() and console.info() are the same thing in Chrome,
+  so our functions this._log() and this._log.info() are the same thing...
+  maybe we should use console.debug() as this._log()?
+  * With or without renaming this._log()?
+
+- Can we re-use tiles as we do full re-renders?
+  * Right now we just discard all the existing tiles and create new ones
+  * Ideally we should reuse tiles for the same tabID, to also minimize the
+    chances of body re-rendering (this implies creating a function during
+	body updates that validates whether or not the tab info has changed at all)
+
+- BUG: when closing and reopening popup, the scroll goes back to the top, we should
+  remember the scrolling position when the popup was closed
+  * Or should "go back to top" be expected to be the right behavior?
+
+- Time slice settings (fixed or relative times), just do fixed times for now
+
+- Create new window event to attach more tabs later (the event fires when the basic skeleton is
+  ready to accept bstabs insertion), so we can cut the “global” tab from first release but keep
+  its insertion functional without touching popuptabs
+  * Actually maybe best to just add a "register" to push all the plugins that want to be attached,
+    so they can push in the order in which they want to be attached
+
+- Use chrome.tabs.captureVisibleTab() to capture a screenshot of the tab
+  * Works only when the tab is active
+
+- Organize groups by host name inside top level groups (second level)
+
+- Implement "recent" tabs
+  * Start with TabsManager::_notifyPopup()
+
+- Keyboard navigation through tiles
+
+- Boot-up performance: can we make the tiles appear faster?
+  * Are the 4 shortcuts in 4 different chrome.storage.sync variables causing a delay?
+  * Should we decouple the rendering that depends on settings from the rendering that
+    doesn't to speed up settings-independent rendering in parallel with loading settings?
+	- It looks like "window.onLoad" takes longer than loading settings (and they happen
+	  in parallel), so we can't get any value from this, since we must wait for
+	  "window.onLoad"
+  * Render tile menus only when users click on it, or when they hover long enough on
+    the tile to show the menu dropdown toggle?
+	- https://davidwalsh.name/css-animation-callback
+	- To trigger creation of a menu when the dropdown toggle shows up (delayed by CSS rules),
+      instead of creating the menu immediately when the tile is being rendered
+	- Probably not as useful now that we have async rendering of tiles body, but
+	  it might still help by reducing the cost of these async tasks (and therefore
+	  freeing up cycles to do something else that currently would be waiting)
+
+- Work with tab groups, introduced by Chrome in 2020
+  * https://dev.to/otomer/google-chrome-s-new-update-finally-allows-you-to-organize-tabs-easily-this-is-how-you-can-use-it-3f99
+  * Note that tab groups only work within a window
+  * Unclear how to query for group properties (name and color)
+	- Still work in progress, see here for updates: https://bugs.chromium.org/p/chromium/issues/detail?id=1106846
+	- There should soon be a chrome.tabGroups API
+	- Actually it's here: https://developer.chrome.com/docs/extensions/reference/tabGroups/
+	  * But only available to the dev channel as of 21.01.24
+
+- Implement https://developer.chrome.com/docs/extensions/reference/runtime/#event-onUpdateAvailable
+  to force an update of the extension for users that never close their browser
+  * Maybe offer the option to update in the "Settings" menu?
+
+- Contact this guy to review my extension
+  * https://www.computerworld.com/article/3535189/chrome-tab-switcher.html
+
+- Stop querying chrome.tabs.query in the popup, and do the querying only in the backgrond
+  * The background should manage the "normalization" step too, and just notify the
+    popup with the pre-normalized tabs list
+	- This should save some time at popup opening time, since the popup won't have
+	  to manage the query and normalization
+    - Even if it doesn't save visible time, it will still reduce the amount of processing
+	  caused by the popups, since eahc popup needs to query/normalize independently
+	  * The only side effect is that the background might have to do this at all
+	    times, even when no popup is open, but it already has to do that, in order
+		to manage correctly the custom shortcuts
+
+- Find a notification to update in real-time when the user changes isAllowedIncognitoAccess()
+  * This notification doesn't seem to exist today
+  * Should we poll?
+
+- Find a better way to implement chromeUtils.getExtensionId()
+
+- When a tab has a load error (which prevents injection of inject-getMeta.js)
+  display a special error icon to identify the tab failed to load (e.g. because
+  of network down) (search "network down" in the code to find the place where
+  this check is made)
+
+- Implement TileMenuViewer._updateShortcutMenuItems()
+  * Or do we really care, given that most of the times we need to rebuild the
+    entire set of tabs from scratch
+
+- Improve (automate) the Bootstrap upgrade process in src
+  * Can't load directly from node_modules, since it's outside the /src/manifest.json
+    subtree, but since we don't want to ever have to build /src (for now), we need
+	some other way to reliably push the Bootstrap files we need to /src when we
+	upgrade Bootstrap via NPM
+
+
+
+DONE 1.1
+
+- Add back this._getTabMetaTags() to TabTileViewer::update()
+  * And add back host permission "*://*/*" to allow the code injection to run properly
+
+- Moved release process to README-DEV.md
+
+- BUG: need to discard settings events if they arrive before the TabsTabViewer chrome
+  query has completed, while _normTabs is still uninitialized
+
+- Learned chrome.extension.getBackgroundPage can't be used in the injected content scripts
+
+
+PUNTED TO NEXT RELEASE
+
+
+
+ENVIRONMENT
+
+- Google developer console: https://chrome.google.com/webstore/devconsole
+
+- Upgraded GIT to v.2.30.1.windows.1
+  * To upgrade:
+    > git update-git-for-windows
+  * Repo at: https://github.com/marcodb26/TabMania.git
+  * To clone
+    > git clone https://github.com/marcodb26/TabMania.git
+  * To see commits history
+	- https://github.com/marcodb26/TabMania/commits
+
+- Upgraded NPM to v.7.5.4
+  * To upgrade:
+    - Run PowerShell as Administrator
+      > Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force
+      > npm install -g npm-windows-upgrade
+      > npm-windows-upgrade
+  * Created project with "npm init"
+    - Edited package.json to make project private
+	  * Add line after "description":
+		> "private": true,
+
+- Installed Bootstrap
+  > npm install bootstrap@5.0.0-beta1
+  * Make sure to move node_modules\bootstrap\dist\css\bootstrap.min.css and
+    node_modules\bootstrap\dist\js\bootstrap.bundle.min.js to src/popup when
+	upgrading Bootstrap again
+
+- Installed uglify-js v.3.12.8
+  > npm install uglify-js --save-dev
+
+- Installed csso-cli v.3.0.0 (https://www.npmjs.com/package/csso-cli)
+  > npm install csso-cli --save-dev
+  * Really liked the documentation of cssnano (https://cssnano.co/docs/getting-started), but
+    decided to go with csso because it seemed to be more "independent" of other modules
+
+
+PREPARING DIST
+
+- Copy /src/manifest.json to /dist/manifest.json
+
+- With /dist/manifest.json
+  * Replace all background.scripts with just "background.js"
+  * Remove permissions "tabGroups" (until they become available in the stable channel)
+  * Rename "default_popup" from "popup/popup.html" to "popup.html"
+  * Remove all comments
+  * Remove completely the "content_security_policy" line at the bottom
+    - We used to need it because we were using Bootstrap online, but not anymore
+	- We keep it for dev in case we want to experiment with new Font Awesome icons,
+	  but we don't use remote icons in productions
+
+- Copy /src/popup/popup.html to /dist/popup.html
+
+- Copy /src/bootstrap.min.css to /dist/bootstrap.min.css
+  * Why not copy from /node_modules/bootstrap/dist/css? Because the process is still
+    very manual, and if we've tested from /src, better to include from /src, in case
+	we forgot to update these files in /src when we (thought we) upgraded Bootstrap
+
+- Copy /src/bootstrap.bundle.min.js to /dist/bootstrap.bundle.min.js
+  * Why not copy from /node_modules/bootstrap/dist/js? Because the process is still
+    very manual, and if we've tested from /src, better to include from /src, in case
+	we forgot to update these files in /src when we (thought we) upgraded Bootstrap
+
+- Remove sourcemap comment from the bottom of /dist/bootstrap.min.css and /dist/bootstrap.bundle.min.js
+
+- With /dist/popup.html
+  * Replace all local <script> tags (including all "inject" tags) with just "popup.js"
+  * Remove Font Awesome stuff
+	- <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" rel="stylesheet">
+	- <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/js/all.min.js"></script>
+  * Remove all comments
+
+- Copy /src/images to /dist/images
+
+- Create /dist/content
+  * Or not, wait until we actually need it...
+
+- Run "npm run uglifyBg" to minify dist/background.js
+  * "uglifyBg" should include the option "--compress", but that option triggers strange
+    warnings (it reshuffles uses of variables and starts finding "Dropping duplicated definition
+	of variable [xyz]"), plus it discards the unused "tmStats()" (which we'd like not to discard)
+	- All of this for a gain of 2KB (from 52KB to 50KB, without "--mangle"), not worth it
+	- We also tried --mangle, without "--compress" it takes the code down from 52KB to 45KB,
+	  but again you lose "tmStats()"
+	- We'll clean this up later and possibly add back --compress and --mangle
+	  * And also add back --source-map once we understand if we really need it
+
+- Run "npm run uglifyPopup" to minify dist/popup.js
+  * Try to use "--compress" temporarily just to see if it comes up with any useful warnings...
+  * Without --compress the code amounts to 113KB, with it (but no --mangle) it's 109KB
+    - No difference at all...
+	- With --mangle --compress we're down to 95KB (but again, for now let's build without these options)
+
+- Run "npm run css" to minify dist/popup.css
+
+- Run "npm run uglifyInject" to minify dist/content/inject-getMeta.js
+  * Or not, if you have not created /dist/content (see above)
+
+- Bundle /dist in a zip file of form "TabMania vX.Y.zip", where X.Y is the same version as the version
+  in the manifest.json file
+
+- Post the new version on the Google developer console at https://chrome.google.com/webstore/devconsole
+
+- Commit /dist to github
+  * Then don't touch /dist until the next release cycle
+
+- Tag commit by creating a release in github
+  * https://docs.github.com/en/github/administering-a-repository/managing-releases-in-a-repository
+  * Cerate a tag as part of the release creation process
+    - The tag must have format "vX.Y", where X.Y is the same version as the version in the manifest.json file
+
+- Use "git fetch" to get the new tag to your clone repo
+
+- Edit /src/manifest.json and update "version" to the next expected release version
+
+- Commit this change alone with message "First commit for vX.Y", where X.Y is the same version as the new
+  version you've just edited in the manifest.json file
