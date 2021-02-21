@@ -1,0 +1,85 @@
+{
+	"name": "TabMania",
+	"version": "1.0",
+	"description": "A simple tab manager enabling some essential keyboard shortcuts",
+	"permissions": [
+		"tabs",
+		"storage",
+		"clipboardRead"
+	],
+	"background": {
+		"scripts": [ "background.js" ],
+		"persistent": true
+	},
+
+	"commands": {
+		"00back": {
+			"suggested_key": {
+				"default": "Ctrl + Shift + Left"
+			},
+			"description": "Go back to the last active tab",
+			"global": false
+		},
+		"01fwd": {
+			"suggested_key": {
+				"default": "Ctrl + Shift + Right"
+			},
+			"description": "Go forward to the next active tab",
+			"global": false
+		},
+		"02los":  {
+			"suggested_key": {
+				"default": "Ctrl + Shift + Down"
+			},
+			"description": "Clipboard launch/search: open a new tab using the clipboard value as URL or search text",
+			"global": true
+		},
+		"03closeback": {
+			"description": "Close the current tab and go back to the last active tab",
+			"global": false
+		},
+		"04closefwd": {
+			"description": "Close the current tab and go forward to the next active tab",
+			"global": false
+		},
+		"90shortcut":  {
+			"description": "Custom shortcut 1: open a configured tab",
+			"global": true
+		},
+		"91shortcut":  {
+			"description": "Custom shortcut 2: open a configured tab",
+			"global": true
+		},
+		"92shortcut":  {
+			"description": "Custom shortcut 3: open a configured tab",
+			"global": true
+		},
+		"93shortcut":  {
+			"description": "Custom shortcut 4: open a configured tab",
+			"global": true
+		},
+		"94shortcut":  {
+			"description": "Custom shortcut 5: open a configured tab",
+			"global": true
+		}
+	},
+
+	"browser_action": {
+		"default_popup": "popup.html",
+
+		"default_icon": {
+			"16": "images/icon-16.png",
+			"32": "images/icon-32.png",
+			"48": "images/icon-48.png",
+			"128": "images/icon-128.png"
+		}
+	},
+	"icons": {
+		"16": "images/icon-16.png",
+		"32": "images/icon-32.png",
+		"48": "images/icon-48.png",
+		"128": "images/icon-128.png"
+	},
+
+	"manifest_version": 2
+}
