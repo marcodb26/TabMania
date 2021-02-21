@@ -429,8 +429,34 @@ DONE
 
 - Moved the documentation for developers to README-DEV.md
 
+- Prepping for publishing
+  * Removed host permissions and meta tag retrieval until we have a real use for it
+  * Removed "activeTab" permission as it doesn't seem to be needed...
+    - We wanted to use it to take a screenshot of the active tab, but probably no reason
+	  to do that anymore
+
 
 PUNTED TO NEXT RELEASE
+
+- BUG: between the scrollbar on the right and the extension border you can see a bit of background,
+  you shouldn't see it
+  * See for example the screenshot used to publish the extension
+
+- Download and include locally Bootstrap to avoid the "Are you using remote code?" privacy question
+  * Can't use NPM, as 5.0 is not available yet via NPM, but can download:
+    - https://getbootstrap.com/docs/5.0/getting-started/download/
+	- It says there you can use "npm install bootstrap@next"
+
+- Change the icon of the extension popup to red in dev mode when there's a this._err()
+  or a console.error()
+  * And send all errors also to the background page! (otherwise they get lost when the
+    popup gets closed)
+
+- Add back this._getTabMetaTags() to TabTileViewer::update()
+  * And add back host permission "*://*/*" to allow the code injection to run properly
+
+- Expanded accordions have a bothering blue tint
+  * Remove the tint, or, for custom groups, align it to the color of the custom group
 
 - Move option for "show extended tab ID" under a devMode() call, so that non-developers
   don't see that as the first option
@@ -663,6 +689,8 @@ PUNTED TO NEXT RELEASE
 
 
 ENVIRONMENT
+
+- Google developer console: https://chrome.google.com/webstore/devconsole
 
 - Upgraded GIT to v.2.30.1.windows.1
   * To upgrade:
