@@ -276,6 +276,11 @@ _renderTileBodies: function() {
 
 _settingsStoreUpdatedCb: function(ev) {
 	const logHead = "TabsTabViewer::_settingsStoreUpdatedCb(" + ev.detail.key + "): ";
+	if(this._normTabs == null) {
+		this._log(logHead + "_normTabs not initialized ye, skipping event");
+		return;
+	}
+
 	this._log(logHead + "entering");
 
 	// The answer to all events is always the same, re-render everything.
@@ -440,6 +445,7 @@ _queryAndRenderTabs: function() {
 	return this._tabsAsyncQuery().then(
 		function(tabs) {
 			perfProf.mark("queryEnd");
+			this._log(logHead + "tabs received, processing");
 			this._tilesByTabId = {};
 
 			try {
