@@ -790,3 +790,21 @@ PREPARING DIST
 
 - Run "npm run uglifyInject" to minify dist/content/inject-getMeta.js
   * Or not, if you have not created /dist/content (see above)
+
+- Bundle /dist in a zip file of form "TabMania vX.Y.zip", where X.Y is the same version as the version
+  in the manifest.json file
+
+- Post the new version on the Google developer console at https://chrome.google.com/webstore/devconsole
+
+- Commit /dist to github
+  * Then don't touch /dist until the next release cycle
+
+- Tag commit by creating a release in github
+  * https://docs.github.com/en/github/administering-a-repository/managing-releases-in-a-repository
+  * Cerate a tag as part of the release creation process
+    - The tag must have format "vX.Y", where X.Y is the same version as the version in the manifest.json file
+
+- Edit /src/manifest.json and update "version" to the next expected release version
+
+- Commit this change alone with message "First commit of vX.Y", where X.Y is the same version as the new
+  version you've just edited in the manifest.json file
