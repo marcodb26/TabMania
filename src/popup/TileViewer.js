@@ -326,11 +326,11 @@ update: function(tab, tabGroup) {
 		function() {
 			this.renderBody();
 
-//			this._getTabMetaTags().then(
-//				function(metaTags) {
-//					tab.tm.metaTags = metaTags;
-//				}
-//			);
+			this._getTabMetaTags().then(
+				function(metaTags) {
+					tab.tm.metaTags = metaTags;
+				}
+			);
 		}.bind(this)
 	);
 },
