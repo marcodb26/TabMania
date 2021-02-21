@@ -804,7 +804,9 @@ PREPARING DIST
   * Cerate a tag as part of the release creation process
     - The tag must have format "vX.Y", where X.Y is the same version as the version in the manifest.json file
 
+- Use "git fetch" to get the new tag to your clone repo
+
 - Edit /src/manifest.json and update "version" to the next expected release version
 
-- Commit this change alone with message "First commit of vX.Y", where X.Y is the same version as the new
+- Commit this change alone with message "First commit for vX.Y", where X.Y is the same version as the new
   version you've just edited in the manifest.json file
