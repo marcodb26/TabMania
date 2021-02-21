@@ -3,12 +3,12 @@
 	"version": "1.0",
 	"description": "A simple tab manager enabling some essential keyboard shortcuts",
 	"permissions": [
-		"activeTab",
+//		"activeTab",
 		"tabs",
 		"tabGroups", // https://developer.chrome.com/docs/extensions/reference/tabGroups/
 		"storage",
-		"clipboardRead", // See: https://stackoverflow.com/questions/22702446/how-to-get-clipboard-data-in-chrome-extension
-		"*://*/*"    // Needed to allow script injection in tabs (see chromeUtils.inject())
+		"clipboardRead" // See: https://stackoverflow.com/questions/22702446/how-to-get-clipboard-data-in-chrome-extension
+//		"*://*/*"    // Needed to allow script injection in tabs (see chromeUtils.inject())
 	],
 	"background": {
 		"scripts": ["lib/utils.js", "lib/chromeUtils.js", "lib/SettingsStore.js", "lib/ScheduledJob.js",

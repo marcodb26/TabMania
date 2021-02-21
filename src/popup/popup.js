@@ -27,7 +27,7 @@ var popupMsgServer = null;
 
 function testSettings() {
 	settingsStore.setOptionSearchUrl("https://duckduckgo.com/?q=%s");
-	settingsStore.setOptionShowTabId(true);
+//	settingsStore.setOptionShowTabId(true);
 	settingsStore.setOptionAdvancedMenu(true);
 	settingsStore.pinGroup("Work");
 	settingsStore.getShortcutsManager().setShortcut(window.ExtCommands.SHORTCUT01,
