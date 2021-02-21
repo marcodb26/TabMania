@@ -434,6 +434,8 @@ DONE
   * Removed "activeTab" permission as it doesn't seem to be needed...
     - We wanted to use it to take a screenshot of the active tab, but probably no reason
 	  to do that anymore
+  * Using a local copy of Bootstrap (instead of getting the code from a CDN) to avoid the
+    'are you using remote code?' scrutiny in the Chrome Web Store
 
 
 PUNTED TO NEXT RELEASE
@@ -446,6 +448,8 @@ PUNTED TO NEXT RELEASE
   * Can't use NPM, as 5.0 is not available yet via NPM, but can download:
     - https://getbootstrap.com/docs/5.0/getting-started/download/
 	- It says there you can use "npm install bootstrap@next"
+
+- Upgrade bootstrap to 5.0.0-beta2
 
 - Change the icon of the extension popup to red in dev mode when there's a this._err()
   or a console.error()
@@ -687,6 +691,12 @@ PUNTED TO NEXT RELEASE
   * Or do we really care, given that most of the times we need to rebuild the
     entire set of tabs from scratch
 
+- Improve (automate) the Bootstrap upgrade process in src
+  * Can't load directly from node_modules, since it's outside the /src/manifest.json
+    subtree, but since we don't want to ever have to build /src (for now), we need
+	some other way to reliably push the Bootstrap files we need to /src when we
+	upgrade Bootstrap via NPM
+
 
 ENVIRONMENT
 
@@ -710,6 +720,12 @@ ENVIRONMENT
 	  * Add line after "description":
 		> "private": true,
 
+- Installed Bootstrap
+  > npm install bootstrap@5.0.0-beta1
+  * Make sure to move node_modules\bootstrap\dist\css\bootstrap.min.css and
+    node_modules\bootstrap\dist\js\bootstrap.bundle.min.js to src/popup when
+	upgrading Bootstrap again
+
 - Installed uglify-js v.3.12.8
   > npm install uglify-js --save-dev
 
@@ -717,6 +733,7 @@ ENVIRONMENT
   > npm install csso-cli --save-dev
   * Really liked the documentation of cssnano (https://cssnano.co/docs/getting-started), but
     decided to go with csso because it seemed to be more "independent" of other modules
+
 
 PREPARING DIST
 
@@ -727,13 +744,25 @@ PREPARING DIST
   * Remove permissions "tabGroups" (until they become available in the stable channel)
   * Rename "default_popup" from "popup/popup.html" to "popup.html"
   * Remove all comments
-  * Remove "https://cdnjs.cloudflare.com" from "content_security_policy" at the bottom,
-    since that's only needed for Font Awesome
+  * Remove completely the "content_security_policy" line at the bottom
+    - We used to need it because we were using Bootstrap online, but not anymore
+	- We keep it for dev in case we want to experiment with new Font Awesome icons,
+	  but we don't use remote icons in productions
 
 - Copy /src/popup/popup.html to /dist/popup.html
 
+- Copy /src/bootstrap.min.css to /dist/bootstrap.min.css
+  * Why not copy from /node_modules/bootstrap/dist/css? Because the process is still
+    very manual, and if we've tested from /src, better to include from /src, in case
+	we forgot to update these files in /src when we (thought we) upgraded Bootstrap
+
+- Copy /src/bootstrap.bundle.min.js to /dist/bootstrap.bundle.min.js
+  * Why not copy from /node_modules/bootstrap/dist/js? Because the process is still
+    very manual, and if we've tested from /src, better to include from /src, in case
+	we forgot to update these files in /src when we (thought we) upgraded Bootstrap
+
 - With /dist/popup.html
-  * Replace all local <script> tags (including all "inject" tags) with just "popup.js" (no "/popup/" folder)
+  * Replace all local <script> tags (including all "inject" tags) with just "popup.js"
   * Remove Font Awesome stuff
 	- <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" rel="stylesheet">
 	- <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/js/all.min.js"></script>

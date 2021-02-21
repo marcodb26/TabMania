@@ -2,11 +2,11 @@
 <html lang="en">
   <head>
     <!-- Required meta tags (for Bootstrap) -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+	<!-- Bootstrap CSS -->
+	<link href="bootstrap.min.css" rel="stylesheet">
 	
 	<!-- https://cdnjs.com/libraries/font-awesome -->
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" rel="stylesheet">
@@ -14,7 +14,7 @@
 	<!-- Put our CSS *after* the Bootstrap CSS, to make sure we get priority for any rules overlap
 		 See: https://stackoverflow.com/questions/15670631/does-the-order-of-classes-listed-on-an-item-affect-the-css
 	-->
-	<link rel="stylesheet" href="popup.css">
+	<link href="popup.css" rel="stylesheet">
 
 	<script src="../lib/utils.js"></script>
 	<script src="../lib/chromeUtils.js"></script>
@@ -33,7 +33,7 @@
 	<script src="popup.js"></script>
 
 	<!-- We don't really need to load this here, but this is the easiest way to
-	     let the parser run and do syntax checking, otherwise chrome.executeScript()
+		 let the parser run and do syntax checking, otherwise chrome.executeScript()
 		 will just leave a "Failed to load file: "inject-getMeta.js"" error -->
 	<script src="../content/inject-getMeta.js"></script>
   </head>
@@ -42,10 +42,9 @@
 		See https://stackoverflow.com/questions/8983165/how-can-i-expand-the-popup-window-of-my-chrome-extension#:~:text=Chrome%20extension%20popups%20can%20have,and%20maximum%20width%20of%20800px.
 	-->
 	<div id="popup-tabs-div">
-
 	</div>
 	<!-- Optional JavaScript for Bootstrap -->
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
+	<script src="bootstrap.bundle.min.js"></script>
 
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/js/all.min.js"></script>
   </body>
