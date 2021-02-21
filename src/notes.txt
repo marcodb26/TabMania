@@ -440,6 +440,8 @@ DONE
 
 PUNTED TO NEXT RELEASE
 
+- Point users directly to https://github.com/marcodb26/TabMania#readme for documentation
+
 - BUG: between the scrollbar on the right and the extension border you can see a bit of background,
   you shouldn't see it
   * See for example the screenshot used to publish the extension
@@ -703,6 +705,8 @@ ENVIRONMENT
   * Repo at: https://github.com/marcodb26/TabMania.git
   * To clone
     > git clone https://github.com/marcodb26/TabMania.git
+  * To see commits history
+	- https://github.com/marcodb26/TabMania/commits
 
 - Upgraded NPM to v.7.5.4
   * To upgrade:
