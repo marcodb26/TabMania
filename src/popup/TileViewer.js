@@ -245,9 +245,14 @@ _getTabMetaTags: function() {
 			}
 			//this._log(logHead, result);
 			if(result.length == 1) {
+				if(result[0] == null) {
+					this._err(logHead + "the injected script failed to generate a return value", result);
+					return null;
+				}
 				return result[0].parsed;
 			}
 			this._err(logHead + "unknown format for result = ", result);
+			return null;
 		}.bind(this),
 		function(chromeLastError) { // onRejected
 			this._err(logHead + "unknown error: " + chromeLastError.message, this._tab);
