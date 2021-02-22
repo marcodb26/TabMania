@@ -294,6 +294,13 @@ ENVIRONMENT
 	  * Add line after "description":
 		> "private": true,
 
+- Changed shell for NPM
+  * Original: "C:\\WINDOWS\\system32\\cmd.exe"
+  * New: "C:\\Program Files\\Git\\git-bash.exe"
+  > npm config set shell "C:\\Program Files\\Git\\git-bash.exe"
+  > npm config set script-shell "C:\\Program Files\\Git\\git-bash.exe"
+  * Use "npm config list" to check
+
 - Installed Bootstrap
   > npm install bootstrap@5.0.0-beta1
   * Make sure to move node_modules\bootstrap\dist\css\bootstrap.min.css and
