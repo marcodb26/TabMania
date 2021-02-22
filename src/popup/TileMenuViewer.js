@@ -142,6 +142,9 @@ Classes.TileMenuViewer = Classes.MenuViewer.subclass({
 	// Track here all the menu item viewers
 	_titleMenuItem: null,
 	_pinMenuItem: null,
+	_muteMenuItem: null,
+	_highlightMenuItem: null,
+	_youtubeToggleMenuItem: null,
 	_discardMenuItem: null,
 	_closeMenuItem: null,
 	// An array of menu items associated to custom shortcuts
@@ -202,6 +205,12 @@ _initMenuItems: function() {
 								this._actionHighlightToggleCb.bind(this));
 	this.append(this._highlightMenuItem);
 
+	if(this._tab.tm.hostname == "www.youtube.com") {
+		this._youtubeToggleMenuItem = Classes.MenuItemViewer.create("Toggle YouTube",
+									this._actionYoutubeToggleCb.bind(this));
+		this.append(this._youtubeToggleMenuItem);
+	}
+
 	this._discardMenuItem = Classes.MenuItemViewer.create("Discard from memory",
 								this._actionDiscardCb.bind(this));
 	if(!settingsStore.getOptionAdvancedMenu()) {
@@ -252,6 +261,33 @@ _actionHighlightToggleCb: function(ev) {
 					this._tab.id, { highlighted: !this._tab.highlighted } ).then(
 		function() {
 			this._log(logHead + "completed");
+		}.bind(this)
+	);
+},
+
+_actionYoutubeToggleCb: function(ev) {
+	const logHead = "TileMenuViewer::_actionYoutubeToggleCb(" + this._tab.id + "): ";
+	chromeUtils.inject(this._tab.id, "content-gen/inject-youtubePlay.js").then(
+		function(result) { // onFulfilled
+			if(result == null) {
+				// Some known error has already been handled, we'll just
+				// consider the results empty.
+				return null;
+			}
+			this._log(logHead, result);
+			if(result.length == 1) {
+				if(result[0] == null) {
+					this._err(logHead + "the injected script failed to generate a return value", result);
+					return null;
+				}
+				return result[0];
+			}
+			this._err(logHead + "unknown format for result = ", result);
+			return null;
+		}.bind(this),
+		function(chromeLastError) { // onRejected
+			this._err(logHead + "unknown error: " + chromeLastError.message, this._tab);
+			return chromeLastError;
 		}.bind(this)
 	);
 },

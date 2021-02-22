@@ -1,8 +1,5 @@
 //console.error("Perf measures: ", performance.getEntries());
 
-// Encapsulate everything in an anonymous function / closure
-(function() {
-
 // Returns "null" if "attrs" can't be parsed as a key/value pair
 // of "name|property -> value"
 function parseStructured(attrs) {
@@ -74,5 +71,3 @@ let retVal = getMetaTags();
 //console.log("TabManager - getMetaTags(): ", retVal);
 
 return retVal;
-
-})();

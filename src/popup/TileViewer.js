@@ -236,7 +236,7 @@ _getTabMetaTags: function() {
 	// If you try "inject-getMeta.js" while the file is in the same folder as
 	// the popup.html, you get "Failed to load file: "inject-getMeta.js"".
 	// It only work with the path from the top folder...
-	return chromeUtils.inject(this._tab.id, "content/inject-getMeta.js").then(
+	return chromeUtils.inject(this._tab.id, "content-gen/inject-getMeta.js").then(
 		function(result) { // onFulfilled
 			if(result == null) {
 				// Some known error has already been handled, we'll just
