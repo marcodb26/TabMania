@@ -7,9 +7,22 @@ set -x
 
 # Bootstrap stuff
 
-cp node_modules/bootstrap/dist/css/bootstrap.min.css src/popup
-cp node_modules/bootstrap/dist/js/bootstrap.bundle.min.js src/popup 
+# We need to remove the sourcemap at the bottom of the files because we don't care to
+# be able to debug the internals of Bootstrap. If we don't remove the last line, the
+# browser complains: "DevTools failed to load SourceMap: Could not load content for ..."
+# We could have chosen to copy the sourcemaps too instead, but no point in polluting
+# the sources (in /dist we don't want to copy sourcemaps because they make the package
+# larger).
+#
+# See https://stackoverflow.com/questions/4881930/remove-the-last-line-from-a-file-in-bash
+# for how to edit out the last line of a file in bash. This doesn't seem to be portable,
+# but we'll worry about that if someone with a Mac needs this.
 
+# cp node_modules/bootstrap/dist/css/bootstrap.min.css src/popup
+head -n -1 node_modules/bootstrap/dist/css/bootstrap.min.css > src/popup/bootstrap.min.css
+
+# cp node_modules/bootstrap/dist/js/bootstrap.bundle.min.js src/popup 
+head -n -1 node_modules/bootstrap/dist/js/bootstrap.bundle.min.js > src/popup/bootstrap.bundle.min.js
 
 # Packaging of injection scripts
 
