@@ -1,8 +1,22 @@
 # Remove the comment to debug the script
 set -x
 
+# Setup the dev environment. This includes the follwing steps
+# - Pull in the bootstrap files
+# - Package the injection scripts as single files in src/content-gen/
+
+# Bootstrap stuff
+
+cp node_modules/bootstrap/dist/css/bootstrap.min.css src/popup
+cp node_modules/bootstrap/dist/js/bootstrap.bundle.min.js src/popup 
+
+
+# Packaging of injection scripts
+
 declare -r SRC="src/content-src"
-declare -r TGT="src/content"
+declare -r TGT="src/content-gen"
+
+mkdir -p ${TGT}
 
 declare -r PREAMBLE="// AUTO-GENERATED FILE, do not edit, use \'npm run buildinject\' to build\n"
 

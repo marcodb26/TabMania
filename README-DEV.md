@@ -25,6 +25,18 @@ path of your git-bash from git and run `npm config set script-shell "C:\\Program
 to use git-bash as the default NPM shell for the "scripts" section. Use `npm config list` to check
 how your shell is configured.
 
+When you get the source code, or when you update Bootstrap, run `npm run build-dev` to set up the
+development environment correctly.
+
+# Dev version vs. dist version
+The __Release process__ is described below for the dist version of TabMania. To make things easier
+while developing, we'd try to avoid as much as possible to have to run build scripts for the dev
+version of TabMania. Just point Chrome to `src/` and let it open the `manifest.json` there.
+Unfortunately we can't do that for everything. If you're modifying "injection scripts", the Chrome
+APIs limit injection to a single file, so the source files in `src/content-src` must be preprocessed
+before they can be used in the popup. Run `npm run build-dev` to create `src/content-gen` before
+you point Chrome to `src/` for `manifest.json`, or any time you edit a file in `src/content-src`.
+
 # Release process
 Very manual until I have some time to focus on automation
 
