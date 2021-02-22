@@ -33,7 +33,6 @@ mkdir -p ${TGT}
 
 declare -r PREAMBLE="// AUTO-GENERATED FILE, do not edit, use \'npm run buildinject\' to build\n"
 
-declare FILE="inject-youtubePlay.js"
 
 runUglifyJs() {
 # uglifyjs --warn --toplevel --beautify preamble="'${PREAMBLE}'" --source-map --wrap "testName" --output "${TGT}/${FILE}" -- "${SRC}/utilsDev.js" "${SRC}/${FILE}"
@@ -47,7 +46,7 @@ uglifyjs --warn --toplevel --parse bare_returns --beautify preamble="'${PREAMBLE
 			--output "${TGT}/${MAINFILE}" -- "${SRC}/utilsDev.js" "${SRC}/${MAINFILE}"
 }
 
-declare MAINFILE="inject-youtubePlay.js"
+declare MAINFILE="inject-togglePlay.js"
 ( runUglifyJs )
 
 declare MAINFILE="inject-getMeta.js"

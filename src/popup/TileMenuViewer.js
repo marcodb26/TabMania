@@ -144,7 +144,7 @@ Classes.TileMenuViewer = Classes.MenuViewer.subclass({
 	_pinMenuItem: null,
 	_muteMenuItem: null,
 	_highlightMenuItem: null,
-	_youtubeToggleMenuItem: null,
+	_playMenuItem: null,
 	_discardMenuItem: null,
 	_closeMenuItem: null,
 	// An array of menu items associated to custom shortcuts
@@ -205,11 +205,9 @@ _initMenuItems: function() {
 								this._actionHighlightToggleCb.bind(this));
 	this.append(this._highlightMenuItem);
 
-	if(this._tab.tm.hostname == "www.youtube.com") {
-		this._youtubeToggleMenuItem = Classes.MenuItemViewer.create("Toggle YouTube",
-									this._actionYoutubeToggleCb.bind(this));
-		this.append(this._youtubeToggleMenuItem);
-	}
+	this._playMenuItem = Classes.MenuItemViewer.create("Toggle play",
+									this._actionPlayToggleCb.bind(this));
+	this.append(this._playMenuItem);
 
 	this._discardMenuItem = Classes.MenuItemViewer.create("Discard from memory",
 								this._actionDiscardCb.bind(this));
@@ -265,9 +263,9 @@ _actionHighlightToggleCb: function(ev) {
 	);
 },
 
-_actionYoutubeToggleCb: function(ev) {
-	const logHead = "TileMenuViewer::_actionYoutubeToggleCb(" + this._tab.id + "): ";
-	chromeUtils.inject(this._tab.id, "content-gen/inject-youtubePlay.js").then(
+_actionPlayToggleCb: function(ev) {
+	const logHead = "TileMenuViewer::_actionPlayToggleCb(" + this._tab.id + "): ";
+	chromeUtils.inject(this._tab.id, "content-gen/inject-togglePlay.js").then(
 		function(result) { // onFulfilled
 			if(result == null) {
 				// Some known error has already been handled, we'll just
