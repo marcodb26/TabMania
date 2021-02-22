@@ -353,7 +353,7 @@ PREPARING DIST
 
 - Copy /src/images to /dist/images
 
-- Create /dist/content
+- Create /dist/content-gen
   * Or not, wait until we actually need it...
 
 - Run "npm run uglifyBg" to minify dist/background.js
@@ -374,8 +374,8 @@ PREPARING DIST
 
 - Run "npm run css" to minify dist/popup.css
 
-- Run "npm run uglifyInject" to minify dist/content/inject-getMeta.js
-  * Or not, if you have not created /dist/content (see above)
+- Run "npm run uglifyInject" to minify dist/content-gen/inject-getMeta.js
+  * Or not, if you have not created /dist/content-gen (see above)
 
 - Bundle /dist in a zip file of form "TabMania vX.Y.zip", where X.Y is the same version as the version
   in the manifest.json file
