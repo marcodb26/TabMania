@@ -19,6 +19,12 @@ a custom shortcut. We combine these three identifiers into a string of the form
 If you enable the _Display extended tab ID badge_ option, the extended tab ID badge will be visible in
 every tile. Note that you can search by extended tab ID even if this option is disabled.
 
+# Environment
+TabMania's package.json `scripts` section assumes bash as the shell. If you're on Windows, take the
+path of your git-bash from git and run `npm config set script-shell "C:\\Program Files\\Git\\git-bash.exe"`
+to use git-bash as the default NPM shell for the "scripts" section. Use `npm config list` to check
+how your shell is configured.
+
 # Release process
 Very manual until I have some time to focus on automation
 
