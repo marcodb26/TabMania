@@ -1,11 +1,10 @@
 {
   "name": "tabmania",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A simple tab manager enabling some essential keyboard shortcuts",
   "private": true,
   "scripts": {
-	"build-dev": "build/build-dev.sh",
-
+    "build-dev": "build/build-dev.sh",
     "test": "echo \"Error: no test specified\" && exit 1",
     "uglifyBg": "uglifyjs --warn --toplevel --output dist/background.js -- src/lib/prod.js src/lib/utils.js src/lib/chromeUtils.js src/lib/SettingsStore.js src/lib/ScheduledJob.js src/tabs.js src/messaging.js src/background.js",
     "uglifyPopup": "uglifyjs --warn --toplevel --output dist/popup.js -- src/lib/prod.js src/lib/utils.js src/lib/chromeUtils.js src/lib/SettingsStore.js src/lib/ScheduledJob.js src/popup/LocalStore.js src/popup/PopupMsgServer.js src/popup/icons.js src/popup/TabViewer.js src/popup/GroupsBuilder.js src/popup/SettingsTabViewer.js src/popup/PopupViewer.js src/popup/TabsTabViewer.js src/popup/TileViewer.js src/popup/TileMenuViewer.js src/popup/popup.js",
