@@ -273,6 +273,8 @@ DONE 1.1
 
 - Learned chrome.extension.getBackgroundPage can't be used in the injected content scripts
 
+- Updated Bootstrap to v.5.0.0-beta2
+
 
 PUNTED TO NEXT RELEASE
 
