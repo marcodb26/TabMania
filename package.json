@@ -14,7 +14,7 @@
 
 	"//": "Next are all the hooks for lifecycle operations, see https://docs.npmjs.com/cli/v7/using-npm/scripts ",
 	"//": "Unfortunately there's no hok for 'npm update': https://github.com/npm/npm/issues/12237 ",
-	"postinstall": "build/build-dev.sh",
+	"postinstall": "build/build-dev.sh"
   },
   "repository": {
     "type": "git",
