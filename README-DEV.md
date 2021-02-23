@@ -28,6 +28,11 @@ how your shell is configured.
 When you get the source code, or when you update Bootstrap, run `npm run build-dev` to set up the
 development environment correctly.
 
+## Cloning the repository
+First `git clone https://github.com/marcodb26/TabMania.git`
+Then run `npm install` (with no other arguments) to set up `node_modules` based on the dependencies
+defined in `package.json`, and optionally `npm list` to see what was installed.
+
 # Dev version vs. dist version
 The __Release process__ is described below for the dist version of TabMania. To make things easier
 while developing, we'd try to avoid as much as possible to have to run build scripts for the dev
