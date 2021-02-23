@@ -1,5 +1,13 @@
 - Disable Base._assert() for production code
 
+- Suspend tiles refresh when displaying menu items
+  * Especially at brwser startup time, there are lots of refreshes, and they cause
+    the menu dropdown and the "x" clse button to disappear
+  * If you're unlucky, you press the "x" button right after it's gone and you end
+    up taking the tab to the fore instead
+  * Not sure this is a good idea, what if one stays with the mouse on a tile forever?
+    No refreshes ever again?
+
 - Point users directly to https://github.com/marcodb26/TabMania#readme for documentation
 
 - BUG: between the scrollbar on the right and the extension border you can see a bit of background,

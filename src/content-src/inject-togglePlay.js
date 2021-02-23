@@ -180,6 +180,11 @@ const sites = {
 	},
 
 	"zoom.us": {
+		// Note that venturebeat videos (e.g. https://venturebeat.com/2021/01/15/database-trends-the-rise-of-the-time-series-database/
+		// have the same "vjs-play-control", but not aria, they use "title" inside the button
+		//
+		// Also check https://cloudinary.com/blog/html5_video_player
+		//
 		toggleFn: buttonWithAria,
 		buttonClass: "vjs-play-control",
 		playingAria: "Pause",
