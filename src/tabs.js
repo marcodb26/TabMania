@@ -714,6 +714,7 @@ _onCommandCb: function(cmd) {
 		case window.ExtCommands.SHORTCUT02:
 		case window.ExtCommands.SHORTCUT03:
 		case window.ExtCommands.SHORTCUT04:
+		case window.ExtCommands.SHORTCUT05:
 			this._manageCustomShortcut(cmd);
 			break;
 		default:

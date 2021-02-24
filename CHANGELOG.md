@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Fixed
 - Discard settings events if they arrive before the TabsTabViewer chrome query has completed (while
   _normTabs is still uninitialized)
+- Shortcut05 (SC5) can't be invoked
 
 # [1.0.0] - 2021-02-20
 ## Added
