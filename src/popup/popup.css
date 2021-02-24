@@ -2,15 +2,20 @@
    See: https://stackoverflow.com/questions/15670631/does-the-order-of-classes-listed-on-an-item-affect-the-css
 */
 
-.tm-bstabs-body {
-	min-width: 310px;
-	height: 500px;
-	/* Make scrollbars show on this div, not on the outer top level (requires setting "height" (above) */
-	/* I would like to have the "overflow: auto;" here, but it messes up with the inner scrollbar
-	   when the search is in place.
-	   TBD TBD to be fixed.
-	*/
-	/*overflow: auto;*/
+.tm-fit-bottom {
+    position: absolute;
+	/* "top: 0" will get overridden by .tm-fit-after-bstabs or .tm-fit-after-search when needed */
+	top: 0;
+    bottom: 0;
+    width: 100%;
+}
+
+.tm-fit-after-bstabs {
+	top: 2.7rem;
+}
+
+.tm-fit-after-search {
+	top: 2.9rem;
 }
 
 /* I don't like the unselected tabs to have blue text. You could obtain the
@@ -22,7 +27,7 @@
 	color: #495057;
 }
 
-.tm-scrollable-tab-body {
+.tm-scrollable-bstab-body {
 	/* Make scrollbars show on this div, not on the outer top level */
 	height: 100%;
 	overflow: auto;

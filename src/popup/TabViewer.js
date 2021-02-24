@@ -265,7 +265,7 @@ _createTab: function(tabLabelHtml) {
 	// The style "height: 100%" is needed to let the inner vertical scrollbars activate (otherwise a
 	// scrollbar on an outer <div> will activate)
 	const bodyHtml = `
-		<div class="tab-pane fade" id="${bodyId}" style="height: 100%;" role="tabpanel" aria-labelledby="${headingId}">
+		<div class="tab-pane fade tm-scrollable-bstab-body" id="${bodyId}" role="tabpanel" aria-labelledby="${headingId}">
 		</div>
 	`;
 
@@ -422,21 +422,10 @@ _SearchableTabViewer_initBodyElem: function() {
 	//
 	// Note that it would be nice to insert the search icon with a "::before" pseudo-element,
 	// but apparently that can't be done for <input>. See https://stackoverflow.com/questions/4574912/css-content-generation-before-or-after-input-elements
-//	const bodyHtml = `
-//		<div class="tm-stacked-below tm-hide">
-//			<input type="search" id="${searchBoxId}" incremental class="form-control tm-searchbox" placeholder="Type to start searching">
-//			<div class="tm-overlay tm-vertical-center tm-searchbox-icon"><i class="fas fa-search"></i></div>
-//			<div class="tm-overlay tm-vertical-center tm-searchbox-count">
-//				<span id="${searchBoxCountId}" class="tm-shaded badge tm-number-badge bg-secondary"></span>
-//			</div>
-//		</div>
-//
-//		<div class="tm-scrollable-tab-body" id="${bodyId}">
-//		</div>
-//	`;
 
+	// Note that the element with bodyId takes "overflow: auto" to avoid the parent gets it instead
 	const bodyHtml = `
-		<div class="tm-stacked-below tm-hide">
+		<div class="m-1 tm-stacked-below tm-hide">
 			<input type="search" id="${searchBoxId}" incremental class="form-control tm-searchbox" placeholder="Type to start searching">
 			<div class="tm-overlay tm-vertical-center tm-searchbox-icon">${icons.searchBox}</div>
 			<div class="tm-overlay tm-vertical-center tm-searchbox-count">
@@ -444,7 +433,7 @@ _SearchableTabViewer_initBodyElem: function() {
 			</div>
 		</div>
 
-		<div class="tm-scrollable-tab-body" id="${bodyId}">
+		<div class="tm-fit-bottom" id="${bodyId}" style="overflow: auto;">
 		</div>
 	`;
 
@@ -499,6 +488,7 @@ _bstabDeactivatedCb: function(ev) {
 // _activateSearchBox().
 _SearchableTabViewer_searchBoxInactiveInner: function() {
 	this._searchBoxElem.parentElement.classList.add("tm-hide");
+	this._bodyElem.classList.remove("tm-fit-after-search");
 	this._searchActive = false;
 },
 
@@ -513,7 +503,11 @@ _activateSearchBox: function(active) {
 	active = optionalWithDefault(active, true);
 
 	if(active) {
+		// When the searchbox appears, the "position:absolute;" (class .tm-fit-bottom)
+		// body needs to be shifted down to make sure it doesn't end up under the
+		// searchbox, that's what class .tm-fit-after-search is for.
 		this._searchBoxElem.parentElement.classList.remove("tm-hide");
+		this._bodyElem.classList.add("tm-fit-after-search");
 		this._searchActive = true;
 		this._searchBoxElem.focus();
 	} else {

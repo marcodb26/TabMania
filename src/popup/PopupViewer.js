@@ -237,7 +237,7 @@ _renderTabsContainer: function() {
 	`;
 
 	const bodyHtml = `
-	<div class="tab-content tm-bstabs-body" id="${bodyId}">
+	<div class="tab-content tm-fit-bottom tm-fit-after-bstabs" id="${bodyId}">
 	</div>
 	`;
 

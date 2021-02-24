@@ -1193,7 +1193,7 @@ _loadUrlThroughBackground: function(url) {
 _setBody: function() {
 	let bodyId = this._id + "-settingsBody";
 	let html = `
-		<div id="${bodyId}" class="tm-scrollable-tab-body px-2 py-3">
+		<div id="${bodyId}" class="px-2 py-3">
 		</div>
 	`;
 
@@ -1249,6 +1249,39 @@ _renderExtensionShortcutsLink: function() {
 		}.bind(this), false);
 
 	this._shortcutsContainer.append(viewer);
+},
+
+_undockClickedCb: function(targetUrl) {
+//	const features = "width=400,height=542,menubar=off,toolbar=off,location=off,status=off,resizable=off,noopener";
+//	const features = "width=400,height=542,resizable=off,noopener";
+	const features = "width=400,height=542,resizable=off";
+	window.open(targetUrl, "tabManiaPopup", features);
+	// Close the current popup
+	window.close();
+},
+
+_renderUndockButton: function() {
+	const buttonId = this._id + "-undockBtn";
+
+	const targetUrl = chrome.runtime.getURL(isProd() ? "popup.html" : "popup/popup.html");
+
+	const bodyHtml = `
+	<div class="d-grid gap-2 mx-2 mt-3">
+		<a id=${buttonId} class="btn btn-primary" role="button" href="${targetUrl}" target="_blank">
+			Undock popup
+		</a>
+	</div>
+	`;
+
+	let viewer = Classes.HtmlViewer.create(bodyHtml);
+	let buttonElem = viewer.getElementById(buttonId);
+	buttonElem.addEventListener("click",
+		function(ev) {
+			this._undockClickedCb(targetUrl);
+			ev.preventDefault();
+		}.bind(this), false);
+
+	this._generalSettingsContainer.append(viewer);
 },
 
 _renderIncognitoInfo: function() {
@@ -1328,6 +1361,7 @@ _renderSettings: function() {
 	this._generalSettingsContainer.append(advancedMenu);
 
 	this._renderIncognitoInfo();
+	this._renderUndockButton();
 
 	// For custom groups, we need an outer container (collapsible), which
 	// hosts an inner container with all the groups, followed by a button
