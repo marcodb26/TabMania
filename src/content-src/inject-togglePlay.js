@@ -179,6 +179,17 @@ const sites = {
 		// progress bar is visible in the video
 	},
 
+//	"zdnet.com": {
+//		buttonClass: "cvui-play-btn" (when paused), "cvui-pause-btn" (when playing)
+//      button attribute: "data-action"  "play" (when paused), "pause" (when playing)
+//
+//      <div class="cvui-timecontrol" data-control-init="1">
+//         <span class="cvui-cur" data-role="current">00:11</span>
+//         <span class="cvui-dur" data-role="duration">&nbsp;/&nbsp;12:17</span>
+//      </div>
+//	},
+
+
 	"zoom.us": {
 		// Note that venturebeat videos (e.g. https://venturebeat.com/2021/01/15/database-trends-the-rise-of-the-time-series-database/
 		// have the same "vjs-play-control", but not aria, they use "title" inside the button

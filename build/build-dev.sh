@@ -42,7 +42,7 @@ runUglifyJs() {
 # back with the script injector popup. By default uglifyjs fails if you put a "return"
 # statement like that, you need to add "--parse bare_returns" for uglifyjs to let
 # this happen. See also: https://github.com/mishoo/UglifyJS/issues/288
-uglifyjs --warn --toplevel --parse bare_returns --beautify preamble="'${PREAMBLE}'" --source-map --wrap "base" \
+uglifyjs --warn --toplevel --parse bare_returns --beautify preamble="'${PREAMBLE}'" --source-map --wrap "tmExp" \
 			--output "${TGT}/${MAINFILE}" -- "${SRC}/utilsDev.js" "${SRC}/${MAINFILE}"
 }
 

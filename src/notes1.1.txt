@@ -1,3 +1,6 @@
+- Shortcuts1-5 with option to select incognito tabs
+  * If not selected, ignore incognito tabs
+
 - Disable Base._assert() for production code
 
 - Suspend tiles refresh when displaying menu items
