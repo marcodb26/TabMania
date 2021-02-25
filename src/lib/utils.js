@@ -87,20 +87,23 @@ roDef: function(obj, propName, propValue) {
 // See https://developer.mozilla.org/en-US/docs/Web/API/Console/log and
 // https://developer.mozilla.org/en-US/docs/Web/API/console#outputting_text_to_the_console 
 // "setPrefix = false" allow you to keep the "msg" argument available to be used by callers
-// of the generated log function
-_genLogFn: function(consoleFn, setPrefix) {
+// of the generated log function.
+// "consoleObj" is a special case to handle this._log.bg(), see the definition of _log.bg()
+// in debug() for more details. Defaults to the standard "console" object.
+_genLogFn: function(consoleFn, setPrefix, consoleObj) {
 	setPrefix = optionalWithDefault(setPrefix, false)
+	consoleObj = optionalWithDefault(consoleObj, console);
 	if(!setPrefix) {
 		// Leave "msg" alone
-		return Function.prototype.bind.call(consoleFn, console);
+		return Function.prototype.bind.call(consoleFn, consoleObj);
 	}
 
 	// https://stackoverflow.com/questions/9559725/extending-console-log-without-affecting-log-line
 // With highlight:
 //	const context = "%c[" + this._id + "]";
-//	return Function.prototype.bind.call(consoleFn, console, context, "font-weight:bold;");
+//	return Function.prototype.bind.call(consoleFn, consoleObj, context, "font-weight:bold;");
 
-	return Function.prototype.bind.call(consoleFn, console, "[" + this._id + "]");
+	return Function.prototype.bind.call(consoleFn, consoleObj, "[" + this._id + "]");
 },
 
 //_activeAssert: function(conditionToBeTrue, errMsg) {
@@ -148,10 +151,12 @@ createAs: function(id, ...restArgs) {
 	// this.debug() can be used to initialize everything except retVal._err()
 	// We're calling _genLogFn() in the context of retVal, since we need to create
 	// the log prefix using the _id of retVal
-//	this.roDef(retVal, "_log", this._genLogFn.call(retVal, console.log));
-//	this.roDef(retVal, "_log", emptyFn);
 	this.debug.call(retVal, false);
 	this.roDef(retVal, "_err", this._genLogFn.call(retVal, console.error, true));
+	let bgConsoleObj = chrome.extension.getBackgroundPage().console;
+	// See debug() for details about _log.bg() and _err.bg().
+	this.roDef(retVal._err, "bg", this._genLogFn.call(retVal, bgConsoleObj.error, true, bgConsoleObj));
+
 	// We want the option to replace _assert() with an empty function in production.
 	// Don't use "setPrefix" (set it to "false" or omit it) for _genLogFn() of _assert(),
 	// otherwise the prefix takes the place of the boolean assertion(!)
@@ -176,11 +181,18 @@ debug: function(flag) {
 		// Maybe we should use console.debug and console.info to differentiate,
 		// something to consider later...
 	//	this.roDef(this._log, "info", this._genLogFn(console.info, true));
+
+		// _log.bg() sends the messages to the console of the background page.
+		// It should only be called from inside the popup (getBackgroundPage()
+		// doesn't seem to work from injected scripts).
+		let bgConsoleObj = chrome.extension.getBackgroundPage().console;
+		this.roDef(this._log, "bg", this._genLogFn(bgConsoleObj.log, true, bgConsoleObj));
 	} else {
 		this.roDef(this, "_log", emptyFn);
 		this.roDef(this._log, "raw", emptyFn);
 		this.roDef(this._log, "trace", emptyFn);
 	//	this.roDef(this._log, "info", emptyFn);
+		this.roDef(this._log, "bg", emptyFn);
 	}
 },
 
