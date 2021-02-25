@@ -1,3 +1,15 @@
+- BUG: now that we have a way to persist the popup beyond the life of a tab/window,
+  we're starting to see race conditions we did not see before:
+  * [2] ChomeUtils::inject(695): unknown error: No tab with id: 695.
+  * It looks like when we close a tab, we might still have it for a while and try to
+    inject scripts into it
+	- As a minimum we should suppress this error, but better trying to figure out
+	  why we have this race, I thought we injected only on full refresh?
+	  * Probably we inject also on single-tab update, but why would we get an
+	    update for a tab that's been closed?
+	  * And why was this not happening with docked popup when closing a tab from
+	    within the popup?
+
 - Make sure to filter out of the tab list the tab about the undocked popup(!)
   * Also filter it out of the back/fwd history
   * Should we leave in the count of open tabs? Probably yes (besides it's probably
