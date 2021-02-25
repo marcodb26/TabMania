@@ -10,11 +10,13 @@ Classes.MenuViewer = Classes.Viewer.subclass({
 	_options: null,
 
 // "options" includes:
-// - "label", if not specified (default), the dropdown will just show the caret
+// - "label", if not specified (default), the dropdown will just show the caret. The label
+//   can contain HTML, not only text
 // - "btnColorClass", the CSS class to use for the button coloring, default "btn-secondary"
 _init: function(options) {
 	options = optionalWithDefault(options, {});
 	options.label = optionalWithDefault(options.label, "");
+	options.showToggle = optionalWithDefault(options.showToggle, true);
 	options.btnColorClass = optionalWithDefault(options.btnColorClass, "btn-secondary");
 
 	this._options = options;
@@ -28,9 +30,12 @@ _MenuViewer_render: function() {
 	const menuId = this._id + "-menu";
 	const menuItemsContainerId = this._id + "-menuitems";
 
-	let dropdownExtraClasses = "";
+	let dropdownExtraClasses = []
 	if(this._options.label == "") {
-		dropdownExtraClasses = "tm-dropdown-toggle";
+		dropdownExtraClasses.push("tm-dropdown-toggle");
+	}
+	if(this._options.showToggle) {
+		dropdownExtraClasses.push("dropdown-toggle");
 	}
 
 	// See https://stackoverflow.com/questions/43233421/changing-dropdown-icon-on-bootstrap-4
@@ -42,7 +47,7 @@ _MenuViewer_render: function() {
 	// customize the icon. See the CSS definition of "tm-dropdown-toggle::after" for more details.
 	let menuButtonHtml = `
 	<div class="dropdown">
-		<a class="btn ${this._options.btnColorClass} dropdown-toggle ${dropdownExtraClasses}" role="button"
+		<a class="btn ${this._options.btnColorClass} ${dropdownExtraClasses.join(" ")}" role="button"
 				id="${menuId}" data-bs-toggle="dropdown" aria-expanded="false">
 			${this._options.label}
 		</a>

@@ -218,6 +218,9 @@ Classes.BootstrapTabsViewer = Classes.Viewer.subclass({
 	// This is the same _bodyElem of class Viewer
 	_bodyElem: null,
 
+	_menuElem: null,
+	_menuViewer: null,
+
 _init: function() {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.Viewer._init.apply(this, arguments);
@@ -235,10 +238,22 @@ _renderTabsContainer: function() {
 
 	const headingId = this._id + "-heading";
 	const menuId = this._id + "-menu";
-	const dockToggleBtnId = this._id + "-undock";
 	const bodyId = this._id + "-body";
 
 	const dockToggleBtnTxt = popupDocker.isPopupDocked() ? "Undock" : "Dock";
+
+//	const headingHtml = `
+//	<div class="d-flex">
+//		<div class="flex-grow-1">
+//			<!-- https://getbootstrap.com/docs/5.0/components/navs-tabs/ -->
+//			<ul class="nav nav-tabs nav-fill" id="${headingId}" role="tablist">
+//			</ul>
+//		</div>
+//		<div id="${menuId}">
+//			<a href="#" id="${dockToggleBtnId}">${dockToggleBtnTxt}</a>
+//		</div>
+//	</div>
+//	`;
 
 	const headingHtml = `
 	<div class="d-flex">
@@ -247,8 +262,7 @@ _renderTabsContainer: function() {
 			<ul class="nav nav-tabs nav-fill" id="${headingId}" role="tablist">
 			</ul>
 		</div>
-		<div id="${menuId}">
-			<a href="#" id="${dockToggleBtnId}">${dockToggleBtnTxt}</a>
+		<div id="${menuId}" style="cursor: default">
 		</div>
 	</div>
 	`;
@@ -260,13 +274,13 @@ _renderTabsContainer: function() {
 
 	this._rootElem = this._elementGen(`<div id=${this._id}>` + headingHtml + bodyHtml + "</div>");
 
-//	this._log(logHead, this._rootElem);
 	this._headingElem = this.getElementById(headingId);
 	this._menuElem = this.getElementById(menuId);
 	this._bodyElem = this.getElementById(bodyId);
 
-	let dockToggleBtnElem = this.getElementById(dockToggleBtnId);
-	dockToggleBtnElem.addEventListener("click", this._dockToggleCb.bind(this));
+	this._menuElem = this.getElementById(menuId);
+	this._menuViewer = Classes.PopupMenuViewer.create();
+	this._menuViewer.attachToElement(this._menuElem);
 },
 
 // Override Viewer.append()
