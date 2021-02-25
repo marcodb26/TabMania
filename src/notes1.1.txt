@@ -7,6 +7,10 @@
   * Possibly, get rid of the "must be 400px" business, and make it 400px when docked
     by other means
 
+- Make size of bstabs variable to account for ability of undocked popup to have its
+  width expanded
+  * Also center the "Settings" bstab when that happens
+
 - Shortcuts1-5 with option to select incognito tabs
   * If not selected, ignore incognito tabs
 
@@ -289,6 +293,10 @@ DONE 1.1
 
 - BUG: Shortcut05 can't be invoked
 
+- Track changes to localStore.isPopupDocked() (use event listener) in all opened
+  popup windows to close automatically when the docked state changes
+  * We should not have more than one undocked popup, but we could have more than
+    one docked popup
 
 PUNTED TO NEXT RELEASE
 

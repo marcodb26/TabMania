@@ -9,14 +9,31 @@ _init: function() {
 
 	this.debug();
 
-// There's really no reason to force the window to stay slim and allow it to grow
-// only vertically. "Settings" are not going to look great, but so be it...
+	localStore.addEventListener(Classes.EventManager.Events.UPDATED, this._updatedCb.bind(this));
+},
 
-//	this._setWindowSize();
-//	window.addEventListener("resize", this._setWindowSize.bind(this));
+_updatedCb: function(ev) {
+	const logHead = "PopupDocker::_updatedCb(" + ev.detail.key + "): ";
 
-// Dumb, this is also not needed, you can set these when calling chrome.windows.create()
-//	this._initWindowSize();
+	// Anything could have changed in localStore, but we only care about changes to the
+	// localStore.isPopupDocked() state, let's poll it
+	if(localStore.isPopupDocked() && !this.isPopupDocked()) {
+		this._log(logHead + "the popup is now configured docked, need to close myself");
+		// Send also to background, since we're about to close this popup
+		this._log.bg(logHead + "the popup is now configured docked, need to close myself");
+		window.close();
+		return;
+	}
+
+	if(!localStore.isPopupDocked() && this.isPopupDocked()) {
+		this._log(logHead + "the popup is now configured undocked, need to close myself");
+		// Send also to background, since we're about to close this popup
+		this._log.bg(logHead + "the popup is now configured undocked, need to close myself");
+		window.close();
+		return;
+	}
+
+	this._log(logHead + "docking state unchanged");
 },
 
 isPopupDocked: function() {
@@ -25,62 +42,6 @@ isPopupDocked: function() {
 		return true;
 	}
 	return false;
-},
-
-_initWindowSize() {
-	const logHead = "PopupDocker::_setWindowSize(): ";
-	if(this.isPopupDocked()) {
-		// We need to take this action only for the undocked popup.
-		return;
-	}
-
-	window.resizeTo(this._undockedInitWidth, this._undockedInitHeight);
-},
-
-// We must wait for the "load" event for this function to be safe (but we've decided we're
-// not going to use this function anymore, so we're ok without the "load" listener).
-//
-// "ev": let the "resize" listener leave alone height changes. Height must be
-// forced only for the first call initializing the popup. In that case, the
-// caller doesn't pass an "ev".
-_setWindowSize: function(ev) {
-	const logHead = "PopupDocker::_setWindowSize(): ";
-
-	let forceHeight = ev == null ? true : false;
-
-	if(this.isPopupDocked()) {
-		// We need to take this action only for the undocked popup.
-		return;
-	}
-
-	this._log(logHead + "the window dimensions are: " + window.innerWidth + "x" + window.innerHeight);
-	this._log(logHead + "the body dimensions are: " + document.body.clientWidth + "x" + document.body.clientHeight);
-
-	// We want the width of the window to match the width of the <body> without scrollbars,
-	// so we just resizeBy() the delta between the two.
-	// Note that "document.body" might still not exist if this function is called too early.
-	// We must wait for the "load" event for this function to be safe (but we've decided we're
-	// not going to use this function anymore, so we're ok without the "load" listener).
-	let widthDelta = document.body.clientWidth - window.innerWidth;
-
-	// We want to allow users to change the height of the window freely, but this function
-	// plays double duty as an event handler and as an initialization function, and during
-	// initialization we need to set a consistent height.
-	let heightDelta = 0;
-	if(forceHeight) {
-		heightDelta = 542 - window.innerHeight;
-	}
-
-	// Call resizeBy() only if there's a real change. Calling resizeBy() inside a "resize" event
-	// handler smells of trouble, given the risk of infinite loops. resizeBy() should be "safe"
-	// and avoid triggering a "resize" event if the size has not changed, but you never know, let's
-	// make this redundant check here.
-	if(widthDelta != 0 || heightDelta != 0) {
-		this._log(logHead + "applying changes: " + widthDelta + ", " + heightDelta);
-		window.resizeBy(widthDelta, heightDelta);
-	} else {
-		console.log(logHead + "no changes");
-	}
 },
 
 undock: function() {

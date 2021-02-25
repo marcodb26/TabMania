@@ -188,3 +188,9 @@ For each custom shortcut:
   in the searchbox
 
 __Suggested keyboard shortcuts__: `CTRL+SHIFT+1`, ..., `CTRL+SHIFT+5`
+
+## Undocking popup
+
+You can undock the popup to change its size (the docked popup has a fixed size), or to have your
+tab list always in view. When you undock, all the open docked popups will close. The docking
+state is stored locally on one device, but it's not synced among multiple devices.
