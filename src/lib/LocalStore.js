@@ -36,7 +36,19 @@ Classes.LocalStore = Classes.AsyncBase.subclass({
 	// - "docked": whether or not the popup is docked (default "true", docked)
 	_bootstrapTabs: null,
 
-// No need to override _init(), we just need to override _asyncInit()
+	_eventManager: null,
+
+// We need to override _init() to support listeners' registration as soon as
+// the object is created, even if the full initialization will need to be async
+_init: function(storageKeyPrefix) {
+	this.debug();
+
+	this._eventManager = Classes.EventManager.create();
+	this._eventManager.attachRegistrationFunctions(this);
+
+	// Overriding the parent class' _init(), but calling that original function first
+	Classes.AsyncBase._init.call(this);
+},
 
 _asyncInit: function() {
 	// Overriding the parent class' _asyncInit(), but calling that original function first.
@@ -47,15 +59,24 @@ _asyncInit: function() {
 
 	this.allTabsTabExpandedGroups = Classes.PersistentSet.createAs("allTabsTab_expanded");
 	promiseArray.push(this.allTabsTabExpandedGroups.getInitPromise());
+	// We currently don't want to have uniformity in expanded groups across all open
+	// popups, so no need to listen to these events
+//	this.allTabsTabExpandedGroups.addEventListener(Classes.EventManager.Events.UPDATED, this._onUpdatedCb.bind(this));
 
 	this._bootstrapTabs = Classes.PersistentDict.createAs("bootstrapTabs");
 	promiseArray.push(this._bootstrapTabs.getInitPromise());
+	this._bootstrapTabs.addEventListener(Classes.EventManager.Events.UPDATED, this._onUpdatedCb.bind(this));
 
 	return Promise.all(promiseArray).then(
 		function() {
 			perfProf.mark("localStoreLoaded");
 		}
 	);
+},
+
+_onUpdatedCb: function(ev) {
+	let key = ev.detail.target.getId();
+	this._eventManager.notifyListeners(Classes.EventManager.Events.UPDATED, { key: key });
 },
 
 getActiveBsTab: function() {
