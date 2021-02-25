@@ -1,3 +1,12 @@
+- Make sure to filter out of the tab list the tab about the undocked popup(!)
+  * Also filter it out of the back/fwd history
+  * Should we leave in the count of open tabs? Probably yes (besides it's probably
+    too complicated to filter there)
+
+- Fix double scroll bars when undocked popup is too small (horizontally or vertically)
+  * Possibly, get rid of the "must be 400px" business, and make it 400px when docked
+    by other means
+
 - Shortcuts1-5 with option to select incognito tabs
   * If not selected, ignore incognito tabs
 

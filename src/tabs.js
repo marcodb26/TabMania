@@ -683,24 +683,23 @@ _manageCustomShortcut: function(shortcut) {
 	}
 	
 	// If we get here, we need to deal with a search
-	// TBD TBD TBD
 	this._log(logHead + "tabId = " + tabId + ", search case: ", scInfo);
 	this._runCustomShortcutSearch(scInfo);
 },
 
-_testUndocking: function() {
-	const logHead = "TabsManager::_testUndocking(): ";
-	const url = chrome.runtime.getURL(isProd() ? "popup.html?undocked" : "popup/popup.html?undocked");
-	chromeUtils.wrap(chrome.windows.create, logHead, {
-			focused: true,
-			type: "popup",
-			url: url,
-	}).then(
-		function() {
-			this._log(logHead + "created");
-		}.bind(this)
-	);
-},
+//_testUndocking: function() {
+//	const logHead = "TabsManager::_testUndocking(): ";
+//	const url = chrome.runtime.getURL(isProd() ? "popup.html?undocked" : "popup/popup.html?undocked");
+//	chromeUtils.wrap(chrome.windows.create, logHead, {
+//			focused: true,
+//			type: "popup",
+//			url: url,
+//	}).then(
+//		function() {
+//			this._log(logHead + "created");
+//		}.bind(this)
+//	);
+//},
 
 _onCommandCb: function(cmd) {
 	const logHead = "TabsManager::_onCommandCb(" + cmd + "): ";
@@ -728,11 +727,12 @@ _onCommandCb: function(cmd) {
 		case window.ExtCommands.SHORTCUT02:
 		case window.ExtCommands.SHORTCUT03:
 		case window.ExtCommands.SHORTCUT04:
+		case window.ExtCommands.SHORTCUT05:
 			this._manageCustomShortcut(cmd);
 			break;
-		case window.ExtCommands.SHORTCUT05:
-			this._testUndocking();
-			break;
+//		case window.ExtCommands.SHORTCUT05:
+//			this._testUndocking();
+//			break;
 		default:
 			this._err(logHead + "unknown command");
 			break;

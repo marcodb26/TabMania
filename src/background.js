@@ -54,10 +54,12 @@ function openUrlCb(request, sender, sendResponse) {
 }
 
 function init() {
-	// Waiting for the async initialization of the settingsStore before starting
+	// Waiting for the async initialization of the localStore/settingsStore before starting
 	// the background tasks
-	settingsStore.getInitPromise().then(
+	Promise.all([ settingsStore.getInitPromise(), localStore.getInitPromise() ]).then(
 		function() {
+			Classes.Base.roDef(window, "popupDockerBg", Classes.PopupDockerBg.create());
+
 			inBrowserMsgServer = Classes.InBrowserMsgServer.createAs("inBrowserMsgServer");
 			inBrowserMsgServer.start();
 			inBrowserMsgServer.debug();

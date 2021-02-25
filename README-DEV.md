@@ -4,6 +4,8 @@
 
 * Call `tmStorage()` to get a full view of all chrome.storage variables currently set
 
+* Call `popupDockerBg.showState()` in the background page console to find state of popup
+
 * Why should I not just use `chrome://inspect/#pages` to make sense of my tabs?
   * Chrome inspect pages is a DevTool, and shows info for developers, so for each page you'll also
   see iFrames or other embedded things

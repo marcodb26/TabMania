@@ -68,53 +68,8 @@ function testSettings() {
 	});
 }
 
-window.addEventListener("resize", setWindowSize);
-
-// "ev": let the "resize" listener leave alone height changes. Height must be
-// forced only for the first call initializing the popup. In that case, the
-// caller doesn't pass an "ev".
-function setWindowSize(ev) {
-	forceHeight = ev == null ? true : false;
-
-	const logHead = "setWindowSize(): ";
-
-	if(window.location.search == "") {
-		// We need to take this action only for the undocked popup. The undocked
-		// popup URL has a search "?undocked", while the docked popup has no search
-		return;
-	}
-
-	console.log(logHead + "the window dimensions are: " + window.innerWidth + "x" + window.innerHeight);
-	console.log(logHead + "the body dimensions are: " + document.body.clientWidth + "x" + document.body.clientHeight);
-
-	// We want the width of the window to match the width of the <body> without scrollbars,
-	// so we just resizeBy() the delta between the two
-	let widthDelta = document.body.clientWidth - window.innerWidth;
-
-	// We want to allow users to change the height of the window freely, but this function
-	// plays double duty as an event handler and as an initialization function, and during
-	// initialization we need to set a consistent height.
-	let heightDelta = 0;
-	if(forceHeight) {
-		heightDelta = 542 - window.innerHeight;
-	}
-
-	// Call resizeBy() only if there's a real change. Calling resizeBy() inside a "resize" event
-	// handler smells of trouble, given the risk of infinite loops. resizeBy() should be "safe"
-	// and avoid triggering a "resize" event if the size has not changed, but you never know, let's
-	// make this redundant check here.
-	if(widthDelta != 0 || heightDelta != 0) {
-		console.log(logHead + "applying changes");
-		window.resizeBy(document.body.clientWidth - window.innerWidth, heightDelta);
-	} else {
-		console.log(logHead + "no changes");
-	}
-}
-
 function init() {
 	perfProf.mark("windowLoaded");
-
-	setWindowSize();
 
 	// Waiting for the async initialization of the settingsStore before starting
 	// the popup
@@ -143,7 +98,3 @@ function init() {
 		}
 	);	
 }
-
-
-
-

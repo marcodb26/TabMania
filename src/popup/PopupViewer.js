@@ -213,6 +213,7 @@ addExpandedListener: function(fn) {
 Classes.BootstrapTabsViewer = Classes.Viewer.subclass({
 
 	_headingElem: null,
+	_menuElem: null,
 
 	// This is the same _bodyElem of class Viewer
 	_bodyElem: null,
@@ -224,16 +225,32 @@ _init: function() {
 	this._renderTabsContainer();
 },
 
+_dockToggleCb: function(ev) {
+	popupDocker.dockToggle();
+	ev.preventDefault();
+},
+
 _renderTabsContainer: function() {
 	const logHead = "BootstrapTabsViewer::_renderTabsContainer(): ";
 
 	const headingId = this._id + "-heading";
+	const menuId = this._id + "-menu";
+	const dockToggleBtnId = this._id + "-undock";
 	const bodyId = this._id + "-body";
 
+	const dockToggleBtnTxt = popupDocker.isPopupDocked() ? "Undock" : "Dock";
+
 	const headingHtml = `
-	<!-- https://getbootstrap.com/docs/5.0/components/navs-tabs/ -->
-	<ul class="nav nav-tabs nav-fill" id="${headingId}" role="tablist">
-	</ul>
+	<div class="d-flex">
+		<div class="flex-grow-1">
+			<!-- https://getbootstrap.com/docs/5.0/components/navs-tabs/ -->
+			<ul class="nav nav-tabs nav-fill" id="${headingId}" role="tablist">
+			</ul>
+		</div>
+		<div id="${menuId}">
+			<a href="#" id="${dockToggleBtnId}">${dockToggleBtnTxt}</a>
+		</div>
+	</div>
 	`;
 
 	const bodyHtml = `
@@ -245,7 +262,11 @@ _renderTabsContainer: function() {
 
 //	this._log(logHead, this._rootElem);
 	this._headingElem = this.getElementById(headingId);
+	this._menuElem = this.getElementById(menuId);
 	this._bodyElem = this.getElementById(bodyId);
+
+	let dockToggleBtnElem = this.getElementById(dockToggleBtnId);
+	dockToggleBtnElem.addEventListener("click", this._dockToggleCb.bind(this));
 },
 
 // Override Viewer.append()

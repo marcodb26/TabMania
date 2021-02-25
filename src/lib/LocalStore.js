@@ -32,7 +32,8 @@ Classes.LocalStore = Classes.AsyncBase.subclass({
 	allTabsTabExpandedGroups: null,
 
 	// _bootstrapTabs contains:
-	// - "activeTabId": the name of the Boostratp tab that's currently active
+	// - "activeTabId": the name of the Boostrap tab that's currently active
+	// - "docked": whether or not the popup is docked (default "true", docked)
 	_bootstrapTabs: null,
 
 // No need to override _init(), we just need to override _asyncInit()
@@ -63,6 +64,16 @@ getActiveBsTab: function() {
 
 setActiveBsTab: function(bsTabName) {
 	return this._bootstrapTabs.set("activeTabId", bsTabName);
+},
+
+// Same name as popupDocker.isPopupDocked(), but this function returns the stored value,
+// while popupDocker.isPopupDocked() returns the current state for the current popup.
+isPopupDocked: function() {
+	return optionalWithDefault(this._bootstrapTabs.get("docked"), true);
+},
+
+setPopupDocked: function(docked) {
+	return this._bootstrapTabs.set("docked", docked);
 },
 
 }); // Classes.LocalStore
