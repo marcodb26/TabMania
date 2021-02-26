@@ -370,14 +370,14 @@ _bstabActivatedCb: function(ev) {
 
 _createTab: function(suffix, htmlLabel, tabViewerSubclass) {
 	tabViewerSubclass = optionalWithDefault(tabViewerSubclass, Classes.TabViewer);
-	const tabId = this._id + "-" + suffix;
+	const bsTabId = this._id + "-" + suffix;
 	
-	var retVal = this._tabViewersDict[tabId] = tabViewerSubclass.createAs(tabId, htmlLabel);
+	this._tabViewersDict[bsTabId] = tabViewerSubclass.createAs(bsTabId, htmlLabel);
 
-	this._tabViewersDict[tabId].addTabActivationStartListener(this._bstabActivatedCb.bind(this));
-	this.append(this._tabViewersDict[tabId]);
+	this._tabViewersDict[bsTabId].addTabActivationStartListener(this._bstabActivatedCb.bind(this));
+	this.append(this._tabViewersDict[bsTabId]);
 
-	return retVal;
+	return this._tabViewersDict[bsTabId];
 },
 
 _populateTabs: function() {
