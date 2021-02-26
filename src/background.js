@@ -30,9 +30,10 @@ var backgroundInitPromise = new Promise(
 );
 
 function openUrlCb(request, sender, sendResponse) {
-	// Open URL in a new window ("-1"). If we try to open the URL in the current window,
-	// it will cause the popup to close. If the popup closes, when we send the response
-	// it will trigger an error on the console ("Receiving end does not exist").
+	// Open URL in a new window ("chrome.windows.WINDOW_ID_NONE"). If we try to open the
+	// URL in the current window, it will cause the popup to close. If the popup closes,
+	// when we send the response it will trigger an error on the console ("Receiving end
+	// does not exist").
 	// Using notifications instead of request/response doesn't change anything, because
 	// internally Chrome only understands request/response, and so we need to send a
 	// dummy response which triggers the same error on console. Opening in a new window
@@ -43,7 +44,7 @@ function openUrlCb(request, sender, sendResponse) {
 	// but just beware of the consequences of thinking of changing that back to opening
 	// a tab in the current window (which is by necessity the window where you had the
 	// popup running).
-	chromeUtils.loadUrl(request.url, -1).then(
+	chromeUtils.loadUrl(request.url, null, chrome.windows.WINDOW_ID_NONE).then(
 		function() {
 			sendResponse({ status: "success"});
 		}

@@ -615,11 +615,7 @@ _launchOrSearch: function(url) {
 //		url = "https://www.google.com/search?q=" + url;
 	}
 
-	chromeUtils.wrap(chrome.tabs.create, logHead, { active: true, url: url }).then(
-		function(tab) {
-			chromeUtils.focusWindow(tab.id);
-		}.bind(this)
-	);
+	chromeUtils.loadUrl(url);
 },
 
 _runCustomShortcutSearch: function(scInfo) {
@@ -632,6 +628,7 @@ _runCustomShortcutSearch: function(scInfo) {
 	// If there are no candidateTabs, open "url" in new tab
 	if(scInfo.candidateTabs == null) {
 		this._log(logHead + "no candidateTabs, opening in new tab");
+		// We pick the "least tabbed window" to open the new tab
 		chromeUtils.loadUrl(url);
 		return;
 	}
@@ -670,11 +667,13 @@ _manageCustomShortcut: function(shortcut) {
 
 	if(scInfo.url != null) {
 		this._log(logHead + "loading URL " + scInfo.url);
+		// Pick the "least tabbed window" to open the new tab if we need a new
+		// tab, or the existing tab if there is one
 		chromeUtils.loadUrl(scInfo.url, tabId);
 		return;
 	}
 
-	// A "url" is not set, but if there's a tab, we need to activate it.
+	// A "url" is not set (hostname case), but if there's a tab, we need to activate it.
 	if(tabId != null) {
 		// Need to open a tab
 		this._log(logHead + "opening tabId " + tabId + ", no URL change");

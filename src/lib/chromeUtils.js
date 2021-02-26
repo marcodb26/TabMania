@@ -52,6 +52,42 @@ wrapQuiet: function() {
 
 //// Utils to work with tabs (chrome.tabs)
 
+getLeastTabbedWindowId: function() {
+	const logHead = "ChromeUtils::getLeastTabbedWindowId(): ";
+	let options = {
+		populate: true,
+		// We only care about "normal", "popup" windows don't have tabs
+		windowTypes: [ "normal" ]
+	};
+
+	function leastTabbedReducer(currentMinWin, winInfo) {
+		let tabsCount = winInfo.tabs.length;
+		 // currentMinWin == 0 means the accumulator is not initialized
+		if(currentMinWin == 0 || currentMinWin.tabsCount > tabsCount) {
+			return { winInfo: winInfo, tabsCount: tabsCount };
+		}
+		return currentMinWin;
+	};
+
+	return this.wrap(chrome.windows.getAll, logHead, options).then(
+		function(winList) {
+			if(winList.length == 0) {
+				// Can this really happen???
+				return null;
+			}
+			let minWin = winList.reduce(leastTabbedReducer, 0);
+			this._log(logHead + "Found: ", minWin);
+			return minWin.winInfo.id;
+		}.bind(this)
+	);
+},
+
+getEmptyTabsList: function() {
+	const logHead = "ChromeUtils::getEmptyTabsList(): ";
+
+	return chromeUtils.wrap(chrome.tabs.query, logHead, { url: "chrome://newtab/" });
+},
+
 // Focus the current window of a tabId. Since tabs can be moved from window to window,
 // it's useless to try to store the windowId of the tabId in TabsManager._backTabs.
 // Best to just query Chrome, though that requires some async gymnastics.
@@ -75,32 +111,83 @@ activateTab: function(tabId) {
 	return Promise.all([ promiseA, promiseB ]);
 },
 
+// Create a new tab in the current window.
+// "url" is optional, if not specified, Chrome will open a New Tab page
+// "winId" is optional, if not specified defaults to chrome.windows.WINDOW_ID_CURRENT. 
+createTab: function(url, winId) {
+	winId = optionalWithDefault(winId, chrome.windows.WINDOW_ID_CURRENT);
+
+	const logHead = "ChromeUtils::createTab(" + url + "): ";
+
+	let promiseA = this.wrap(chrome.tabs.create, logHead, { url: url, windowId: winId });
+	// Assume the tab will be opened in a known window, and avoid the
+	// extra cost of waiting for the first promise to return (as it would
+	// include the tab, and therefore the tabId) before calling activateTab()
+	let promiseB = this.wrap(chrome.windows.update, logHead, winId, { focused: true });
+
+	return Promise.all([ promiseA, promiseB ]);
+},
+
+reuseOrCreateTab: function(url) {
+	// First, check if we have an empty tab and reuse that, then, if not
+	// found, pick the least tabbed window and use that to create a new tab.
+	return this.getEmptyTabsList().then(
+		function(tabs) {
+			if(tabs.length != 0) {
+				// Reusing an empty tab, pick the first one in the list
+				return this.loadUrl(url, tabs[0].id);
+			}
+
+			// Need to find the least tabbed window
+			return this.getLeastTabbedWindowId().then(
+				function(winId) {
+					// Ignore the case "winId == null", even if it was real,
+					// chromeUtils.loadUrl() would simply open the new tab in
+					// the current window
+					return this.createTab(url, winId);
+				}.bind(this)
+			);
+		}.bind(this)
+	);
+},
+
 // tabId is optional, if specified, load in the tab, otherwise create a new tab.
 // Also takes the window with the new tab to the foreground.
-// Use "tabId = -1" to open in a new window.
-loadUrl: function(url, tabId) {
-	const logHead = "ChromeUtils::loadUrl(): ";
+//
+// "winId" is optional, if not specified, the current window will be used. Note that
+// "winId" is relevant only if a new tab needs to be opened, an existing tab won't
+// be moved to a different window. Use chrome.windows.WINDOW_ID_NONE to open the
+// tab in a new window.
+loadUrl: function(url, tabId, winId) {
+	const logHead = "ChromeUtils::loadUrl(" + url + ", " + tabId + ", " + winId + "): ";
 
 	tabId = optionalWithDefault(tabId, null);
 
+	if(winId == chrome.windows.WINDOW_ID_NONE) {
+		// Open in a new window, only one command, return the single promise immediately.
+		// If this function was called asking for a new window, the tabId should be "null"...
+		this._assert(tabId == null);
+		return this.wrap(chrome.windows.create, logHead, { focused: true, url: url });
+	}
+
+	if(tabId == null) {
+		// Not a new window, but we need a new tab to be added to an existing window
+		// or a new one
+		if(winId == null) {
+			// The caller is not requesting a specific window, let's use our heuristic
+			return this.reuseOrCreateTab(url);
+		}
+		// The caller is requesting a very specific window, give it to her
+		return this.createTab(url, winId);
+	}
+
+	// Existing tab (therefore, existing window)
 	let promiseA = null;
 	let promiseB = null;
 
-	if(tabId != null) {
-		if(tabId != -1) {
-			promiseA = chromeUtils.activateTab(tabId);
-			promiseB = this.wrap(chrome.tabs.update, logHead, tabId, { url: url });
-		} else {
-			// Open in a new window, only one command, return the single promise immediately
-			return this.wrap(chrome.windows.create, logHead, { focused: true, url: url });
-		}
-	} else {
-		promiseA = this.wrap(chrome.tabs.create, logHead, { url: url });
-		// Assume the tab will be opened in the current window, and avoid the
-		// extra cost of waiting for the first promise to return (as it would
-		// include the tab, and therefore the tabId) before calling activateTab()
-		promiseB = this.wrap(chrome.windows.update, logHead, chrome.windows.WINDOW_ID_CURRENT, { focused: true });
-	}
+	promiseA = chromeUtils.activateTab(tabId);
+	promiseB = this.wrap(chrome.tabs.update, logHead, tabId, { url: url });
+
 	return Promise.all([ promiseA, promiseB ]);
 },
 
