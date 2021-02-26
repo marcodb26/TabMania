@@ -220,6 +220,72 @@ _init: function(html) {
 }); // Classes.HtmlViewer
 
 
+// CLASS ButtonViewer
+//
+// This class is not abstract. Subclasses need to override onButtonClickCb(), but
+// callers of Classes.ButtonViewer.create() might as well just assign a function
+// value to onButtonClickCb.
+Classes.ButtonViewer = Classes.HtmlViewer.subclass({
+	__idPrefix: "btn",
+
+	_buttonElem: null,
+
+_init: function(options) {
+	options = optionalWithDefault(options, {});
+	options.labelHtml = optionalWithDefault(options.labelHtml, "");
+	options.fullWidth = optionalWithDefault(options.fullWidth, false);
+	options.btnExtraClasses = optionalWithDefault(options.btnExtraClasses, []);
+
+	this._options = options;
+
+	const logHead = "ButtonViewer::_init(): ";
+
+	const buttonId = this._id + "-button";
+
+	let fullWidthHtmlBefore = "";
+	let fullWidthHtmlAfter = "";
+	if(this._options.fullWidth) {
+		fullWidthHtmlBefore = `<div class="d-grid gap-2">`;
+		fullWidthHtmlAfter = `</div>`
+	}
+
+	// You could use "col-10 mx-auto" in the inner <div> or horiz margins in the outer <div>
+	// to make the button a bit smaller but still centered.
+	// Note that we must have the outer <div> because if we want to call .hide(), it tries to
+	// set "display: none;", but fails on the inner <div> because "d-grid" is defined as
+	// "display: grid!important;" and the "!important" would overrides "display: none;"
+	const buttonHtml = `
+	<div class="tm-btnbar-btn tm-full-height">
+		${fullWidthHtmlBefore}
+			<a class="btn ${this._options.btnExtraClasses.join(" ")}" role="button"	id="${buttonId}">
+				${this._options.labelHtml}
+			</a>
+		${fullWidthHtmlAfter}
+	</div>
+	`;
+
+	// Overriding the parent class' _init(), but calling that original function first
+	Classes.HtmlViewer._init.call(this, buttonHtml);
+	this.debug();
+
+	this._log(logHead, this);
+	this._buttonElem = this.getElementById(buttonId);
+	this._buttonElem.addEventListener("click", this._onButtonClickCbWrapper.bind(this), false);
+},
+
+_onButtonClickCbWrapper: function(ev) {
+	this.onButtonClickCb(ev);
+},
+
+onButtonClickCb: function(ev) {
+	// You can either subclass or assign a value to this function pointer
+	// from the caller of the Classes.ButtonViewer.create()
+	this._errorMustSubclass("ButtonViewer::onButtonClickCb()");
+},
+
+}); // Classes.ButtonViewer
+
+
 // CLASS TabViewer
 //
 // To create an object, use TabViewer.createAs(), where:

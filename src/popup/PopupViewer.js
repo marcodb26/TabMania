@@ -213,12 +213,12 @@ addExpandedListener: function(fn) {
 Classes.BootstrapTabsViewer = Classes.Viewer.subclass({
 
 	_headingElem: null,
+	_buttonBarElem: null,
 	_menuElem: null,
 
 	// This is the same _bodyElem of class Viewer
 	_bodyElem: null,
 
-	_menuElem: null,
 	_menuViewer: null,
 
 _init: function() {
@@ -237,6 +237,7 @@ _renderTabsContainer: function() {
 	const logHead = "BootstrapTabsViewer::_renderTabsContainer(): ";
 
 	const headingId = this._id + "-heading";
+	const buttonBarId = this._id + "-buttonbar";
 	const menuId = this._id + "-menu";
 	const bodyId = this._id + "-body";
 
@@ -255,14 +256,19 @@ _renderTabsContainer: function() {
 //	</div>
 //	`;
 
+	// The <div id="${menuId}"> should always be last after the button bar, that's why
+	// we don't want it inside the button bar.
+	// The right margin for the button bar is not needed, the menu button takes care of that.
 	const headingHtml = `
-	<div class="d-flex">
+	<div class="d-flex" style="cursor: default">
 		<div class="flex-grow-1">
 			<!-- https://getbootstrap.com/docs/5.0/components/navs-tabs/ -->
 			<ul class="nav nav-tabs nav-fill" id="${headingId}" role="tablist">
 			</ul>
 		</div>
-		<div id="${menuId}" style="cursor: default">
+		<div id="${buttonBarId}" class="ms-2">
+		</div>
+		<div id="${menuId}">
 		</div>
 	</div>
 	`;
@@ -275,6 +281,7 @@ _renderTabsContainer: function() {
 	this._rootElem = this._elementGen(`<div id=${this._id}>` + headingHtml + bodyHtml + "</div>");
 
 	this._headingElem = this.getElementById(headingId);
+	this._buttonBarElem = this.getElementById(buttonBarId);
 	this._menuElem = this.getElementById(menuId);
 	this._bodyElem = this.getElementById(bodyId);
 
@@ -290,6 +297,11 @@ append: function(tabViewer) {
 
 	// Append the body
 	Classes.Viewer.append.apply(this, arguments);
+},
+
+// Append a button to the button bar
+appendButton: function(viewer) {
+	this._buttonBarElem.append(viewer.getRootElement());
 },
 
 }); // Classes.BootstrapTabsViewer

@@ -12,12 +12,13 @@ Classes.MenuViewer = Classes.Viewer.subclass({
 // "options" includes:
 // - "label", if not specified (default), the dropdown will just show the caret. The label
 //   can contain HTML, not only text
-// - "btnColorClass", the CSS class to use for the button coloring, default "btn-secondary"
+// - "btnExtraClasses", you can use it for example for the CSS class to use for the button coloring,
+//   and it default to "btn-secondary"
 _init: function(options) {
 	options = optionalWithDefault(options, {});
 	options.label = optionalWithDefault(options.label, "");
 	options.showToggle = optionalWithDefault(options.showToggle, true);
-	options.btnColorClass = optionalWithDefault(options.btnColorClass, "btn-secondary");
+	options.btnExtraClasses = optionalWithDefault(options.btnExtraClasses, [ "btn-secondary" ]);
 
 	this._options = options;
 
@@ -30,12 +31,16 @@ _MenuViewer_render: function() {
 	const menuId = this._id + "-menu";
 	const menuItemsContainerId = this._id + "-menuitems";
 
-	let dropdownExtraClasses = []
-	if(this._options.label == "") {
-		dropdownExtraClasses.push("tm-dropdown-toggle");
-	}
+	let dropdownExtraClasses = [];
 	if(this._options.showToggle) {
+		if(this._options.label == "") {
+			dropdownExtraClasses.push("tm-dropdown-toggle");
+		}
 		dropdownExtraClasses.push("dropdown-toggle");
+	}
+	if(this._options.btnExtraClasses.length > 0) {
+		// push() can take multiple arguments
+		dropdownExtraClasses.push(...this._options.btnExtraClasses);
 	}
 
 	// See https://stackoverflow.com/questions/43233421/changing-dropdown-icon-on-bootstrap-4
@@ -45,9 +50,12 @@ _MenuViewer_render: function() {
 	// Since we're adding "tm-dropdown-toggle::after" to fix some visual issues of the default
 	// Bootstrap caret, you might need to remove "tm-dropdown-toggle" too if you want to
 	// customize the icon. See the CSS definition of "tm-dropdown-toggle::after" for more details.
+	//
+	// "tm-full-height" is needed only for the dropdown for the bstab main menu, but since
+	// it's not hurting other uses of the menuButton, we'll use it everywhere...
 	let menuButtonHtml = `
-	<div class="dropdown">
-		<a class="btn ${this._options.btnColorClass} ${dropdownExtraClasses.join(" ")}" role="button"
+	<div class="dropdown tm-full-height">
+		<a class="btn ${dropdownExtraClasses.join(" ")}" role="button"
 				id="${menuId}" data-bs-toggle="dropdown" aria-expanded="false">
 			${this._options.label}
 		</a>
@@ -158,7 +166,7 @@ Classes.TileMenuViewer = Classes.MenuViewer.subclass({
 _init: function(tab) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.MenuViewer._init.call(this, {
-		btnColorClass: tab.incognito ? "btn-light" : "btn-secondary",
+		btnExtraClasses: [ tab.incognito ? "btn-light" : "btn-secondary" ],
 	});
 
 	this.debug();

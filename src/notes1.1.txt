@@ -15,9 +15,7 @@
   * Should we leave in the count of open tabs? Probably yes (besides it's probably
     too complicated to filter there)
 
-- Fix double scroll bars when undocked popup is too small (horizontally or vertically)
-  * Possibly, get rid of the "must be 400px" business, and make it 400px when docked
-    by other means
+- Fix double scroll bars when undocked popup has too little width (horizontally only)
 
 - Make size of bstabs variable to account for ability of undocked popup to have its
   width expanded
@@ -83,9 +81,6 @@
 	- Close the popup and reopen it, group B is gone, but its name can't be reassigned
 	  to another group
 	- Eventually group B shows up again (weird)
-
-- Test behavior of this._errorMustSubclass(), the changes made to help uglifyjs
-  feel suspicious
 
 - Find a good way to manage console.log() in inject files (leveraging lib/prod.js)
   * Then add lib/prod.js to the "npm run inject" script
@@ -310,6 +305,16 @@ DONE 1.1
   * We should not have more than one undocked popup, but we could have more than
     one docked popup
 
+- Removed fixed "width: 400px" from initialization to support the undocked case
+  * We force the width and height of <body> in popupDocker only when the popup is docked
+  * This fixed an issue with double scroll bars vertically
+  * We still have an issue with double scroll bars horizontally (when very small width)
+
+- Fixed behavior of this._errorMustSubclass(), the changes made to help uglifyjs
+  felt suspicious
+
+
+  
 PUNTED TO NEXT RELEASE
 
 
