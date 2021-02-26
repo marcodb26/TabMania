@@ -24,6 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pressing an unconfigured custom shortcut leaves an error on the background page console
 - Clearing the hostname/URL of a custom shortcut leaves TabMania attempting to open 'https://'
   (only protocol, no hostname), leading to an error on the console
+- The serchbox gets activated if a shortcut CTRL+[key] is pressed while keyboard focus is on the
+  TabMania popup, but the searchbox remains empty and can't easily be closed
+  * Only for CTRL+[key] that are not TabMania configured shortcuts
 
 # [1.0.0] - 2021-02-20
 ## Added

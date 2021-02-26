@@ -304,6 +304,22 @@ _searchInactiveIgnoreKeys: new Set([
 		"ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Backspace", "Enter"
 ]),
 
+_modifierToString: function(ev) {
+	if(ev.altKey) {
+		return "Alt";
+	}
+
+	if(ev.ctrlKey) {
+		return "Control";
+	}
+
+	if(ev.metaKey) {
+		return "Meta";
+	}
+
+	return null;
+},
+
 // This function track keypresses in two cases
 // - When search is not active, activate search with any key except "this._searchInactiveIgnoreKeys".
 // - When search is active, use "Enter" to trigger a "click" on the first tile in the
@@ -336,6 +352,14 @@ _activateSearchCb: function(ev) {
 	// character in length... let's see if we find exceptions to this rule.
 	if(ev.key.length > 1) {
 		this._log(logHead + "ignoring key");
+		return;
+	}
+
+	let modifier = this._modifierToString(ev);
+	if(modifier != null) {
+		// If one of these modifiers are pressed, the current keypress won't make
+		// it to the searchbox
+		this._log(logHead + "ignoring key with key modifier " + modifier + " active");
 		return;
 	}
 
