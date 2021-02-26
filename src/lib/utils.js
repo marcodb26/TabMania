@@ -223,8 +223,9 @@ _formatId: function(hiddenId) {
 	return this.__idPrefix + "-" + hiddenId;
 },
 
-_errorMustSubclass: function(signature) {
-    return Function.prototype.bind.call(console.error, console, "This method must be subclassed: " + signature);
+// Any argument you pass to this function will go directly to console.error()
+_errorMustSubclass: function() {
+    return Function.prototype.bind.call(console.error, console, "This method must be subclassed: ");
 }(),
 
 }; // Classes.Base
