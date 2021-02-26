@@ -45,8 +45,11 @@
 	<title>TabMania</title>
   </head>
 
-  <!-- The "height" is needed for the docked popup, and will be ignored by the undocked popup -->
+  <!-- The "height" is needed for the docked popup, and will be ignored by the undocked popup.
+       We're now setting width/height for docked in the popupDocker initialization.
   <body style="width: 400px; height: 542px">
+  -->
+  <body>
 	<!-- Note that the maximum width of an extension's popup is 800px, but we just need half of that.
 		See https://stackoverflow.com/questions/8983165/how-can-i-expand-the-popup-window-of-my-chrome-extension#:~:text=Chrome%20extension%20popups%20can%20have,and%20maximum%20width%20of%20800px.
 	-->

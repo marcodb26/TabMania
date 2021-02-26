@@ -2,6 +2,8 @@
 //
 Classes.PopupDocker = Classes.PopupDockerBase.subclass({
 
+	_dockedInitBodyWidth: 400, // in px
+	_dockedInitBodyHeight: 542, // in px
 
 _init: function() {
 	// Overriding the parent class' _init(), but calling that original function first
@@ -9,7 +11,19 @@ _init: function() {
 
 	this.debug();
 
+	window.addEventListener("load", this._loadCb.bind(this));
 	localStore.addEventListener(Classes.EventManager.Events.UPDATED, this._updatedCb.bind(this));
+},
+
+_loadCb: function(ev) {
+	// For the undocked popup, we can control the initial outer window sizing in
+	// the chrome.windows.create() API.
+	// For the docked popup, short of having a different popup.html for the two cases,
+	// we can only change the body properties after <body> has been injected in the DOM.
+	if(this.isPopupDocked()) {
+		document.body.style.width = this._dockedInitBodyWidth + "px";
+		document.body.style.height = this._dockedInitBodyHeight + "px";
+	}
 },
 
 _updatedCb: function(ev) {
