@@ -404,4 +404,32 @@ getTabViewerById: function(bsTabId) {
 	return this._tabViewersDict[bsTabId];
 },
 
+getActiveBsTabId: function() {
+	return this._activeBsTabId;
+},
+
+_getHomeBsTabId: function() {
+	return this._id + "-home";
+},
+
+// This function returns "true" only if the home tab is visible, besides being
+// in search mode. If the settings tab is visible, this function returns false
+// regardless of the SearchableTabViewer.isSearchActive() response.
+isSearchActive: function() {
+	let homeBsTabId = this._getHomeBsTabId();
+	if(this.getTabViewerById(homeBsTabId).isSearchActive() && this.getActiveBsTabId() == homeBsTabId) {
+		return true;
+	}
+	return false;		
+},
+
+getSearchQuery: function() {
+	if(!this.isSearchActive()) {
+		return null;
+	}
+
+	let homeBsTabId = this._getHomeBsTabId();
+	return this.getTabViewerById(homeBsTabId).getSearchQuery();
+},
+
 }); // Classes.PopupViewer

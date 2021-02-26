@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added ability to undock the popup, so users can resize it and have it always available
 - Added "+" button to open a new tab; the tab will recycle leftover "new tabs" or use the
   "least tabbed window"
+  * If a search is active, the "+" button opens a launch/search with the search text instead
+    of opening an empty new tab
 
 ## Changed
 - Updated Bootstrap to v.5.0.0-beta2

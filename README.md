@@ -109,6 +109,11 @@ itself (`CTRL+T`, or the "+" button on Chrome)? Here are a few reasons:
   new tab in the empty one
 - If you're on the undocked TabMania popup searching for a tab you thought you had opened, your
   standard Chrome windows will be far, just use the "+" button on the TabMania popup!
+  * To make things easier, if you have an active search, pressing the "+" button will activate
+    a _launch/search_ response, similar to the behavior of the "Clipboard launch/search" shortcut,
+	and based on its configured search engine (See __"Clipboard launch/search" shortcut__ below
+	for more information). Of course it will use the text from the searchbox instead of the data
+	from your clipboard for the _launch/search_ action.
 - Also, if you have an unconfigured custom shurtcut (see __Custom shortcuts__ below), it will default
   to "Open new tab", making it very easy to create a new tab from anywhere in the system
   - But, no, you can't override the default `CTRL+T`, the original Chrome shortcut will win

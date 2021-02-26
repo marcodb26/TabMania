@@ -396,6 +396,14 @@ isSearchActive: function() {
 	return this._searchActive;
 },
 
+getSearchQuery: function() {
+	if(!this.isSearchActive()) {
+		return null;
+	}
+
+	return this._searchBoxElem.value;
+},
+
 // You should not need to register explicitly for the "search" event, the
 // overriding _searchBoxProcessData() should be sufficient.
 addSearchEventListener: function(fn) {

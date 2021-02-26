@@ -25,6 +25,9 @@
 	  * And why was this not happening with docked popup when closing a tab from
 	    within the popup?
 
+- Do we need a different icon for the "launch/search" behavior of the "Open new
+  tab" button?
+
 - Make sure to filter out of the tab list the tab about the undocked popup(!)
   * Also filter it out of the back/fwd history
   * Should we leave in the count of open tabs? Probably yes (besides it's probably
