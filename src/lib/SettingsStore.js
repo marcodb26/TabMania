@@ -919,7 +919,17 @@ getShortcutProp: function(shortcutKey, prop) {
 
 setShortcutHostnameOrUrl: function(shortcutKey, value) {
 	const logHead = "ShortcutsManager::setShortcutHostnameOrUrl(" + shortcutKey + ", \"" + value + "\"): ";
+
 	let currDict = this._shortcutsStore[shortcutKey].getAll();
+
+	if(value == "") {
+		// Special case, we need to delete both...
+		this._log(logHead + "clearing both hostname and URL");
+		delete currDict["hostname"];
+		delete currDict["url"];
+		return this.setShortcut(shortcutKey, currDict);
+	}
+
 	let toSet = "hostname";
 	let toDel = "url";
 
