@@ -174,7 +174,8 @@ Because of this, they're particularly useful when set to `Global` mode instead o
 
 __Configuring custom shortcuts__
 Custom shortcuts can be configured in the _Shortcuts settings_ section of TabMania's _Settings_
-tab. Firt though, be sure to have enabled the actual shortcuts in chrome://extensions/shortcuts.
+tab. Firt though, be sure to have enabled the actual shortcuts in
+[chrome://extensions/shortcuts](chrome://extensions/shortcuts).
 For each custom shortcut:
 * You can set a shortcut to target either a hostname or a URL (not both)
 * Unless you select _Always open shortcut in new tab_, the browser tab targeted by the shortcut
