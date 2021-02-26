@@ -791,6 +791,10 @@ _computeByUrl: function(sc) {
 
 _computeInfo: function(shortcutKey) {
 	// Shortcut in store is: { hostname: , url: , alwaysNewTab: , useClipboard: }
+	// shortcusInfo[key]: 
+	// - No search: { url: } (open in new tab), or { tab: } (open in existing tab),
+	// - Search: { searchUrl: } (open in new tab), or { searchUrl: , candidateTabs: } (open in existing tab),
+	// - No data: { empty: true } 
 	let sc = this._shortcutsStore[shortcutKey];
 
 	if(sc.get("hostname") != null) {
@@ -802,7 +806,7 @@ _computeInfo: function(shortcutKey) {
 	if(sc.get("url") == null) {
 		// The shortcut doesn't have either hostname or URL, the shortcut is not set.
 		// Use an empty object, not "null", to simplify the rest of the logic.
-		this._shortcutsInfo[shortcutKey] = {};
+		this._shortcutsInfo[shortcutKey] = { empty: true };
 		return;
 	}
 	this._shortcutsInfo[shortcutKey] = this._computeByUrl(sc);

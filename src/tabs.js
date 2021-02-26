@@ -663,6 +663,13 @@ _manageCustomShortcut: function(shortcut) {
 		return;
 	}
 
+	if(scInfo.empty) {
+		// The shortcut has not been configured. For unconfigured shortcuts we want to
+		// default to the "open new tab" behavior
+		chromeUtils.reuseOrCreateTab();
+		return;
+	}
+
 	let tabId = (scInfo.tab != null) ? scInfo.tab.id : null;
 
 	if(scInfo.url != null) {
