@@ -128,6 +128,7 @@ createTab: function(url, winId) {
 	return Promise.all([ promiseA, promiseB ]);
 },
 
+// "url" is optional, if not specified, Chrome will open a New Tab page
 reuseOrCreateTab: function(url) {
 	// First, check if we have an empty tab and reuse that, then, if not
 	// found, pick the least tabbed window and use that to create a new tab.
@@ -186,6 +187,8 @@ loadUrl: function(url, tabId, winId) {
 	let promiseB = null;
 
 	promiseA = chromeUtils.activateTab(tabId);
+	// Note that "url" could be undefined here (when we reuse an existing "new tab", recursive
+	// call coming from reuseOrCreateTab()), but that's ok
 	promiseB = this.wrap(chrome.tabs.update, logHead, tabId, { url: url });
 
 	return Promise.all([ promiseA, promiseB ]);

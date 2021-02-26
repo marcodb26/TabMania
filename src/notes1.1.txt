@@ -1,3 +1,26 @@
+- BUG: chrome.tabs.update(tabId, { url: url }) loads a new "url" but replaces the
+  existing URL instead of adding it to the tab navigation history
+  * Apparently Firefox has a "loadReplace" parameter exactly to control this behavior
+    (replace or add to history), but Chrome doesn't support that option:
+	https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/update
+	https://developer.chrome.com/docs/extensions/reference/tabs/#method-update
+  * Noting this peculiar behavior here, but there's nothing I can do about it...
+    * Note also the behavior is not consistent, not clear when it replaces and
+	  when it adds to navigation
+  * Use a search shortcut to try it out
+
+- BUG: what's wrong with the "CTRL+SHIFT+5" shortcut? If you set this key combo on a shortcut,
+  the shortcut becomes dead and doesn't arrive to the background page anymore
+  * Then you change it, the shortcut is still dead until you reload the extension
+
+- BUG: if you press CTRL+T in the undocked TabMania popup, the search logic will
+  ignore the CTRL keypress, but will take the "T" keypress as an indication that
+  the searchbox needs to be displayed, except that it will have no characters in it
+  because that "T" is not actually a "T"
+  * How to ignore the "T" in this case?
+  * Worse: in that state the searchbox can't be closed because there are already
+    zero characters, users must add some characters and then remove them.
+
 - BUG: now that we have a way to persist the popup beyond the life of a tab/window,
   we're starting to see race conditions we did not see before:
   * [2] ChomeUtils::inject(695): unknown error: No tab with id: 695.
@@ -17,9 +40,7 @@
 
 - Fix double scroll bars when undocked popup has too little width (horizontally only)
 
-- Make size of bstabs variable to account for ability of undocked popup to have its
-  width expanded
-  * Also center the "Settings" bstab when that happens
+- Center the "Settings" bstab now that undocked popups can have their width expanded
 
 - Shortcuts1-5 with option to select incognito tabs
   * If not selected, ignore incognito tabs

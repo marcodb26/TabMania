@@ -96,6 +96,23 @@ Normally custom groups don't show up in the list if they're empty, but pinned cu
 be included even if empty. An empty custom group can be easily identified by the fact that it doesn't
 have a counting badge on top of its icon.
 
+## The button toolbar
+### The "open new tab" button
+Why would I want to open a new tab from TabMania when I can so easily create a new tab on Chrome
+itself (`CTRL+T`, or the "+" button on Chrome)? Here are a few reasons:
+- TabMania tries to recycle lost and forgotten "new tabs" you might have opened in the past and
+  then forgot there without using them
+- When the previous trick fails (congratulations, you never waste a new tab!), TabMania opens the
+  new tab in the least tabbed window, to balance how many new tabs you open in your windows. You
+  know when you have a window with a hundred tiny claustrophobic tabs, and another window with
+  just two... well, you're likely going to be on the busy window, but TabMania will open your
+  new tab in the empty one
+- If you're on the undocked TabMania popup searching for a tab you thought you had opened, your
+  standard Chrome windows will be far, just use the "+" button on the TabMania popup!
+- Also, if you have an unconfigured custom shurtcut (see __Custom shortcuts__ below), it will default
+  to "Open new tab", making it very easy to create a new tab from anywhere in the system
+  - But, no, you can't override the default `CTRL+T`, the original Chrome shortcut will win
+
 ## Keyboard shortcuts
 TabMania includes a number of useful shortcuts, described below. You can configure the shortcuts
 by visiting the TabMania's shortcuts box inside chrome://extensions/shortcuts. The same location
@@ -157,7 +174,7 @@ Because of this, they're particularly useful when set to `Global` mode instead o
 
 __Configuring custom shortcuts__
 Custom shortcuts can be configured in the _Shortcuts settings_ section of TabMania's _Settings_
-tab. However, be sure to have enabled the actual shortcuts in chrome://extensions/shortcuts first.
+tab. Firt though, be sure to have enabled the actual shortcuts in [chrome://extensions/shortcuts].
 For each custom shortcut:
 * You can set a shortcut to target either a hostname or a URL (not both)
 * Unless you select _Always open shortcut in new tab_, the browser tab targeted by the shortcut
@@ -186,6 +203,13 @@ For each custom shortcut:
     menu action in the tile dropdown menu to reassign the target tab
 * You can search for tabs targeted by custom shortcuts by typing the shortcut shorthand
   in the searchbox
+* Any time the shortcut logic decides to open the content in a new tab (either because you have
+  configured _Always open shortcut in new tab_, or the content is not already available in
+  any of the existing tabs), TabMania will try to find an existing "New tab". If none exists,
+  it will open the new tab in the least tabbed window, like the "Open new tab" logic (see _The
+  "open new tab" button_ section for more details)
+* Last, if you don't configure a custom shortcut (or empty the _Hostname or URL_ input), the
+  custom shortcut will default to an "Open new tab" behavior.
 
 __Suggested keyboard shortcuts__: `CTRL+SHIFT+1`, ..., `CTRL+SHIFT+5`
 
