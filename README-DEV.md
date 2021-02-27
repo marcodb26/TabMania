@@ -1,10 +1,14 @@
 # TabMania for developers
 
+* Call `settingsStore.setOptionDevMode(true)` to enable extra options and menus for developers
+  - For now this only adds the _Extended tabId_ configuration checkbox
+  - You might want to reload the popup for the changes to take effect
+
 * Call `tmStats()` on the dev tools console of the popup to see some popup performance statistics.
 
-* Call `tmStorage()` to get a full view of all chrome.storage variables currently set
+* Call `tmStorage()` to get a full view of all chrome.storage variables currently set.
 
-* Call `popupDockerBg.showState()` in the background page console to find state of popup
+* Call `popupDockerBg.showState()` in the background page console to find the state of the popup (docked or undocked)
 
 * Why should I not just use `chrome://inspect/#pages` to make sense of my tabs?
   * Chrome inspect pages is a DevTool, and shows info for developers, so for each page you'll also
@@ -116,8 +120,12 @@ Very manual until I have some time to focus on automation
 
 * Tag commit by creating a release in github
   * https://docs.github.com/en/github/administering-a-repository/managing-releases-in-a-repository
-  * Cerate a tag as part of the release creation process
+  * Create a tag as part of the release creation process
     * The tag must have format `vX.Y`, where X.Y is the same version as the version in the `manifest.json` file
+
+* Once the tag is available, navigate to the tagged sources and get a link to README.md in that tag
+  * Then edit the release object just created, and add the "Documentation here" hyperlink to the
+    README.md in the release tag
 
 * Use `git fetch` to get the new tag to your clone repo
 

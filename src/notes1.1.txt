@@ -1,13 +1,42 @@
-- BUG: chrome.tabs.update(tabId, { url: url }) loads a new "url" but replaces the
-  existing URL instead of adding it to the tab navigation history
-  * Apparently Firefox has a "loadReplace" parameter exactly to control this behavior
-    (replace or add to history), but Chrome doesn't support that option:
-	https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/update
-	https://developer.chrome.com/docs/extensions/reference/tabs/#method-update
-  * Noting this peculiar behavior here, but there's nothing I can do about it...
-    * Note also the behavior is not consistent, not clear when it replaces and
-	  when it adds to navigation
-  * Use a search shortcut to try it out
+- Include also bookmarks in the search results, not only open tabs
+  * https://developer.chrome.com/docs/extensions/reference/bookmarks/#method-search
+  * If a bookmark is in a tab, it should not show up twice
+  * Should also add a badge mentioning a tab is bookmarked?
+
+- Add badge "recent" to the last 10-15 visited tabs
+  * Independent of the "active" badge
+
+- Add logic to let "www.google.com" be recognized as a valid URL, even though new URL()
+  won't consider it valid
+  * Make it behave like the browser's omnibar...
+
+- Expand/collapse all groups (popup menu item)
+
+- Group/ungroup all groups (popup menu items)
+
+- Limit maximum number of tabs in a window
+  * To be used with the "least tabbed window" logic to decide to open a new tab in a
+    new window
+  * Should we dynamically apply it to tabs created via Chrome too?
+    - It might not be too bad to see a tab show up in a window, then move in another,
+	  as long as we follow it (?)
+	  * But what about the "open in a new tab" cases, the user is not following immediately,
+	    and when she tries to go there, they're gone from that window
+
+- Create subsystem to monitor which tiles are currently visible
+  * This will be useful later to perform more complex computations only on visible tabs
+
+- Reorganize TabsTabViewer to leverage a separate "TabsSet" object to manage the querying
+  and maintenance of tabs subsets (instead of spreading that logic within the class code
+  * One such object for the standard view, one for the search view, in future possibly
+    one separate object for the incognito view (which needs to behave like standard view,
+	but on a different subset of tabs)
+
+- Track and visualize time spent on each active tab (while the window is in foreground)
+
+- Menu item to move all tabs in a custom group to the same window
+
+- Time slice settings (fixed or relative times), just do fixed times for now
 
 - BUG: what's wrong with the "CTRL+SHIFT+5" shortcut? If you set this key combo on a shortcut,
   the shortcut becomes dead and doesn't arrive to the background page anymore
@@ -56,8 +85,6 @@
   you shouldn't see it
   * See for example the screenshot used to publish the extension
 
-- Upgrade bootstrap to 5.0.0-beta2
-
 - Change the icon of the extension popup to red in dev mode when there's a this._err()
   or a console.error()
   * And send all errors also to the background page! (otherwise they get lost when the
@@ -66,9 +93,120 @@
 - Expanded accordions have a bothering blue tint
   * Remove the tint, or, for custom groups, align it to the color of the custom group
 
-- Move option for "show extended tab ID" under a devMode() call, so that non-developers
-  don't see that as the first option
-  * And add back display of "showTabId" SettingsTabViewer::_renderSettings()
+- BUG: creating a custom group with just name and no other settings leads to no group
+  displayed
+  * Sequence
+    - First create a group A with some properties
+	- Then create a group B with only a name
+	- Now delete the group A
+	- Close the popup and reopen it, group B is gone, but its name can't be reassigned
+	  to another group
+	- Eventually group B shows up again (weird)
+
+- Find a good way to manage console.log() in injected files (leveraging lib/prod.js)
+  * Then add lib/prod.js to the "npm run inject" script
+
+- Manage incognito tabs (same view, different BS-tab, hide, etc)
+
+- Add action menu to containers
+
+- BUG: the popup icon badge shows the wrong count when entering search mode, it
+  seems to be getting updated to the number of tabs in the search results...
+
+- "Candidate tabs" behavior should apply also for hostnames and URLs not in "search mode"
+  ("useClipboard")
+
+- Add support for wildcards in "matchList" of custom groups
+
+- Fix the domElem.addEventListener(event, fn, true), sometimes we say "true", sometimes
+  we say "false", can we do it more accurately than random?
+
+- BUG: sometimes some websites blink the title continouosly between two
+  different titles, e.g.:
+  https://www.snowflake.com/data-warehousing-difference-sql-nosql/
+  switching between normal title and "(1) new message" because of the
+  "bear" with the chat with a pending advertisement
+  - How do we throttle that to avoid too much blinking of the bsTab and
+    too much re-rendering of the popup?
+
+- BUG: console.log() and console.info() are the same thing in Chrome,
+  so our functions this._log() and this._log.info() are the same thing...
+  maybe we should use console.debug() as this._log()?
+  * With or without renaming this._log()?
+
+- Organize groups by host name inside top level groups (second level)
+  * With group/ungroup option for each top level group
+
+- Work with tab groups, introduced by Chrome in 2020
+  * https://dev.to/otomer/google-chrome-s-new-update-finally-allows-you-to-organize-tabs-easily-this-is-how-you-can-use-it-3f99
+  * Note that tab groups only work within a window
+  * Unclear how to query for group properties (name and color)
+	- Still work in progress, see here for updates: https://bugs.chromium.org/p/chromium/issues/detail?id=1106846
+	- There should soon be a chrome.tabGroups API
+	- Actually it's here: https://developer.chrome.com/docs/extensions/reference/tabGroups/
+	  * But only available to the dev channel as of 21.01.24
+
+- Stop querying chrome.tabs.query in the popup, and do the querying only in the backgrond
+  * The background should manage the "normalization" step too, and just notify the
+    popup with the pre-normalized tabs list
+	- This should save some time at popup opening time, since the popup won't have
+	  to manage the query and normalization
+    - Even if it doesn't save visible time, it will still reduce the amount of processing
+	  caused by the popups, since eahc popup needs to query/normalize independently
+	  * The only side effect is that the background might have to do this at all
+	    times, even when no popup is open, but it already has to do that, in order
+		to manage correctly the custom shortcuts
+
+
+
+DONE 1.1
+
+- Add back this._getTabMetaTags() to TabTileViewer::update()
+  * And add back host permission "*://*/*" to allow the code injection to run properly
+
+- Moved release process to README-DEV.md
+
+- BUG: need to discard settings events if they arrive before the TabsTabViewer chrome
+  query has completed, while _normTabs is still uninitialized
+
+- Learned chrome.extension.getBackgroundPage can't be used in the injected content scripts
+
+- Updated Bootstrap to v.5.0.0-beta2
+
+- BUG: Shortcut05 can't be invoked
+
+- Added Base._log.bg() and Base._err.bg() to direct popup log/error messages to the console
+  of the background page
+
+- Track changes to localStore.isPopupDocked() (use event listener) in all opened
+  popup windows to close automatically when the docked state changes
+  * We should not have more than one undocked popup, but we could have more than
+    one docked popup
+
+- Removed fixed "width: 400px" from initialization to support the undocked case
+  * We force the width and height of <body> in popupDocker only when the popup is docked
+  * This fixed an issue with double scroll bars vertically
+  * We still have an issue with double scroll bars horizontally (when very small width)
+
+- Fixed behavior of this._errorMustSubclass(), the changes made to help uglifyjs
+  felt suspicious
+
+- Review code to verify there are no other silly this._err() in there (like those attached
+  to user input validation, that didn't make sense)
+
+  
+PUNTED TO NEXT RELEASE
+
+- BUG: chrome.tabs.update(tabId, { url: url }) loads a new "url" but sometimes replaces the
+  existing URL instead of adding it to the tab navigation history
+  * Apparently Firefox has a "loadReplace" parameter exactly to control this behavior
+    (replace or add to history), but Chrome doesn't support that option:
+	https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/update
+	https://developer.chrome.com/docs/extensions/reference/tabs/#method-update
+  * Noting this peculiar behavior here, but there's nothing I can do about it...
+    * Note also the behavior is not consistent, not clear when it replaces and
+	  when it adds to navigation
+  * Use a search shortcut to try it out
 
 - Show a badge/icon if a tab is in full screen
   * https://stackoverflow.com/questions/4296005/determining-if-chrome-is-in-fullscreen-mode-for-extension-development
@@ -81,74 +219,22 @@
   * It's very annoying to click "x" on a tile to remove a tab, and have the entire popup
     disappear
 	- Maybe it disappears only if the active tab is being removed?
+  * As of v.1.1, this can be mitigated by undocking the popup
 
-- Support undocking the popup so that it always stays open regardless to what happens to
-  tabs in other windows
-
-- Review code to verify there are no other silly this._err() in there (like those attached
-  to user input validation, that didn't make sense)
-
-- BUG: creating a custom group with just name and no other settings leads to no group
-  displayed
-  * Sequence
-    - First create a group A with some properties
-	- Then create a group B with only a name
-	- Now delete the group A
-	- Close the popup and reopen it, group B is gone, but its name can't be reassigned
-	  to another group
-	- Eventually group B shows up again (weird)
-
-- Find a good way to manage console.log() in inject files (leveraging lib/prod.js)
-  * Then add lib/prod.js to the "npm run inject" script
-
-- Given the trouble we've been having chasing the popup console when the popup itself
-  closes (e.g. when trying to trigger opening a tab from the popup), should we force
-  all this._log() calls to go to the background console instead?
-  * See multiLog() at popup.js to see how to do it
-  * We'll need to understand the performance penalty of choosing to go always and only
-    to the console of the background page instead of going to the console of the popup,
-	but if we can, avoiding to have to always reopen the console every time you reopen
-	the popup would be a great benefit...
-	- Maybe only in DEV mode and not in prod mode?
-
-- Find a way to support autocomplete for the search input
+- Find a way to support autocomplete for the search input (a.k.a. "remember recent searches")
   * https://stackoverflow.com/questions/15462991/trigger-autocomplete-without-submitting-a-form
     - The HTML5 <input autocomplete="On"> only works if you
 	  * Give a fixed ID to the input field (we might need changes to make that happen)
 	  * Force a real form submission
   * Alternatively, find a library to do something custom with it...
 
-- "Clipboard launch/search" assumes there's something in the clipboard, should we
-  have an alternate shortcut that simply opens a new empty tab?
-  * If you have Chrome opened, that's very trivial to do natively, but the shortcut
-    could save you a tiny bit of time if you're in another application...
-
-- Manage incognito tabs (same view, different BS-tab, hide, etc)
-
 - BUG: if a group has a long name and it's pinned, it's thumbtack is slighty off
   to the right compared to the other pinned groups/tiles around it
-
-- Remember recent searches
-
-- Add action menu to containers
 
 - Display <meta> tag information in dropdown, under title
   * Only "description"? Or also "image" when available?
 
-- Include also bookmarks in the search results, not only open tabs
-  * https://developer.chrome.com/docs/extensions/reference/bookmarks/#method-search
-  * If a bookmark is in a tab, it should not show up twice
-  * Should also add a badge mentioning a tab is bookmarked?
-
-- BUG: the popup icon badge shows the wrong count when entering search mode, it
-  seems to be getting updated to the number of tabs in the search results...
-
 - Show current tab in current window at the top of the tabs list?
-
-- "Candidate tabs" behavior should apply also for hostnames and URLs not in "search mode"
-  ("useClipboard")
-
-- Add support for wildcards in "matchList" of custom groups
 
 - Sort/group tabs by other means (by window, etc.)
 
@@ -175,36 +261,10 @@
 	  <span class="ytp-time-separator"> / </span>
 	  <span class="ytp-time-duration">2:00:21</span>
 
-- Add logic to let "www.google.com" be recognized as a valid URL, even though new URL()
-  won't consider it valid
-  * Make it behave like the browser's omnibar...
-
-- Fix the domElem.addEventListener(event, fn, true), sometimes we say "true", sometimes
-  we say "false", can we do it more accurately than random?
-
-- Reorganize TabsTabViewer to leverage a separate "TabsSet" object to manage the querying
-  and maintenance of tabs subsets (instead of spreading that logic within the class code
-  * One such object for the standard view, one for the search view, in future possibly
-    one separate object for the incognito view (which needs to behave like standard view,
-	but on a different subset of tabs)
-
-- BUG: sometimes some websites blink the title continouosly between two
-  different titles, e.g.:
-  https://www.snowflake.com/data-warehousing-difference-sql-nosql/
-  switching between normal title and "(1) new message" because of the
-  "bear" with the chat with a pending advertisement
-  - How do we throttle that to avoid too much blinking of the bsTab and
-    too much re-rendering of the popup?
-
 - Remove from SettingsStore.js the stuff that doesn't belong there
   * See comment at top of file. Dose background.js really need the
     "NormalizedTabs" class or the "ShortcutManager" class?
 	- Yes to both (see TabsManager)
-
-- BUG: console.log() and console.info() are the same thing in Chrome,
-  so our functions this._log() and this._log.info() are the same thing...
-  maybe we should use console.debug() as this._log()?
-  * With or without renaming this._log()?
 
 - Can we re-use tiles as we do full re-renders?
   * Right now we just discard all the existing tiles and create new ones
@@ -216,9 +276,7 @@
   remember the scrolling position when the popup was closed
   * Or should "go back to top" be expected to be the right behavior?
 
-- Time slice settings (fixed or relative times), just do fixed times for now
-
-- Create new window event to attach more tabs later (the event fires when the basic skeleton is
+- Create new window event to attach more bstabs later (the event fires when the basic skeleton is
   ready to accept bstabs insertion), so we can cut the “global” tab from first release but keep
   its insertion functional without touching popuptabs
   * Actually maybe best to just add a "register" to push all the plugins that want to be attached,
@@ -226,8 +284,6 @@
 
 - Use chrome.tabs.captureVisibleTab() to capture a screenshot of the tab
   * Works only when the tab is active
-
-- Organize groups by host name inside top level groups (second level)
 
 - Implement "recent" tabs
   * Start with TabsManager::_notifyPopup()
@@ -249,15 +305,10 @@
 	- Probably not as useful now that we have async rendering of tiles body, but
 	  it might still help by reducing the cost of these async tasks (and therefore
 	  freeing up cycles to do something else that currently would be waiting)
+  * This is now mitigated by the availability of an undocked popup
 
-- Work with tab groups, introduced by Chrome in 2020
-  * https://dev.to/otomer/google-chrome-s-new-update-finally-allows-you-to-organize-tabs-easily-this-is-how-you-can-use-it-3f99
-  * Note that tab groups only work within a window
-  * Unclear how to query for group properties (name and color)
-	- Still work in progress, see here for updates: https://bugs.chromium.org/p/chromium/issues/detail?id=1106846
-	- There should soon be a chrome.tabGroups API
-	- Actually it's here: https://developer.chrome.com/docs/extensions/reference/tabGroups/
-	  * But only available to the dev channel as of 21.01.24
+- Undocked popup always on top of other windows
+  * Currently Chrome doesn't have such an API
 
 - Implement https://developer.chrome.com/docs/extensions/reference/runtime/#event-onUpdateAvailable
   to force an update of the extension for users that never close their browser
@@ -266,20 +317,11 @@
 - Contact this guy to review my extension
   * https://www.computerworld.com/article/3535189/chrome-tab-switcher.html
 
-- Stop querying chrome.tabs.query in the popup, and do the querying only in the backgrond
-  * The background should manage the "normalization" step too, and just notify the
-    popup with the pre-normalized tabs list
-	- This should save some time at popup opening time, since the popup won't have
-	  to manage the query and normalization
-    - Even if it doesn't save visible time, it will still reduce the amount of processing
-	  caused by the popups, since eahc popup needs to query/normalize independently
-	  * The only side effect is that the background might have to do this at all
-	    times, even when no popup is open, but it already has to do that, in order
-		to manage correctly the custom shortcuts
-
 - Find a notification to update in real-time when the user changes isAllowedIncognitoAccess()
   * This notification doesn't seem to exist today
   * Should we poll?
+  * Probably not really needed, when the user makes the incognito change, the popup gets automatically
+    closed by Chrome (even if undocked!)
 
 - Find a better way to implement chromeUtils.getExtensionId()
 
@@ -291,48 +333,6 @@
 - Implement TileMenuViewer._updateShortcutMenuItems()
   * Or do we really care, given that most of the times we need to rebuild the
     entire set of tabs from scratch
-
-- Improve (automate) the Bootstrap upgrade process in src
-  * Can't load directly from node_modules, since it's outside the /src/manifest.json
-    subtree, but since we don't want to ever have to build /src (for now), we need
-	some other way to reliably push the Bootstrap files we need to /src when we
-	upgrade Bootstrap via NPM
-
-
-
-DONE 1.1
-
-- Add back this._getTabMetaTags() to TabTileViewer::update()
-  * And add back host permission "*://*/*" to allow the code injection to run properly
-
-- Moved release process to README-DEV.md
-
-- BUG: need to discard settings events if they arrive before the TabsTabViewer chrome
-  query has completed, while _normTabs is still uninitialized
-
-- Learned chrome.extension.getBackgroundPage can't be used in the injected content scripts
-
-- Updated Bootstrap to v.5.0.0-beta2
-
-- BUG: Shortcut05 can't be invoked
-
-- Track changes to localStore.isPopupDocked() (use event listener) in all opened
-  popup windows to close automatically when the docked state changes
-  * We should not have more than one undocked popup, but we could have more than
-    one docked popup
-
-- Removed fixed "width: 400px" from initialization to support the undocked case
-  * We force the width and height of <body> in popupDocker only when the popup is docked
-  * This fixed an issue with double scroll bars vertically
-  * We still have an issue with double scroll bars horizontally (when very small width)
-
-- Fixed behavior of this._errorMustSubclass(), the changes made to help uglifyjs
-  felt suspicious
-
-
-  
-PUNTED TO NEXT RELEASE
-
 
 
 ENVIRONMENT

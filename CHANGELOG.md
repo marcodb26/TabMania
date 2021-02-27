@@ -11,9 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   "least tabbed window"
   * If a search is active, the "+" button opens a launch/search with the search text instead
     of opening an empty new tab
+- Added `settingsStore.setOptionDevMode(true)` to control visualization and enabling of
+  dev-only features like the _extended tab ID_
 
 ## Changed
 - Updated Bootstrap to v.5.0.0-beta2
+- Added some initial minimal NPM automation scripts
 - Shortcuts try to recycle leftover "new tabs" created in the past and never used
 - Shortcuts open new tabs in the "least tabbed window", to keep balancing tabs across
   all your open windows
