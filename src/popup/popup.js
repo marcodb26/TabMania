@@ -26,6 +26,8 @@ window.addEventListener("load", init);
 var popupMsgServer = null;
 
 function testSettings() {
+//	settingsStore.setOptionDevMode(true);
+
 	settingsStore.setOptionSearchUrl("https://duckduckgo.com/?q=%s");
 //	settingsStore.setOptionShowTabId(true);
 	settingsStore.setOptionAdvancedMenu(true);
@@ -67,24 +69,6 @@ function testSettings() {
 		matchList: "wikipedia.org"
 	});
 }
-
-//function setHtmlBody() {
-//	let htmlBody = `
-//	<!-- Note that the maximum width of an extension's popup is 800px, but we just need half of that.
-//		See https://stackoverflow.com/questions/8983165/how-can-i-expand-the-popup-window-of-my-chrome-extension#:~:text=Chrome%20extension%20popups%20can%20have,and%20maximum%20width%20of%20800px.
-//	-->
-//	<div id="popup-tabs-div">
-//	</div>
-//	`;
-//	
-//	var bodyElem = document.createElement("body");
-//	if(popupDocker.isPopupDocked()) {
-//		bodyElem.style.width = "400px"
-//	bodyElem.innerHTML = htmlBody;
-//	document.body = bodyElem;
-//}
-//
-//setHtmlBody();
 
 function init() {
 	perfProf.mark("windowLoaded");

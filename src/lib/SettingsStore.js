@@ -997,9 +997,10 @@ Classes.SettingsStore = Classes.AsyncBase.subclass({
 	_storageKeyPrefix: "",
 
 	// Current options:
+	// - "searchUrl": the custom search URL to use with "Clipboard launch/search".
+	// - "devMode": enable/disable developer options (like the UI for "showTabId")
 	// - "showTabId": show the extended tab ID in the tiles
 	// - "advancedMenu": include advanced options in the tile dropdown menu
-	// - "searchUrl": the custom search URL to use with "Clipboard launch/search".
 	//   Make sure this URL includes "%s"
 	_options: null,
 	_customGroups: null,
@@ -1105,11 +1106,22 @@ _setOption: function(prop, value) {
 // https://nemisj.com/why-getterssetters-is-a-bad-idea-in-javascript/
 // It's easy enough to have a typo, it's nice to have a syntax check against that...
 getOptionShowTabId: function() {
+	if(!this._getBooleanOption("devMode")) {
+		return false;
+	}
 	return this._getBooleanOption("showTabId");
 },
 
 setOptionShowTabId: function(value) {
 	return this._setOption("showTabId", value);
+},
+
+getOptionDevMode: function() {
+	return this._getBooleanOption("devMode");
+},
+
+setOptionDevMode: function(value) {
+	return this._setOption("devMode", value);
 },
 
 getOptionAdvancedMenu: function() {
