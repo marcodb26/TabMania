@@ -47,4 +47,4 @@ update: function() {
 	this._updateMenuItems();
 },
 
-}); // Classes.TileMenuViewer
+}); // Classes.PopupMenuViewer
