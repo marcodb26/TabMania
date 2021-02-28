@@ -4,8 +4,6 @@
   * Just set URL to "chrome://bookmarks/?id=686", with the ID of the parent folder
     - Might require a trip to the background page to launch...
 
-- Define Extended ID of bookmark as "BM[parentID]/[bmID]"
-
 - Add a star to a tile if it's bookmarked
   * We must do this asynchronously, we can't wait for all these bookmark searches
     to go through after every tab query
@@ -254,25 +252,26 @@ DONE 1.1
 
 - Include bookmarks in search results, besides open tabs
   * https://developer.chrome.com/docs/extensions/reference/bookmarks/#method-search
-  * (DONE) Sort bookmarks before rendering
-  * (DONE) Add option to include or not bookmarks in search results
+  * Sort bookmarks before rendering
+  * Add option to include or not bookmarks in search results
     - Auto-updates search results if changed while a search is in progress
-  * (DONE) Manage pressing "Enter" when a bookmark is first in _currentSearchResults
-    - (DONE) Can we unify the behavior of "Enter" and "tile click"?
+  * Manage pressing "Enter" when a bookmark is first in _currentSearchResults
+    - Can we unify the behavior of "Enter" and "tile click"?
 	  * They're currently in two different classes...
-  * (DONE) Use tile "close" button to delete a bookmark
-  * (DONE) Remove menu button from bookmarks
-  * (DONE) Decide what happens when you click a bookmark
+  * Use tile "close" button to delete a bookmark
+  * Remove menu button from bookmarks
+  * Decide what happens when you click a bookmark
     - What happens if you click a bookmark that's alreay opened?
 	  * Now it will try to recycle the existing tab instead of opening a new one
-  * (WON'T DO) Discard a bookmark if it's also loaded
+  * Discard a bookmark if it's also loaded
     - Do we care to do this, is it ok if it shows up twice?
 	- NO let's show it twice
-  * (DONE) Make sure bookmark search works correctly with search modifiers
+  * Make sure bookmark search works correctly with search modifiers
     - Avoid it if the "!" modifier is added
 	- For "^" we filter initial chrome.bookmarks.search() results for beginning of
 	    title or URL or custom group badge
-  * (DONE) Update search results when bookmarks change
+  * Update search results when bookmarks change
+  * Define Extended ID of bookmark as "BM[parentID].[bmID]"
 
 - Recognize CTRL+V in the keydown handler, and open the searchbox just in time to capture
   the pasted text

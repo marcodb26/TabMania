@@ -122,8 +122,26 @@ normalizeLowerCaseTitle: function(lowerCaseTitle) {
 },
 
 // Static function
-formatExtendedId: function(tab) {
-	return tab.windowId + ":" + tab.id + "/" + tab.index;
+formatExtendedId: function(tab, objType) {
+	if(tab.tm != null) {
+		objType = optionalWithDefault(objType, tab.tm.type);
+	}
+	// Even if "tab.tm != null", tab.tm.type could still be undefined, and the next
+	// iteration of optionalWithDefault() will correct that
+	objType = optionalWithDefault(objType, Classes.NormalizedTabs.type.TAB);
+
+	if(objType == Classes.NormalizedTabs.type.TAB) {
+		return tab.windowId + ":" + tab.id + "/" + tab.index;
+	}
+
+	// Extended ID for bookmark: "bm[10.36]" (or "bm[.36]" for bookmarks with
+	// no parent).
+	// Note that we've explicitly chosen a different format from that of tab extended
+	// IDs because we want to make it easier to search specifically for just bookmark
+	// IDs, or just for tab IDs (e.g., the text ".36" will only target a bookmark with
+	// ID "36" (though you can't search it as a standalone keyword) while the text ":36"
+	// will only target a tab with ID 36).
+	return "bm[" + ((tab.parentId != null) ? tab.parentId : "") + "." + tab.id + "]";
 },
 
 _addNormalizedShortcutBadges: function(tab, secondary) {
@@ -249,6 +267,9 @@ updateBookmarkBadges: function(tab) {
 		// of the custom group, based on tab.tm.customGroupName
 		this._addNormalizedVisualBadge(tab, tab.tm.customGroupName, false);
 	}
+
+	// We always want this to appear last, if the user configured it to be visible
+	this._addNormalizedVisualBadge(tab, tab.tm.extId, settingsStore.getOptionShowTabId());
 },
 	
 // This function can be used as a static function of the class, it doesn't need any state
@@ -266,12 +287,6 @@ normalizeTab: function(tab, objType) {
 	let lowerCaseTitle = tab.title.toLowerCase();
 	let [ protocol, hostname ] = Classes.NormalizedTabs.getProtocolHostname(url);
 
-	let extId = "";
-	if(objType == Classes.NormalizedTabs.type.TAB) {
-		// No extended ID for bookmarks
-		extId = Classes.NormalizedTabs.formatExtendedId(tab);
-	}
-
 	tab.tm = {
 		type: objType,
 
@@ -285,7 +300,8 @@ normalizeTab: function(tab, objType) {
 		lowerCaseUrl: url.toLowerCase(),
 		lowerCaseTitle: lowerCaseTitle,
 		normTitle: Classes.NormalizedTabs.normalizeLowerCaseTitle(lowerCaseTitle),
-		extId: extId,
+		// Bookmarks have extended IDs too
+		extId: Classes.NormalizedTabs.formatExtendedId(tab, objType),
 
 		// "visualBadges" are the badges displayed by the tiles, and are case
 		// sensitive. "searchBadges" can repeat the "visualBadges" as case
