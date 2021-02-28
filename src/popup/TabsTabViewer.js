@@ -139,9 +139,6 @@ Classes.TabsTabViewer = Classes.SearchableTabViewer.subclass({
 	_containerViewer: null,
 	_groupsBuilder: null,
 
-	_updatesTrackerHandleIdByTab: null,
-	_updatesTrackerHandleIdByProp: null,
-
 	// If grouping is displaying, we need to track which groups are collapsed (default)
 	// and which groups are expanded, otherwise every redraw (happening at every tab
 	// event) will re-collapse all groups.

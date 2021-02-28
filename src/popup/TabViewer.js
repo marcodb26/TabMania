@@ -297,13 +297,6 @@ _respondToEnterKey: function(searchBoxText) {
 	this._errorMustSubclass("SearchableTabViewer::_respondToEnterKey(): ");
 },
 
-// OLD, IGNORE (leaving it around in case I was wrong)
-// Add here any keypresses you want to ignore when a search is not active.
-// Note that you can't intercept "Escape", see https://www.zdnet.com/article/google-changes-how-the-escape-key-is-handled-in-chrome-to-fight-popup-ads/
-_searchInactiveIgnoreKeys: new Set([
-		"ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Backspace", "Enter"
-]),
-
 _modifierToString: function(ev) {
 	if(ev.altKey) {
 		return "Alt";
@@ -321,7 +314,8 @@ _modifierToString: function(ev) {
 },
 
 // This function track keypresses in two cases
-// - When search is not active, activate search with any key except "this._searchInactiveIgnoreKeys".
+// - When search is not active, activate search with any key except "special keys" (Enter,
+//   backspace, control, alt, etc.).
 // - When search is active, use "Enter" to trigger a "click" on the first tile in the
 //   search results.
 _activateSearchCb: function(ev) {
