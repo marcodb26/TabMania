@@ -18,9 +18,12 @@
 - The bstabs show an ugly URL at the bottom of the undocked window, we should
   get rid of it
 
-- Recognize CTRL+V in the keydown handler, and open the searchbox just in time to capture
-  the pasted text
-  * But what if there's no text to paste???
+- Add tab count badge to "Home" bstab
+  * Maybe only when it's undocked? It's redundant when docked
+
+- In search, consider multiple words to be multiple keywords separated by "or"
+  * Right now multiple words are still pat of a single string
+  * Is that compatible with using the "+" as launch/search?
 
 - Add logic to let "www.google.com" be recognized as a valid URL, even though new URL()
   won't consider it valid
@@ -271,6 +274,9 @@ DONE 1.1
 	    title or URL or custom group badge
   * (DONE) Update search results when bookmarks change
 
+- Recognize CTRL+V in the keydown handler, and open the searchbox just in time to capture
+  the pasted text
+  * If the clipboard doesn't have text, the searchbox will close again
 
 
 PUNTED TO NEXT RELEASE

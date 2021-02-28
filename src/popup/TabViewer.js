@@ -247,6 +247,9 @@ _bstabActivatedCb: function(ev) {
 	// We're setting the listener very broadly to "window" instead of putting a more
 	// restricted scope, because we want the search to activate regardless of where
 	// the focus might currently be.
+	// Note the choice of "keydown" instead of "keyup" to get a chance to capture the
+	// text from "CTRL+V". See _activateSearchCb() for details.
+	//
 	// See _activateSearchCbBoundFn above for details on this._activateSearchCbBoundFn here.
 	window.addEventListener("keydown", this._activateSearchCbBoundFn, true);
 	if(this._searchActive) {
@@ -307,10 +310,16 @@ _modifierToString: function(ev) {
 	}
 
 	if(ev.metaKey) {
+		// See https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/metaKey
 		return "Meta";
 	}
 
 	return null;
+},
+
+_isPasteKeyboardShortcut(ev, modifier) {
+	// "Control" for Windows, "Meta" for Mac
+	return ((modifier == "Control" || modifier == "Meta") && ev.key == "v");
 },
 
 // This function track keypresses in two cases
@@ -338,7 +347,6 @@ _activateSearchCb: function(ev) {
 
 	// Use "key", not "code", if you want the keyboard layout and the modifiers
 	// (SHIFT, CTRL, ALT, etc.) to be pre-processed into the event.
-//	if(this._searchInactiveIgnoreKeys.has(ev.key)) {
 
 	// There are a lot of non-printable keys returned by browser. See here for
 	// a likely complete sample: https://www.aarongreenlee.com/blog/list-of-non-printable-keys-for-keyboard-events-when-using-event-key/
@@ -351,10 +359,16 @@ _activateSearchCb: function(ev) {
 
 	let modifier = this._modifierToString(ev);
 	if(modifier != null) {
-		// If one of these modifiers are pressed, the current keypress won't make
-		// it to the searchbox
-		this._log(logHead + "ignoring key with key modifier " + modifier + " active");
-		return;
+		if(this._isPasteKeyboardShortcut(ev, modifier)) {
+			this._log(logHead + "identified 'paste' shortcut");
+			// The user pressed combo is CTRL+V. In this case we just continue processing, as
+			// we want to capture the text being pasted into the searchbox input
+		} else {
+			// If one of these modifiers are pressed, the current keypress won't make
+			// it to the searchbox
+			this._log(logHead + "ignoring key with key modifier " + modifier + " active");
+			return;
+		}
 	}
 
 	this._log(logHead + "starting search");

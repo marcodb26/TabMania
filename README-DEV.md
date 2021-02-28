@@ -122,6 +122,9 @@ Very manual until I have some time to focus on automation
   * https://docs.github.com/en/github/administering-a-repository/managing-releases-in-a-repository
   * Create a tag as part of the release creation process
     * The tag must have format `vX.Y`, where X.Y is the same version as the version in the `manifest.json` file
+  * Add `TabMania.v[X.Y].distribution.zip` to the release assets
+  * Ideally also add new screenshots (those you use in the Chrome Web Store developer console) to the
+    assets as well
 
 * Once the tag is available, navigate to the tagged sources and get a link to README.md in that tag
   * Then edit the release object just created, and add the "Documentation here" hyperlink to the
