@@ -25,6 +25,12 @@ a custom shortcut. We combine these three identifiers into a string of the form
 If you enable the _Display extended tab ID badge_ option, the extended tab ID badge will be visible in
 every tile. Note that you can search by extended tab ID even if this option is disabled.
 
+### Extended bookmark ID
+Similar to tabs, bookmarks that land in search results have an extended ID attached. The extended ID
+of a bookmark is a string of the form `bm[parentId].[bookmarkId]`. For root objects, the `[parentId]`
+could be missing. Extended bookmark IDs are not searchable (bookmarks can only be searched for title
+and URL matches), but when visualized they can still provide a hint of context about the bookmark.
+
 # Environment
 TabMania's package.json `scripts` section assumes bash as the shell. If you're on Windows, take the
 path of your git-bash from git and run `npm config set script-shell "C:\\Program Files\\Git\\git-bash.exe"`
