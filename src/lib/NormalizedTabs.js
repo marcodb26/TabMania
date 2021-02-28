@@ -257,9 +257,9 @@ updateSearchBadges: function(tab) {
 },
 
 updateBookmarkBadges: function(tab) {
-	// Don't add "bookmark" to the search badges, users can't search with the
-	// "bookmark" keyword, we don't start with the full list of bookmarks
-	tab.tm.visualBadges.push("bookmark");
+//	// Don't add "bookmark" to the search badges, users can't search with the
+//	// "bookmark" keyword, we don't start with the full list of bookmarks
+//	tab.tm.visualBadges.push("bookmark");
 
 	if(tab.tm.customGroupName != null) {
 		// We're adding the badge as a search-only badge (not visible) because

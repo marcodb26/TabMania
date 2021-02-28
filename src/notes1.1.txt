@@ -33,9 +33,11 @@
 
 - Group/ungroup all groups (popup menu items)
 
-- Replace the "bookmark" badge in bookmark tiles with some other visual clue
-  * We should not show a badge because one can't search the keyword "bookmark"
-	- It would be crazy to show just a flat list of all bookmarks
+- BUG: the ellipsis of .text-truncate are not vertically align with the title of a tile
+  now that the title of the tile uses Bootstrap's .align-middle (vertical-align: middle;)
+  * They were align to the baseline of the text before the .align-middle change...
+  * .text-truncate is in the parent element, but setting .align-middle there too has
+    no effect at all
 
 - Limit maximum number of tabs in a window
   * To be used with the "least tabbed window" logic to decide to open a new tab in a
@@ -261,7 +263,6 @@ DONE 1.1
     - Can we unify the behavior of "Enter" and "tile click"?
 	  * They're currently in two different classes...
   * Use tile "close" button to delete a bookmark
-  * Remove menu button from bookmarks
   * Decide what happens when you click a bookmark
     - What happens if you click a bookmark that's alreay opened?
 	  * Now it will try to recycle the existing tab instead of opening a new one
@@ -274,6 +275,9 @@ DONE 1.1
 	    title or URL or custom group badge
   * Update search results when bookmarks change
   * Define Extended ID of bookmark as "BM[parentID].[bmID]"
+  * Replace the "bookmark" badge in bookmark tiles with some other visual clue
+	- We should not show a badge because one can't search the keyword "bookmark"
+	  * It would be crazy to show just a flat list of all bookmarks
 
 - Recognize CTRL+V in the keydown handler, and open the searchbox just in time to capture
   the pasted text

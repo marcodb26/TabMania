@@ -177,6 +177,11 @@ renderBody: function() {
 		}
 	}
 
+	let bookmarkIcon = "";
+	if(this._tab.tm.type == Classes.NormalizedTabs.type.BOOKMARK) {
+		bookmarkIcon = icons.bookmark;
+	}
+
 	let imgHtml = "";
 	if(this._imgUrl != "") {
 		imgHtml = `
@@ -187,10 +192,26 @@ renderBody: function() {
 	// See https://getbootstrap.com/docs/5.0/components/card/
 	// Do we need the attribute "width='16px'" in the <img> below, or are the min-width
 	// and max-width settings of tm-favicon-16 enough?
+//	const bodyHtml = `
+//		<p class="card-title text-truncate tm-tile-title mb-0">
+//			${imgHtml}
+//			<span class="${textMuted} ${titleExtraClasses.join(" ")}">${this._safeText(this._title)}</span>
+//		</p>
+//		<div class="d-flex">
+//			<p class="flex-grow-1 align-self-center text-truncate tm-tile-url">
+//				<small class="${textMuted}">${bookmarkIcon}${this._safeText(this._url)}</small>
+//			</p>
+//			<p> </p>
+//			<p class="align-self-center card-text small" style="text-align: right;">
+//				${visibleBadgesHtml.join(" ")}
+//			</p>
+//		</div>
+//	`;
 	const bodyHtml = `
 		<p class="card-title text-truncate tm-tile-title mb-0">
 			${imgHtml}
-			<span class="${textMuted} ${titleExtraClasses.join(" ")}">${this._safeText(this._title)}</span>
+			${bookmarkIcon}
+			<span class="align-middle ${textMuted} ${titleExtraClasses.join(" ")}">${this._safeText(this._title)}</span>
 		</p>
 		<div class="d-flex">
 			<p class="flex-grow-1 align-self-center text-truncate tm-tile-url">

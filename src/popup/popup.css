@@ -59,6 +59,16 @@
     vertical-align: -.36em;
 }
 
+.tm-fa-bookmark {
+	width: 1em;
+    height: 1em;
+	/* Bookmarks always show up in black and white, but we want this icon to
+	   stand out. Choosing a dark color to avoid it "standing out too much".
+	*/
+	color: #a60c29;
+	/*vertical-align: -.125em;*/
+}
+
 .tm-fa-thumbtack-tile {
 	width: 1em;
     height: 1em;
