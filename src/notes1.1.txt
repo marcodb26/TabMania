@@ -1,29 +1,3 @@
-- TO DO
-  * (DONE) Sort bookmarks before rendering
-  * (DONE) Add option to include or not bookmarks in search results
-    - Auto-updates search results if changed while a search is in progress
-  * (DONE) Manage pressing "Enter" when a bookmark is first in _currentSearchResults
-    - (DONE) Can we unify the behavior of "Enter" and "tile click"?
-	  * They're currently in two different classes...
-  * (DONE) Use tile "close" button to delete a bookmark
-  * (DONE) Remove menu button from bookmarks
-  * (DONE) Decide what happens when you click a bookmark
-    - What happens if you click a bookmark that's alreay opened?
-	  * Now it will try to recycle the existing tab instead of opening a new one
-  * (WON'T DO) Discard a bookmark if it's also loaded
-    - Do we care to do this, is it ok if it shows up twice?
-	- NO let's show it twice
-  * (DONE) Make sure bookmark search works correctly with search modifiers
-    - Avoid it if the "!" modifier is added
-	- For "^" we filter initial chrome.bookmarks.search() results for beginning of
-	    title or URL or custom group badge
-  * (DONE) Update search results when bookmarks change
-
-- Include also bookmarks in the search results, not only open tabs
-  * https://developer.chrome.com/docs/extensions/reference/bookmarks/#method-search
-  * If a bookmark is in a tab, it should not show up twice
-  * Should also add a badge mentioning a tab is bookmarked?
-
 - Add a star to a tile if it's bookmarked
   * We must do this asynchronously, we can't wait for all these bookmark searches
     to go through after every tab query
@@ -267,7 +241,30 @@ DONE 1.1
 - Review code to verify there are no other silly this._err() in there (like those attached
   to user input validation, that didn't make sense)
 
-  
+- Include bookmarks in search results, besides open tabs
+  * https://developer.chrome.com/docs/extensions/reference/bookmarks/#method-search
+  * (DONE) Sort bookmarks before rendering
+  * (DONE) Add option to include or not bookmarks in search results
+    - Auto-updates search results if changed while a search is in progress
+  * (DONE) Manage pressing "Enter" when a bookmark is first in _currentSearchResults
+    - (DONE) Can we unify the behavior of "Enter" and "tile click"?
+	  * They're currently in two different classes...
+  * (DONE) Use tile "close" button to delete a bookmark
+  * (DONE) Remove menu button from bookmarks
+  * (DONE) Decide what happens when you click a bookmark
+    - What happens if you click a bookmark that's alreay opened?
+	  * Now it will try to recycle the existing tab instead of opening a new one
+  * (WON'T DO) Discard a bookmark if it's also loaded
+    - Do we care to do this, is it ok if it shows up twice?
+	- NO let's show it twice
+  * (DONE) Make sure bookmark search works correctly with search modifiers
+    - Avoid it if the "!" modifier is added
+	- For "^" we filter initial chrome.bookmarks.search() results for beginning of
+	    title or URL or custom group badge
+  * (DONE) Update search results when bookmarks change
+
+
+
 PUNTED TO NEXT RELEASE
 
 - BUG: chrome.tabs.update(tabId, { url: url }) loads a new "url" but sometimes replaces the

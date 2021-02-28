@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     of opening an empty new tab
 - Added `settingsStore.setOptionDevMode(true)` to control visualization and enabling of
   dev-only features like the _extended tab ID_
+- Search results now also include matching bookmarks, not only open tabs
+  * This feature is enabled by default, but can be disabled via settings
+  * Clicking the tile of a bookmark will try to find an existing tab with a matching URL to
+    activate, and if not found, will open a new tab using our standard "recycle empty or
+    least tabbed window"
 
 ## Changed
 - Updated Bootstrap to v.5.0.0-beta2
