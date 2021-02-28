@@ -4,11 +4,18 @@
 	"description": "A simple tab manager enabling some essential keyboard shortcuts",
 	"permissions": [
 //		"activeTab",
+		"bookmarks",
 		"tabs",
 		"tabGroups", // https://developer.chrome.com/docs/extensions/reference/tabGroups/
 		"storage",
 		"clipboardRead", // See: https://stackoverflow.com/questions/22702446/how-to-get-clipboard-data-in-chrome-extension
-		"*://*/*"    // Needed to allow script injection in tabs (see chromeUtils.inject())
+		"*://*/*",    // Needed to allow script injection in tabs (see chromeUtils.inject())
+
+		// We need to add permission "chrome://favicon/" to gain access to the favIcon cache, needed to have
+		// an icon for the tiles displaying bokmarks. Some people say you also need to have "content_security_policy"
+		// set to "img-src chrome://favicon;", but that seems to break loading other images, and not having
+		// it doesn't seem to cause any side effects.
+		"chrome://favicon/"
 	],
 	"background": {
 		"scripts": ["lib/utils.js", "lib/chromeUtils.js", "lib/NormalizedTabs.js", "lib/ShortcutsManager.js",
@@ -109,6 +116,7 @@
 	// See: https://stackoverflow.com/questions/34950009/chrome-extension-refused-to-load-the-script-because-it-violates-the-following-c
 	// https://cdnjs.cloudflare.com is needed for Font Awesome
 //	"content_security_policy": "script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; object-src 'self'",
+
 	"content_security_policy": "script-src 'self' https://cdnjs.cloudflare.com; object-src 'self'",
 	"manifest_version": 2
 }

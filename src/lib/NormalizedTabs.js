@@ -228,6 +228,9 @@ updateSearchBadges: function(tab) {
 	}
 
 	if(tab.tm.customGroupName != null) {
+		// We're adding the badge as a search-only badge (not visible) because
+		// the TileViewer has special logic to render this badge in the color
+		// of the custom group, based on tab.tm.customGroupName
 		this._addNormalizedVisualBadge(tab, tab.tm.customGroupName, false);
 	}
 
@@ -235,26 +238,54 @@ updateSearchBadges: function(tab) {
 	this._addNormalizedVisualBadge(tab, tab.tm.extId, settingsStore.getOptionShowTabId());
 },
 
-// This can be used as a static function of the class, it doesn't
-// need any state from "this".
-normalizeTab: function(tab) {
+updateBookmarkBadges: function(tab) {
+	// Don't add "bookmark" to the search badges, users can't search with the
+	// "bookmark" keyword, we don't start with the full list of bookmarks
+	tab.tm.visualBadges.push("bookmark");
+
+	if(tab.tm.customGroupName != null) {
+		// We're adding the badge as a search-only badge (not visible) because
+		// the TileViewer has special logic to render this badge in the color
+		// of the custom group, based on tab.tm.customGroupName
+		this._addNormalizedVisualBadge(tab, tab.tm.customGroupName, false);
+	}
+},
+	
+// This function can be used as a static function of the class, it doesn't need any state
+// from "this".
+//
+// "tab" can be either a tab object or a bookmark node object, determined by "objType".
+// "objType" is one of Classes.NormalizedTabs.type, default to Classes.NormalizedTabs.type.TAB
+normalizeTab: function(tab, objType) {
+	objType = optionalWithDefault(objType, Classes.NormalizedTabs.type.TAB);
+
 	// Sometimes "tab.url" is empty, because "tab.pendingUrl" is still loading.
 	// But in some cases, tab.url is empty, and tab.pendingUrl doesn't even exist,
 	// so we use optionalWithDefault() to cover that last corner case.
 	let url = optionalWithDefault((tab.url != "") ? tab.url : tab.pendingUrl, "");
 	let lowerCaseTitle = tab.title.toLowerCase();
 	let [ protocol, hostname ] = Classes.NormalizedTabs.getProtocolHostname(url);
+
+	let extId = "";
+	if(objType == Classes.NormalizedTabs.type.TAB) {
+		// No extended ID for bookmarks
+		extId = Classes.NormalizedTabs.formatExtendedId(tab);
+	}
+
 	tab.tm = {
+		type: objType,
+
 		// We could use "this" here, but since we decided these
 		// we're invoking are static functions, let's follow through
 		// with that
 		protocol: protocol,
 		hostname: hostname,
+		// Bookmarks can be part of a custom group, why not?
 		customGroupName: settingsStore.getCustomGroupsManager().getCustomGroupByHostname(hostname),
 		lowerCaseUrl: url.toLowerCase(),
 		lowerCaseTitle: lowerCaseTitle,
 		normTitle: Classes.NormalizedTabs.normalizeLowerCaseTitle(lowerCaseTitle),
-		extId: Classes.NormalizedTabs.formatExtendedId(tab),
+		extId: extId,
 
 		// "visualBadges" are the badges displayed by the tiles, and are case
 		// sensitive. "searchBadges" can repeat the "visualBadges" as case
@@ -280,15 +311,33 @@ normalizeTab: function(tab) {
 		primaryShortcutBadges: [],
 		secondaryShortcutBadges: [],
 	};
-	this.updateShortcutBadges(tab);
-	this.updateSearchBadges(tab);
+
+	if(objType == Classes.NormalizedTabs.type.TAB) {
+		// Bookmarks don't need search badges, because they're inserted in the flow
+		// through chrome.bookmarks.search() (that is, post search).
+		// Bookmarks also don't need shortcut badges because they can't be invoked
+		// via custom shortcuts (though the URL in a custom shortcut could match
+		// the URL of a bookmark, they're slightly different things, let's not mix
+		// them up).
+		this.updateShortcutBadges(tab);
+		this.updateSearchBadges(tab);
+	} else {
+		this.updateBookmarkBadges(tab);
+	}
 },
 
 // Call this function if you need a full refresh of all search/shortcut badges due
 // to a configuration change
 normalizeAll: function() {
 	perfProf.mark("normalizeStart");
-	this._tabs.forEach(this.normalizeTab.bind(this));
+	this._tabs.forEach(
+		// Don't just pass "this.normalizeTab.bind(this)", because forEach adds extra
+		// arguments after the "tab" argument, and they conflict with the "objType"
+		// of normalizeTab.
+		function(tab) {
+			this.normalizeTab(tab);
+		}.bind(this)
+	);
 	perfProf.mark("normalizeEnd");
 	perfProf.measure("Normalize", "normalizeStart", "normalizeEnd");
 },
@@ -348,3 +397,7 @@ updateTab: function(newTab, tabIdx) {
 },
 
 }); // Classes.NormalizedTabs
+
+Classes.Base.roDef(Classes.NormalizedTabs, "type", {} );
+Classes.Base.roDef(Classes.NormalizedTabs.type, "TAB", "tab" );
+Classes.Base.roDef(Classes.NormalizedTabs.type, "BOOKMARK", "bookmark" );

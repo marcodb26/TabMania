@@ -131,6 +131,52 @@ _containerCollapsedCb: function(ev) {
 }); // Classes.TilesGroupViewer
 
 
+// CLASS BookmarksFinder
+Classes.BookmarksFinder = Classes.Base.subclass({
+_init: function(tabGroup, expandedGroups) {
+	// Overriding the parent class' _init(), but calling that original function first
+	Classes.Base._init.call(this);
+	this.debug();
+},
+
+_processBookmarkTreeNodes: function(nodes) {
+	const logHead = "BookmarksFinder::_processBookmarkTreeNodes(): ";
+	this._log(logHead + "received: ", nodes);
+	nodes.forEach(
+		function(node) {
+			// We want each "node" to be as similar as possible to a "tab" object...
+			// It already includes "title", "url" and "id" (though we have to be careful not
+			// to mix up a bookmark ID and a tab ID (the former is a string, the latter is a
+			// number, though the string encodes a number that looks like a tab ID)).
+			// We want to add favIconUrl, a compatible "status" to render the bookmarks in
+			// black and while like we render unloaded tabs, and some of the things we get from
+			// NormalizedTabs.normalizeTab() (which we can safely call directly).
+
+			// BookmarkTreeNode doesn't include a favIcon for the bookmark, but we could be
+			// lucky and find one in the Chrome's favIcon cache...
+			// See https://stackoverflow.com/questions/10665321/reliably-getting-favicons-in-chrome-extensions-chrome-favicon
+			node.favIconUrl = "chrome://favicon/size/16@1x/" + node.url;
+			node.status = "unloaded";
+			Classes.NormalizedTabs.normalizeTab(node, Classes.NormalizedTabs.type.BOOKMARK);
+		}
+	);
+
+	// Don't sort here. In the "merge with tabs" case, we'll need to re-sort anyway, so
+	// let's just sort once in the caller
+	//nodes = nodes.sort(Classes.NormalizedTabs.compareTabsFn);
+	return nodes;
+},
+
+// Returns an unsorted list of bookmark nodes, normalized with NormalizedTabs.normalizeTabs()
+find: function(searchString) {
+	const logHead = "BookmarksFinder::find(" + searchString + "): ";
+	this._log(logHead + "entering");
+	return chromeUtils.wrap(chrome.bookmarks.search, logHead, searchString).then( this._processBookmarkTreeNodes.bind(this));
+},
+
+}); // Classes.BookmarksFinder
+
+
 // CLASS TabsTabViewer
 //
 // Abstract class, parent of all Viewers of tab lists
@@ -170,6 +216,8 @@ Classes.TabsTabViewer = Classes.SearchableTabViewer.subclass({
 	// Object containing all current known tabs
 	_normTabs: null,
 
+	_bookmarksFinder: null,
+
 _init: function(tabLabelHtml) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.SearchableTabViewer._init.apply(this, arguments);
@@ -182,6 +230,8 @@ _init: function(tabLabelHtml) {
 
 	this._queryAndRenderJob = Classes.ScheduledJob.create(this._queryAndRenderTabs.bind(this));
 	this._queryAndRenderJob.debug();
+
+	this._bookmarksFinder = Classes.BookmarksFinder.create();
 
 	this._groupsBuilder = Classes.GroupsBuilder.create();
 	// Call this function before rendering, because it sets _renderTabs(), which
@@ -664,6 +714,29 @@ _searchBoxProcessData: function(value) {
 	this._searchRenderTabs(this._normTabs.getTabs());
 },
 
+// This is a static function, because we need it both in the "Enter" handler as
+// well as in the "click" handler (see TileViewer), and there was no cleaner way
+// to make this code available in both
+activateTab: function(tab) {
+	if(tab.tm.type == Classes.NormalizedTabs.type.TAB) {
+		chromeUtils.activateTab(tab.id);
+		return;
+	}
+
+	// The tile is a bookmark, not a tab, we need to find an existing tab already
+	// loaded with the current shortcut, or open a new tab to handle the Enter/click
+	chromeUtils.wrap(chrome.tabs.query, "Classes.TabsTabViewer.activateTab()", { url: tab.url }).then(
+		function(tabList) {
+			if(tabList.length == 0) {
+				chromeUtils.loadUrl(tab.url);
+			} else {
+				// Activate the first tab in the list with a matching URL
+				chromeUtils.activateTab(tabList[0].id);
+			}
+		}.bind(this)
+	);
+},
+
 _respondToEnterKey: function(searchBoxText) {
 	const logHead = "TabsTabViewer::_respondToEnterKey(" + searchBoxText + "): ";
 
@@ -672,8 +745,9 @@ _respondToEnterKey: function(searchBoxText) {
 		return;
 	}
 
-	this._log(logHead + "activating tab Id " + this._currentSearchResults[0].id);
-	chromeUtils.activateTab(this._currentSearchResults[0].id);
+	this._log(logHead + "activating tab Id " + this._currentSearchResults[0].id +
+					" (" + this._currentSearchResults[0].tm.type + ")");
+	Classes.TabsTabViewer.activateTab(this._currentSearchResults[0]);
 },
 
 _searchCompareFnInner: function(fnName, targetString, searchString) {
@@ -694,19 +768,6 @@ _isTabInCurrentSearchPositive: function(tab) {
 		return true;
 	}
 
-// Now "tab.tm.extId" is always either in searchBadges or in hiddenSearchBadges,
-// (depending on whether it's configured visible), so there's no more need to
-// special-case it
-//
-//	// Note that "extId" could also be in a search badge, but that depends
-//	// on user configuration, and we want to be able to search by extended ID
-//	// regardless of whether or not the badge is visually there, so we need
-//	// to search here explicitly.
-//	// No need for ".toLowerCase()" here.
-//	if(this._searchCompareFn(tab.tm.extId, this._currentSearchInput)) {
-//		return true;
-//	}
-
 	for(let i = 0; i < tab.tm.searchBadges.length; i++) {
 		if(this._searchCompareFn(tab.tm.searchBadges[i], this._currentSearchInput)) {
 			return true;
@@ -717,6 +778,12 @@ _isTabInCurrentSearchPositive: function(tab) {
 },
 
 _isTabInCurrentSearchNegative: function(tab) {
+	if(tab.tm.type == Classes.NormalizedTabs.type.BOOKMARK) {
+		// Bookmarks don't belong in negative searches, because we're not scanning the
+		// entire set of bookmarks, only the set of results from a positive search, not
+		// a negative one.
+		return false;
+	}
 	return !this._isTabInCurrentSearchPositive(tab)
 },
 
@@ -743,6 +810,57 @@ _filterByCurrentSearch: function(inputTabs) {
 	);
 },
 
+_searchRenderTabsInner_Merged: function(tabs, bmNodes) {
+	const logHead = "TabsTabViewer::_searchRenderTabsInner_Merged(): ";
+
+	// Using Array.concat() instead of the spread operator [ ...tabs, ...bmNodes] because
+	// it seems to be faster, and because we're potentially dealing with large arrays here
+	let objects = tabs.concat(bmNodes);
+
+	objects = this._filterByCurrentSearch(objects);
+	objects = objects.sort(Classes.NormalizedTabs.compareTabsFn);
+
+	this._setSearchBoxCount(objects.length);
+
+	if(objects.length == 0) {
+		this._log(logHead + "no tabs in search results");
+		this._currentSearchResults = null;
+	} else {
+		this._currentSearchResults = objects;
+		this._renderTabsFlatInner(this._containerViewer, objects);
+	}
+},
+
+_searchRenderTabsInner_Separate: function(tabs, bmNodes) {
+	const logHead = "TabsTabViewer::_searchRenderTabsInner_Separate(): ";
+
+	tabs = this._filterByCurrentSearch(tabs);
+	tabs = tabs.sort(Classes.NormalizedTabs.compareTabsFn);
+
+	bmNodes = this._filterByCurrentSearch(bmNodes);
+	bmNodes = bmNodes.sort(Classes.NormalizedTabs.compareTabsFn);
+
+	this._setSearchBoxCount(tabs.length + bmNodes.length);
+
+	if((tabs == null || tabs.length == 0) && bmNodes.length == 0) {
+		this._log(logHead + "no tabs in search results");
+		this._currentSearchResults = null;
+	} else {
+		if(tabs.length != 0) {
+			// This assumes "tabs" are rendered first
+			this._currentSearchResults = tabs;
+		} else {
+			// Since they're not both zero, "bmNodes" must be non-zero here.
+			// this._currentSearchResults is used to trigger an action when the
+			// user presses "Enter", so it makes sense to adapt it to allow users
+			// to open bookmarks too
+			this._currentSearchResults = bmNodes;
+		}
+		this._renderTabsFlatInner(this._containerViewer, tabs);
+		this._renderTabsFlatInner(this._containerViewer, bmNodes);
+	}
+},
+
 _searchRenderTabs: function(tabs) {
 	const logHead = "TabsTabViewer::_searchRenderTabs(): ";
 
@@ -751,19 +869,31 @@ _searchRenderTabs: function(tabs) {
 	// we're leaving that logic for later.
 	this._containerViewer.clear();
 
-	tabs = this._filterByCurrentSearch(tabs);
-	// Tabs are already normalized with the "tm" data we need to sort them
-	tabs = tabs.sort(Classes.NormalizedTabs.compareTabsFn); // this._groupsBuilder._normalizeAndSort(tabs);
+//	tabs = this._filterByCurrentSearch(tabs);
+//	// Tabs are already normalized with the "tm" data we need to sort them
+//	tabs = tabs.sort(Classes.NormalizedTabs.compareTabsFn); // this._groupsBuilder._normalizeAndSort(tabs);
 
-	this._setSearchBoxCount(tabs.length);
+	let merge = true;
 
-	if(tabs == null || tabs.length == 0) {
-		this._log(logHead + "no tabs in search results");
-		this._currentSearchResults = null;
-	} else {
-		this._currentSearchResults = tabs;
-		this._renderTabsFlatInner(this._containerViewer, tabs);
-	}
+	this._bookmarksFinder.find(this._currentSearchInput).then(
+		function(bmNodes) {
+			if(merge) {
+				this._searchRenderTabsInner_Merged(tabs, bmNodes);
+			} else {
+				this._searchRenderTabsInner_Separate(tabs, bmNodes);
+			}
+		}.bind(this)
+	);
+
+//	this._setSearchBoxCount(tabs.length);
+//
+//	if(tabs == null || tabs.length == 0) {
+//		this._log(logHead + "no tabs in search results");
+//		this._currentSearchResults = null;
+//	} else {
+//		this._currentSearchResults = tabs;
+//		this._renderTabsFlatInner(this._containerViewer, tabs);
+//	}
 },
 
 }); // Classes.TabsTabViewer

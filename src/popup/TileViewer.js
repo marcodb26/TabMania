@@ -127,7 +127,11 @@ renderBody: function() {
 			visibleBadgesHtml.push(icons.volumeAudible);
 		}
 	} else {
-		if(this._tab.mutedInfo.muted) {
+		// We need to add the check "this._tab.mutedInfo != null" because this._tab
+		// could actually be a this._tab.tm.type == Classes.NormalizedTabs.type.BOOKMARK,
+		// which doesn't have "mutedInfo". The cleaner thing would be to check for type,
+		// but the current check seems to be a bit less verbose.
+		if(this._tab.mutedInfo != null && this._tab.mutedInfo.muted) {
 			if(!this._tab.incognito) {
 				visibleBadgesHtml.push(icons.volumeMuted("text-secondary"));
 			} else {
@@ -262,10 +266,7 @@ _getTabMetaTags: function() {
 },
 
 _onTileClickCb: function(ev) {
-	chromeUtils.activateTab(this._tab.id).then(
-		function() {
-		}.bind(this)
-	);
+	Classes.TabsTabViewer.activateTab(this._tab);
 },
 
 _onTileCloseCb: function(ev) {
@@ -296,13 +297,13 @@ update: function(tab, tabGroup) {
 	if(tab == null) {
 		// Events like Classes.TabUpdatesTracker.CbType.ACTIVATED trigger a tile
 		// update, but there's no "tab" info to perform the actual update... what
-		// this means is that the tab has been highlighted, so let's simulate
+		// this means is that the tab has been activated, so let's simulate
 		// the availability of that update here...
 		//
 		// We're making an assumption here that if update() is called with "tab == null",
 		// there's already a value in this._tab (otherwise the initialization of
-		// the tile would have failed.
-		this._tab.highlighted = true;
+		// the tile would have failed).
+		this._tab.activated = true;
 		tab = this._tab;
 	} else {
 		this._tab = tab;

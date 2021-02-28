@@ -73,5 +73,14 @@ function init() {
 			bgInitPromiseResolveFn();
 		}
 	);
+	
+	// test
+//	let myImage = new Image();
+//	myImage.onerror = function(e) {
+//		console.error("Got here: ", e);
+//	}
+//	myImage.src = "chrome://favicon/size/16@1x/https://example.com/doesntexist";
+//	myImage.src = "https://example.com/doesntexist";
+//	document.body.appendChild(myImage);
 }
 

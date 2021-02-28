@@ -172,7 +172,10 @@ _init: function(tab) {
 	this.debug();
 	this._tab = tab;
 
-	this._initMenuItems();
+	if(this._tab.tm.type == Classes.NormalizedTabs.type.TAB) {
+		// No menu for bookmark items
+		this._initMenuItems();
+	}
 },
 
 _setShortcutMenuItems: function() {
