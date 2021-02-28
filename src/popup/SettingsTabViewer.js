@@ -1340,6 +1340,15 @@ _renderSettings: function() {
 //	this._generalSettingsContainer.addCollapsedListener(this._containerCollapsedCb.bind(this));
 	this.append(this._generalSettingsContainer);
 
+	let bookmarksInSearch = Classes.SettingsCheckboxItemViewer.create({
+		setFn: settingsStore.setOptionBookmarksInSearch.bind(settingsStore),
+		getFn: settingsStore.getOptionBookmarksInSearch.bind(settingsStore),
+		label: "Include bookmarks in search results",
+		updateKey: "options",
+	});
+
+	this._generalSettingsContainer.append(bookmarksInSearch);
+
 	if(settingsStore.getOptionDevMode()) {
 		let showTabId = Classes.SettingsCheckboxItemViewer.create({
 			setFn: settingsStore.setOptionShowTabId.bind(settingsStore),

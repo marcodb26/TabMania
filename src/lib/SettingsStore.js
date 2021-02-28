@@ -211,6 +211,7 @@ Classes.SettingsStore = Classes.AsyncBase.subclass({
 	_storageKeyPrefix: "",
 
 	// Current options:
+	// - "bookmarksInSearch": whether or not bookmarks should be included in search results
 	// - "searchUrl": the custom search URL to use with "Clipboard launch/search".
 	// - "devMode": enable/disable developer options (like the UI for "showTabId")
 	// - "showTabId": show the extended tab ID in the tiles
@@ -295,7 +296,9 @@ _getOption: function(prop) {
 	return this._options.get(prop);
 },
 
-_getBooleanOption: function(prop) {
+// "defaultValue" is optional, defaults to "false"
+_getBooleanOption: function(prop, defaultValue) {
+	defaultValue = optionalWithDefault(defaultValue, false);
 	// When a PersistentDict is empty, it returns "undefined" for every key you
 	// ask. We must turn that "undefined" to "false" here, since this is the lowest
 	// layer that understands "showTabId" should be a boolean (PersistentDict doesn't
@@ -306,7 +309,7 @@ _getBooleanOption: function(prop) {
 	// while it doesn't turn "false" to a default.
 	let retVal = this._getOption(prop);
 	if(retVal == null) {
-		return false;
+		return defaultValue;
 	}
 	return retVal;
 },
@@ -319,6 +322,15 @@ _setOption: function(prop, value) {
 // I support the point made here against using setters and getters:
 // https://nemisj.com/why-getterssetters-is-a-bad-idea-in-javascript/
 // It's easy enough to have a typo, it's nice to have a syntax check against that...
+getOptionBookmarksInSearch: function() {
+	// We want the default for this option to be "true"
+	return this._getBooleanOption("bookmarksInSearch", true);
+},
+
+setOptionBookmarksInSearch: function(value) {
+	return this._setOption("bookmarksInSearch", value);
+},
+
 getOptionShowTabId: function() {
 	if(!this._getBooleanOption("devMode")) {
 		return false;

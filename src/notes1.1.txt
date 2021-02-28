@@ -1,7 +1,7 @@
 - TO DO
   * (DONE) Sort bookmarks before rendering
-  * Add option to merge bookmarks with tabs, or show them separately
-  * Add option to include or not bookmarks in search results
+  * (DONE) Add option to include or not bookmarks in search results
+    - Auto-updates search results if changed while a search is in progress
   * (DONE) Manage pressing "Enter" when a bookmark is first in _currentSearchResults
     - (DONE) Can we unify the behavior of "Enter" and "tile click"?
 	  * They're currently in two different classes...
@@ -33,6 +33,13 @@
 - Add badge "recent" to the last 10-15 visited tabs
   * Independent of the "active" badge
 
+- The bstabs show an ugly URL at the bottom of the undocked window, we should
+  get rid of it
+
+- Recognize CTRL+V in the keydown handler, and open the searchbox just in time to capture
+  the pasted text
+  * But what if there's no text to paste???
+
 - Add logic to let "www.google.com" be recognized as a valid URL, even though new URL()
   won't consider it valid
   * Make it behave like the browser's omnibar...
@@ -58,8 +65,12 @@
   * This will be useful later to perform more complex computations only on visible tabs
 
 - Searches with modifier "!" seems to now be very slow (maybe it's always been slow?)
-  * We should at least not say "no tabs" while we're processing it (change "no tabs"
-	to "searching..."?)
+  * It's only visible because the count of results takes a long time to change when
+    you add a "!" at the beginning of an existing search
+  * We just need to do some profiling to see if there are any easy optimizations we
+    could apply
+	- Or maybe offer some visual feedback that we're processing the search, instead
+	  of making the user think that we got stuck and did not update the results
 
 - BUG: adding and removing characters quickly in search triggered this error:
   * TabsTabViewer.js:593 [popup-tabs-home] TabsTabViewer::_renderTabsFlatInner(): iterating through tabs, at tabId 812 TypeError: Cannot read property 'startsWith' of undefined
@@ -73,6 +84,14 @@
     at Array.forEach (<anonymous>)
     at Object._renderTabsFlatInner (TabsTabViewer.js:590)
     at Object._searchRenderTabsInner_Merged (TabsTabViewer.js:830)
+
+- Add option to merge bookmarks with tabs, or show them separately
+  * Right now it always merges
+  * Do we really care to show them separately?
+    - Or maybe should we only show them separately when doing grouping of results?
+	  * In which case users would have to choose to prioritize grouping "because they're
+	    bookmarks" vs. grouping bookmarks together with other custom group elements if
+		they belong together
 
 - Reorganize TabsTabViewer to leverage a separate "TabsSet" object to manage the querying
   and maintenance of tabs subsets (instead of spreading that logic within the class code

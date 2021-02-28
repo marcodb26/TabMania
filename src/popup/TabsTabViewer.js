@@ -170,7 +170,13 @@ _processBookmarkTreeNodes: function(nodes) {
 // Returns an unsorted list of bookmark nodes, normalized with NormalizedTabs.normalizeTabs()
 find: function(searchString) {
 	const logHead = "BookmarksFinder::find(" + searchString + "): ";
-	this._log(logHead + "entering");
+	if(!settingsStore.getOptionBookmarksInSearch()) {
+		this._log(logHead + "bookmarks are disabled in search, nothing to do");
+		// Pretend we searched and found no bookmarks (empty array)
+		return Promise.resolve([]);
+	}
+
+	this._log(logHead + "processing bookmarks");
 	return chromeUtils.wrap(chrome.bookmarks.search, logHead, searchString).then( this._processBookmarkTreeNodes.bind(this));
 },
 
@@ -893,6 +899,10 @@ _searchRenderTabsInner_Merged: function(tabs, bmNodes) {
 	objects = this._filterByCurrentSearch(objects);
 	objects = objects.sort(Classes.NormalizedTabs.compareTabsFn);
 
+	// This logic is very crude, ideally we should have a more seamless transition from
+	// a set of tabs to a different set of tabs, but we're leaving that logic for later.
+	this._containerViewer.clear();
+
 	this._setSearchBoxCount(objects.length);
 
 	if(objects.length == 0) {
@@ -912,6 +922,10 @@ _searchRenderTabsInner_Separate: function(tabs, bmNodes) {
 
 	bmNodes = this._filterByCurrentSearch(bmNodes);
 	bmNodes = bmNodes.sort(Classes.NormalizedTabs.compareTabsFn);
+
+	// This logic is very crude, ideally we should have a more seamless transition from
+	// a set of tabs to a different set of tabs, but we're leaving that logic for later.
+	this._containerViewer.clear();
 
 	this._setSearchBoxCount(tabs.length + bmNodes.length);
 
@@ -937,19 +951,21 @@ _searchRenderTabsInner_Separate: function(tabs, bmNodes) {
 _searchRenderTabs: function(tabs) {
 	const logHead = "TabsTabViewer::_searchRenderTabs(): ";
 
-	// We need to clear() in all cases. This logic is very crude, ideally we should have
-	// a more seamless transition from a set of tabs to a different set of tabs, but
-	// we're leaving that logic for later.
-	this._containerViewer.clear();
-
-//	tabs = this._filterByCurrentSearch(tabs);
-//	// Tabs are already normalized with the "tm" data we need to sort them
-//	tabs = tabs.sort(Classes.NormalizedTabs.compareTabsFn); // this._groupsBuilder._normalizeAndSort(tabs);
-
+	// Temporary variable, eventually we might want to have a user-facing configuration
+	// option to control this.
 	let merge = true;
 
 	this._bookmarksFinder.find(this._currentSearchInput).then(
 		function(bmNodes) {
+			// We need to this._containerViewer.clear() in all cases, but we're trying to
+			// keep this clear() call as close as possible to the time of the new rendering.
+			// If there's too much processing to do between clear() and render, users will
+			// see an empty screen with the "no tabs" text displayed in the popup for the
+			// duration of the processing. No reason to leave them hanging.
+			// For this reason, we've moved this this._containerViewer.clear() call from
+			// here to inside the this._searchRenderTabsInner_Merged() or this._searchRenderTabsInner_Separate()
+			// calls. A small duplication for a good UX cause.
+
 			if(merge) {
 				this._searchRenderTabsInner_Merged(tabs, bmNodes);
 			} else {
@@ -957,16 +973,6 @@ _searchRenderTabs: function(tabs) {
 			}
 		}.bind(this)
 	);
-
-//	this._setSearchBoxCount(tabs.length);
-//
-//	if(tabs == null || tabs.length == 0) {
-//		this._log(logHead + "no tabs in search results");
-//		this._currentSearchResults = null;
-//	} else {
-//		this._currentSearchResults = tabs;
-//		this._renderTabsFlatInner(this._containerViewer, tabs);
-//	}
 },
 
 }); // Classes.TabsTabViewer
