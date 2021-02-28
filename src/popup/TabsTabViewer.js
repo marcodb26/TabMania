@@ -218,6 +218,8 @@ Classes.TabsTabViewer = Classes.SearchableTabViewer.subclass({
 
 	_bookmarksFinder: null,
 
+	_bookmarkImportInProgress: null,
+
 _init: function(tabLabelHtml) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.SearchableTabViewer._init.apply(this, arguments);
@@ -239,6 +241,7 @@ _init: function(tabLabelHtml) {
 	this._TabsTabViewer_searchBoxInactiveInner();
 	this._TabsTabViewer_render();
 
+	this._bookmarkImportInProgress = false;
 	this._registerChromeCallbacks();
 
 	settingsStore.addEventListener(Classes.EventManager.Events.UPDATED, this._settingsStoreUpdatedCb.bind(this));
@@ -278,6 +281,18 @@ _registerChromeCallbacks: function() {
 	chrome.tabs.onAttached.addListener(this._tabUpdatedCb.bind(this, Classes.TabsTabViewer.CbType.ATTACHED));
 	// https://developer.chrome.com/docs/extensions/reference/tabs/#event-onMoved
 	chrome.tabs.onMoved.addListener(this._tabUpdatedCb.bind(this, Classes.TabsTabViewer.CbType.MOVED));
+
+
+	// https://developer.chrome.com/docs/extensions/reference/bookmarks/#event-onChanged
+	chrome.bookmarks.onChanged.addListener(this._bookmarkUpdatedCb.bind(this));
+	// https://developer.chrome.com/docs/extensions/reference/bookmarks/#event-onCreated
+	chrome.bookmarks.onCreated.addListener(this._bookmarkCreatedCb.bind(this));
+	// https://developer.chrome.com/docs/extensions/reference/bookmarks/#event-onRemoved
+	chrome.bookmarks.onRemoved.addListener(this._bookmarkUpdatedCb.bind(this));
+	// https://developer.chrome.com/docs/extensions/reference/bookmarks/#event-onImportBegan
+	chrome.bookmarks.onImportBegan.addListener(this._bookmarkImportBeganCb.bind(this));
+	// https://developer.chrome.com/docs/extensions/reference/bookmarks/#event-onImportEnded
+	chrome.bookmarks.onImportEnded.addListener(this._bookmarkImportEndedCb.bind(this));
 },
 
 _tabCreatedCb: function(tab) {
@@ -460,6 +475,64 @@ _tabUpdatedCb: function(cbType, tabId, activeChangeRemoveInfo, tab) {
 			this._err(logHead + "unknown callback type");
 			break;
 	}
+},
+
+_bookmarkCreatedCb: function(id, bmNode) {
+	if(this._bookmarkImportInProgress) {
+		// Per the documentation, ignore chrome.bookmarks.onCreated events
+		// while a bulk import is in progress.
+		// See https://developer.chrome.com/docs/extensions/reference/bookmarks/#event-onImportBegan
+		return;
+	}
+
+	// Besides the previous check, _bookmarkCreatedCb() is exactly identical
+	// to _bookmarkUpdatedCb()
+	if(!this.isSearchActive()) {
+		// All the bookmark events can be ignore when not in search mode
+		return;
+	}
+
+	this._queryAndRenderJob.run(this._queryAndRenderDelay);
+},
+
+_bookmarkUpdatedCb: function(id, changeRemoveInfo) {
+	// In theory we could just call a removeListener() when we get out of search
+	// mode, but it's not even clear how well supported that function is, since
+	// it's not well documented... see: https://stackoverflow.com/a/13522461/10791475
+	// Anyway these events should not be very frequent, so no reason to optimize
+	// too much.
+	if(!this.isSearchActive()) {
+		// All the bookmark events can be ignore when not in search mode
+		return;
+	}
+	
+	// The tabs have not changed, but it wold be a bit more (code) trouble to try
+	// to only update the info from the _bookmarksFinder, and merge it with the
+	// existing tabs. Maybe one day we'll have time for that optimization, for
+	// now we just do the usual crude re-query/re-render.
+	this._queryAndRenderJob.run(this._queryAndRenderDelay);
+},
+
+_bookmarkImportBeganCb: function() {
+	// See comment in _bookmarkUpdatedCb() about the possibility to use a removeListener()
+	// for _bookmarkCreatedCb() while an import is in progress. The call seems to exist,
+	// but using the flag to disable any expensive operation should be sufficient.
+	// We definitely don't want to trigger a re-query/re-render for every single bookmark
+	// imported during a bulk import (regardless of the debouncing logic we use).
+	this._bookmarkImportInProgress = true;
+	// No other action needs to be taken in this case
+},
+
+_bookmarkImportEndedCb: function() {
+	this._bookmarkImportInProgress = false;
+
+	if(!this.isSearchActive()) {
+		// All the bookmark events can be ignore when not in search mode
+		return;
+	}
+
+	// Let's do a full refresh of the search results after a bulk import
+	this._queryAndRenderJob.run(this._queryAndRenderDelay);
 },
 
 _TabsTabViewer_render: function() {

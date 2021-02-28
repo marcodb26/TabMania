@@ -207,8 +207,11 @@ renderBody: function() {
 
 	// The menu viewer is not in the body of the tile, but its destiny is parallel
 	// to that of the body of the tile...
-	this._menuViewer = Classes.TileMenuViewer.create(this._tab);
-	this._menuViewer.attachToElement(this._menuElem);
+	if(this._tab.tm.type == Classes.NormalizedTabs.type.TAB) {
+		// Right now we don't need a menu (and a menu button) for bookmarks
+		this._menuViewer = Classes.TileMenuViewer.create(this._tab);
+		this._menuViewer.attachToElement(this._menuElem);
+	}
 },
 
 // Returns a Promise that can be then() with a function(metaTags), where
@@ -271,9 +274,17 @@ _onTileClickCb: function(ev) {
 
 _onTileCloseCb: function(ev) {
 	const logHead = "TabTileViewer::_onTileCloseCb(" + this._tab.id + "): ";
-	chromeUtils.wrap(chrome.tabs.remove, logHead, this._tab.id).then(
+
+	let removeFn = chrome.tabs.remove;
+	let completionMsg = "completed";
+	if(this._tab.tm.type == Classes.NormalizedTabs.type.BOOKMARK) {
+		removeFn = chrome.bookmarks.remove;
+		completionMsg = "bookmark deleted";
+	}
+
+	chromeUtils.wrap(removeFn, logHead, this._tab.id).then(
 		function() {
-			this._log(logHead + "completed");
+			this._log(logHead + completionMsg);
 		}.bind(this)
 	);
 

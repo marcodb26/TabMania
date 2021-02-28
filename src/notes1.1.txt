@@ -3,15 +3,12 @@
   * Add option to merge bookmarks with tabs, or show them separately
   * Add option to include or not bookmarks in search results
   * (DONE) Manage pressing "Enter" when a bookmark is first in _currentSearchResults
-    - Can we unify the behavior of "Enter" and "tile click"?
+    - (DONE) Can we unify the behavior of "Enter" and "tile click"?
 	  * They're currently in two different classes...
-  * Remove menu and close button from bookmarks
-    - Should the "close" action delete the bookmark?
-    - Unless we have a menu: do we care to allow users to choose to reopen existing vs.
-	  always open new tab when they click on a bookmark?
-	  * We offer that option for custom shortcuts...
+  * (DONE) Use tile "close" button to delete a bookmark
+  * (DONE) Remove menu button from bookmarks
   * (DONE) Decide what happens when you click a bookmark
-    - Basic done, but what happens if you click a bookmark that's alreay opened?
+    - What happens if you click a bookmark that's alreay opened?
 	  * Now it will try to recycle the existing tab instead of opening a new one
   * (WON'T DO) Discard a bookmark if it's also loaded
     - Do we care to do this, is it ok if it shows up twice?
@@ -20,13 +17,7 @@
     - Avoid it if the "!" modifier is added
 	- For "^" we filter initial chrome.bookmarks.search() results for beginning of
 	    title or URL or custom group badge
-  * Remove the "bookmark" badge, you should not show a badge because you can't search
-    the keyword "bookmark"
-	- It would be crazy to show just a flat list of all bookmarks
-  * Searches with modifier "!" seems to now be very slow (maybe it's always been slow?)
-    - We should at least not say "no tabs" while we're processing it (change "no tabs"
-	  to "searching..."?)
-  * Update search results when bookmarks change
+  * (DONE) Update search results when bookmarks change
 
 - Include also bookmarks in the search results, not only open tabs
   * https://developer.chrome.com/docs/extensions/reference/bookmarks/#method-search
@@ -50,6 +41,10 @@
 
 - Group/ungroup all groups (popup menu items)
 
+- Replace the "bookmark" badge in bookmark tiles with some other visual clue
+  * We should not show a badge because one can't search the keyword "bookmark"
+	- It would be crazy to show just a flat list of all bookmarks
+
 - Limit maximum number of tabs in a window
   * To be used with the "least tabbed window" logic to decide to open a new tab in a
     new window
@@ -62,11 +57,34 @@
 - Create subsystem to monitor which tiles are currently visible
   * This will be useful later to perform more complex computations only on visible tabs
 
+- Searches with modifier "!" seems to now be very slow (maybe it's always been slow?)
+  * We should at least not say "no tabs" while we're processing it (change "no tabs"
+	to "searching..."?)
+
+- BUG: adding and removing characters quickly in search triggered this error:
+  * TabsTabViewer.js:593 [popup-tabs-home] TabsTabViewer::_renderTabsFlatInner(): iterating through tabs, at tabId 812 TypeError: Cannot read property 'startsWith' of undefined
+    at Object._cleanupUrl (TileViewer.js:299)
+    at Object.update (TileViewer.js:328)
+    at Object._init (TileViewer.js:29)
+    at Object.createAs (utils.js:167)
+    at Object.create (utils.js:121)
+    at Object._renderTile (TabsTabViewer.js:623)
+    at utils.js:1120
+    at Array.forEach (<anonymous>)
+    at Object._renderTabsFlatInner (TabsTabViewer.js:590)
+    at Object._searchRenderTabsInner_Merged (TabsTabViewer.js:830)
+
 - Reorganize TabsTabViewer to leverage a separate "TabsSet" object to manage the querying
   and maintenance of tabs subsets (instead of spreading that logic within the class code
   * One such object for the standard view, one for the search view, in future possibly
     one separate object for the incognito view (which needs to behave like standard view,
 	but on a different subset of tabs)
+
+- For bookmarks in search results, do we care to allow users to choose to reopen existing
+  vs. always open new tab when they click on a bookmark?
+  * We offer that option for custom shortcuts...
+  * To implement this option, we'd need to offer back a menu button in bookmark tiles,
+    with the two options
 
 - Track and visualize time spent on each active tab (while the window is in foreground)
 
