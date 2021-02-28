@@ -1,5 +1,7 @@
 - Show bookmark folder path when opening bookmark menu
 
+- Remove "pin" menu for bookmarks if we don't implement it in this release
+
 - Add option "Go to folder" to open the folder of the bookmark in Chrome's bookmark manager
   * Just set URL to "chrome://bookmarks/?id=686", with the ID of the parent folder
     - Might require a trip to the background page to launch...

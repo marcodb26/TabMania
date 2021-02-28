@@ -208,10 +208,11 @@ renderBody: function() {
 	// The menu viewer is not in the body of the tile, but its destiny is parallel
 	// to that of the body of the tile...
 	if(this._tab.tm.type == Classes.NormalizedTabs.type.TAB) {
-		// Right now we don't need a menu (and a menu button) for bookmarks
-		this._menuViewer = Classes.TileMenuViewer.create(this._tab);
-		this._menuViewer.attachToElement(this._menuElem);
+		this._menuViewer = Classes.TileTabMenuViewer.create(this._tab);
+	} else {
+		this._menuViewer = Classes.TileBookmarkMenuViewer.create(this._tab);
 	}
+	this._menuViewer.attachToElement(this._menuElem);
 },
 
 // Returns a Promise that can be then() with a function(metaTags), where

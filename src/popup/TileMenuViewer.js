@@ -145,10 +145,10 @@ setAction: function(fn) {
 
 }); // Classes.MenuItemViewer
 
-// CLASS TileMenuViewer
+// CLASS TileTabMenuViewer
 //
-Classes.TileMenuViewer = Classes.MenuViewer.subclass({
-	__idPrefix: "TileMenuViewer",
+Classes.TileTabMenuViewer = Classes.MenuViewer.subclass({
+	__idPrefix: "TileTabMenuViewer",
 
 	_tab: null,
 
@@ -172,10 +172,9 @@ _init: function(tab) {
 	this.debug();
 	this._tab = tab;
 
-	if(this._tab.tm.type == Classes.NormalizedTabs.type.TAB) {
-		// No menu for bookmark items
-		this._initMenuItems();
-	}
+	this._assert(this._tab.tm.type == Classes.NormalizedTabs.type.TAB);
+	
+	this._initMenuItems();
 },
 
 _setShortcutMenuItems: function() {
@@ -197,7 +196,7 @@ _setShortcutMenuItems: function() {
 },
 
 _updateShortcutMenuItems: function() {
-	const logHead = "TileMenuViewer::_updateShortcutMenuItems(" + this._tab.id + "): ";
+	const logHead = "TileTabMenuViewer::_updateShortcutMenuItems(" + this._tab.id + "): ";
 	this._err(logHead + "to be implemented");
 	// Here we need to unlink the existing shortcut menu items from the menu,
 	// then we can overwrite this._shortcutMenuItems and re-run _setShortcutMenuItems().
@@ -250,7 +249,7 @@ _actionActivateCb: function(ev) {
 },
 
 _actionPinToggleCb: function(ev) {
-	const logHead = "TileMenuViewer::_actionPinToggleCb(" + this._tab.id + "): ";
+	const logHead = "TileTabMenuViewer::_actionPinToggleCb(" + this._tab.id + "): ";
 	chromeUtils.wrap(chrome.tabs.update, logHead,
 					this._tab.id, { pinned: !this._tab.pinned } ).then(
 		function() {
@@ -260,7 +259,7 @@ _actionPinToggleCb: function(ev) {
 },
 
 _actionMuteToggleCb: function(ev) {
-	const logHead = "TileMenuViewer::_actionMuteToggleCb(" + this._tab.id + "): ";
+	const logHead = "TileTabMenuViewer::_actionMuteToggleCb(" + this._tab.id + "): ";
 	chromeUtils.wrap(chrome.tabs.update, logHead,
 					this._tab.id, { muted: !this._tab.mutedInfo.muted } ).then(
 		function() {
@@ -270,7 +269,7 @@ _actionMuteToggleCb: function(ev) {
 },
 
 _actionHighlightToggleCb: function(ev) {
-	const logHead = "TileMenuViewer::_actionHighlightToggleCb(" + this._tab.id + "): ";
+	const logHead = "TileTabMenuViewer::_actionHighlightToggleCb(" + this._tab.id + "): ";
 	chromeUtils.wrap(chrome.tabs.update, logHead,
 					this._tab.id, { highlighted: !this._tab.highlighted } ).then(
 		function() {
@@ -280,7 +279,7 @@ _actionHighlightToggleCb: function(ev) {
 },
 
 _actionPlayToggleCb: function(ev) {
-	const logHead = "TileMenuViewer::_actionPlayToggleCb(" + this._tab.id + "): ";
+	const logHead = "TileTabMenuViewer::_actionPlayToggleCb(" + this._tab.id + "): ";
 	chromeUtils.inject(this._tab.id, "content-gen/inject-togglePlay.js").then(
 		function(result) { // onFulfilled
 			if(result == null) {
@@ -307,7 +306,7 @@ _actionPlayToggleCb: function(ev) {
 },
 
 _actionDiscardCb: function(ev) {
-	const logHead = "TileMenuViewer::_actionDiscardCb(" + this._tab.id + "): ";
+	const logHead = "TileTabMenuViewer::_actionDiscardCb(" + this._tab.id + "): ";
 	chromeUtils.wrap(chrome.tabs.discard, logHead, this._tab.id).then(
 		function() {
 			this._log(logHead + "completed");
@@ -316,7 +315,7 @@ _actionDiscardCb: function(ev) {
 },
 
 _actionCloseCb: function(ev) {
-	const logHead = "TileMenuViewer::_actionCloseCb(" + this._tab.id + "): ";
+	const logHead = "TileTabMenuViewer::_actionCloseCb(" + this._tab.id + "): ";
 	chromeUtils.wrap(chrome.tabs.remove, logHead, this._tab.id).then(
 		function() {
 			this._log(logHead + "completed");
@@ -325,7 +324,7 @@ _actionCloseCb: function(ev) {
 },
 
 _actionSetCandidateCb: function(key, ev) {
-	const logHead = "TileMenuViewer::_actionSetCandidateCb(" + this._tab.id + ", " + key + "): ";
+	const logHead = "TileTabMenuViewer::_actionSetCandidateCb(" + this._tab.id + ", " + key + "): ";
 
 	// We should probably also get the "coordinates" the first candidate in
 	// order to take its place
@@ -343,4 +342,85 @@ update: function(tab) {
 	this._updateMenuItems();
 },
 
-}); // Classes.TileMenuViewer
+}); // Classes.TileTabMenuViewer
+
+
+// CLASS TileBookmarkMenuViewer
+//
+Classes.TileBookmarkMenuViewer = Classes.MenuViewer.subclass({
+	__idPrefix: "TileBookmarkMenuViewer",
+
+	_bm: null,
+
+	// Track here all the menu item viewers
+	_titleMenuItem: null,
+	_pinMenuItem: null,
+	_deleteMenuItem: null,
+
+_init: function(bm) {
+	// Overriding the parent class' _init(), but calling that original function first
+	Classes.MenuViewer._init.call(this);
+//	, {
+//		btnExtraClasses: [ tab.incognito ? "btn-light" : "btn-secondary" ],
+//	});
+
+	this.debug();
+	this._bm = bm;
+
+	this._assert(this._bm.tm.type == Classes.NormalizedTabs.type.BOOKMARK);
+	
+	this._initMenuItems();
+},
+
+_initMenuItems: function() {
+	this._titleMenuItem = Classes.MenuItemViewer.create("", this._actionActivateCb.bind(this));
+	this._titleMenuItem.setHtml("<b>" + this._safeText(this._bm.title) + "</b>");
+	this.append(this._titleMenuItem);
+
+	// Placeholder for later
+	this._pinMenuItem = Classes.MenuItemViewer.create(this._bm.pinned ? "Unpin" : "Pin",
+								this._actionPinToggleCb.bind(this));
+	this.append(this._pinMenuItem);
+
+	this._deleteMenuItem = Classes.MenuItemViewer.create("Delete", this._actionDeleteCb.bind(this));
+	this.append(this._deleteMenuItem);
+},
+
+_updateMenuItems: function() {
+	this._titleMenuItem.setHtml("<b>" + this._safeText(this._bm.title) + "</b>");
+	this._pinMenuItem.setText(this._bm.pinned ? "Unpin" : "Pin");
+	// Nothing to update for _discardMenuItem and _deleteMenuItem
+},
+
+_actionActivateCb: function(ev) {
+	Classes.TabsTabViewer.activateTab(this._bm);
+},
+
+_actionPinToggleCb: function(ev) {
+	const logHead = "TileBookmarkMenuViewer::_actionPinToggleCb(" + this._bm.id + "): ";
+
+	// PLACEHOLDER - TBD
+
+//	chromeUtils.wrap(chrome.tabs.update, logHead,
+//					this._bm.id, { pinned: !this._bm.pinned } ).then(
+//		function() {
+//			this._log(logHead + "completed");
+//		}.bind(this)
+//	);
+},
+
+_actionDeleteCb: function(ev) {
+	const logHead = "TileBookmarkMenuViewer::_actionDeleteCb(" + this._bm.id + "): ";
+	chromeUtils.wrap(chrome.bookmarks.remove, logHead, this._bm.id).then(
+		function() {
+			this._log(logHead + "completed");
+		}.bind(this)
+	);
+},
+
+update: function(bm) {
+	this._bm = bm;
+	this._updateMenuItems();
+},
+
+}); // Classes.TileBookmarkMenuViewer
