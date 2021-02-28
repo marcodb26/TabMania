@@ -669,7 +669,8 @@ _renderTabsFlatInner: function(containerViewer, tabs, tabGroup) {
 	tabs.forEach(
 		safeFnWrapper(this._renderTile.bind(this, containerViewer, tabGroup), null,
 			function(e, tab) {
-				this._err(logHead + "iterating through tabs, at tabId " + (tab != null ? tab.id : "undefined obj"), e);
+				this._err(logHead + "iterating through tabs, at tabId " + 
+							(tab != null ? (tab.tm.type + "-" + tab.id) : "undefined obj"), e);
 			}.bind(this)
 		)
 	);
