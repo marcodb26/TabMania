@@ -129,8 +129,6 @@
 
 - Fix double scroll bars when undocked popup has too little width (horizontally only)
 
-- Center the "Settings" bstab now that undocked popups can have their width expanded
-
 - Shortcuts1-5 with option to select incognito tabs
   * If not selected, ignore incognito tabs
 
@@ -308,6 +306,8 @@ DONE 1.1
     at Array.forEach (<anonymous>)
     at Object._renderTabsFlatInner (TabsTabViewer.js:590)
     at Object._searchRenderTabsInner_Merged (TabsTabViewer.js:830)
+
+- Center the "Settings" bstab now that undocked popups can have their width expanded
 
 
 PUNTED TO NEXT RELEASE
