@@ -635,6 +635,15 @@ Encoded with https://www.base64encode.org/
     to   { background: default; }
 }
 
+/* See https://codepen.io/Ahrengot/pen/bKdLC and https://stackoverflow.com/a/31458204/10791475 */
+.tm-blink-loop {
+    animation: tm-blink-loop-animation 1s infinite alternate;
+}
+
+@keyframes tm-blink-loop-animation { 
+  from { opacity: 0; } 
+}
+
 .tm-shrink {
     animation-name: tm-shrink-animation;
     animation-duration: 0.3s;
@@ -644,6 +653,7 @@ Encoded with https://www.base64encode.org/
     from { transform: scale(1); }
     to   { transform: scale(0); }
 }
+
 
 /* Stupid test, tried to see what happens to a search box if you use
    "pointer-events" to redirect the "x" pseudo-element clicks to the

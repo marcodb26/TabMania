@@ -796,6 +796,7 @@ _searchRenderTabsInner_Merged: function(tabs, bmNodes) {
 	// a set of tabs to a different set of tabs, but we're leaving that logic for later.
 	this._containerViewer.clear();
 
+	this._setSearchBoxCountBlinking(false);
 	this._setSearchBoxCount(objects.length);
 
 	if(objects.length == 0) {
@@ -820,6 +821,7 @@ _searchRenderTabsInner_Separate: function(tabs, bmNodes) {
 	// a set of tabs to a different set of tabs, but we're leaving that logic for later.
 	this._containerViewer.clear();
 
+	this._setSearchBoxCountBlinking(false);
 	this._setSearchBoxCount(tabs.length + bmNodes.length);
 
 	if((tabs == null || tabs.length == 0) && bmNodes.length == 0) {
@@ -843,6 +845,9 @@ _searchRenderTabsInner_Separate: function(tabs, bmNodes) {
 
 _searchRenderTabs: function(tabs) {
 	const logHead = "TabsTabViewer::_searchRenderTabs(): ";
+
+	// Give some feedback to the user in case this search is going to take a while...
+	this._setSearchBoxCountBlinking();
 
 	// Temporary variable, eventually we might want to have a user-facing configuration
 	// option to control this.

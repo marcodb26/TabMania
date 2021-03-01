@@ -400,6 +400,21 @@ _setSearchBoxCount: function(cnt) {
 	this._searchBoxCountElem.textContent = (cnt < 1000) ? cnt : "999+";
 },
 
+// "flag" defaults "true" (start blinking)
+_setSearchBoxCountBlinking: function(flag) {
+	flag = optionalWithDefault(flag, true);
+	const logHead = "SearchableTabViewer::_setSearchBoxCountBlinking(" + flag + "): ";
+	this._log(logHead + "entering");
+	if(flag) {
+		// Leave the old count, but start blinking to indicate there's activity
+		// in progress
+		//this._searchBoxCountElem.innerHTML = "&nbsp;?&nbsp;";
+		this._searchBoxCountElem.classList.add("tm-blink-loop");
+	} else {
+		this._searchBoxCountElem.classList.remove("tm-blink-loop");
+	}
+},
+
 isSearchActive: function() {
 	return this._searchActive;
 },
