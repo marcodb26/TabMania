@@ -1,3 +1,8 @@
+- Activate search results count badge immediately (empty?) when the initial search starts,
+  otherwise we have no visual cue that the search is in progress
+  * The current blinking cue shows up only after the first search, after further
+    edits to the search string
+
 - BUG: when you click a menu or a close button, the searchbox loses focus and doesn't
   recover it even after the menu/close click is over
 
@@ -59,19 +64,6 @@
     could apply
 	- Or maybe offer some visual feedback that we're processing the search, instead
 	  of making the user think that we got stuck and did not update the results
-
-- BUG: adding and removing characters quickly in search triggered this error:
-  * TabsTabViewer.js:593 [popup-tabs-home] TabsTabViewer::_renderTabsFlatInner(): iterating through tabs, at tabId 812 TypeError: Cannot read property 'startsWith' of undefined
-    at Object._cleanupUrl (TileViewer.js:299)
-    at Object.update (TileViewer.js:328)
-    at Object._init (TileViewer.js:29)
-    at Object.createAs (utils.js:167)
-    at Object.create (utils.js:121)
-    at Object._renderTile (TabsTabViewer.js:623)
-    at utils.js:1120
-    at Array.forEach (<anonymous>)
-    at Object._renderTabsFlatInner (TabsTabViewer.js:590)
-    at Object._searchRenderTabsInner_Merged (TabsTabViewer.js:830)
 
 - Add option to merge bookmarks with tabs, or show them separately
   * Right now it always merges
@@ -279,6 +271,8 @@ DONE 1.1
   * Replace the "bookmark" badge in bookmark tiles with some other visual clue
 	- We should not show a badge because one can't search the keyword "bookmark"
 	  * It would be crazy to show just a flat list of all bookmarks
+  * Limit search results to 50 bookmarks to avoid slowing down search too much
+    - Otherwise single-letter searches can take forever for heavy bookmark users
 
 - Recognize CTRL+V in the keydown handler, and open the searchbox just in time to capture
   the pasted text
@@ -287,6 +281,19 @@ DONE 1.1
 - Add option "Go to folder" to open the folder of the bookmark in Chrome's bookmark manager
   * Just set URL to "chrome://bookmarks/?id=686", with the ID of the parent folder
     - This didn't seem to require a trip to the background page to launch...
+
+- BUG: we should not keep bookmark folders in search results, they don't have "url":
+  * TabsTabViewer.js:593 [popup-tabs-home] TabsTabViewer::_renderTabsFlatInner(): iterating through tabs, at tabId 812 TypeError: Cannot read property 'startsWith' of undefined
+    at Object._cleanupUrl (TileViewer.js:299)
+    at Object.update (TileViewer.js:328)
+    at Object._init (TileViewer.js:29)
+    at Object.createAs (utils.js:167)
+    at Object.create (utils.js:121)
+    at Object._renderTile (TabsTabViewer.js:623)
+    at utils.js:1120
+    at Array.forEach (<anonymous>)
+    at Object._renderTabsFlatInner (TabsTabViewer.js:590)
+    at Object._searchRenderTabsInner_Merged (TabsTabViewer.js:830)
 
 
 PUNTED TO NEXT RELEASE

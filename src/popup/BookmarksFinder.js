@@ -7,6 +7,8 @@ Classes.BookmarksFinder = Classes.Base.subclass({
 
 	_eventManager: null,
 
+	_maxBookmarkNodes: 50,
+
 _init: function(tabGroup, expandedGroups) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.Base._init.call(this);
@@ -64,8 +66,32 @@ _bookmarkImportEndedCb: function() {
 _processBookmarkTreeNodes: function(nodes) {
 	const logHead = "BookmarksFinder::_processBookmarkTreeNodes(): ";
 	this._log(logHead + "received: ", nodes);
-	nodes.forEach(
-		function(node) {
+
+	let bmCount = 0;
+	let bmSkipped = 0;
+	let foldersCount = 0;
+
+	// Filter out folders and normalize bookmark nodes
+	let retVal = nodes.reduce(
+		function(result, node) {
+			if(node.url == null) {
+				// Per https://developer.chrome.com/docs/extensions/reference/bookmarks/#type-BookmarkTreeNode
+				// folder are identifiable by the absence of "url". We don't want to track folders,
+				// so let's discard this node
+				foldersCount++;
+				return result;
+			}
+
+			if(bmCount >= this._maxBookmarkNodes) {
+				// Not super-efficient, we're still going to scan through all the skipped
+				// nodes, but better than doing heavy processing on each one of them...
+				//
+				// Note that we want this check after the folder check to make sure "bmSkipped"
+				// includes only real nodes.
+				bmSkipped++;
+				return result;
+			}
+
 			// We want each "node" to be as similar as possible to a "tab" object...
 			// It already includes "title", "url" and "id" (though we have to be careful not
 			// to mix up a bookmark ID and a tab ID (the former is a string, the latter is a
@@ -80,13 +106,19 @@ _processBookmarkTreeNodes: function(nodes) {
 			node.favIconUrl = "chrome://favicon/size/16@1x/" + node.url;
 			node.status = "unloaded";
 			Classes.NormalizedTabs.normalizeTab(node, Classes.NormalizedTabs.type.BOOKMARK);
-		}
+
+			bmCount++;
+			result.push(node);
+			return result;
+		}.bind(this),
+		[] // Initial value for reducer
 	);
 
+	this._log(logHead + "processed " + bmCount + ", skipped: " + bmSkipped + ", folders: " + foldersCount);
 	// Don't sort here. In the "merge with tabs" case, we'll need to re-sort anyway, so
 	// let's just sort once in the caller
-	//nodes = nodes.sort(Classes.NormalizedTabs.compareTabsFn);
-	return nodes;
+	//retVal = retVal.sort(Classes.NormalizedTabs.compareTabsFn);
+	return retVal;
 },
 
 // Returns an unsorted list of bookmark nodes, normalized with NormalizedTabs.normalizeTabs()
