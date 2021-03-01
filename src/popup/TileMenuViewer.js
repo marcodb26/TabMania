@@ -354,6 +354,7 @@ Classes.TileBookmarkMenuViewer = Classes.MenuViewer.subclass({
 
 	// Track here all the menu item viewers
 	_titleMenuItem: null,
+	_openBookmarkManagerMenuItem: null,
 	_pinMenuItem: null,
 	_deleteMenuItem: null,
 
@@ -404,6 +405,12 @@ _renderTitle: function() {
 _initMenuItems: function() {
 	this._renderTitle();
 
+	if(this._bm.parentId != null) {
+		this._openBookmarkManagerMenuItem = Classes.MenuItemViewer.create("Open folder in Chrome Bookmark manager",
+						this._actionBookmarkManagerCb.bind(this));
+		this.append(this._openBookmarkManagerMenuItem);
+	}
+
 	// Placeholder for later
 	this._pinMenuItem = Classes.MenuItemViewer.create(this._bm.pinned ? "Unpin" : "Pin",
 								this._actionPinToggleCb.bind(this));
@@ -421,6 +428,11 @@ _updateMenuItems: function() {
 
 _actionActivateCb: function(ev) {
 	Classes.TabsTabViewer.activateTab(this._bm);
+},
+
+_actionBookmarkManagerCb: function(ev) {
+	let url = "chrome://bookmarks/?id=" + this._bm.parentId;
+	chromeUtils.loadUrl(url);
 },
 
 _actionPinToggleCb: function(ev) {
