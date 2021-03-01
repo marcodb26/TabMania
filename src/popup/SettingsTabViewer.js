@@ -140,7 +140,7 @@ _loadUrlThroughBackground: function(url) {
 _setBody: function() {
 	let bodyId = this._id + "-settingsBody";
 	let html = `
-		<div id="${bodyId}" class="px-2 py-3">
+		<div id="${bodyId}" class="mx-auto px-2 py-3" style="max-width: 800px;">
 		</div>
 	`;
 
