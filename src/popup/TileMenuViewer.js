@@ -372,10 +372,37 @@ _init: function(bm) {
 	this._initMenuItems();
 },
 
-_initMenuItems: function() {
+_renderPathHtml: function(pathList) {
+	// chromeUtils.getBookmarkPathList() returns an array that starts with an empty
+	// string (the root element of the bookmarks tree has no title), and that's
+	// perfect to have .join("/") add a leading "/".
+	return `
+	From <i>${pathList.join("/")}</i>
+	`;
+},
+
+_renderTitle: function() {
+	const pathId = this._id + "-path";
+
+	let titleHtml = `
+		<b>${this._safeText(this._bm.title)}</b>
+		<div id="${pathId}"></div>
+	`;
+
 	this._titleMenuItem = Classes.MenuItemViewer.create("", this._actionActivateCb.bind(this));
-	this._titleMenuItem.setHtml("<b>" + this._safeText(this._bm.title) + "</b>");
+	this._titleMenuItem.setHtml(titleHtml);
 	this.append(this._titleMenuItem);
+
+	let pathElem = this.getElementById(pathId);
+	chromeUtils.getBookmarkPathList(this._bm).then(
+		function(pathList) {
+			pathElem.innerHTML = this._renderPathHtml(pathList);
+		}.bind(this)
+	);
+},
+
+_initMenuItems: function() {
+	this._renderTitle();
 
 	// Placeholder for later
 	this._pinMenuItem = Classes.MenuItemViewer.create(this._bm.pinned ? "Unpin" : "Pin",

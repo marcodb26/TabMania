@@ -1,3 +1,6 @@
+- BUG: when you click a menu or a close button, the searchbox loses focus and doesn't
+  recover it even after the menu/close click is over
+
 - Show bookmark folder path when opening bookmark menu
 
 - Remove "pin" menu for bookmarks if we don't implement it in this release

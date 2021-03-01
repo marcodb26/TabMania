@@ -50,6 +50,22 @@ wrapQuiet: function() {
 	return this._wrapInner(false, ...arguments);
 },
 
+getExtensionId: function() {
+	const logHead = "chromeUtils::getExtensionId(): ";
+
+	// There must be a better way to do this...
+	// chrome.runtime.getURL("") returns "chrome-extension://olalecillcaoojlgobjbjpkpkjokjlmf/",
+	// and we need to extract the path
+	let retVal = chrome.runtime.getURL("");
+	this._log(logHead, retVal);
+
+	// Remove the extra stuff
+	// The next call leaves us with "olalecillcaoojlgobjbjpkpkjokjlmf/"
+	retVal = retVal.replace("chrome-extension://", "");
+	retVal = retVal.replace("/", "");
+	return retVal;
+},
+
 //// Utils to work with tabs (chrome.tabs)
 
 getLeastTabbedWindowId: function() {
@@ -224,21 +240,37 @@ inject: function(tabId, jsFile) {
 	);
 },
 
-getExtensionId: function() {
-	const logHead = "chromeUtils::getExtensionId(): ";
+//// Utils to work with bookmarks (chrome.bookmarks)
 
-	// There must be a better way to do this...
-	// chrome.runtime.getURL("") returns "chrome-extension://olalecillcaoojlgobjbjpkpkjokjlmf/",
-	// and we need to extract the path
-	let retVal = chrome.runtime.getURL("");
-	this._log(logHead, retVal);
+// Easier to use async functions to manage a sequential loop of promises...
+getBookmarkPathList: async function(bmNode) {
+	const logHead = "ChomeUtils::getBookmarkPathList(" + bmNode.id + "): ";
 
-	// Remove the extra stuff
-	// The next call leaves us with "olalecillcaoojlgobjbjpkpkjokjlmf/"
-	retVal = retVal.replace("chrome-extension://", "");
-	retVal = retVal.replace("/", "");
-	return retVal;
+	let pathList = [];
+
+	this._log(logHead + "entering");
+
+	while(bmNode != null && bmNode.parentId != null) {
+		//this._log(logHead + "current round: " + bmNode.title);
+		let result = await this.wrap(chrome.bookmarks.get, logHead, bmNode.parentId);
+		if(result.length > 0) {
+			bmNode = result[0];
+			// The root ID "0" should have an empty title, but you never know...
+			pathList.push(bmNode.title != null ? bmNode.title : "");
+			//this._log(logHead + "next round: ", bmNode);
+		} else {
+			// It should never get here, but just in case
+			bmNode = null;
+			this._err(logHead + "unexpected, it should not get here");
+		}
+	}
+
+	pathList.reverse();
+	this._log(logHead + "full pathList = ", pathList);
+	return pathList;
 },
+
+
 
 //// Utils to work with storage (chrome.storage)
 
