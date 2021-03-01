@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * Clicking the tile of a bookmark will try to find an existing tab with a matching URL to
     activate, and if not found, will open a new tab using our standard "recycle empty or
     least tabbed window"
+- Added menu item in bookmarks, to open their folder in Chrome Bookmark manager
 - Officially supporting pressing the _Paste_ keyboard shortcut (`CTRL+v` in Windows, `Command+v`
   on Mac) to activate search
   * If the clipboard has no text, the searchbox will close immediately again
