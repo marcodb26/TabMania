@@ -164,7 +164,7 @@ _renderTextItem: function() {
 	<div class="form-floating">
 		<input type="search" id="${inputId}" class="form-control text-truncate" ${extraAttrs.join(" ")}
 				aria-describedby="${helpId}">
-		<label for="${inputId}" class="form-label pt-2">${this._label}</label>
+		<label for="${inputId}" class="form-label pt-2 text-truncate w-100">${this._label}</label>
 	</div>
     <div id="${helpId}" class="form-text ms-2">${this._helpHtml}</div>
 	`;
@@ -332,7 +332,7 @@ _renderTextAreaItem: function() {
 	<div class="tm-autosize form-floating" data-replicated-value="${this._safeText(currentText)}">
 		<textarea id="${inputId}" class="form-control" ${extraAttrs.join(" ")} style="height: auto;"
 				aria-describedby="${helpId}">${this._safeText(currentText)}</textarea>
-		<label for="${inputId}" class="form-label pt-2">${this._label}</label>
+		<label for="${inputId}" class="form-label pt-2 text-truncate w-100">${this._label}</label>
 	</div>
 	<div id="${helpId}" class="form-text ms-2">${this._helpHtml}</div>
 	`;
