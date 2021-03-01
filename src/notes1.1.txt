@@ -1,14 +1,34 @@
+- Auto-select-all in searchbox when user clicks the mouse there to edit
+
 - Activate search results count badge immediately (empty?) when the initial search starts,
   otherwise we have no visual cue that the search is in progress
   * The current blinking cue shows up only after the first search, after further
     edits to the search string
 
+- Add in settings total count of tabs and bookmarks
+  * Don’t exclude folders when counting bookmarks, too expensive
+  * Use pulseBadge class while recalculating values
+  * Calculate values only when user on settings tab (otherwise just mark them as dirty and wait for settings tab to be in focus before you recalculate)
+
+- Support pinning bookmarks
+  * If a pinned bookmark is open, show only the open tab, not the bookmark
+  * We should force an opened tab to get automatically pinned, if its bookmark is pinned? Or just query for the match every time?
+
+- Sorting tiles, add secondary criteria
+  * If two tabs have the same title, sort by url
+  * Same URL, sort by index in window (to match their appearance on chrome)
+
+- Group tabs with same title and same URL to show as a single collapsed tile with a count
+  * Support expansion (persisted)
+  * Include corresponding bookmarks in group (match only by URL for bookmarks, since they might have a title out of sync)
+  * This should be done for all modes (standard and search), maybe in different stages, because otherwise search can never use the flat rendering
+
+- Menu action to re-sync bookmark title if a corresponding tab is open and its title doesn’t match(?)
+
 - BUG: when you click a menu or a close button, the searchbox loses focus and doesn't
   recover it even after the menu/close click is over
 
 - Re-render bookmark path if bookmark moves or its ancestors move
-
-- Show bookmark folder path when opening bookmark menu
 
 - Remove "pin" menu for bookmarks if we don't implement it in this release
 
@@ -64,14 +84,6 @@
     could apply
 	- Or maybe offer some visual feedback that we're processing the search, instead
 	  of making the user think that we got stuck and did not update the results
-
-- Add option to merge bookmarks with tabs, or show them separately
-  * Right now it always merges
-  * Do we really care to show them separately?
-    - Or maybe should we only show them separately when doing grouping of results?
-	  * In which case users would have to choose to prioritize grouping "because they're
-	    bookmarks" vs. grouping bookmarks together with other custom group elements if
-		they belong together
 
 - Reorganize TabsTabViewer to leverage a separate "TabsSet" object to manage the querying
   and maintenance of tabs subsets (instead of spreading that logic within the class code
@@ -278,6 +290,8 @@ DONE 1.1
   the pasted text
   * If the clipboard doesn't have text, the searchbox will close again
 
+- Show bookmark folder path when opening bookmark menu
+
 - Add option "Go to folder" to open the folder of the bookmark in Chrome's bookmark manager
   * Just set URL to "chrome://bookmarks/?id=686", with the ID of the parent folder
     - This didn't seem to require a trip to the background page to launch...
@@ -297,6 +311,14 @@ DONE 1.1
 
 
 PUNTED TO NEXT RELEASE
+
+- Add option to merge bookmarks with tabs, or show them separately
+  * Right now it always merges
+  * Do we really care to show them separately?
+    - Or maybe should we only show them separately when doing grouping of results?
+	  * In which case users would have to choose to prioritize grouping "because they're
+	    bookmarks" vs. grouping bookmarks together with other custom group elements if
+		they belong together
 
 - BUG: chrome.tabs.update(tabId, { url: url }) loads a new "url" but sometimes replaces the
   existing URL instead of adding it to the tab navigation history
