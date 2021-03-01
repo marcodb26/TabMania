@@ -270,7 +270,19 @@ getBookmarkPathList: async function(bmNode) {
 	return pathList;
 },
 
+// This function does not return an accurate count, as it includes also folders, which
+// are not really bookmarks. Let's keep it this way for now...
+getBookmarksCount: function() {
+	const logHead = "ChomeUtils::getBookmarksCount(" + bmNode.id + "): ";
 
+	// This sounds crazy inefficient, no better way to just get a count of nodes?
+	// Get the entire tree, then count? Hmmm...
+	return this.wrap(chrome.bookmarks.getTree, logHead).then(
+		function(nodesList) {
+			return nodesList.length;
+		}.bind(this)
+	);
+},
 
 //// Utils to work with storage (chrome.storage)
 
