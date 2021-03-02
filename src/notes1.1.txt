@@ -1,3 +1,35 @@
+- Add support for history search
+  * https://developer.chrome.com/docs/extensions/reference/history
+  * Similar to bookmarks, with the advantage of offering a max-limit in the search API
+  * This should probably be disabled by default
+
+- Bug: if you're scrolled towards the bottom of the popup tiles, the effect of a
+  refresh is very ugly (the tiles having no height)
+  * Should we force a certain height for the tiles?
+    - Or other ways to fix this?
+	  E.g., as noted elsewhere, track which tiles are visible, then mak high
+	  prioriy the rendering of those tiles
+
+- Make bstabs disappear when they get too small and they would want to go on two lines
+  * Can't use ".d-none .d-sm-block" as described in https://getbootstrap.com/docs/5.0/utilities/display/
+    - It removes them when the window is still way too large
+
+- Remove vertical scrollbar and replace it with buttons at the top and bottom of the
+  popup view
+  * Even if without full scrollbar, users should be able to scroll using modern
+    wheels / gestures
+	- Doesn't work with "overflow: hidden;", but it should work with this:
+	  https://www.w3schools.com/howto/howto_css_custom_scrollbar.asp
+	  e.g.:
+		::-webkit-scrollbar {
+			width: 0px;
+		}
+  * Optional controlled by Settings?
+  * Only for undocked popup?
+  * Needed to make the undocked popup look slicker when very narrow and long
+    - The vertical scrollbar takes up precious real estate in that case, and forces
+	  the popup to be slightly wider to get the same amount of visible text
+
 - AsyncQueue: add high priority and low priority queues, and put in the high priority
   queue only tiles that are visible
   * If a tile is inside a group accordion, and the accordion is closed, put the tile in
@@ -325,6 +357,7 @@ DONE 1.1
 
 - Added support for searching among the recently closed tab
   * Use the search badge "closed" to list them
+  * Controlled by a settings option
   * Tiles of recently closed tabs don't have any dropdown and don't have a "close" button,
     because the only action you can take on them is to restore them
 	- When restored, a tab disappears from the recently closed list
