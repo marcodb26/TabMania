@@ -14,17 +14,22 @@ Classes.TabTileViewer = Classes.Viewer.subclass({
 
 	_tab: null,
 	_tabGroup: null,
+	// An object of type Classes.AsyncQueue
+	_asyncQueue: null,
 
 	_menuViewer: null,
 
 // "tabGroup" is optional, if specified it can be used to provide a default favIconUrl
-_init: function(tab, tabGroup) {
+// "asyncQueue" is mandatory, and it's the queue where the tile needs to enqueue all heavy
+// rendering of itself.
+_init: function(tab, tabGroup, asyncQueue) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.Viewer._init.apply(this, arguments);
 
 	this.debug();
 
 	this._tab = tab;
+	this._asyncQueue = asyncQueue;
 	this._renderEmptyTile();
 	this.update(tab, tabGroup);
 },
@@ -361,7 +366,16 @@ update: function(tab, tabGroup) {
 
 	// Trying to speed up the general rendering of the whole list by detaching
 	// the rendering of the tiles body.
-	asyncFn(
+	// We used to have asyncFn() here, but that was insufficient, because it was creating
+	// a swarm of pending updates, and the Javascript engine was queuing them all at the
+	// same time, meaning that they would all have to run to completion before any other
+	// event could be processed. Pushing all the tile updates that way was worse than just
+	// processing to completion, because at least when you process to completion you can
+	// measure how long it's taking, while these scattered/headless pieces of functions
+	// were just running in no-mans land only known to the Javascript engine, with no way
+	// to see them, except for their detrimental effect to everything else (changing a class
+	// of an element could take seconds to take effect because of this swarm).
+	this._asyncQueue.enqueue(
 		function() {
 			this.renderBody();
 
@@ -370,7 +384,8 @@ update: function(tab, tabGroup) {
 					tab.tm.metaTags = metaTags;
 				}
 			);
-		}.bind(this)
+		}.bind(this),
+		"tile " + this._id
 	);
 },
 
