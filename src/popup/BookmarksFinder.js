@@ -7,9 +7,12 @@ Classes.BookmarksFinder = Classes.Base.subclass({
 
 	_eventManager: null,
 
-	_maxBookmarkNodes: 50,
+	// Put as many bookmarks as you think it might make sense to display in
+	// the popup in the worst case... 500 already seems like a lot of scrolling
+	// down the search results.
+	_maxBookmarkNodes: 500,
 
-_init: function(tabGroup, expandedGroups) {
+_init: function() {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.Base._init.call(this);
 	this.debug();
@@ -64,6 +67,8 @@ _bookmarkImportEndedCb: function() {
 },
 
 _processBookmarkTreeNodes: function(nodes) {
+	perfProf.mark("bookmarksSearchEnd");
+
 	const logHead = "BookmarksFinder::_processBookmarkTreeNodes(): ";
 	this._log(logHead + "received: ", nodes);
 
@@ -71,6 +76,7 @@ _processBookmarkTreeNodes: function(nodes) {
 	let bmSkipped = 0;
 	let foldersCount = 0;
 
+	perfProf.mark("bookmarksReduceStart");
 	// Filter out folders and normalize bookmark nodes
 	let retVal = nodes.reduce(
 		function(result, node) {
@@ -113,6 +119,7 @@ _processBookmarkTreeNodes: function(nodes) {
 		}.bind(this),
 		[] // Initial value for reducer
 	);
+	perfProf.mark("bookmarksReduceEnd");
 
 	this._log(logHead + "processed " + bmCount + ", skipped: " + bmSkipped + ", folders: " + foldersCount);
 	// Don't sort here. In the "merge with tabs" case, we'll need to re-sort anyway, so
@@ -131,6 +138,7 @@ find: function(searchString) {
 	}
 
 	this._log(logHead + "processing bookmarks");
+	perfProf.mark("bookmarksSearchStart");
 	return chromeUtils.wrap(chrome.bookmarks.search, logHead, searchString).then( this._processBookmarkTreeNodes.bind(this));
 },
 
