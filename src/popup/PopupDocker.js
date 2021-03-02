@@ -5,7 +5,11 @@ Classes.PopupDocker = Classes.PopupDockerBase.subclass({
 	_dockedInitBodyWidth: 400, // in px
 	_dockedInitBodyHeight: 542, // in px
 
+	_ownTabId: null,
+
 _init: function() {
+	const logHead = "PopupDocker::_init(): ";
+
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.PopupDockerBase._init.call(this);
 
@@ -13,6 +17,16 @@ _init: function() {
 
 	window.addEventListener("load", this._loadCb.bind(this));
 	localStore.addEventListener(Classes.EventManager.Events.UPDATED, this._updatedCb.bind(this));
+
+	if(!this.isPopupDocked()) {
+		chromeUtils.wrap(chrome.tabs.query, logHead, { currentWindow: true }).then(
+			function(tabs) {
+				this._assert(tabs.length == 1);
+				this._log(logHead + "chrome.tabs.query() returned:", tabs);
+				this._ownTabId = tabs[0].id;
+			}.bind(this)
+		);
+	}
 },
 
 _loadCb: function(ev) {
@@ -100,6 +114,21 @@ dockToggle: function() {
 	}
 
 	this.dock();
+},
+
+getOwnTabId: function() {
+	if(this.isPopupDocked()) {
+		// We don't care about tab ID when we're docked, not even sure we have one...
+		return -1;
+	}
+
+	if(this._ownTabId == null) {
+		const logHead = "PopupDocker::getOwnTabId(): "
+		this._err(logHead + "still waiting for initialization");
+		return -2;
+	}
+
+	return this._ownTabId;
 },
 
 }); // Classes.PopupDocker

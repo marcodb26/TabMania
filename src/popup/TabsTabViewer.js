@@ -238,6 +238,15 @@ _registerChromeCallbacks: function() {
 
 _tabCreatedCb: function(tab) {
 	const logHead = "TabsTabViewer::_tabCreatedCb(tabId = " + tab.id + "): ";
+
+	// This check probably doesn't make sense, the _tabCreatedCb() for our own popup
+	// window should have already expired by the time we started running our logic...
+	// anyway, just in case...
+	if(tabId == popupDocker.getOwnTabId()) {
+		this._log(logHead + "suppressing notification for our own tab ID");
+		return;
+	}
+
 	this._log(logHead + "entering");
 	// Since there's a new tab, we need to do a full query again, and potentially trigger
 	// an update to the list of tabs we're tracking (since this tab ID could not possibly
@@ -330,6 +339,12 @@ _setTabProp: function(prop, tabId) {
 
 _tabUpdatedCb: function(cbType, tabId, activeChangeRemoveInfo, tab) {
 	const logHead = "TabsTabViewer::_tabUpdatedCb(" + cbType + ", " + tabId + "): ";
+
+	if(tabId == popupDocker.getOwnTabId()) {
+		this._log(logHead + "suppressing notification for our own tab ID");
+		return;
+	}
+
 	// Very crude... we re-render everything for every update. But at least we try
 	// to reduce the frequency of the re-render in some cases.
 	this._log(logHead + "entering");
