@@ -211,6 +211,8 @@ Classes.SettingsStore = Classes.AsyncBase.subclass({
 	_storageKeyPrefix: "",
 
 	// Current options:
+	// - "recentlyClosedInSearch": whether or not "recently closed tabs" should be included
+	//   in search results
 	// - "bookmarksInSearch": whether or not bookmarks should be included in search results
 	// - "searchUrl": the custom search URL to use with "Clipboard launch/search".
 	// - "devMode": enable/disable developer options (like the UI for "showTabId")
@@ -322,6 +324,15 @@ _setOption: function(prop, value) {
 // I support the point made here against using setters and getters:
 // https://nemisj.com/why-getterssetters-is-a-bad-idea-in-javascript/
 // It's easy enough to have a typo, it's nice to have a syntax check against that...
+getOptionRecentlyClosedInSearch: function() {
+	// We want the default for this option to be "true"
+	return this._getBooleanOption("recentlyClosedInSearch", true);
+},
+
+setOptionRecentlyClosedInSearch: function(value) {
+	return this._setOption("recentlyClosedInSearch", value);
+},
+
 getOptionBookmarksInSearch: function() {
 	// We want the default for this option to be "true"
 	return this._getBooleanOption("bookmarksInSearch", true);

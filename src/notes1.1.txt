@@ -1,3 +1,14 @@
+- AsyncQueue: add high priority and low priority queues, and put in the high priority
+  queue only tiles that are visible
+  * If a tile is inside a group accordion, and the accordion is closed, put the tile in
+    the low priority queue
+
+- Review TabsTabManager.js for use of "tabId" across the code. With the introduction of
+  bookmarks, now "tab.id" might not be unique, as it could either be a tab ID or a bookmark
+  ID. Some of the functions are ok because they only deal with real tabs (from normTabs),
+  but the functions that deal with tiles for sure need to be adjusted to discriminate
+  between tab and bookmark IDs
+
 - Auto-select-all in searchbox when user clicks the mouse there to edit
 
 - Activate search results count badge immediately (empty?) when the initial search starts,
@@ -309,6 +320,16 @@ DONE 1.1
 
 - Center the "Settings" bstab now that undocked popups can have their width expanded
 
+- Added AsyncQueue class and worked on improving rendering performance when many
+  tiles need to be rendered
+
+- Added support for searching among the recently closed tab
+  * Use the search badge "closed" to list them
+  * Tiles of recently closed tabs don't have any dropdown and don't have a "close" button,
+    because the only action you can take on them is to restore them
+	- When restored, a tab disappears from the recently closed list
+  * Chrome only returns a maximum of 25 tabs and windows, so don't expect a lot of history
+  * Incognito tabs are not saved in "Recently closed" when closed
 
 PUNTED TO NEXT RELEASE
 

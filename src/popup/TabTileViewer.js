@@ -64,6 +64,12 @@ _renderEmptyTile: function() {
 	this._menuElem = this.getElementById(menuId);
 	this._closeElem = this.getElementById(closeId);
 
+	if(this._tab.tm.type == Classes.NormalizedTabs.type.RCTAB) {
+		// You can't close or delete a recently closed tab, so no reason to show
+		// a "close" button, let's just hide it
+		this._closeElem.classList.add("tm-hide");
+	}
+
 	this.setClickHandler(this._onTileClickCb.bind(this));
 	this.setClickCloseHandler(this._onTileCloseCb.bind(this));
 },
@@ -182,9 +188,14 @@ renderBody: function() {
 		}
 	}
 
-	let bookmarkIcon = "";
-	if(this._tab.tm.type == Classes.NormalizedTabs.type.BOOKMARK) {
-		bookmarkIcon = icons.bookmark;
+	let specialIcon = "";
+	switch(this._tab.tm.type) {
+		case Classes.NormalizedTabs.type.BOOKMARK:
+			specialIcon = icons.bookmark;
+			break;
+		case Classes.NormalizedTabs.type.RCTAB:
+			specialIcon = icons.history;
+			break;
 	}
 
 	let imgHtml = "";
@@ -204,7 +215,7 @@ renderBody: function() {
 //		</p>
 //		<div class="d-flex">
 //			<p class="flex-grow-1 align-self-center text-truncate tm-tile-url">
-//				<small class="${textMuted}">${bookmarkIcon}${this._safeText(this._url)}</small>
+//				<small class="${textMuted}">${specialIcon}${this._safeText(this._url)}</small>
 //			</p>
 //			<p> </p>
 //			<p class="align-self-center card-text small" style="text-align: right;">
@@ -215,7 +226,7 @@ renderBody: function() {
 	const bodyHtml = `
 		<p class="card-title text-truncate tm-tile-title mb-0">
 			${imgHtml}
-			${bookmarkIcon}
+			${specialIcon}
 			<span class="align-middle ${textMuted} ${titleExtraClasses.join(" ")}">${this._safeText(this._title)}</span>
 		</p>
 		<div class="d-flex">
@@ -233,12 +244,20 @@ renderBody: function() {
 
 	// The menu viewer is not in the body of the tile, but its destiny is parallel
 	// to that of the body of the tile...
-	if(this._tab.tm.type == Classes.NormalizedTabs.type.TAB) {
-		this._menuViewer = Classes.TileTabMenuViewer.create(this._tab);
-	} else {
-		this._menuViewer = Classes.TileBookmarkMenuViewer.create(this._tab);
+	switch(this._tab.tm.type) {
+		case Classes.NormalizedTabs.type.TAB:
+			this._menuViewer = Classes.TileTabMenuViewer.create(this._tab);
+			this._menuViewer.attachToElement(this._menuElem);
+			break;
+		case Classes.NormalizedTabs.type.BOOKMARK:
+			this._menuViewer = Classes.TileBookmarkMenuViewer.create(this._tab);
+			this._menuViewer.attachToElement(this._menuElem);
+			break;
+		default:
+			// No reason to have a dropdown menu for a recently closed tab...
+			this._menuViewer = null;
+			break;
 	}
-	this._menuViewer.attachToElement(this._menuElem);
 },
 
 // Returns a Promise that can be then() with a function(metaTags), where
@@ -296,7 +315,12 @@ _getTabMetaTags: function() {
 },
 
 _onTileClickCb: function(ev) {
-	Classes.TabsTabViewer.activateTab(this._tab);
+	const logHead = "TabsTabViewer::_onTileClickCb(): ";
+	if(this._tab.tm.type == Classes.NormalizedTabs.type.RCTAB) {
+		chromeUtils.wrap(chrome.sessions.restore, logHead, this._tab.sessionId);
+	} else {
+		Classes.TabsTabViewer.activateTab(this._tab);
+	}
 },
 
 _onTileCloseCb: function(ev) {

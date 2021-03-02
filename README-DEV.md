@@ -25,9 +25,14 @@ a custom shortcut. We combine these three identifiers into a string of the form
 If you enable the _Display extended tab ID badge_ option, the extended tab ID badge will be visible in
 every tile. Note that you can search by extended tab ID even if this option is disabled.
 
+### Extended tab ID for recently closed tabs
+Chrome does not keep a `windowId` and an `index` associated to recently closed tabs, so the extended
+tab ID of a recently closed tab is simply its `sessionId`. We just format it in a way that makes it
+easily recognizable: `rc[[sessionId]]`
+
 ### Extended bookmark ID
 Similar to tabs, bookmarks that land in search results have an extended ID attached. The extended ID
-of a bookmark is a string of the form `bm[parentId].[bookmarkId]`. For root objects, the `[parentId]`
+of a bookmark is a string of the form `bm[[parentId].[bookmarkId]]`. For root objects, the `[parentId]`
 could be missing. Extended bookmark IDs are not searchable (bookmarks can only be searched for title
 and URL matches), but when visualized they can still provide a hint of context about the bookmark.
 

@@ -41,7 +41,13 @@ volumeAudible: `
 // https://fontawesome.com/license
 // <!-- <i class="fas fa-bookmark"></i> Font Awesome fontawesome.com -->
 bookmark: `
-	<svg class="tm-fa-bookmark" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="bookmark" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path fill="currentColor" d="M0 512V48C0 21.49 21.49 0 48 0h288c26.51 0 48 21.49 48 48v464L192 400 0 512z"></path></svg>
+	<svg class="tm-fa-bookmark" aria-hidden="true" focusable="false" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path fill="currentColor" d="M0 512V48C0 21.49 21.49 0 48 0h288c26.51 0 48 21.49 48 48v464L192 400 0 512z"></path></svg>
+`,
+
+// This SVG was taken from the stackoverflow.com website. Unclear attribution requirements.
+// It's not from Font Awesome, as 
+history: `
+	<svg class="tm-fa-history" aria-hidden="true" focusable="false" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19 18"><path fill="currentColor" d="M3 9a8 8 0 113.73 6.77L8.2 14.3A6 6 0 105 9l3.01-.01-4 4-4-4h3L3 9zm7-4h1.01L11 9.36l3.22 2.1-.6.93L10 10V5z"></path></svg>
 `,
 
 };

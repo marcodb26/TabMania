@@ -7,6 +7,7 @@
 		"bookmarks",
 		"tabs",
 		"tabGroups", // https://developer.chrome.com/docs/extensions/reference/tabGroups/
+		"sessions", // https://developer.chrome.com/docs/extensions/reference/sessions/
 		"storage",
 		"clipboardRead", // See: https://stackoverflow.com/questions/22702446/how-to-get-clipboard-data-in-chrome-extension
 		"*://*/*",    // Needed to allow script injection in tabs (see chromeUtils.inject())

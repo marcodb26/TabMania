@@ -235,6 +235,9 @@ _registerChromeCallbacks: function() {
 	chrome.tabs.onAttached.addListener(this._tabUpdatedCb.bind(this, Classes.TabsTabViewer.CbType.ATTACHED));
 	// https://developer.chrome.com/docs/extensions/reference/tabs/#event-onMoved
 	chrome.tabs.onMoved.addListener(this._tabUpdatedCb.bind(this, Classes.TabsTabViewer.CbType.MOVED));
+
+	// https://developer.chrome.com/docs/extensions/reference/sessions/#event-onChanged
+	chrome.sessions.onChanged.addListener(this._recentlyClosedChangedCb.bind(this));
 },
 
 _tabCreatedCb: function(tab) {
@@ -449,15 +452,24 @@ _bookmarkUpdatedCb: function(ev) {
 	// In theory we could just call a removeEventListener() when we get out of search
 	// mode, but this code seems harmless enough
 	if(!this.isSearchActive()) {
-		// All the bookmark events can be ignore when not in search mode
+		// All the bookmark events can be ignored when not in search mode
 		return;
 	}
 	
 	// The tabs have not changed, but it would be a bit more (code) trouble to try
 	// to only update the info from the _bookmarksFinder, and merge it with the
 	// existing tabs. Maybe one day we'll have time for that optimization, for
-	// now we just do the usual crude re-query/re-render.
-	this._queryAndRenderJob.run(this._queryAndRenderDelay);
+	// now we just pretend the search query has changed...
+	this._updateSearchResults();
+},
+
+// This callback doesn't take any arguments
+_recentlyClosedChangedCb: function() {
+	if(!this.isSearchActive()) {
+		// All recently closed tabs events can be ignored when not in search mode
+		return;
+	}
+	this._updateSearchResults();
 },
 
 _TabsTabViewer_render: function() {
@@ -686,6 +698,14 @@ _activateSearchBox: function(active) {
 	}
 },
 
+_updateSearchResults: function() {
+	perfProf.mark("searchStart");
+	this._tilesByTabId = {};
+	this._resetAsyncQueue();
+	this._searchRenderTabs(this._normTabs.getTabs());
+	perfProf.mark("searchEnd");
+},
+
 // Override this function from Classes.SearchableTabViewer
 _searchBoxProcessData: function(value) {
 	// If value.length == 0, this function doesn't get called...
@@ -718,11 +738,7 @@ _searchBoxProcessData: function(value) {
 	// We used to call "this._queryAndRenderTabs()" here, but there's no need
 	// to query the tabs when this event happens, the tabs have not changed,
 	// only the search box has changed.
-	perfProf.mark("searchStart");
-	this._tilesByTabId = {};
-	this._resetAsyncQueue();
-	this._searchRenderTabs(this._normTabs.getTabs());
-	perfProf.mark("searchEnd");
+	this._updateSearchResults();
 },
 
 // This is a static function, because we need it both in the "Enter" handler as
@@ -771,6 +787,8 @@ _searchCompareFnInner: function(fnName, targetString, searchString) {
 _searchCompareFn: null,
 
 _isTabInCurrentSearchPositive: function(tab) {
+	const logHead = "TabsTabViewer::_isTabInCurrentSearchPositive(): ";
+//	this._log(logHead + "entering for tab", tab);
 	if(this._searchCompareFn(tab.tm.lowerCaseTitle, this._currentSearchInput)) {
 		return true;
 	}
@@ -887,6 +905,59 @@ _searchRenderTabsInner_Separate: function(tabs, bmNodes) {
 	}
 },
 
+_recentlyClosedNormalize: function(session) {
+	// Filter out windows and normalize recently closed tabs
+	let retVal = session.reduce(
+		function(tabs, entry) {
+			if(entry.tab == null) {
+				// Per https://developer.chrome.com/docs/extensions/reference/sessions/#type-Session
+				// windows are identifiable by the absence of "tab". We don't want to track windows,
+				// so let's discard this entry
+				return tabs;
+			}
+
+			// We want each recently closed tab to be as similar as possible to a tab object...
+			// It seems to already include everything except for "id" and "status". Using
+			// sessionId for tab.id is probably going to generate some duplicated tab IDs, but
+			// for now let's go with that...
+			entry.tab.status = "unloaded";
+			entry.tab.id = entry.tab.sessionId;
+			if(entry.tab.favIconUrl == null || entry.tab.favIconUrl == "") {
+				// See BookmarksFinder.js for details about the favicon cache
+				entry.tab.favIconUrl = "chrome://favicon/size/16@1x/" + entry.tab.url;
+			}
+			Classes.NormalizedTabs.normalizeTab(entry.tab, Classes.NormalizedTabs.type.RCTAB);
+
+			tabs.push(entry.tab);
+			return tabs;
+		}.bind(this),
+		[] // Initial value for reducer
+	);
+
+	return retVal;
+},
+
+// Returns a list of normalized tabs taken from the recently closed list (max of 25
+// per the Chrome API limit).
+_getRecentlyClosedTabs: function() {
+	const logHead = "TabsTabViewer::_getRecentlyClosedTabs(): ";
+
+	if(!settingsStore.getOptionRecentlyClosedInSearch()) {
+		this._log(logHead + "recently closed tabs are disabled in search, nothing to do");
+		// Pretend we searched and found no recently closed tabs (empty array)
+		return Promise.resolve([]);
+	}
+
+	// This function returns a maximum of 25 recently closed tabs, not much
+	// to worry about
+	return chromeUtils.wrap(chrome.sessions.getRecentlyClosed, logHead, null).then(
+		function(session) {
+			this._log(logHead + "sessions.getRecentlyClosed() returned: ", session);
+			return this._recentlyClosedNormalize(session);
+		}.bind(this)
+	);
+},
+
 _searchRenderTabs: function(tabs) {
 	const logHead = "TabsTabViewer::_searchRenderTabs(): ";
 
@@ -897,8 +968,11 @@ _searchRenderTabs: function(tabs) {
 	// option to control this.
 	let merge = true;
 
-	this._bookmarksFinder.find(this._currentSearchInput).then(
-		function(bmNodes) {
+	Promise.all([
+		this._getRecentlyClosedTabs(),
+		this._bookmarksFinder.find(this._currentSearchInput)
+	]).then(
+		function([ rcTabs, bmNodes ]) {
 			// We need to this._containerViewer.clear() in all cases, but we're trying to
 			// keep this clear() call as close as possible to the time of the new rendering.
 			// If there's too much processing to do between clear() and render, users will
@@ -908,10 +982,12 @@ _searchRenderTabs: function(tabs) {
 			// here to inside the this._searchRenderTabsInner_Merged() or this._searchRenderTabsInner_Separate()
 			// calls. A small duplication for a good UX cause.
 
+			// concat() dosn't modify "tabs", so that's safe
+			let mergedTabs = tabs.concat(rcTabs);
 			if(merge) {
-				this._searchRenderTabsInner_Merged(tabs, bmNodes);
+				this._searchRenderTabsInner_Merged(mergedTabs, bmNodes);
 			} else {
-				this._searchRenderTabsInner_Separate(tabs, bmNodes);
+				this._searchRenderTabsInner_Separate(mergedTabs, bmNodes);
 			}
 		}.bind(this)
 	);

@@ -66,7 +66,17 @@
 	   stand out. Choosing a dark color to avoid it "standing out too much".
 	*/
 	color: #a60c29;
-	/*vertical-align: -.125em;*/
+}
+
+.tm-fa-history {
+	width: 1em;
+    height: 1em;
+	/* Recently closed tabs always show up in black and white, but we want this
+	   icon to stand out. Choosing a dark color to avoid it "standing out too much".
+	   For now let's use the same color as .tm-fa.bookmark, but later we should
+	   change it.
+	*/
+	color: #a60c29;
 }
 
 .tm-fa-thumbtack-tile {

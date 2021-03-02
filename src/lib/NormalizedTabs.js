@@ -134,6 +134,10 @@ formatExtendedId: function(tab, objType) {
 		return tab.windowId + ":" + tab.id + "/" + tab.index;
 	}
 
+	if(objType == Classes.NormalizedTabs.type.RCTAB) {
+		return "rc[" + tab.id + "]";
+	}
+
 	// Extended ID for bookmark: "bm[10.36]" (or "bm[.36]" for bookmarks with
 	// no parent).
 	// Note that we've explicitly chosen a different format from that of tab extended
@@ -200,6 +204,10 @@ updateSearchBadges: function(tab) {
 		this._addNormalizedVisualBadge(tab, "discarded", false);
 	}
 
+	if(tab.tm.type == Classes.NormalizedTabs.type.RCTAB) {
+		this._addNormalizedVisualBadge(tab, "closed", false);
+	}
+
 	if(tab.highlighted) {
 		// The difference between "active" and "highlighted" is that the "active"
 		// tab is the tab that's currently visible in a window, while the set of
@@ -215,7 +223,7 @@ updateSearchBadges: function(tab) {
 		this._addNormalizedVisualBadge(tab, "incognito", false);
 	}
 
-	if(tab.mutedInfo.muted) {
+	if(tab.mutedInfo != null && tab.mutedInfo.muted) {
 		this._addNormalizedVisualBadge(tab, "muted", false);
 	}
 
@@ -280,6 +288,8 @@ updateBookmarkBadges: function(tab) {
 normalizeTab: function(tab, objType) {
 	objType = optionalWithDefault(objType, Classes.NormalizedTabs.type.TAB);
 
+	const logHead = "NormalizedTabs::normalizeTab(): ";
+
 	// Sometimes "tab.url" is empty, because "tab.pendingUrl" is still loading.
 	// But in some cases, tab.url is empty, and tab.pendingUrl doesn't even exist,
 	// so we use optionalWithDefault() to cover that last corner case.
@@ -328,17 +338,27 @@ normalizeTab: function(tab, objType) {
 		secondaryShortcutBadges: [],
 	};
 
-	if(objType == Classes.NormalizedTabs.type.TAB) {
-		// Bookmarks don't need search badges, because they're inserted in the flow
-		// through chrome.bookmarks.search() (that is, post search).
-		// Bookmarks also don't need shortcut badges because they can't be invoked
-		// via custom shortcuts (though the URL in a custom shortcut could match
-		// the URL of a bookmark, they're slightly different things, let's not mix
-		// them up).
-		this.updateShortcutBadges(tab);
-		this.updateSearchBadges(tab);
-	} else {
-		this.updateBookmarkBadges(tab);
+	switch(objType) {
+		case Classes.NormalizedTabs.type.TAB:
+			// Bookmarks don't need search badges, because they're inserted in the flow
+			// through chrome.bookmarks.search() (that is, post search).
+			// Bookmarks also don't need shortcut badges because they can't be invoked
+			// via custom shortcuts (though the URL in a custom shortcut could match
+			// the URL of a bookmark, they're slightly different things, let's not mix
+			// them up).
+			this.updateShortcutBadges(tab);
+			this.updateSearchBadges(tab);
+			break;
+		case Classes.NormalizedTabs.type.RCTAB:
+			// No shortcut badges for Recently Closed Tabs
+			this.updateSearchBadges(tab);
+			break;
+		case Classes.NormalizedTabs.type.BOOKMARK:
+			this.updateBookmarkBadges(tab);
+			break;
+		default:
+			this._err(logHead + "unknown objType", objType);
+			break;
 	}
 },
 
@@ -416,4 +436,6 @@ updateTab: function(newTab, tabIdx) {
 
 Classes.Base.roDef(Classes.NormalizedTabs, "type", {} );
 Classes.Base.roDef(Classes.NormalizedTabs.type, "TAB", "tab" );
+// RCTAB == "Recently Closed TAB"
+Classes.Base.roDef(Classes.NormalizedTabs.type, "RCTAB", "rctab" );
 Classes.Base.roDef(Classes.NormalizedTabs.type, "BOOKMARK", "bookmark" );
