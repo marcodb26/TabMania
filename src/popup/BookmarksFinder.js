@@ -139,7 +139,7 @@ find: function(searchString) {
 
 	this._log(logHead + "processing bookmarks");
 	perfProf.mark("bookmarksSearchStart");
-	return chromeUtils.wrap(chrome.bookmarks.search, logHead, searchString).then( this._processBookmarkTreeNodes.bind(this));
+	return chromeUtils.wrap(chrome.bookmarks.search, logHead, searchString).then(this._processBookmarkTreeNodes.bind(this));
 },
 
 }); // Classes.BookmarksFinder
