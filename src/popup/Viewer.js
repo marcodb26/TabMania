@@ -174,6 +174,25 @@ hide: function() {
 	this._rootElem.classList.add("tm-hide");
 },
 
+isInDocumentDom: function() {
+	if(this._rootElem.id == null) {
+		// If we don't have an ID, we can't check
+		return null;
+	}
+	return (document.getElementById(this._rootElem.id) != null);
+},
+
+// Is the element currently at least partially visible on the screen, or is it scrolled
+// out of view?
+isInViewport: function() {
+//	const logHead = "Viewer::isInViewport(" + window.innerHeight + "): ";
+    let clientRect = this._rootElem.getBoundingClientRect();
+//	this._log(logHead + "in DOM: " + this.isInDocumentDom() + ", clientRect = ", clientRect.top, clientRect.bottom);
+
+    // Return "true" if the element is at least partially in the viewport
+    return (clientRect.top < window.innerHeight && clientRect.bottom >= 0);
+},
+
 // "elem" is optional, if not specified we use the root element
 runAnimation: function(animClass, elem) {
 	elem = optionalWithDefault(elem, this._rootElem);
