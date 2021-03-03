@@ -90,6 +90,8 @@ Very manual until I have some time to focus on automation
 
 * With `/dist/popup.html`
   * Replace all local `<script>` tags (including all "inject" tags) with just `popup.js`
+  * Update location of favicon `<link rel="icon" href="../images/icon-16.png" [...]` to point
+    to `/dist/images` as `<link rel="icon" href="images/icon-16.png" [...]`
   * Remove Font Awesome stuff
 	* `<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" rel="stylesheet">`
 	* `<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/js/all.min.js"></script>`

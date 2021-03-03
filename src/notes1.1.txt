@@ -375,6 +375,10 @@ DONE 1.1
   * The current blinking cue shows up only after the first search, after further
     edits to the search string
 
+- Added favicon to undocked popup
+  * Without it, the tile of the TabMania popup in TabMania was showing up without an icon
+    (while for some reason the tile in Windows showed the icon anyway)
+
 
 PUNTED TO NEXT RELEASE
 
