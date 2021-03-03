@@ -364,6 +364,10 @@ DONE 1.1
     because the only action you can take on them is to restore them
 	- When restored, a tab disappears from the recently closed list
   * Chrome only returns a maximum of 25 tabs and windows, so don't expect a lot of history
+    - Most of the 25 could be taken by windows to be restored from the last reboot, and
+	  unfortunately due to a bug with chrome.sessions.restore() we must suppress them
+	  (and anyway they would be duplicates of open tabs). Things get better a few hours
+	  after the reboot, when normal windows and tabs take over the recently closed tabs
   * Incognito tabs are not saved in "Recently closed" when closed
 
 
