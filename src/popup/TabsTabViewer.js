@@ -706,6 +706,7 @@ _activateSearchBox: function(active) {
 	} else {
 		this._log(logHead, "switching to search render");
 		this._currentSearchResults = null;
+		this._setSearchBoxCount();
 		this._renderTabs = this._searchRenderTabs;
 		// We don't need to call this._queryAndRenderTabs() in this case, because
 		// it's already being invoked as part of _searchBoxProcessData().

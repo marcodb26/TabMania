@@ -396,8 +396,13 @@ _searchBoxInputListenerCb: function(ev) {
 	this._searchBoxProcessData(ev.target.value);
 },
 
+// If "cnt" is omitted, the function writes some basic text to provide feedback
 _setSearchBoxCount: function(cnt) {
-	this._searchBoxCountElem.textContent = (cnt < 1000) ? cnt : "999+";
+	if(cnt == null) {
+		this._searchBoxCountElem.innerHTML = "Searching...";
+	} else {
+		this._searchBoxCountElem.textContent = (cnt < 1000) ? cnt : "999+";
+	}
 },
 
 // "flag" defaults "true" (start blinking)
