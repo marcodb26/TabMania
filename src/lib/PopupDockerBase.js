@@ -17,8 +17,10 @@ _init: function() {
 	this.debug();
 },
 
+// This function is public interface because it's also used to filter out TabMania
+// popups from history and recently closed tabs.
 // "undocked" is optional, default "false"
-_getPopupUrl: function(undocked) {
+getPopupUrl: function(undocked) {
 	undocked = optionalWithDefault(undocked, false);
 
 	let urlSearch = "";
@@ -33,7 +35,7 @@ _launchUndocked: function() {
 	const logHead = "PopupDockerBase::_launchUndocked(): ";
 
 	let createData = {
-		url: this._getPopupUrl(true),
+		url: this.getPopupUrl(true),
 		focused: true,
 		type: "popup",
 		width: this._undockedInitWidth,
@@ -51,7 +53,7 @@ _openUndocked: function() {
 	const logHead = "PopupDockerBase::_openUndocked(): ";
 	this._log(logHead + "entering");
 
-	chromeUtils.wrap(chrome.tabs.query, logHead, { url: this._getPopupUrl(true) }).then(
+	chromeUtils.wrap(chrome.tabs.query, logHead, { url: this.getPopupUrl(true) }).then(
 		function(tabs) {
 			if(tabs.length == 0) {
 				this._log(logHead + "undocked tab not found, launching it");
@@ -83,7 +85,7 @@ _setDocked: function(docked) {
 
 	let popupUrl = "";
 	if(docked) {
-		popupUrl = this._getPopupUrl();
+		popupUrl = this.getPopupUrl();
 	}
 
 	chromeUtils.wrap(chrome.browserAction.setPopup, logHead, { popup: popupUrl }).then(
