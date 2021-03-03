@@ -3,6 +3,8 @@
   * Similar to bookmarks, with the advantage of offering a max-limit in the search API
   * This should probably be disabled by default
 
+- Save size and position of undocked popup
+
 - Bug: if you're scrolled towards the bottom of the popup tiles, the effect of a
   refresh is very ugly (the tiles having no height)
   * Should we force a certain height for the tiles?
@@ -364,6 +366,7 @@ DONE 1.1
   * Chrome only returns a maximum of 25 tabs and windows, so don't expect a lot of history
   * Incognito tabs are not saved in "Recently closed" when closed
 
+
 PUNTED TO NEXT RELEASE
 
 - Add option to merge bookmarks with tabs, or show them separately
@@ -510,6 +513,15 @@ PUNTED TO NEXT RELEASE
 - Implement TileMenuViewer._updateShortcutMenuItems()
   * Or do we really care, given that most of the times we need to rebuild the
     entire set of tabs from scratch
+
+- BUG: When opening the undocked popup, the tiles rendering always happens twice: first
+  because we opened it and queried for all tabs, second because we received a notification
+  that our own popup tab went from status "loading" to status "loaded".
+  * It's annoying to have to render twice, and slows down the startup of the undocked
+    popup, but unless we find a good way to avoid full re-render when this event arrives,
+	we need the event
+  * We tried to suppress all events from our own popup, we ended up with a tile for the
+    popup that was showing "loading" until another unrelated event cleared it
 
 
 ENVIRONMENT
