@@ -70,7 +70,7 @@ first tab in the list of results.
 Search keywords are a combination of the badges you can find on the tile, plus hidden badges added
 for search convenience.
 The hidden badges include `audible`, `muted`, `highlighted`, `incognito`, `pinned`, `discarded`,
-`unloaded` and `loaded`.
+`unloaded` and `loaded`. For _recently closed tabs_, the extra search badge `closed` is also available.
 
 __Example__: a tab is playing sounds and you want to mute it; type "audible" to get a list of tabs that
 are currently playing sounds, and mute it by clicking the "mute" menu action in the tile.

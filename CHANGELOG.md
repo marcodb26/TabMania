@@ -4,7 +4,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 # [Unreleased]
 ## Added
-- This Changelog file
+- Added this Changelog file
 - Moved release process to [README-DEV.md](https://github.com/marcodb26/TabMania/blob/main/README-DEV.md)
 - Added ability to undock the popup, so users can resize it and have it always available
 - Added "+" button to open a new tab; the tab will recycle leftover "new tabs" or use the
