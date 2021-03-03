@@ -43,8 +43,12 @@ _renderEmptyTile: function() {
 
 	const closeIcon = `<span aria-hidden="true" class="${closeIconClass}"></span>`;
 
+	// We want to set min-height because when there are a lot of tiles and you're
+	// scrolled to the bottom, it might take a while to get to render the body of
+	// of those tiles. While you wait, it's better to see a full-sized empty tile
+	// than a bunch of super-thin tiles that later disappear.
 	const rootHtml = `
-	<div style="cursor: default" class="card tm-hover">
+	<div style="cursor: default; min-height: 3em;" class="card tm-hover">
 		<div id="${bodyId}" class="card-body px-2 py-1 text-nowrap tm-stacked-below">
 		</div>
 		<div class="tm-overlay tm-full-size tm-hover-target">
@@ -116,6 +120,23 @@ _addBadgesHtml: function(visibleBadgesHtml, badgesList, secondary) {
 			visibleBadgesHtml.push(this._badgeHtml(badge, secondary ? "grey" : null));
 		}.bind(this)
 	);
+},
+
+_renderMenu: function() {
+	switch(this._tab.tm.type) {
+		case Classes.NormalizedTabs.type.TAB:
+			this._menuViewer = Classes.TileTabMenuViewer.create(this._tab);
+			this._menuViewer.attachToElement(this._menuElem);
+			break;
+		case Classes.NormalizedTabs.type.BOOKMARK:
+			this._menuViewer = Classes.TileBookmarkMenuViewer.create(this._tab);
+			this._menuViewer.attachToElement(this._menuElem);
+			break;
+		default:
+			// No reason to have a dropdown menu for a recently closed tab...
+			this._menuViewer = null;
+			break;
+	}
 },
 
 renderBody: function() {
@@ -244,20 +265,12 @@ renderBody: function() {
 
 	// The menu viewer is not in the body of the tile, but its destiny is parallel
 	// to that of the body of the tile...
-	switch(this._tab.tm.type) {
-		case Classes.NormalizedTabs.type.TAB:
-			this._menuViewer = Classes.TileTabMenuViewer.create(this._tab);
-			this._menuViewer.attachToElement(this._menuElem);
-			break;
-		case Classes.NormalizedTabs.type.BOOKMARK:
-			this._menuViewer = Classes.TileBookmarkMenuViewer.create(this._tab);
-			this._menuViewer.attachToElement(this._menuElem);
-			break;
-		default:
-			// No reason to have a dropdown menu for a recently closed tab...
-			this._menuViewer = null;
-			break;
-	}
+
+	
+	this._asyncQueue.enqueue(this._renderMenu.bind(this),
+				"TabTileViewer._renderMenu(tile " + this._id + ")",
+				// Use low priority queue for the menu, it's not immediately visible
+				Classes.AsyncQueue.priority.LOW); 
 },
 
 // Returns a Promise that can be then() with a function(metaTags), where
@@ -344,7 +357,14 @@ _onTileCloseCb: function(ev) {
 
 _cleanupUrl: function(url) {
 	if(url == "chrome://newtab/") {
-		return "[new tab]";
+		return "New tab";
+	}
+
+	// There should only be one undocked popup, but just in case, let's validate
+	// this using two pieces of information
+	if(url == popupDocker.getPopupUrl(true) && this._tab.id == popupDocker.getOwnTabId()) {
+		// Hide our ugly URL...
+		return "This popup window";
 	}
 
 	if(url.startsWith("https://")) {
@@ -410,6 +430,13 @@ update: function(tab, tabGroup) {
 			);
 		}.bind(this),
 		"tile " + this._id
+		// Tried to play with the priority based on this._isInViewport(), but when we are
+		// here during tile creation, the tile has yet to be attached to the DOM, because
+		// we're still in _init(), and the attachment to the DOM needs to be done by the
+		// caller.
+		// We also tried to take the first this.update() outside of _init(), and done by
+		// the caller after attaching to the DOM, but that seems to have the side effect
+		// of scrolling back all the way to the top.
 	);
 },
 
