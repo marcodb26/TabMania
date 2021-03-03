@@ -374,8 +374,14 @@ _cleanupUrl: function(url) {
 	return url;
 },
 
+updateAsyncQueue: function(asyncQueue) {
+	this._asyncQueue = asyncQueue;
+},
+
 // "tabGroup" is optional
-update: function(tab, tabGroup) {
+// "queuePriority" is optional
+update: function(tab, tabGroup, queuePriority) {
+	const logHead = "TabTileViewer::update(): ";
 	if(tab == null) {
 		// Events like Classes.TabUpdatesTracker.CbType.ACTIVATED trigger a tile
 		// update, but there's no "tab" info to perform the actual update... what
@@ -388,6 +394,13 @@ update: function(tab, tabGroup) {
 		this._tab.activated = true;
 		tab = this._tab;
 	} else {
+		// We're using this check to validate that the tab.id field remains unique across
+		// all different types of tabs (tabs, rctabs, bmnodes). Since we always reuse a
+		// tile only to represent the same tab.id, the tab's type should remain constant,
+		// as no tab.id ever changes its type
+		this._assert(this._tab.id == tab.id, logHead + `tab.id changed from ${this._tab.id} to ${tab.id}`);
+		this._assert(this._tab.tm.type == tab.tm.type, logHead +
+						`type changed from ${this._tab.tm.type} to ${tab.tm.type} for tab ${this._tab.tm.extId}`);
 		this._tab = tab;
 	}
 
@@ -429,7 +442,8 @@ update: function(tab, tabGroup) {
 				}
 			);
 		}.bind(this),
-		"tile " + this._id
+		"tile " + this._id,
+		queuePriority
 		// Tried to play with the priority based on this._isInViewport(), but when we are
 		// here during tile creation, the tile has yet to be attached to the DOM, because
 		// we're still in _init(), and the attachment to the DOM needs to be done by the
@@ -437,6 +451,8 @@ update: function(tab, tabGroup) {
 		// We also tried to take the first this.update() outside of _init(), and done by
 		// the caller after attaching to the DOM, but that seems to have the side effect
 		// of scrolling back all the way to the top.
+		// Decided to use the priority to set a low priority when reusing a tile from
+		// TabsTabViewer._renderTile()
 	);
 },
 

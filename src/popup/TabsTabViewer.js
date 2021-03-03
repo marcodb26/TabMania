@@ -166,6 +166,13 @@ Classes.TabsTabViewer = Classes.SearchableTabViewer.subclass({
 
 	// Dictionary tracking all the tab tiles, in case we need to update their contents
 	_tilesByTabId: null,
+	// When we go through a refresh cycle, we want to reset _tilesByTabId so that we refill
+	// it with only tiles that still exist after the refresh. However, we try to aggressively
+	// reuse the tiles we've created in previous iterations, and for that we want to store
+	// the tiles from the last iteration in _cachedTilesByTabId.
+	_cachedTilesByTabId: null,
+	_recycledTilesCnt: null,
+
 	_tilesAsyncQueue: null,
 
 	// Object containing all current known tabs
@@ -508,11 +515,27 @@ _tabsAsyncQuery: function() {
 	throw(new Error("must subclass"));
 },
 
+_logCachedTilesStats: function(logHead) {
+	if(this._cachedTilesByTabId == null) {
+		this._log(logHead + "no cache, no stats");
+		return;
+	}
+	this._log(logHead + "reused " + this._recycledTilesCnt + " tiles, " +
+				Object.keys(this._cachedTilesByTabId).length + " tiles still in cache");
+},
+
 _resetAsyncQueue: function() {
 	if(this._tilesAsyncQueue != null) {
 		this._tilesAsyncQueue.discard();
 	}
 	this._tilesAsyncQueue = Classes.AsyncQueue.create();
+},
+
+_prepareForNewCycle: function() {
+	this._recycledTilesCnt = 0;
+	this._cachedTilesByTabId = this._tilesByTabId;
+	this._tilesByTabId = {};
+	this._resetAsyncQueue();
 },
 
 _queryAndRenderTabs: function() {
@@ -524,8 +547,7 @@ _queryAndRenderTabs: function() {
 		function(tabs) {
 			perfProf.mark("queryEnd");
 			this._log(logHead + "tabs received, processing");
-			this._tilesByTabId = {};
-			this._resetAsyncQueue();
+			this._prepareForNewCycle();
 
 			try {
 				// Normalize the incoming tabs. Note that the normalization
@@ -607,6 +629,7 @@ _standardRenderTabs: function(tabs) {
 		this._renderTabsByGroup(pinnedGroups);
 		this._renderTabsByGroup(unpinnedGroups);
 	}
+	this._logCachedTilesStats(logHead);
 	perfProf.mark("tilesEnd");
 				
 	perfProf.measure("Create groups", "groupStart", "groupEnd");
@@ -650,10 +673,47 @@ _renderTabsByGroup: function(tabGroups) {
 	);
 },
 
+_getCachedTile: function(tab, tabGroup) {
+	if(this._cachedTilesByTabId == null) {
+		return null;
+	}
+
+	// Let's see if we already have the tile, or if we need to create a new one
+	let tile = this._cachedTilesByTabId[tab.id];
+
+	// No cache, or not found in cache
+	if(tile == null) {
+		return null;
+	}
+
+	// The tile was in the cache!
+	this._recycledTilesCnt++;
+
+	// let's clear it from the cache (no two tabs should have the same tab.id, but
+	// if it happens, we need to make sure they don't both try to use the same tile...
+	delete this._cachedTilesByTabId[tab.id];
+
+	// Update the tile fo this new cycle
+
+	// We've discarded the old _tilesAsyncQueues, so now the cached tile needs a new
+	// one to proceed with her async actions.
+	tile.updateAsyncQueue(this._tilesAsyncQueue);
+	// Using low priority to let the new tiles get the full rendering before the cached
+	// tiles get their re-rendering
+	tile.update(tab, tabGroup, Classes.AsyncQueue.priority.LOW);
+
+	return tile;
+},
+
 _renderTile: function(containerViewer, tabGroup, tab) {
 	//const logHead = "TabsTabViewer::_renderTile(): ";
+	let tile = this._getCachedTile(tab, tabGroup);
 
-	var tile = Classes.TabTileViewer.create(tab, tabGroup, this._tilesAsyncQueue);
+	if(tile == null) {
+		// No cache, or not found in cache
+		tile = Classes.TabTileViewer.create(tab, tabGroup, this._tilesAsyncQueue);
+	}
+
 	containerViewer.append(tile);
 	this._tilesByTabId[tab.id] = tile;
 },
@@ -715,8 +775,7 @@ _activateSearchBox: function(active) {
 
 _updateSearchResults: function() {
 	perfProf.mark("searchStart");
-	this._tilesByTabId = {};
-	this._resetAsyncQueue();
+	this._prepareForNewCycle();
 	this._searchRenderTabs(this._normTabs.getTabs());
 	perfProf.mark("searchEnd");
 },
@@ -882,6 +941,7 @@ _searchRenderTabsInner_Merged: function(tabs, bmNodes) {
 		perfProf.mark("searchRenderStart");
 		this._renderTabsFlatInner(this._containerViewer, objects);
 		perfProf.mark("searchRenderEnd");
+		this._logCachedTilesStats(logHead);
 	}
 },
 
@@ -917,6 +977,7 @@ _searchRenderTabsInner_Separate: function(tabs, bmNodes) {
 		}
 		this._renderTabsFlatInner(this._containerViewer, tabs);
 		this._renderTabsFlatInner(this._containerViewer, bmNodes);
+		this._logCachedTilesStats(logHead);
 	}
 },
 
