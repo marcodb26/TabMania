@@ -11,6 +11,8 @@
     - Or other ways to fix this?
 	  E.g., as noted elsewhere, track which tiles are visible, then mak high
 	  prioriy the rendering of those tiles
+  * Mitigated a bit my forcing min-height to 3em, but still not great
+    - Besides 3em is not the right size of the tile when it's populated...
 
 - Make bstabs disappear when they get too small and they would want to go on two lines
   * Can't use ".d-none .d-sm-block" as described in https://getbootstrap.com/docs/5.0/utilities/display/
@@ -32,10 +34,8 @@
     - The vertical scrollbar takes up precious real estate in that case, and forces
 	  the popup to be slightly wider to get the same amount of visible text
 
-- AsyncQueue: add high priority and low priority queues, and put in the high priority
-  queue only tiles that are visible
-  * If a tile is inside a group accordion, and the accordion is closed, put the tile in
-    the low priority queue
+- If a tile is inside a group accordion, and the accordion is closed, put the tile in
+  the low priority queue for rendering
 
 - Review TabsTabManager.js for use of "tabId" across the code. With the introduction of
   bookmarks, now "tab.id" might not be unique, as it could either be a tab ID or a bookmark
@@ -44,11 +44,6 @@
   between tab and bookmark IDs
 
 - Auto-select-all in searchbox when user clicks the mouse there to edit
-
-- Activate search results count badge immediately (empty?) when the initial search starts,
-  otherwise we have no visual cue that the search is in progress
-  * The current blinking cue shows up only after the first search, after further
-    edits to the search string
 
 - Add in settings total count of tabs and bookmarks
   * Don’t exclude folders when counting bookmarks, too expensive
@@ -369,6 +364,13 @@ DONE 1.1
 	  (and anyway they would be duplicates of open tabs). Things get better a few hours
 	  after the reboot, when normal windows and tabs take over the recently closed tabs
   * Incognito tabs are not saved in "Recently closed" when closed
+
+- AsyncQueue: add high priority and low priority queues
+
+- Activate search results count badge immediately (empty?) when the initial search starts,
+  otherwise we have no visual cue that the search is in progress
+  * The current blinking cue shows up only after the first search, after further
+    edits to the search string
 
 
 PUNTED TO NEXT RELEASE
