@@ -210,6 +210,22 @@ loadUrl: function(url, tabId, winId) {
 	return Promise.all([ promiseA, promiseB ]);
 },
 
+moveTabToLeastTabbedWindow: function(tab) {
+	const logHead = "chromeUtils::moveTabToLeastTabbedWindow(): ";
+
+	return this.getLeastTabbedWindowId().then(
+		function(winId) {
+			let moveProperties = {
+				index: -1,
+				windowId: winId,
+			};
+			let movePromise = this.wrap(chrome.tabs.move, logHead, tab.id, moveProperties);
+			let focusPromise = this.wrap(chrome.windows.update, logHead, winId, { focused: true });
+			return Promise.all([ movePromise, focusPromise ]);
+		}.bind(this)
+	);
+},
+
 closeTab: function(tabId) {
 	return this.wrap(chrome.tabs.remove, "ChromeUtils::closeTab(): ", tabId);
 },

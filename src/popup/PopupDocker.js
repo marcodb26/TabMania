@@ -6,6 +6,7 @@ Classes.PopupDocker = Classes.PopupDockerBase.subclass({
 	_dockedInitBodyHeight: 542, // in px
 
 	_ownTabId: null,
+	_ownWindowId: null,
 
 _init: function() {
 	const logHead = "PopupDocker::_init(): ";
@@ -24,6 +25,9 @@ _init: function() {
 				this._assert(tabs.length == 1);
 				this._log(logHead + "chrome.tabs.query() returned:", tabs);
 				this._ownTabId = tabs[0].id;
+				this._ownWindowId = tabs[0].windowId;
+				// https://developer.chrome.com/docs/extensions/reference/tabs/#event-onCreated
+				chrome.tabs.onCreated.addListener(this._popupDefenderCb.bind(this));
 			}.bind(this)
 		);
 	}
@@ -62,6 +66,19 @@ _updatedCb: function(ev) {
 	}
 
 	this._log(logHead + "docking state unchanged");
+},
+
+// This function monitors if any other tab attempts to open in our window, and if that
+// happens, evicts the ne tab and relocates it to a different (least tabbed) window.
+// See TabsTabViewer._recentlyClosedNormalize() for why we need this.
+_popupDefenderCb: function(tab) {
+	const logHead = "PopupDocker::_popupDefenderCb(): ";
+	if(tab.windowId != this._ownWindowId) {
+		return;
+	}
+
+	this._err(logHead + "need to relocate invader", tab);
+	chromeUtils.moveTabToLeastTabbedWindow(tab);
 },
 
 isPopupDocked: function() {
