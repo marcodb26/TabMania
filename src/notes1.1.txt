@@ -1,3 +1,6 @@
+- BUG: when switching from normal to search, we should take the scrollbar back to the top
+  * Same probably when switching from search to search (change input)...
+
 - Add support for history search
   * https://developer.chrome.com/docs/extensions/reference/history
   * Similar to bookmarks, with the advantage of offering a max-limit in the search API
