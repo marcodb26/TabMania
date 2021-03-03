@@ -20,7 +20,7 @@
 	],
 	"background": {
 		"scripts": [
-			"lib/Base.js", "lib/PersistentDict.js"", "lib/utils.js", "lib/PerfProfiler.js", "lib/AsyncQueue.js",
+			"lib/Base.js", "lib/PersistentDict.js", "lib/utils.js", "lib/PerfProfiler.js", "lib/AsyncQueue.js",
 			"lib/chromeUtils.js", "lib/NormalizedTabs.js", "lib/ShortcutsManager.js", "lib/SettingsStore.js",
 			"lib/LocalStore.js", "lib/ScheduledJob.js", "lib/PopupDockerBase.js", "PopupDockerBg.js", "tabs.js",
 			"messaging.js", "background.js"
