@@ -419,6 +419,13 @@ DONE 1.1
   active tab to _backTabs, but only one should. Very minor, we need to remove duplicates
   for other reasons anyway, but better to keep things clean.
 
+- BUG: the Font Awesome 5.15.2 javascript slows down tremendously the rendering of TabMania
+  when there are many tiles (testing with 700 tiles)... 3/4 of the total time was Font
+  Awesome with its event listeners... we don't even diretly call a single FA API!!!
+  * See "docs/21.03.03 - Font Awesome 5.15.2 performance issue" for details
+  * This would not have been an issue in production, since we don't package Font Awesome
+    files in production
+  * Since we're not using it, why letting it be in the way
 
 
 PUNTED TO NEXT RELEASE

@@ -1,0 +1,16 @@
+While working on TabMania 1.1 on 2/28/2021, I started playing with about 700 tiles
+in TabMania, and observed noticeable delays. My performance measurements from inside
+my Javascript claimed my code was done within less than a second, but a CSS animation
+(that was getting interrupted at the same time my "end" performance counter was getting
+marked) went on blinking for a good 4-5 seconds longer than it should have).
+
+Chrome DevTools "Performance" tab showed that FontAwesome is tripling the amount of
+time spent processing my updates (mostly, appending 700 tiles to a container <div>).
+The best part is that I'm not explicitly using Font Awesome... after removing it from
+the code running on the page, the performance suddenly increased.
+
+See Font Awesome 5.15.2 performance issue.png (my code circled in blue, Font Awesome
+circled in red) and Font Awesome 5.15.2 performance issue.json (the full data from
+the profiling session)
+
+Only found this reference to similar problems: https://stackoverflow.com/questions/48835953/font-awesome-5-crushing-site-performance
