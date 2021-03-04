@@ -264,7 +264,7 @@ getBookmarkPathList: async function(bmNode) {
 
 	let pathList = [];
 
-	this._log(logHead + "entering");
+//	this._log(logHead + "entering");
 
 	while(bmNode != null && bmNode.parentId != null) {
 		//this._log(logHead + "current round: " + bmNode.title);
@@ -282,7 +282,7 @@ getBookmarkPathList: async function(bmNode) {
 	}
 
 	pathList.reverse();
-	this._log(logHead + "full pathList = ", pathList);
+//	this._log(logHead + "full pathList = ", pathList);
 	return pathList;
 },
 
