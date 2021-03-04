@@ -8,9 +8,13 @@ Classes.TabTileViewer = Classes.Viewer.subclass({
 	_menuElem: null,
 	_closeElem: null,
 
-	_title: null,
-	_url: null,
-	_imgUrl: null,
+	// "_renderState" includes: title, url, imgUrl, etc.
+	_renderState: null,
+
+	// Since we take some async rendering actions, and in some cases these actions can be
+	// cancelled, we need to track if the actions have completed, otherwise when caching
+	// we might be caching an unrendered icon that thinks it's rendered...
+	_renderBodyCompleted: null,
 
 	_tab: null,
 	_tabGroup: null,
@@ -28,8 +32,10 @@ _init: function(tab, tabGroup, asyncQueue) {
 
 	this.debug();
 
+	this._renderBodyCompleted = false;
 	this._tab = tab;
 	this._asyncQueue = asyncQueue;
+
 	this._renderEmptyTile();
 	this.update(tab, tabGroup);
 },
@@ -122,8 +128,8 @@ _addBadgesHtml: function(visibleBadgesHtml, badgesList, secondary) {
 	);
 },
 
-_renderMenu: function() {
-	switch(this._tab.tm.type) {
+_renderMenuInner: function() {
+	switch(this._renderState.tmType) {
 		case Classes.NormalizedTabs.type.TAB:
 			this._menuViewer = Classes.TileTabMenuViewer.create(this._tab);
 			this._menuViewer.attachToElement(this._menuElem);
@@ -133,126 +139,137 @@ _renderMenu: function() {
 			this._menuViewer.attachToElement(this._menuElem);
 			break;
 		default:
-			// No reason to have a dropdown menu for a recently closed tab...
-			this._menuViewer = null;
+			// A recently closed tab should not get here...
+			const logHead = "TabTileViewer::_renderMenuInner(tile " + this._id + "): ";
+			this._err(logHead + "unknown tmType", this._renderState.tmType);
 			break;
 	}
 },
 
-renderBody: function() {
+_renderMenu: function() {
+	// No reason to have a dropdown menu for a recently closed tab...
+	if(this._renderState.tmType == Classes.NormalizedTabs.type.RCTAB) {
+		this._menuViewer = null;
+		return;
+	}
+
+	this._asyncQueue.enqueue(this._renderMenuInner.bind(this),
+			"TabTileViewer::_renderMenu(tile " + this._id + ")",
+			// Use low priority queue for the menu, as it's not immediately visible
+			Classes.AsyncQueue.priority.LOW); 
+},
+
+_updateMenu: function() {
+	if(this._menuViewer == null) {
+		return;
+	}
+	this._asyncQueue.enqueue(this._menuViewer.update.bind(this._menuViewer, this._tab),
+			"TabTileViewer::_updateMenu(tile " + this._id + ")",
+			// Use low priority queue for the menu, as it's not immediately visible
+			Classes.AsyncQueue.priority.LOW); 
+},
+
+_renderBodyInner: function() {
+	const logHead = "TabTileViewer::_renderBodyInner(): ";
 	let visibleBadgesHtml = [];
 	let titleExtraClasses = [];
 	let textMuted = "text-muted";
 	let imgExtraClasses = [];
 
-	// "audible" and "muted" are not mutually exclusive, but we want to show a
-	// single icon, so we're using the arbitrary convention of making the muted
-	// icon gray if there's no current audio (meaning "if there was audio, it
-	// would be muted"), and black if there's current audio (meaning "your audio
-	// is currently muted").
-	// We follow the same convention for incognito tabs, but in reverse (lighter
-	// means active audio, darker means no audio).
-	if(this._tab.audible) {
-		if(this._tab.mutedInfo.muted) {
+	switch(this._renderState.audio) {
+		case "audible-muted":
 			visibleBadgesHtml.push(icons.volumeMuted());
-		} else {
+			break;
+		case "audible":
 			visibleBadgesHtml.push(icons.volumeAudible);
-		}
-	} else {
-		// We need to add the check "this._tab.mutedInfo != null" because this._tab
-		// could actually be a this._tab.tm.type == Classes.NormalizedTabs.type.BOOKMARK,
-		// which doesn't have "mutedInfo". The cleaner thing would be to check for type,
-		// but the current check seems to be a bit less verbose.
-		if(this._tab.mutedInfo != null && this._tab.mutedInfo.muted) {
-			if(!this._tab.incognito) {
+			break;
+		case "muted":
+			if(!this._renderState.incognito) {
 				visibleBadgesHtml.push(icons.volumeMuted("text-secondary"));
 			} else {
 				visibleBadgesHtml.push(icons.volumeMuted("text-white-50"));
 			}
-		}
+			break;
+		default:
+			if(this._renderState.audio != null) {
+				this._err(logHead + "unknown this._renderState.audio = ", this._renderState.audio);
+			}
+			break;
 	}
 
-	if(this._tab.tm.customGroupName != null) {
+	if(this._renderState.customGroupName != null) {
 		let cgm = settingsStore.getCustomGroupsManager();
-		this.addClasses("tm-callout", cgm.getCustomGroupCss(this._tab.tm.customGroupName));
-		let bgColor = cgm.getCustomGroupProp(this._tab.tm.customGroupName, "color");
-		visibleBadgesHtml.push(this._badgeHtml(this._tab.tm.customGroupName, bgColor));
+		this.addClasses("tm-callout", cgm.getCustomGroupCssByColor(this._renderState.customGroupColor));
+		visibleBadgesHtml.push(this._badgeHtml(this._renderState.customGroupName,
+												this._renderState.customGroupColor));
 	}
 
-	this._addBadgesHtml(visibleBadgesHtml, this._tab.tm.primaryShortcutBadges);
-	this._addBadgesHtml(visibleBadgesHtml, this._tab.tm.secondaryShortcutBadges, true);
-	this._addBadgesHtml(visibleBadgesHtml, this._tab.tm.visualBadges);
+	this._addBadgesHtml(visibleBadgesHtml, this._renderState.primaryShortcutBadges);
+	this._addBadgesHtml(visibleBadgesHtml, this._renderState.secondaryShortcutBadges, true);
+	this._addBadgesHtml(visibleBadgesHtml, this._renderState.visualBadges);
 
 	// The pinned thumbtack is always the rightmost badge/icon
-	if(this._tab.pinned) {
+	if(this._renderState.pinned) {
 		visibleBadgesHtml.push(icons.thumbtack());
 	}
 
-	if(this._tab.incognito) {
+	if(this._renderState.incognito) {
 		this.addClasses("bg-secondary", "text-light", "border-dark");
 		// Bootstrap "text-muted" only works for light backgrounds
 		textMuted = "";
 	}
 
-	if(this._tab.status != null) {
-		switch(this._tab.status) {
+	if(this._renderState.status != null) {
+		switch(this._renderState.status) {
 			case "unloaded":
 				titleExtraClasses.push("fst-italic");
 				imgExtraClasses.push("tm-favicon-bw");
 				break;
+			case "loading":
 			case "complete":
 				// Don't add any visual clue if the tab is fully loaded
 				break;
 			default:
-				// Don't add any visual clue if the tab is fully loaded
+				this._err(logHead + "unknown this._renderState.status = ", this._renderState.status);
 				break;
 		}
 	}
 
 	let specialIcon = "";
-	switch(this._tab.tm.type) {
+	switch(this._renderState.tmType) {
 		case Classes.NormalizedTabs.type.BOOKMARK:
 			specialIcon = icons.bookmark;
 			break;
 		case Classes.NormalizedTabs.type.RCTAB:
 			specialIcon = icons.history;
 			break;
+		case Classes.NormalizedTabs.type.TAB:
+			// No extra visual clue for standard tabs
+			break;
+		default:
+			this._err(logHead + "unknown this._renderState.tmType = ", this._renderState.tmType);
+			break;
 	}
 
 	let imgHtml = "";
 	if(this._imgUrl != "") {
 		imgHtml = `
-			<span class="pe-1"><img class="tm-favicon-16 ${imgExtraClasses.join(" ")}" src="${this._imgUrl}"></span>
+			<span class="pe-1"><img class="tm-favicon-16 ${imgExtraClasses.join(" ")}" src="${this._renderState.imgUrl}"></span>
 		`;
 	}
 
 	// See https://getbootstrap.com/docs/5.0/components/card/
 	// Do we need the attribute "width='16px'" in the <img> below, or are the min-width
 	// and max-width settings of tm-favicon-16 enough?
-//	const bodyHtml = `
-//		<p class="card-title text-truncate tm-tile-title mb-0">
-//			${imgHtml}
-//			<span class="${textMuted} ${titleExtraClasses.join(" ")}">${this._safeText(this._title)}</span>
-//		</p>
-//		<div class="d-flex">
-//			<p class="flex-grow-1 align-self-center text-truncate tm-tile-url">
-//				<small class="${textMuted}">${specialIcon}${this._safeText(this._url)}</small>
-//			</p>
-//			<p> </p>
-//			<p class="align-self-center card-text small" style="text-align: right;">
-//				${visibleBadgesHtml.join(" ")}
-//			</p>
-//		</div>
-//	`;
 	const bodyHtml = `
 		<p class="card-title text-truncate tm-tile-title mb-0">
 			${imgHtml}
 			${specialIcon}
-			<span class="align-middle ${textMuted} ${titleExtraClasses.join(" ")}">${this._safeText(this._title)}</span>
+			<span class="align-middle ${textMuted} ${titleExtraClasses.join(" ")}">${this._safeText(this._renderState.title)}</span>
 		</p>
 		<div class="d-flex">
 			<p class="flex-grow-1 align-self-center text-truncate tm-tile-url">
-				<small class="${textMuted}">${this._safeText(this._url)}</small>
+				<small class="${textMuted}">${this._safeText(this._renderState.url)}</small>
 			</p>
 			<p> </p>
 			<p class="align-self-center card-text small" style="text-align: right;">
@@ -263,14 +280,15 @@ renderBody: function() {
 
 	this.setHtml(bodyHtml);
 
-	// The menu viewer is not in the body of the tile, but its destiny is parallel
+	// The _menuViewer is not in the body of the tile, but its destiny is parallel
 	// to that of the body of the tile...
-
-	
-	this._asyncQueue.enqueue(this._renderMenu.bind(this),
-				"TabTileViewer._renderMenu(tile " + this._id + ")",
-				// Use low priority queue for the menu, it's not immediately visible
-				Classes.AsyncQueue.priority.LOW); 
+	if(this._menuViewer == null) {
+		// The menu doesn't exist, create it
+		this._renderMenu();
+	} else {
+		// The menu already exists, update it
+		this._updateMenu();
+	}
 },
 
 // Returns a Promise that can be then() with a function(metaTags), where
@@ -327,6 +345,46 @@ _getTabMetaTags: function() {
 	);
 },
 
+_renderBody: function(queuePriority) {
+	this._renderBodyCompleted = false;
+
+	// Trying to speed up the general rendering of the whole list by detaching
+	// the rendering of the tiles body.
+	// We used to have asyncFn() here, but that was insufficient, because it was creating
+	// a swarm of pending updates, and the Javascript engine was queuing them all at the
+	// same time, meaning that they would all have to run to completion before any other
+	// event could be processed. Pushing all the tile updates that way was worse than just
+	// processing to completion, because at least when you process to completion you can
+	// measure how long it's taking, while these scattered/headless pieces of functions
+	// were just running in no-mans land only known to the Javascript engine, with no way
+	// to see them, except for their detrimental effect to everything else (changing a class
+	// of an element could take seconds to take effect because of this swarm).
+	this._asyncQueue.enqueue(
+		function() {
+			this._renderBodyInner();
+
+			this._getTabMetaTags().then(
+				function(metaTags) {
+					this._tab.tm.metaTags = metaTags;
+				}.bind(this)
+			);
+
+			this._renderBodyCompleted = true;
+		}.bind(this),
+		"tile " + this._id,
+		queuePriority
+		// Tried to play with the priority based on this._isInViewport(), but when we are
+		// here during tile creation, the tile has yet to be attached to the DOM, because
+		// we're still in _init(), and the attachment to the DOM needs to be done by the
+		// caller.
+		// We also tried to take the first this.update() outside of _init(), and done by
+		// the caller after attaching to the DOM, but that seems to have the side effect
+		// of scrolling back all the way to the top.
+		// Decided to use the priority to set a low priority when reusing a tile from
+		// TabsTabViewer._renderTile()
+	);
+},
+
 _onTileClickCb: function(ev) {
 	const logHead = "TabsTabViewer::_onTileClickCb(): ";
 	if(this._tab.tm.type == Classes.NormalizedTabs.type.RCTAB) {
@@ -378,8 +436,85 @@ updateAsyncQueue: function(asyncQueue) {
 	this._asyncQueue = asyncQueue;
 },
 
-// "tabGroup" is optional
+_createRenderState: function(tab, tabGroup) {
+	let renderState = {};
+
+	// We never render the naked "id", but it doesn't hurt to store it here
+	renderState.id = tab.id;
+	renderState.tmType = tab.tm.type;
+	renderState.title = tab.title;
+	renderState.url = this._cleanupUrl(tab.url);
+
+	if(tab.favIconUrl != null) {
+		renderState.imgUrl = tab.favIconUrl;
+	} else {
+		if(tabGroup != null && tabGroup.favIconUrl != null) {
+			renderState.imgUrl = tabGroup.favIconUrl;
+		} else {
+			renderState.imgUrl = "";
+		}
+	}
+
+	renderState.incognito = tab.incognito;
+
+	// "audible" and "muted" are not mutually exclusive, but we want to show a
+	// single icon, so we're using the arbitrary convention of making the muted
+	// icon gray if there's no current audio (meaning "if there was audio, it
+	// would be muted"), and black if there's current audio (meaning "your audio
+	// is currently muted").
+	// We follow the same convention for incognito tabs, but in reverse (lighter
+	// means active audio, darker means no audio).
+	if(tab.audible) {
+		if(tab.mutedInfo != null && tab.mutedInfo.muted) {
+			renderState.audio = "audible-muted";
+		} else {
+			renderState.audio = "audible";
+		}
+	} else {
+		// We need to add the check "tab.mutedInfo != null" because "tab" could
+		// actually be a tab.tm.type == Classes.NormalizedTabs.type.BOOKMARK,
+		// which doesn't have "mutedInfo". The cleaner thing would be to check for
+		// type, but the current check seems to be a bit less verbose.
+		if(tab.mutedInfo != null && tab.mutedInfo.muted) {
+			renderState.audio = "muted";
+		} else {
+			renderState.audio = null;
+		}
+	}
+
+	if(tab.tm.customGroupName != null) {
+		renderState.customGroupName = tab.tm.customGroupName;
+		let cgm = settingsStore.getCustomGroupsManager();
+		renderState.customGroupColor = cgm.getCustomGroupColor(tab.tm.customGroupName);
+	} else {
+		renderState.customGroupName = null;
+		renderState.customGroupColor = null;
+	}
+
+	renderState.primaryShortcutBadges = tmUtils.deepClone(tab.tm.primaryShortcutBadges);
+	renderState.secondaryShortcutBadges = tmUtils.deepClone(tab.tm.secondaryShortcutBadges);
+	renderState.visualBadges = tmUtils.deepClone(tab.tm.visualBadges);
+
+	renderState.pinned = tab.pinned;
+	renderState.status = tab.status;
+
+	return renderState;
+},
+
+_isRenderCompleted: function() {
+	if(this._menuViewer == null) {
+		return false;
+	}
+},
+
+// "tabGroup" is optional, if not specified, we'll continue to use the one we
+// already have.
 // "queuePriority" is optional
+// Returns "true" if an update is needed (and currently being performed asynchronously),
+// "false" if the tab has not changed from a tile-rendering perspective (it might have
+// changed for properties that are not visualized in the tile). Note that returning "false"
+// described only the state of the tile, not the state of its menu. Its menu might have
+// changed, but we'd still return "false" because we can't easily track that.
 update: function(tab, tabGroup, queuePriority) {
 	const logHead = "TabTileViewer::update(): ";
 	if(tab == null) {
@@ -408,52 +543,51 @@ update: function(tab, tabGroup, queuePriority) {
 		this._tabGroup = tabGroup;
 	} // Otherwise keep whatever tabGroup was already there
 
-	this._title = tab.title;
-	this._url = this._cleanupUrl(tab.url);
+	let pastRenderState = this._renderState;
+	this._renderState = this._createRenderState(tab, this._tabGroup);
 
-	if(tab.favIconUrl != null) {
-		this._imgUrl = tab.favIconUrl;
-	} else {
-		if(tabGroup != null && tabGroup.favIconUrl != null) {
-			this._imgUrl = tabGroup.favIconUrl;
-		} else {
-			this._imgUrl = "";
-		}
+	if(!this._renderBodyCompleted) {
+		// The render could be incomplete because it never happened, or because it was
+		// scheduled to happen, but the AsyncQueue got discarded before it could be done
+		this._renderBody();
+		return true;
 	}
 
-	// Trying to speed up the general rendering of the whole list by detaching
-	// the rendering of the tiles body.
-	// We used to have asyncFn() here, but that was insufficient, because it was creating
-	// a swarm of pending updates, and the Javascript engine was queuing them all at the
-	// same time, meaning that they would all have to run to completion before any other
-	// event could be processed. Pushing all the tile updates that way was worse than just
-	// processing to completion, because at least when you process to completion you can
-	// measure how long it's taking, while these scattered/headless pieces of functions
-	// were just running in no-mans land only known to the Javascript engine, with no way
-	// to see them, except for their detrimental effect to everything else (changing a class
-	// of an element could take seconds to take effect because of this swarm).
-	this._asyncQueue.enqueue(
-		function() {
-			this.renderBody();
+	// The tile needs to run 3 chuncks of code:
+	// - This code (sync with the caller)
+	// - The _renderBody() of the tile (async 1)
+	// - The _renderMenu() for the tile (async 2)
+	// "async 1" and "async 2" are sequential (the first triggers the second), but
+	// completion of "async 1" (that is "this._renderBodyCompleted") doesn't mean
+	// completion of "async 2" (they're even scheduled at different priorities).
+	// By the time we get here in the code, we know "this._renderBodyCompleted == true",
+	// but we don't know if "async 2" was completed. "this._menuViewer != null" gives
+	// us that information. If it was completed, we need to call the update() function
+	// of the menu, to let it process the change that triggered this update() call.
+	//
+	// Below in the function we might discover this update() is no update for the tile
+	// rendering, but we can't assume it's not update for the menu. Some menu viewers
+	// (specifically the bookmark one) can't easily tell if an update is needed or not
+	// (if you move a bookmark to a different subtree of folders, you need to rebuild
+	// (asynchronously) the folder path to tell), so we must just call their update()
+	// function regardless of the need to re-render the tile, and how it's efficient.
+	// Since _renderBody() internally calls _menuViewer.update(), the only case left
+	// out is the case when we decide to not call _renderBody().
 
-			this._getTabMetaTags().then(
-				function(metaTags) {
-					tab.tm.metaTags = metaTags;
-				}
-			);
-		}.bind(this),
-		"tile " + this._id,
-		queuePriority
-		// Tried to play with the priority based on this._isInViewport(), but when we are
-		// here during tile creation, the tile has yet to be attached to the DOM, because
-		// we're still in _init(), and the attachment to the DOM needs to be done by the
-		// caller.
-		// We also tried to take the first this.update() outside of _init(), and done by
-		// the caller after attaching to the DOM, but that seems to have the side effect
-		// of scrolling back all the way to the top.
-		// Decided to use the priority to set a low priority when reusing a tile from
-		// TabsTabViewer._renderTile()
-	);
+	// pastRenderedState should not be null since "this._renderBodyCompleted == true" (you
+	// won't get here if it's "false")
+	this._assert(pastRenderState != null);
+	if(tmUtils.isEqual(pastRenderState, this._renderState)) {
+		this._updateMenu();
+		// Returning "false" here tells the caller only about the state of the tile
+		// being unchanged, not about the state of the menu being unchanged.
+		return false;
+	}
+
+	// The tile state has changed, and we had processed to completion the previous change
+	this._renderBody();
+
+	return true;
 },
 
 getTabId: function() {

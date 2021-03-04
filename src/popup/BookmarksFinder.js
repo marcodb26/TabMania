@@ -40,11 +40,11 @@ _bookmarkCreatedCb: function(id, bmNode) {
 		return;
 	}
 
-	this._eventManager.notifyListeners(Classes.EventManager.Events.UPDATED, { id: id });
+	this._eventManager.notifyListeners(Classes.EventManager.Events.UPDATED, { id: Classes.NormalizedTabs.normalizeBookmarkId(id) });
 },
 
 _bookmarkUpdatedCb: function(id, changeRemoveInfo) {
-	this._eventManager.notifyListeners(Classes.EventManager.Events.UPDATED, { id: id });
+	this._eventManager.notifyListeners(Classes.EventManager.Events.UPDATED, { id: Classes.NormalizedTabs.normalizeBookmarkId(id) });
 },
 
 _bookmarkImportBeganCb: function() {
@@ -98,19 +98,6 @@ _processBookmarkTreeNodes: function(nodes) {
 				return result;
 			}
 
-			// We want each "node" to be as similar as possible to a "tab" object...
-			// It already includes "title", "url" and "id" (though we have to be careful not
-			// to mix up a bookmark ID and a tab ID (the former is a string, the latter is a
-			// number, though the string encodes a number that looks like a tab ID)).
-			// We want to add favIconUrl, a compatible "status" to render the bookmarks in
-			// black and while like we render unloaded tabs, and some of the things we get from
-			// NormalizedTabs.normalizeTab() (which we can safely call directly).
-
-			// BookmarkTreeNode doesn't include a favIcon for the bookmark, but we could be
-			// lucky and find one in the Chrome's favIcon cache...
-			// See https://stackoverflow.com/questions/10665321/reliably-getting-favicons-in-chrome-extensions-chrome-favicon
-			node.favIconUrl = "chrome://favicon/size/16@1x/" + node.url;
-			node.status = "unloaded";
 			Classes.NormalizedTabs.normalizeTab(node, Classes.NormalizedTabs.type.BOOKMARK);
 
 			bmCount++;

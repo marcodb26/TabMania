@@ -197,10 +197,15 @@ _setShortcutMenuItems: function() {
 
 _updateShortcutMenuItems: function() {
 	const logHead = "TileTabMenuViewer::_updateShortcutMenuItems(" + this._tab.id + "): ";
-	this._err(logHead + "to be implemented");
 	// Here we need to unlink the existing shortcut menu items from the menu,
 	// then we can overwrite this._shortcutMenuItems and re-run _setShortcutMenuItems().
 	// Inefficient, but easy to implement.
+	for(let i = 0; i < this._shortcutMenuItems.length; i++) {
+		this._shortcutMenuItems[i].detach();
+	}
+	this._shortcutMenuItems = [];
+
+	this._setShortcutMenuItems();
 },
 
 _initMenuItems: function() {
@@ -240,6 +245,8 @@ _initMenuItems: function() {
 _updateMenuItems: function() {
 	this._titleMenuItem.setHtml("<b>" + this._safeText(this._tab.title) + "</b>");
 	this._pinMenuItem.setText(this._tab.pinned ? "Unpin" : "Pin");
+	this._muteMenuItem.setText(this._tab.mutedInfo.muted ? "Unmute" : "Mute");
+	this._highlightMenuItem.setText(this._tab.highlighted ? "Remove highlight" : "Highlight");
 	// Nothing to update for _discardMenuItem and _closeMenuItem
 	this._updateShortcutMenuItems();
 },
@@ -354,6 +361,9 @@ Classes.TileBookmarkMenuViewer = Classes.MenuViewer.subclass({
 
 	// Track here all the menu item viewers
 	_titleMenuItem: null,
+	_titleElem: null,
+	_pathElem: null,
+
 	_openBookmarkManagerMenuItem: null,
 	_pinMenuItem: null,
 	_deleteMenuItem: null,
@@ -383,10 +393,11 @@ _renderPathHtml: function(pathList) {
 },
 
 _renderTitle: function() {
+	const titleId = this._id + "-title";
 	const pathId = this._id + "-path";
 
 	let titleHtml = `
-		<b>${this._safeText(this._bm.title)}</b>
+		<div id="${titleId}"></div>
 		<div id="${pathId}"></div>
 	`;
 
@@ -394,10 +405,18 @@ _renderTitle: function() {
 	this._titleMenuItem.setHtml(titleHtml);
 	this.append(this._titleMenuItem);
 
-	let pathElem = this.getElementById(pathId);
+	this._titleElem = this.getElementById(titleId);
+	this._pathElem = this.getElementById(pathId);
+
+	this._updateTitleMenuItem();
+},
+
+_updateTitleMenuItem: function() {
+	this._titleElem.innerHTML = `<b>${this._safeText(this._bm.title)}</b>`;
+
 	chromeUtils.getBookmarkPathList(this._bm).then(
 		function(pathList) {
-			pathElem.innerHTML = this._renderPathHtml(pathList);
+			this._pathElem.innerHTML = this._renderPathHtml(pathList);
 		}.bind(this)
 	);
 },
@@ -421,7 +440,7 @@ _initMenuItems: function() {
 },
 
 _updateMenuItems: function() {
-	this._titleMenuItem.setHtml("<b>" + this._safeText(this._bm.title) + "</b>");
+	this._updateTitleMenuItem();
 	this._pinMenuItem.setText(this._bm.pinned ? "Unpin" : "Pin");
 	// Nothing to update for _discardMenuItem and _deleteMenuItem
 },

@@ -279,7 +279,58 @@ updateBookmarkBadges: function(tab) {
 	// We always want this to appear last, if the user configured it to be visible
 	this._addNormalizedVisualBadge(tab, tab.tm.extId, settingsStore.getOptionShowTabId());
 },
-	
+
+// Static function
+normalizeBookmarkId : function(id) {
+	return "b" + id;
+},
+
+// This is a static function called by normalizeTab(). Don't use "this" here.
+_initBookmarkAsTab: function(tab) {
+	// We want each "BookmarkTreeNode" to be as similar as possible to a "tab" object...
+	// It already includes "title" and "url".
+	// It also includes an "id", but the numeric space for that ID seems to overlap with
+	// the space used by tabs, so we need to add a prefix (technically the BookmarkTreeNode
+	// "id" is a string, while the tab "id" is a number, but they both get turned to the same
+	// type (either string or number) anyway during processing...).
+	// We want to add favIconUrl, a compatible "status" to render the bookmarks in
+	// black&while like we render unloaded tabs, and some of the other things we get
+	// from NormalizedTabs.normalizeTab().
+
+	// Add a prefix to the id. This is safe because we never need to map this id back to
+	// its original value to work with chrome.bookmarks events.
+	tab.id = Classes.NormalizedTabs.normalizeBookmarkId(tab.id);
+	// BookmarkTreeNode doesn't include a favIcon for the bookmark, but we could be
+	// lucky and find one in the Chrome's favIcon cache...
+	// See https://stackoverflow.com/questions/10665321/reliably-getting-favicons-in-chrome-extensions-chrome-favicon
+	tab.favIconUrl = "chrome://favicon/size/16@1x/" + tab.url;
+	tab.status = "unloaded";
+},
+
+// Static function
+normalizeRecentlyClosedId : function(id) {
+	return "c" + id;
+},
+
+// This is a static function called by normalizeTab(). Don't use "this" here.
+_initRecentlyClosedAsTab: function(tab) {
+	// We want each recently closed tab to be as similar as possible to a tab object...
+	// It seems to already include everything except for "id" and "status".
+
+	// See _assert() in TabsTabViewer._recentlyClosedNormalize() for why we're taking this action
+	tab.active = false;
+
+	// Using sessionId for tab.id is probably going to generate some duplicated tab IDs, so
+	// we're adding a prefix to the id. This is safe because we never need to map this id back to
+	// its original value to work with chrome.sessions events.
+	tab.id = Classes.NormalizedTabs.normalizeRecentlyClosedId(tab.sessionId);
+	if(tab.favIconUrl == null || tab.favIconUrl == "") {
+		// See BookmarksFinder.js for details about the favicon cache
+		tab.favIconUrl = "chrome://favicon/size/16@1x/" + tab.url;
+	}
+	tab.status = "unloaded";
+},
+
 // This function can be used as a static function of the class, it doesn't need any state
 // from "this".
 //
@@ -290,12 +341,40 @@ normalizeTab: function(tab, objType) {
 
 	const logHead = "NormalizedTabs::normalizeTab(): ";
 
+	// Technically we can use "this" for a static function, to bring up the context
+	// of the static function, but using a slightly different mnemonic can be a useful
+	// reminder that the context is the class, not an instance of the class.
+	let thisObj = Classes.NormalizedTabs;
+
+	// We need a "switch()" both at the beginning and at the end of this function.
+	// At the beginning, we need to make sure all fields used by the logic in the
+	// center are properly initialized, at the end, we run all pieces that depend
+	// on "tab.tm" having been created in the central logic.
+	switch(objType) {
+		case Classes.NormalizedTabs.type.TAB:
+			// Standard tabs are the main stars of this show, and they're already
+			// initialized correctly. Everything else needs to be initialized to
+			// look as much as possible like standard tabs
+			break;
+		case Classes.NormalizedTabs.type.RCTAB:
+			thisObj._initRecentlyClosedAsTab(tab);
+			break;
+		case Classes.NormalizedTabs.type.BOOKMARK:
+			thisObj._initBookmarkAsTab(tab);
+			break;
+		default:
+			// "tmUtils.err()" is the version of "this._err()" to be used in
+			// static functions
+			tmUtils.err(logHead + "unknown objType", objType);
+			break;
+	}
+
 	// Sometimes "tab.url" is empty, because "tab.pendingUrl" is still loading.
 	// But in some cases, tab.url is empty, and tab.pendingUrl doesn't even exist,
 	// so we use optionalWithDefault() to cover that last corner case.
 	let url = optionalWithDefault((tab.url != "") ? tab.url : tab.pendingUrl, "");
 	let lowerCaseTitle = tab.title.toLowerCase();
-	let [ protocol, hostname ] = Classes.NormalizedTabs.getProtocolHostname(url);
+	let [ protocol, hostname ] = thisObj.getProtocolHostname(url);
 
 	tab.tm = {
 		type: objType,
@@ -309,9 +388,9 @@ normalizeTab: function(tab, objType) {
 		customGroupName: settingsStore.getCustomGroupsManager().getCustomGroupByHostname(hostname),
 		lowerCaseUrl: url.toLowerCase(),
 		lowerCaseTitle: lowerCaseTitle,
-		normTitle: Classes.NormalizedTabs.normalizeLowerCaseTitle(lowerCaseTitle),
+		normTitle: thisObj.normalizeLowerCaseTitle(lowerCaseTitle),
 		// Bookmarks have extended IDs too
-		extId: Classes.NormalizedTabs.formatExtendedId(tab, objType),
+		extId: thisObj.formatExtendedId(tab, objType),
 
 		// "visualBadges" are the badges displayed by the tiles, and are case
 		// sensitive. "searchBadges" can repeat the "visualBadges" as case
@@ -346,18 +425,18 @@ normalizeTab: function(tab, objType) {
 			// via custom shortcuts (though the URL in a custom shortcut could match
 			// the URL of a bookmark, they're slightly different things, let's not mix
 			// them up).
-			this.updateShortcutBadges(tab);
-			this.updateSearchBadges(tab);
+			thisObj.updateShortcutBadges(tab);
+			thisObj.updateSearchBadges(tab);
 			break;
 		case Classes.NormalizedTabs.type.RCTAB:
 			// No shortcut badges for Recently Closed Tabs
-			this.updateSearchBadges(tab);
+			thisObj.updateSearchBadges(tab);
 			break;
 		case Classes.NormalizedTabs.type.BOOKMARK:
-			this.updateBookmarkBadges(tab);
+			thisObj.updateBookmarkBadges(tab);
 			break;
 		default:
-			this._err(logHead + "unknown objType", objType);
+			tmUtils.err(logHead + "unknown objType", objType);
 			break;
 	}
 },

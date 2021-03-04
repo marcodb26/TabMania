@@ -172,6 +172,7 @@ Classes.TabsTabViewer = Classes.SearchableTabViewer.subclass({
 	// the tiles from the last iteration in _cachedTilesByTabId.
 	_cachedTilesByTabId: null,
 	_recycledTilesCnt: null,
+	_cachedTilesUpdateNeededCnt: null,
 
 	_tilesAsyncQueue: null,
 
@@ -290,8 +291,15 @@ _renderTileBodies: function() {
 	// See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries
 	try {
 		for(const [ tabId, tile ] of Object.entries(this._tilesByTabId)) {
-			this._tilesAsyncQueue.enqueue(tile.renderBody.bind(tile),
-						"TabsTabViewer::_renderTileBodies(), tabId = " + tabId);
+			let tab = this._normTabs.getTabByTabId(tabId);
+			if(tab != null) {
+				tile.update(tab);
+			} else {
+				const logHead = "TabsTabViewer::_renderTileBodies(): ";
+				this._err(logHead + "unexpected, tile tracks non-existing tabId = " + tabId);
+			}
+//			this._tilesAsyncQueue.enqueue(tile.renderBody.bind(tile),
+//						"TabsTabViewer::_renderTileBodies(), tabId = " + tabId);
 		}
 	} catch(e) {
 		this._err(e, "this._tilesByTabId: ", this._tilesByTabId);
@@ -522,6 +530,7 @@ _logCachedTilesStats: function(logHead) {
 	}
 	this._log(logHead + "reused " + this._recycledTilesCnt + " tiles, " +
 				Object.keys(this._cachedTilesByTabId).length + " tiles still in cache");
+	this._log(logHead + this._cachedTilesUpdateNeededCnt + " cached tiles needed a re-render");
 },
 
 _resetAsyncQueue: function() {
@@ -533,6 +542,7 @@ _resetAsyncQueue: function() {
 
 _prepareForNewCycle: function() {
 	this._recycledTilesCnt = 0;
+	this._cachedTilesUpdateNeededCnt = 0;
 	this._cachedTilesByTabId = this._tilesByTabId;
 	this._tilesByTabId = {};
 	this._resetAsyncQueue();
@@ -700,7 +710,9 @@ _getCachedTile: function(tab, tabGroup) {
 	tile.updateAsyncQueue(this._tilesAsyncQueue);
 	// Using low priority to let the new tiles get the full rendering before the cached
 	// tiles get their re-rendering
-	tile.update(tab, tabGroup, Classes.AsyncQueue.priority.LOW);
+	if(tile.update(tab, tabGroup, Classes.AsyncQueue.priority.LOW)) {
+		this._cachedTilesUpdateNeededCnt++;
+	}
 
 	return tile;
 },
@@ -981,29 +993,8 @@ _searchRenderTabsInner_Separate: function(tabs, bmNodes) {
 	}
 },
 
-_recentlyClosedNormalizeInner: function(tab) {
-	const logHead = "TabsTabViewer::_recentlyClosedNormalizeInner(): ";
-	this._assert(!tab.active, logHead, tab);
-	if(tab.active) {
-		// I've seen recently closed tabs showing up as active, that's an odd inconsistency
-		// (a closed tab can't be active), and definitely not something we want to show to
-		// our end users
-		tab.active = false;
-	}
-	// We want each recently closed tab to be as similar as possible to a tab object...
-	// It seems to already include everything except for "id" and "status". Using
-	// sessionId for tab.id is probably going to generate some duplicated tab IDs, but
-	// for now let's go with that...
-	tab.status = "unloaded";
-	tab.id = tab.sessionId;
-	if(tab.favIconUrl == null || tab.favIconUrl == "") {
-		// See BookmarksFinder.js for details about the favicon cache
-		tab.favIconUrl = "chrome://favicon/size/16@1x/" + tab.url;
-	}
-	Classes.NormalizedTabs.normalizeTab(tab, Classes.NormalizedTabs.type.RCTAB);
-},
-
 _recentlyClosedNormalize: function(sessions) {
+	const logHead = "TabsTabViewer::_recentlyClosedNormalize(): ";
 	// Filter out windows and normalize recently closed tabs.
 	// A few actions need to be taken:
 	// - Flatten out the tabs array by extracting any tabs that might be under windows
@@ -1056,7 +1047,8 @@ _recentlyClosedNormalize: function(sessions) {
 				// 
 				// Also filter out any tab that identifies a previous instance of the TabMania popup.
 				if(tab.url != popupDocker.getPopupUrl(true) && tab.index != -1) {
-					this._recentlyClosedNormalizeInner(tab);
+					this._assert(!tab.active, logHead + "recently closed tabs can't be active", tab);
+					Classes.NormalizedTabs.normalizeTab(tab, Classes.NormalizedTabs.type.RCTAB);
 					// Let's remember which window this tab is coming from. As a minimum, this
 					// can give us a hint that this tab might be trouble. We only know for sure
 					// that recently closed tabs without a "tab.tm.windowSessionId" are not trouble,
@@ -1066,10 +1058,15 @@ _recentlyClosedNormalize: function(sessions) {
 				}
 			}
 		} else {
+			let tab = session.tab;
 			// Filter out any tab that identifies a previous instance of the TabMania popup
-			if(session.tab.url != popupDocker.getPopupUrl(true)) {
-				this._recentlyClosedNormalizeInner(session.tab);
-				tabs.push(session.tab);
+			if(tab.url != popupDocker.getPopupUrl(true)) {
+				// I've seen recently closed tabs showing up as active, that's an odd inconsistency
+				// (a closed tab can't be active), and definitely not something we want to show to
+				// our end users
+				this._assert(!tab.active, logHead + "recently closed tabs can't be active", tab);
+				Classes.NormalizedTabs.normalizeTab(tab, Classes.NormalizedTabs.type.RCTAB);
+				tabs.push(tab);
 			}
 		}
 	}

@@ -1,3 +1,11 @@
+- TabsTabViewer needs a more precise caching mechanism for tile viewers
+  * Right now we discard any tile that's not used in the current rendering iteration
+  * This means that if you search and find 1,000 bookmarks, then get out of search, the
+    tiles of those bookmarks will be discarded, and not available the next time you
+	search again
+  * A proper cache would let those bookmark tiles expire after a certain amount of time
+    instead of dropping them immediately
+
 - BUG: when switching from normal to search, we should take the scrollbar back to the top
   * Same probably when switching from search to search (change input)...
 
@@ -378,6 +386,39 @@ DONE 1.1
 - Added favicon to undocked popup
   * Without it, the tile of the TabMania popup in TabMania was showing up without an icon
     (while for some reason the tile in Windows showed the icon anyway)
+
+- NormalizedTabs::normalizeTab() needs a class-instance independent version of "this._err()"
+  * Defined tmUtils.err() for that purpose
+
+- Promoted deepClone() and isEqual() to tmUtils, and added basic support for Arrays
+  * Before they could only be used inside PersistentDict
+
+- Now reusing tiles instead of just recreating them at every refresh
+  * Not really a full-fledged cache of tiles, but close enough...
+
+- Cleaned up NormalizedTabs.normalizeTab() to fully support tabs, rctabs and bmnodes
+
+- Added prefix to rctab and bmnode IDs to avoid collisions with the numeric space of standard tab IDs.
+
+- Added "state" describing all the rendering needs of a tile, to simplify comparing during update()
+  to confirm there are or not real updates to make
+
+- Cleaned up difference between rendering/updating tile body, and rendering/updating tile menu
+  * They also get scheduled separately, and in different queues (tile body uses high/normal priorities,
+    tile menu uses low priority)
+
+- Make sure tile update() doesn't get fooled if a previous update() didn't complete because it scheduled
+  the update, but then the AsyncQueue got discarded before it could take the action
+
+- Cleaned up tab and bookmark menus update() function
+  * They were not used before, but now that we reuse tiles, these update() function
+    are a must have
+
+- BUG: when focusing a new window and selecting a different tab with the same click,
+  you get both a "window-change" event and an "activated" event. Both add the previously
+  active tab to _backTabs, but only one should. Very minor, we need to remove duplicates
+  for other reasons anyway, but better to keep things clean.
+
 
 
 PUNTED TO NEXT RELEASE

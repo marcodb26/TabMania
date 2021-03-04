@@ -185,8 +185,12 @@ getCustomGroupCssByColor: function(color) {
 	return this._colorToCalloutCss[color];
 },
 
+getCustomGroupColor: function(groupName) {
+	return optionalWithDefault(this.getCustomGroupProp(groupName, "color"), "none");
+},
+
 getCustomGroupCss: function(groupName) {
-	let color = optionalWithDefault(this.getCustomGroupProp(groupName, "color"), "none");
+	let color = this.getCustomGroupColor(groupName);
 	return this.getCustomGroupCssByColor(color);
 },
 
