@@ -70,6 +70,9 @@ function init() {
 			tabsManager = Classes.TabsManager.createAs("tabsManager");
 			tabsManager.debug();
 
+			let keyboardShortcuts = Classes.KeyboardShortcuts.createAs("keyboardShortcuts");
+			keyboardShortcuts.debug();
+
 			bgInitPromiseResolveFn();
 		}
 	);
