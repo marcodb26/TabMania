@@ -79,88 +79,6 @@ _asyncInit: function() {
 //	this._eventManager.dispatchEvent(Classes.EventManager.Events.UPDATED, detail);
 //},
 
-// This is not a general purpose version of objects equality comparison, it's
-// simplified based on the fact that we expect to store in chrome storage only
-// simple values, not functions, or complex objects.
-// It doesn't even check arrays... (which is something we might need to implement
-// later if we happen to have arrays to store).
-_isEqual: function(objA, objB) {
-	const logHead = "PersistentDict::_isEqual(): ";
-	if(typeof objA != typeof objB) {
-		return false;
-	}
-
-	if(typeof objA != "object") {
-		// arrays return "object", so we're in scalar-land
-		// Use exact equality, we don't want "undefined" and "false" to be
-		// matching, or things like that
-		this._assert(![ "function", "symbol" ].includes(typeof objA),
-					logHead + "\"" + typeof objA + "\" is not supported");
-		return objA === objB;
-	}
-
-	// objA and objB are objects...
-	this._assert(!Array.isArray(objA), logHead + "arrays are not supported");
-
-	// "null" is of typeof "object"
-	if(objA == null || objB == null) {
-		return objA === objB;
-	}
-
-	let keysA = Object.keys(objA).sort();
-	let keysB = Object.keys(objB).sort();
-
-	if(keysA.length != keysB.length) {
-		return false;
-	}
-
-	for(let i = 0; i < keysA.length; i++) {
-		if(keysA[i] != keysB[i]) {
-			return false;
-		}
-		if(!this._isEqual(objA[keysA[i]], objB[keysB[i]])) {
-			return false;
-		}
-	}
-	return true;
-},
-
-// Not general purpose, no support for Arrays, functions or symbols
-_deepClone: function(obj) {
-	const logHead = "PersistentDict::_deepClone(): ";
-
-	// See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof
-	// "undefined" is of type "undefined", but "null" and Array are of type "object"
-	if(obj === undefined) {
-		return undefined;
-	}
-
-	if(typeof obj != "object") {
-		// arrays return "object", so we're in scalar-land
-		// Use exact equality, we don't want "undefined" and "false" to be
-		// matching, or things like that
-		this._assert(![ "function", "symbol" ].includes(typeof objA),
-					logHead + "\"" + typeof objA + "\" is not supported");
-		return obj;
-	}
-
-	// "null" is of typeof "object"
-	if(obj == null) {
-		return null;
-	}
-
-	// obj is a non-null objects...
-	this._assert(!Array.isArray(obj), logHead + "arrays are not supported");
-
-	let retVal = {};
-
-	let keys = Object.keys(obj);
-	for(let i = 0; i < keys.length; i++) {
-		retVal[keys[i]] = this._deepClone(obj[keys[i]]);
-	}
-	return retVal;
-},
-
 _onStorageChangedCb: function(changes, areaName) {
 	const logHead = "PersistentDict::_onStorageChangedCb(" + areaName + "): ";
 
@@ -179,7 +97,7 @@ _onStorageChangedCb: function(changes, areaName) {
 		return;
 	}
 
-	if(this._isEqual(this._dict, changes[this._id].newValue)) {
+	if(tmUtils.isEqual(this._dict, changes[this._id].newValue)) {
 		// We need to make this check because when we change a value, we receive
 		// a notification locally anyway (and we don't want to).
 		this._log(logHead + "the object has not changed, ignoring event", changes);
@@ -221,7 +139,7 @@ set: function(key, value) {
 	// We first need to check if the value has changed, because if a listener to our
 	// _eventManager decides to set the value back here after listening to our own
 	// vent, we might end up in an infinite loop, and we definitely dont want that...
-	if(this._isEqual(this._dict[key], value)) {
+	if(tmUtils.isEqual(this._dict[key], value)) {
 		// No change
 		this._log(logHead + "the key has not changed, ignoring call");
 //		this._log.trace(stackTrace());
@@ -230,7 +148,7 @@ set: function(key, value) {
 
 	// A "key" in the _dict can be set to another dictionary (e.g., SettingsStore._customGroups),
 	// so the problems described in setAll() and getAll() exist also in set() and get().
-	this._dict[key] = this._deepClone(value);
+	this._dict[key] = tmUtils.deepClone(value);
 	return this._persist();
 },
 
@@ -242,7 +160,7 @@ get: function(key) {
 	// Let's assert this for safety, just in case
 	this._assert(this.isInitialized(), logHead + "still waiting for initialization");
 
-	return this._deepClone(this._dict[key]);
+	return tmUtils.deepClone(this._dict[key]);
 },
 
 // "ignoreCase" (default "false") is used to check if the "key" exists in
@@ -317,16 +235,16 @@ setAll: function(dict) {
 	// Let's assert this for safety, just in case
 	this._assert(this.isInitialized(), logHead + "still waiting for initialization");
 
-	if(this._isEqual(this._dict, dict)) {
+	if(tmUtils.isEqual(this._dict, dict)) {
 		// See set() for why we make this check
 		this._log(logHead + "the object has not changed, ignoring call", dict, this._dict);
 		return Promise.resolve();
 	}
 
 	// We need to always deep-clone in setAll() and getAll() if we always
-	// want to be able to detect changes with the _isEqual() above).
+	// want to be able to detect changes with the tmUtils.isEqual() above).
 	// See getAll() for more details.
-	this._dict = this._deepClone(dict);
+	this._dict = tmUtils.deepClone(dict);
 	return this._persist();
 },
 
@@ -352,7 +270,7 @@ getAll: function() {
 	// The real issue with the first option is only that we don't have a deep
 	// copy function at our disposal, but that would be the right thing to do,
 	// so we created one.
-	return this._deepClone(this._dict);
+	return tmUtils.deepClone(this._dict);
 },
 
 // Override parent class, in case of a Set, we just want to return an array of keys

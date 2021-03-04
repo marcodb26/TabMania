@@ -10,6 +10,7 @@ _init: function(maxElements) {
 	Classes.Base._init.apply(this, arguments);
 	this._maxElements = maxElements;
 	this._array = [];
+	this.debug();
 },
 
 resize: function() {
@@ -70,7 +71,7 @@ append: function(value) {
 // Scan the array, and remove all occurrences of a specific value.
 // This function uses Array.indexOf() and can only test for equality. If you need
 // a more complex test, you should use Array.findIndex() instead.
-removeValue: function(value) {
+removeValueOLD: function(value, matchFn) {
 	var nextIndex = 0;
 
 	// Continue searching from where you left off. Since we delete one element
@@ -79,6 +80,30 @@ removeValue: function(value) {
 	while((nextIndex = this._array.indexOf(value, nextIndex)) != -1) {
 		// Delete one element from the array
 		this._array.splice(nextIndex, 1);
+	}
+},
+
+// Scan the array, and remove all occurrences of a specific value.
+// This function uses Array.indexOf() and can only test for equality. If you need
+// a more complex test, you should use Array.findIndex() instead.
+removeValue: function(value, matchFn) {
+	matchFn = optionalWithDefault(matchFn, function(a, b) { return a == b })
+
+	const logHead = "BoundArray::removeValue(" + value + "): ";
+
+	let foundIdx = [];
+	for(let i = 0; i < this._array.length; i++) {
+		if(matchFn(value, this._array[i])) {
+			foundIdx.push(i);
+		}
+	}
+
+	this._log(logHead + "need to remove these indices:", foundIdx);
+
+	// Now splice all the found values, start from the end to avoid indices shifting
+	for(let i = foundIdx.length - 1; i >= 0; i--) {
+		this._log(logHead + "now removing index " + foundIdx[i] + " (value = " + this._array[foundIdx[i]] + ")");
+		this._array.splice(foundIdx[i], 1);
 	}
 },
 
@@ -286,30 +311,12 @@ function tmStorage() {
 	chrome.storage.sync.get(function(result){console.log(result)});
 }
 
-// Note that this function sets a default value even if value is "null", not
-// only if it's "undefined". Don't use this function if you care about the
-// "null" value
-function optionalWithDefault(value, defaultValue) {
-	if(typeof(value) === "undefined" || value == null) {
-		return defaultValue;
-	}
-	return value;
-}
-
 function optArrayWithDefault(value, defaultValue) {
 	if(typeof(value) === "undefined" || value == null || value.length == 0) {
 		return defaultValue;
 	}
 	return value;
 }
-
-// In a number of places we need to use empty functions as markers. They work
-// better than "null" because they don't require extra checks before calling
-// a function returned by another function, and have no side effects.
-// Creating a single empty function here and reusing it everywhere else should
-// make the minimized code a little more compact ("return emptyFn" is shorter
-// than "return function(){}" even without minimization).
-function emptyFn() {}
 
 function delay(delayTime) {
 	return new Promise(function(resolve) { 
@@ -340,7 +347,7 @@ function safeFnWrapper(fnToWrap, errMsgPrefix, errFn) {
 			return fnToWrap(...arguments);
 		} catch(e) {
 			if(errMsgPrefix != null) {
-				log.error(errMsgPrefix + e.message, e);
+				tmUtils.err(errMsgPrefix + e.message, e);
 			}
 			if(errFn != null) {
 				return errFn(e, ...arguments);
