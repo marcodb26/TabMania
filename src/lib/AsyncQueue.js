@@ -1,6 +1,7 @@
 // CLASS AsyncQueue
 //
 Classes.AsyncQueue = Classes.Base.subclass({
+	__idPrefix: "AsyncQueue",
 
 	_eventManager: null,
 
