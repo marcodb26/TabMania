@@ -215,6 +215,11 @@ moveTabToLeastTabbedWindow: function(tab) {
 
 	return this.getLeastTabbedWindowId().then(
 		function(winId) {
+			if(tab.windowId == winId) {
+				this._log(logHead + "tab " + tab.id + " is already in the least tabbed window " + winId);
+				return;
+			}
+
 			let moveProperties = {
 				index: -1,
 				windowId: winId,
