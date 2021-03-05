@@ -3,8 +3,8 @@
 	"version": "1.1",
 	"description": "A simple tab manager enabling some essential keyboard shortcuts",
 	"permissions": [
-//		"activeTab",
 		"bookmarks",
+		"contextMenus",
 		"tabs",
 		"tabGroups", // https://developer.chrome.com/docs/extensions/reference/tabGroups/
 		"sessions", // https://developer.chrome.com/docs/extensions/reference/sessions/
@@ -18,12 +18,13 @@
 		// it doesn't seem to cause any side effects.
 		"chrome://favicon/"
 	],
+
 	"background": {
 		"scripts": [
 			"lib/Base.js", "lib/TmUtils.js", "lib/PersistentDict.js", "lib/utils.js", "lib/PerfProfiler.js", "lib/AsyncQueue.js",
 			"lib/chromeUtils.js", "lib/NormalizedTabs.js", "lib/ShortcutsManager.js", "lib/SettingsStore.js",
 			"lib/LocalStore.js", "lib/ScheduledJob.js", "lib/PopupDockerBase.js", "PopupDockerBg.js", "TabsManager.js",
-			"KeyboardShortcuts.js", "messaging.js", "background.js"
+			"KeyboardShortcuts.js", "ContextMenu.js", "messaging.js", "background.js"
 		],
 		"persistent": true
 	},

@@ -19,6 +19,7 @@ window.addEventListener("load", init);
 
 var inBrowserMsgServer = null;
 var tabsManager = null;
+var keyboardShortcuts = null;
 
 var bgInitPromiseResolveFn = null;
 
@@ -70,8 +71,11 @@ function init() {
 			tabsManager = Classes.TabsManager.createAs("tabsManager");
 			tabsManager.debug();
 
-			let keyboardShortcuts = Classes.KeyboardShortcuts.createAs("keyboardShortcuts");
+			keyboardShortcuts = Classes.KeyboardShortcuts.createAs("keyboardShortcuts");
 			keyboardShortcuts.debug();
+
+			let contextMenu = Classes.ContextMenu.create();
+			contextMenu.debug();
 
 			bgInitPromiseResolveFn();
 		}
@@ -82,7 +86,6 @@ function init() {
 //	myImage.onerror = function(e) {
 //		console.error("Got here: ", e);
 //	}
-//	myImage.src = "chrome://favicon/size/16@1x/https://example.com/doesntexist";
 //	myImage.src = "https://example.com/doesntexist";
 //	document.body.appendChild(myImage);
 }
