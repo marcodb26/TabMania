@@ -34,17 +34,21 @@ getPopupUrl: function(undocked) {
 _launchUndocked: function() {
 	const logHead = "PopupDockerBase::_launchUndocked(): ";
 
+	let storedSize = optionalWithDefault(localStore.getPopupSize(), {});
+
 	let createData = {
 		url: this.getPopupUrl(true),
 		focused: true,
 		type: "popup",
-		width: this._undockedInitWidth,
-		height: this._undockedInitHeight
+		left: storedSize.posX, // If it's undefined, use the API default
+		top: storedSize.posY, // If it's undefined, use the API default
+		width: optionalWithDefault(storedSize.width , this._undockedInitWidth),
+		height: optionalWithDefault(storedSize.height, this._undockedInitHeight),
 	};
 
 	chromeUtils.wrap(chrome.windows.create, logHead, createData).then(
 		function() {
-			this._log(logHead + "launched");
+			this._log(logHead + "launched", createData);
 		}.bind(this)
 	);
 },

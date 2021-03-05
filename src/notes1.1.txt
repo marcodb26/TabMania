@@ -1,5 +1,3 @@
-- Save size and position of undocked popup
-
 - Make "undocked" the new default for the popup
 
 - Add "move tab to least tabbed window" action to the tile dropdown menu
@@ -234,6 +232,8 @@ DONE 1.1
   * With selected text
     - Use launch/search shortcut
 	- Use any custom shortcuts with search enabled
+
+- Save size and position of undocked popup
 
 
 PUNTED TO NEXT RELEASE

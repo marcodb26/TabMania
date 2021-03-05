@@ -34,6 +34,7 @@ Classes.LocalStore = Classes.AsyncBase.subclass({
 	// _bootstrapTabs contains:
 	// - "activeTabId": the name of the Boostrap tab that's currently active
 	// - "docked": whether or not the popup is docked (default "true", docked)
+	// - "popupSize": an object describing the size and position of the undocked popup
 	_bootstrapTabs: null,
 
 	_eventManager: null,
@@ -95,6 +96,21 @@ isPopupDocked: function() {
 
 setPopupDocked: function(docked) {
 	return this._bootstrapTabs.set("docked", docked);
+},
+
+getPopupSize: function() {
+	return this._bootstrapTabs.get("popupSize");
+},
+
+setPopupSize: function(posX, posY, width, height) {
+	size = {
+		posX: posX,
+		posY: posY,
+		width: width,
+		height: height,
+	};
+
+	return this._bootstrapTabs.set("popupSize", size);
 },
 
 }); // Classes.LocalStore

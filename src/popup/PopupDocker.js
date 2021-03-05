@@ -8,6 +8,9 @@ Classes.PopupDocker = Classes.PopupDockerBase.subclass({
 	_ownTabId: null,
 	_ownWindowId: null,
 
+	_savePopupSizeJob: null,
+	_savePopupSizeDelay: 1000,
+
 _init: function() {
 	const logHead = "PopupDocker::_init(): ";
 
@@ -15,6 +18,9 @@ _init: function() {
 	Classes.PopupDockerBase._init.call(this);
 
 	this.debug();
+
+	this._savePopupSizeJob = Classes.ScheduledJob.create(this._savePopupSize.bind(this));
+	this._savePopupSizeJob.debug();
 
 	window.addEventListener("load", this._loadCb.bind(this));
 	localStore.addEventListener(Classes.EventManager.Events.UPDATED, this._updatedCb.bind(this));
@@ -28,6 +34,12 @@ _init: function() {
 				this._ownWindowId = tabs[0].windowId;
 				// https://developer.chrome.com/docs/extensions/reference/tabs/#event-onCreated
 				chrome.tabs.onCreated.addListener(this._popupDefenderCb.bind(this));
+
+				window.addEventListener("resize", this._onResizeCb.bind(this));
+				// Since there's a "resize" event, but no "move" event for when the window
+				// moves, we use the unload event to capture the popup position right before
+				// the popup got closed.
+				window.addEventListener("unload", this._onUnloadCb.bind(this));
 			}.bind(this)
 		);
 	}
@@ -79,6 +91,27 @@ _popupDefenderCb: function(tab) {
 
 	this._err(logHead + "need to relocate invader", tab);
 	chromeUtils.moveTabToLeastTabbedWindow(tab);
+},
+
+_onResizeCb: function(ev) {
+	// Using _savePopupSizeJob to debounce the resize event, otherwise we'll get
+	// too much data to the Chrome storage pipe...
+	this._savePopupSizeJob.run(this._savePopupSizeDelay);
+},
+
+_onUnloadCb: function(ev) {
+	// Since there's a "resize" event, but no "move" event for when the window
+	// moves, we use the unload event to capture the popup position right before
+	// the popup got closed.
+	// Don't use the delayed _savePopupSizeJob, we need to take the action immediately.
+	this._savePopupSize();
+},
+
+_savePopupSize: function() {
+	const logHead = "PopupDocker::_savePopupSize(): ";
+	this._log(logHead + "saving window size: ",
+				window.screenLeft, window.screenTop, window.outerWidth, window.outerHeight);
+	localStore.setPopupSize(window.screenLeft, window.screenTop, window.outerWidth, window.outerHeight);
 },
 
 isPopupDocked: function() {
