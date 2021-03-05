@@ -362,7 +362,7 @@ Classes.TileBookmarkMenuViewer = Classes.MenuViewer.subclass({
 	// Track here all the menu item viewers
 	_titleMenuItem: null,
 	_titleElem: null,
-	_pathElem: null,
+	_subtitleElem: null,
 
 	_openBookmarkManagerMenuItem: null,
 	_pinMenuItem: null,
@@ -371,9 +371,6 @@ Classes.TileBookmarkMenuViewer = Classes.MenuViewer.subclass({
 _init: function(bm) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.MenuViewer._init.call(this);
-//	, {
-//		btnExtraClasses: [ tab.incognito ? "btn-light" : "btn-secondary" ],
-//	});
 
 	this.debug();
 	this._bm = bm;
@@ -388,17 +385,17 @@ _renderPathHtml: function(pathList) {
 	// string (the root element of the bookmarks tree has no title), and that's
 	// perfect to have .join("/") add a leading "/".
 	return `
-	From <i>${pathList.join("/")}</i>
+	Bookmark from <i>${pathList.join("/")}</i>
 	`;
 },
 
 _renderTitle: function() {
 	const titleId = this._id + "-title";
-	const pathId = this._id + "-path";
+	const subtitleId = this._id + "-subtitle";
 
 	let titleHtml = `
 		<div id="${titleId}"></div>
-		<div id="${pathId}"></div>
+		<div id="${subtitleId}"></div>
 	`;
 
 	this._titleMenuItem = Classes.MenuItemViewer.create("", this._actionActivateCb.bind(this));
@@ -406,7 +403,7 @@ _renderTitle: function() {
 	this.append(this._titleMenuItem);
 
 	this._titleElem = this.getElementById(titleId);
-	this._pathElem = this.getElementById(pathId);
+	this._subtitleElem = this.getElementById(subtitleId);
 
 	this._updateTitleMenuItem();
 },
@@ -416,7 +413,7 @@ _updateTitleMenuItem: function() {
 
 	chromeUtils.getBookmarkPathList(this._bm).then(
 		function(pathList) {
-			this._pathElem.innerHTML = this._renderPathHtml(pathList);
+			this._subtitleElem.innerHTML = this._renderPathHtml(pathList);
 		}.bind(this)
 	);
 },
@@ -469,7 +466,10 @@ _actionPinToggleCb: function(ev) {
 
 _actionDeleteCb: function(ev) {
 	const logHead = "TileBookmarkMenuViewer::_actionDeleteCb(" + this._bm.id + "): ";
-	chromeUtils.wrap(chrome.bookmarks.remove, logHead, this._bm.id).then(
+	// Note that we need to use "_bm.bookmarkId", not "_bm.id", because we've modified
+	// "_bm.id", and if we used it, Chrome would respond with:
+	// ChromeUtils::wrap().cb: TileBookmarkMenuViewer::_actionDeleteCb(b945): chrome.runtime.lastError = Bookmark id is invalid.
+	chromeUtils.wrap(chrome.bookmarks.remove, logHead, this._bm.bookmarkId).then(
 		function() {
 			this._log(logHead + "completed");
 		}.bind(this)
@@ -482,3 +482,92 @@ update: function(bm) {
 },
 
 }); // Classes.TileBookmarkMenuViewer
+
+
+// CLASS TileHistoryMenuViewer
+//
+Classes.TileHistoryMenuViewer = Classes.MenuViewer.subclass({
+	__idPrefix: "TileHistoryMenuViewer",
+
+	_item: null,
+
+	// Track here all the menu item viewers
+	_titleMenuItem: null,
+	_titleElem: null,
+	_subtitleElem: null,
+	_deleteMenuItem: null,
+
+_init: function(item) {
+	// Overriding the parent class' _init(), but calling that original function first
+	Classes.MenuViewer._init.call(this);
+
+	this.debug();
+	this._item = item;
+
+	this._assert(this._item.tm.type == Classes.NormalizedTabs.type.HISTORY);
+	
+	this._initMenuItems();
+},
+
+_renderTitle: function() {
+	const titleId = this._id + "-title";
+	const subtitleId = this._id + "-subtitle";
+
+	let titleHtml = `
+		<div id="${titleId}"></div>
+		<div id="${subtitleId}"></div>
+	`;
+
+	this._titleMenuItem = Classes.MenuItemViewer.create("", this._actionActivateCb.bind(this));
+	this._titleMenuItem.setHtml(titleHtml);
+	this.append(this._titleMenuItem);
+
+	this._titleElem = this.getElementById(titleId);
+	this._subtitleElem = this.getElementById(subtitleId);
+
+	this._updateTitleMenuItem();
+},
+
+_updateTitleMenuItem: function() {
+	this._titleElem.innerHTML = `<b>${this._safeText(this._item.title)}</b>`;
+	let visitsCnt = this._item.visitCount + this._item.typedCount;
+	let lastVisited = (new Date(this._item.lastVisitTime)).toString();
+
+	let midString = `${visitsCnt} times, last`;
+	if(visitsCnt == 1) {
+		midString = "once";
+	}
+	this._subtitleElem.innerHTML = `History item, visited ${midString} on ${lastVisited}`;
+},
+
+_initMenuItems: function() {
+	this._renderTitle();
+
+	this._deleteMenuItem = Classes.MenuItemViewer.create("Delete", this._actionDeleteCb.bind(this));
+	this.append(this._deleteMenuItem);
+},
+
+_updateMenuItems: function() {
+	this._updateTitleMenuItem();
+	// Nothing to update for _deleteMenuItem
+},
+
+_actionActivateCb: function(ev) {
+	Classes.TabsTabViewer.activateTab(this._item);
+},
+
+_actionDeleteCb: function(ev) {
+	const logHead = "TileHistoryMenuViewer::_actionDeleteCb(" + this._item.url + "): ";
+	chromeUtils.wrap(chrome.history.deleteUrl, logHead, { url: this._item.url }).then(
+		function() {
+			this._log(logHead + "completed");
+		}.bind(this)
+	);
+},
+
+update: function(item) {
+	this._item = item;
+	this._updateMenuItems();
+},
+
+}); // Classes.TileHistoryMenuViewer

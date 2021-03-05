@@ -180,6 +180,7 @@ Classes.TabsTabViewer = Classes.SearchableTabViewer.subclass({
 	_normTabs: null,
 
 	_bookmarksFinder: null,
+	_historyFinder: null,
 
 _init: function(tabLabelHtml) {
 	// Overriding the parent class' _init(), but calling that original function first
@@ -197,13 +198,15 @@ _init: function(tabLabelHtml) {
 	this._bookmarksFinder = Classes.BookmarksFinder.create();
 	this._bookmarksFinder.addEventListener(Classes.EventManager.Events.UPDATED, this._bookmarkUpdatedCb.bind(this));
 
+	this._historyFinder = Classes.HistoryFinder.create();
+	this._historyFinder.addEventListener(Classes.EventManager.Events.UPDATED, this._historyUpdatedCb.bind(this));
+
 	this._groupsBuilder = Classes.GroupsBuilder.create();
 	// Call this function before rendering, because it sets _renderTabs(), which
 	// would otherwise be null
 	this._TabsTabViewer_searchBoxInactiveInner();
 	this._TabsTabViewer_render();
 
-	this._bookmarkImportInProgress = false;
 	this._registerChromeCallbacks();
 
 	settingsStore.addEventListener(Classes.EventManager.Events.UPDATED, this._settingsStoreUpdatedCb.bind(this));
@@ -243,9 +246,6 @@ _registerChromeCallbacks: function() {
 	chrome.tabs.onAttached.addListener(this._tabUpdatedCb.bind(this, Classes.TabsTabViewer.CbType.ATTACHED));
 	// https://developer.chrome.com/docs/extensions/reference/tabs/#event-onMoved
 	chrome.tabs.onMoved.addListener(this._tabUpdatedCb.bind(this, Classes.TabsTabViewer.CbType.MOVED));
-
-	// https://developer.chrome.com/docs/extensions/reference/sessions/#event-onChanged
-	chrome.sessions.onChanged.addListener(this._recentlyClosedChangedCb.bind(this));
 },
 
 _tabCreatedCb: function(tab) {
@@ -492,12 +492,18 @@ _bookmarkUpdatedCb: function(ev) {
 	this._updateSearchResults();
 },
 
-// This callback doesn't take any arguments
-_recentlyClosedChangedCb: function() {
+_historyUpdatedCb: function(ev) {
+	// In theory we could just call a removeEventListener() when we get out of search
+	// mode, but this code seems harmless enough
 	if(!this.isSearchActive()) {
-		// All recently closed tabs events can be ignored when not in search mode
+		// All the history events can be ignored when not in search mode
 		return;
 	}
+	
+	// The tabs have not changed, but it would be a bit more (code) trouble to try
+	// to only update the info from the _historyFinder, and merge it with the
+	// existing tabs. Maybe one day we'll have time for that optimization, for
+	// now we just pretend the search query has changed...
 	this._updateSearchResults();
 },
 
@@ -785,10 +791,20 @@ _activateSearchBox: function(active) {
 	}
 },
 
-_updateSearchResults: function() {
+// "newSearch" is an optional parameter that should be set to "true" only when the
+// update is triggered by a change in the searchbox input, and left to "false" for
+// all other cases (typically, updates triggered by tab/bookmark/history events where
+// the searchbox input remains the same). The flag is needed to make sure we reset
+// the scrolling position of the popup only when the new search results start to
+// display (that is, at the same time the search count stop blinking). Doing it
+// before that (in this function or in the caller, since searches are async) would
+// result in an odd visual effect.
+_updateSearchResults: function(newSearch) {
+	newSearch = optionalWithDefault(newSearch, false);
+
 	perfProf.mark("searchStart");
 	this._prepareForNewCycle();
-	this._searchRenderTabs(this._normTabs.getTabs());
+	this._searchRenderTabs(this._normTabs.getTabs(), newSearch);
 	perfProf.mark("searchEnd");
 },
 
@@ -824,21 +840,32 @@ _searchBoxProcessData: function(value) {
 	// We used to call "this._queryAndRenderTabs()" here, but there's no need
 	// to query the tabs when this event happens, the tabs have not changed,
 	// only the search box has changed.
-	this._updateSearchResults();
+	this._updateSearchResults(true);
+	// Also, whenever the search input changes, scroll back to the top of the
+	// new set of results
 },
 
 // This is a static function, because we need it both in the "Enter" handler as
 // well as in the "click" handler (see TabTileViewer), and there was no cleaner way
 // to make this code available in both
 activateTab: function(tab) {
+	const logHead = "Classes.TabsTabViewer.activateTab(): ";
 	if(tab.tm.type == Classes.NormalizedTabs.type.TAB) {
 		chromeUtils.activateTab(tab.id);
 		return;
 	}
 
-	// The tile is a bookmark, not a tab, we need to find an existing tab already
-	// loaded with the current shortcut, or open a new tab to handle the Enter/click
-	chromeUtils.wrap(chrome.tabs.query, "Classes.TabsTabViewer.activateTab()", { url: tab.url }).then(
+	if(tab.tm.type == Classes.NormalizedTabs.type.RCTAB) {
+		// Use "tab.sessionId", not "tab.id", because "tab.id" has been modified by
+		// NormalizedTabs.normalizeTab(), and it would not be recognized by chrome.sessions
+		// anymore
+		chromeUtils.wrap(chrome.sessions.restore, logHead, tab.sessionId);
+		return;
+	}
+
+	// The tile is a bookmark or history item, not a tab/rcTab, we need to find an existing
+	// tab already loaded with the current url, or open a new tab to handle the Enter/click
+	chromeUtils.wrap(chrome.tabs.query, logHead, { url: tab.url }).then(
 		function(tabList) {
 			if(tabList.length == 0) {
 				chromeUtils.loadUrl(tab.url);
@@ -846,7 +873,7 @@ activateTab: function(tab) {
 				// Activate the first tab in the list with a matching URL
 				chromeUtils.activateTab(tabList[0].id);
 			}
-		}.bind(this)
+		} // Static function, don't "bind(this)"
 	);
 },
 
@@ -893,10 +920,11 @@ _isTabInCurrentSearchPositive: function(tab) {
 },
 
 _isTabInCurrentSearchNegative: function(tab) {
-	if(tab.tm.type == Classes.NormalizedTabs.type.BOOKMARK) {
-		// Bookmarks don't belong in negative searches, because we're not scanning the
-		// entire set of bookmarks, only the set of results from a positive search, not
-		// a negative one.
+	if(tab.tm.type == Classes.NormalizedTabs.type.BOOKMARK ||
+		tab.tm.type == Classes.NormalizedTabs.type.HISTORY) {
+		// Bookmarks/history don't belong in negative searches, because we're not scanning
+		// the entire set of bookmarks/history, only the set of results from a positive search,
+		// not a negative one.
 		return false;
 	}
 	return !this._isTabInCurrentSearchPositive(tab);
@@ -925,12 +953,12 @@ _filterByCurrentSearch: function(inputTabs) {
 	);
 },
 
-_searchRenderTabsInner_Merged: function(tabs, bmNodes) {
-	const logHead = "TabsTabViewer::_searchRenderTabsInner_Merged(): ";
+_searchRenderTabsInner: function(tabs, bmNodes, hItems, newSearch) {
+	const logHead = "TabsTabViewer::_searchRenderTabsInner(): ";
 
 	// Using Array.concat() instead of the spread operator [ ...tabs, ...bmNodes] because
 	// it seems to be faster, and because we're potentially dealing with large arrays here
-	let objects = tabs.concat(bmNodes);
+	let objects = tabs.concat(bmNodes, hItems);
 
 	perfProf.mark("searchFilterStart");
 	objects = this._filterByCurrentSearch(objects);
@@ -944,6 +972,9 @@ _searchRenderTabsInner_Merged: function(tabs, bmNodes) {
 
 	this._setSearchBoxCountBlinking(false);
 	this._setSearchBoxCount(objects.length);
+	if(newSearch) {
+		this._bodyElem.scrollTo(0, 0);
+	}
 
 	if(objects.length == 0) {
 		this._log(logHead + "no tabs in search results");
@@ -957,146 +988,9 @@ _searchRenderTabsInner_Merged: function(tabs, bmNodes) {
 	}
 },
 
-_searchRenderTabsInner_Separate: function(tabs, bmNodes) {
-	const logHead = "TabsTabViewer::_searchRenderTabsInner_Separate(): ";
 
-	tabs = this._filterByCurrentSearch(tabs);
-	tabs = tabs.sort(Classes.NormalizedTabs.compareTabsFn);
-
-	bmNodes = this._filterByCurrentSearch(bmNodes);
-	bmNodes = bmNodes.sort(Classes.NormalizedTabs.compareTabsFn);
-
-	// This logic is very crude, ideally we should have a more seamless transition from
-	// a set of tabs to a different set of tabs, but we're leaving that logic for later.
-	this._containerViewer.clear();
-
-	this._setSearchBoxCountBlinking(false);
-	this._setSearchBoxCount(tabs.length + bmNodes.length);
-
-	if((tabs == null || tabs.length == 0) && bmNodes.length == 0) {
-		this._log(logHead + "no tabs in search results");
-		this._currentSearchResults = null;
-	} else {
-		if(tabs.length != 0) {
-			// This assumes "tabs" are rendered first
-			this._currentSearchResults = tabs;
-		} else {
-			// Since they're not both zero, "bmNodes" must be non-zero here.
-			// this._currentSearchResults is used to trigger an action when the
-			// user presses "Enter", so it makes sense to adapt it to allow users
-			// to open bookmarks too
-			this._currentSearchResults = bmNodes;
-		}
-		this._renderTabsFlatInner(this._containerViewer, tabs);
-		this._renderTabsFlatInner(this._containerViewer, bmNodes);
-		this._logCachedTilesStats(logHead);
-	}
-},
-
-_recentlyClosedNormalize: function(sessions) {
-	const logHead = "TabsTabViewer::_recentlyClosedNormalize(): ";
-	// Filter out windows and normalize recently closed tabs.
-	// A few actions need to be taken:
-	// - Flatten out the tabs array by extracting any tabs that might be under windows
-	// - Normalize those flattened tabs
-	// - Exclude any tab that represents a past incarnation of the TabMania undocked popup
-	let tabs = [];
-
-	for(let i = 0; i < sessions.length; i++) {
-		let session = sessions[i];
-		if(session.tab == null) {
-			// UPDATE: actually, stay away from "session.window.tabs", the tabs in there don't
-			// seem to behave consistently with the "session.tab"
-			// - They include tabs that are currently open (at least if you reuse the tabs session
-			//   on browser restart)
-			//   * If they were tandard "session.tab" they would disappear when the tab gets
-			//     opened
-			// - When you try to call chrome.sessions.restore() on them, the call doesn't seem
-			//   to restore anything, it just opens another tab
-			//   * And when you click on the tile, chrome.sessions.restore() ends up creating
-			//     the new tab in the same window where the TabMania popup is, that's just a
-			//     lot of trouble...
-			//     - When you close the unusable popup and open it again, the supposedly "recently
-			//       closed tab" now it's in the chrome.sessions.search() results, but it claims
-			//       that the session.window.tabs[x] is "active"
-			//     - This looks like a bug, but the whole behavior looks like a big bug
-			// - When you close the open tab corresponding to one of these bogus recently closed
-			//   tabs now your recently closed tabs has two of the same tab, one that behaves
-			//   normally, one that behaves erratically
-			//   * It's impossible to tell apart one from the other
-			//
-			// The real trouble is that besides those erratic recently closed tabs, if you close
-			// a window during normal operation (not as part of a Chrome full close and restart),
-			// those sessions.window.tabs behave normally, and they should show up in TabMania...
-			// but how do we tell them apart?
-			//
-			// Per https://developer.chrome.com/docs/extensions/reference/sessions/#type-Session
-			// windows are identifiable by the absence of "tab". We don't want to track windows,
-			// but they might contain tabs.
-			let window = session.window;
-			for(let j = 0; window.tabs != null && j < window.tabs.length; j++) {
-				let tab = window.tabs[j];
-				// Filter out all tabs in windows that have index == -1; index -1 is set for all
-				// recently closed items that were closed before the current instance of Chrome
-				// was started (e.g., before the last reboot, or before the last Chrome restart).
-				// Given the trouble we have with tabs in windows, this is the easiest way to
-				// keep them out of the way, though we're also sacrificing genuine windows closed
-				// explicitly by the user before the last reboot.
-				// At least we keep in play the windows closed by the user after the last Chrome
-				// restart... better than having to shut them all out.
-				// 
-				// Also filter out any tab that identifies a previous instance of the TabMania popup.
-				if(tab.url != popupDocker.getPopupUrl(true) && tab.index != -1) {
-					this._assert(!tab.active, logHead + "recently closed tabs can't be active", tab);
-					Classes.NormalizedTabs.normalizeTab(tab, Classes.NormalizedTabs.type.RCTAB);
-					// Let's remember which window this tab is coming from. As a minimum, this
-					// can give us a hint that this tab might be trouble. We only know for sure
-					// that recently closed tabs without a "tab.tm.windowSessionId" are not trouble,
-					// we have a 50/50 chance those with "tab.tm.windowSessionId" might be trouble.
-					tab.tm.windowSessionId = window.sessionId;
-					tabs.push(tab);
-				}
-			}
-		} else {
-			let tab = session.tab;
-			// Filter out any tab that identifies a previous instance of the TabMania popup
-			if(tab.url != popupDocker.getPopupUrl(true)) {
-				// I've seen recently closed tabs showing up as active, that's an odd inconsistency
-				// (a closed tab can't be active), and definitely not something we want to show to
-				// our end users
-				this._assert(!tab.active, logHead + "recently closed tabs can't be active", tab);
-				Classes.NormalizedTabs.normalizeTab(tab, Classes.NormalizedTabs.type.RCTAB);
-				tabs.push(tab);
-			}
-		}
-	}
-
-	return tabs;
-},
-
-// Returns a list of normalized tabs taken from the recently closed list (max of 25
-// per the Chrome API limit).
-_getRecentlyClosedTabs: function() {
-	const logHead = "TabsTabViewer::_getRecentlyClosedTabs(): ";
-
-	if(!settingsStore.getOptionRecentlyClosedInSearch()) {
-		this._log(logHead + "recently closed tabs are disabled in search, nothing to do");
-		// Pretend we searched and found no recently closed tabs (empty array)
-		return Promise.resolve([]);
-	}
-
-	// This function returns a maximum of 25 recently closed tabs, not much
-	// to worry about
-	return chromeUtils.wrap(chrome.sessions.getRecentlyClosed, logHead, null).then(
-		function(session) {
-			this._log(logHead + "sessions.getRecentlyClosed() returned: ", session);
-			return this._recentlyClosedNormalize(session);
-		}.bind(this)
-	);
-},
-
-_searchRenderTabs: function(tabs) {
-	const logHead = "TabsTabViewer::_searchRenderTabs(): ";
+_searchRenderTabs: function(tabs, newSearch) {
+	const logHead = "TabsTabViewer::_searchRenderTabs(newSearch: " + newSearch + "): ";
 
 	// Give some feedback to the user in case this search is going to take a while...
 	this._setSearchBoxCountBlinking();
@@ -1106,26 +1000,27 @@ _searchRenderTabs: function(tabs) {
 	let merge = true;
 
 	Promise.all([
-		this._getRecentlyClosedTabs(),
-		this._bookmarksFinder.find(this._currentSearchInput)
+		// Unlike bookmarks and history items that support search, recently closed tabs
+		// don't support search, but there's only a maximum of 25 of them, so we can just
+		// scoop them all up and pretend they were always together with the standard tabs
+		this._historyFinder._getRecentlyClosedTabs(),
+		this._bookmarksFinder.find(this._currentSearchInput),
+		this._historyFinder.find(this._currentSearchInput),
 	]).then(
-		function([ rcTabs, bmNodes ]) {
+		function([ rcTabs, bmNodes, hItems ]) {
 			// We need to this._containerViewer.clear() in all cases, but we're trying to
 			// keep this clear() call as close as possible to the time of the new rendering.
 			// If there's too much processing to do between clear() and render, users will
 			// see an empty screen with the "no tabs" text displayed in the popup for the
 			// duration of the processing. No reason to leave them hanging.
 			// For this reason, we've moved this this._containerViewer.clear() call from
-			// here to inside the this._searchRenderTabsInner_Merged() or this._searchRenderTabsInner_Separate()
-			// calls. A small duplication for a good UX cause.
+			// here to inside the this._searchRenderTabsInner() calls. A small duplication
+			// for a good UX cause.
 
-			// concat() dosn't modify "tabs", so that's safe
+			// concat() dosn't modify "tabs", so this call is safe
 			let mergedTabs = tabs.concat(rcTabs);
-			if(merge) {
-				this._searchRenderTabsInner_Merged(mergedTabs, bmNodes);
-			} else {
-				this._searchRenderTabsInner_Separate(mergedTabs, bmNodes);
-			}
+
+			this._searchRenderTabsInner(mergedTabs, bmNodes, hItems, newSearch);
 		}.bind(this)
 	);
 },

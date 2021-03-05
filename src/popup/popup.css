@@ -71,6 +71,18 @@
 .tm-fa-history {
 	width: 1em;
     height: 1em;
+	/* History items always show up in black and white, but we want this
+	   icon to stand out. Choosing a dark color to avoid it "standing out too much".
+	   History items and recently closed tabs use the same icon, but history items
+	   show it in dark blue (blue as in "cold"), while recently closed items show it
+	   in red (red as in "hot").
+	*/
+	color: #074297;
+}
+
+.tm-fa-recently-closed {
+	width: 1em;
+    height: 1em;
 	/* Recently closed tabs always show up in black and white, but we want this
 	   icon to stand out. Choosing a dark color to avoid it "standing out too much".
 	   For now let's use the same color as .tm-fa.bookmark, but later we should

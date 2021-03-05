@@ -18,7 +18,9 @@
 		// it doesn't seem to cause any side effects.
 		"chrome://favicon/"
 	],
-
+	 "optional_permissions": [
+		"history" // https://developer.chrome.com/docs/extensions/reference/history/
+	],
 	"background": {
 		"scripts": [
 			"lib/Base.js", "lib/TmUtils.js", "lib/PersistentDict.js", "lib/utils.js", "lib/PerfProfiler.js", "lib/AsyncQueue.js",

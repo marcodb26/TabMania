@@ -272,6 +272,16 @@ _renderSettings: function() {
 
 	this._generalSettingsContainer.append(bookmarksInSearch);
 
+	let historyInSearch = Classes.SettingsCheckboxPermViewer.create({
+		setFn: settingsStore.setOptionHistoryInSearch.bind(settingsStore),
+		getFn: settingsStore.getOptionHistoryInSearch.bind(settingsStore),
+		label: "Include browsing history in search results",
+		updateKey: "options",
+		permission: "history"
+	});
+
+	this._generalSettingsContainer.append(historyInSearch);
+
 	if(settingsStore.getOptionDevMode()) {
 		let showTabId = Classes.SettingsCheckboxItemViewer.create({
 			setFn: settingsStore.setOptionShowTabId.bind(settingsStore),

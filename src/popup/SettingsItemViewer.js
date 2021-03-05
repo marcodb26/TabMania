@@ -435,6 +435,71 @@ setValue: function(value) {
 
 }); // Classes.SettingsCheckboxItemViewer
 
+// CLASS SettingsCheckboxPermViewer
+// This class should be called "SettingsCheckboxItemWithPermissionViewer", but that's really
+// a mouthful...
+Classes.SettingsCheckboxPermViewer = Classes.SettingsCheckboxItemViewer.subclass({
+	__idPrefix: "SettingsCheckboxPermViewer",
+
+	_permission: null,
+
+_init: function({ permission }) {
+	this._permission = permission;
+
+	// Overriding the parent class' _init(), but calling that original function first
+	Classes.SettingsCheckboxItemViewer._init.apply(this, arguments);
+	this.debug();
+},
+
+_requestPermission: function(ev) {
+	const logHead = "SettingsCheckboxPermViewer::_requestPermission(): ";
+
+	chromeUtils.wrap(chrome.permissions.request, logHead, { permissions: [ this._permission ] }).then(
+		function(granted) {
+			if(granted) {
+				this._log(logHead + "permission granted");
+				Classes.SettingsCheckboxItemViewer._onInputChangedCb.call(this, ev);
+			} else {
+				this._log(logHead + "permission refused");
+				this._inputElem.checked = false;
+			}
+		}.bind(this)
+	);
+},
+
+_removePermission: function(ev) {
+	const logHead = "SettingsCheckboxPermViewer::_removePermission(): ";
+
+	chromeUtils.wrap(chrome.permissions.remove, logHead, { permissions: [ this._permission ] }).then(
+		function(removed) {
+			if(removed) {
+				this._log(logHead + "permission removed");
+			} else {
+				this._err(logHead + "failed");
+			}
+		}.bind(this)
+	);
+},
+
+// Override from parent class
+_onInputChangedCb: function(ev) {
+	const logHead = "SettingsCheckboxPermViewer::_onInputChangedCb(value: \"" + ev.target.checked + "\"): ";
+	this._log(logHead + "change event", ev);
+
+	if(ev.target.checked) {
+		this._requestPermission(ev);
+	} else {
+		// For _requestPermission we must call the parent class _onInputChangedCb() in
+		// the Chrome API callback, so we do it inside _requestPermission().
+		// Here instead we can call the parent class _onInputChangedCb() regardless of
+		// the result of _removePermission(), so it doesn't make sense to put the parent
+		// call inside _removePermission().
+		this._removePermission(ev);
+		Classes.SettingsCheckboxItemViewer._onInputChangedCb.call(this, ev);
+	}
+},
+
+}); // Classes.SettingsCheckboxPermViewer
 
 // CLASS SettingsColorsItemViewer
 //

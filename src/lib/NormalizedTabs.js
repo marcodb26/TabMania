@@ -280,6 +280,28 @@ updateBookmarkBadges: function(tab) {
 	this._addNormalizedVisualBadge(tab, tab.tm.extId, settingsStore.getOptionShowTabId());
 },
 
+updateHistoryBadges: function(tab) {
+//	// Don't add "visited" to the search badges, users can't search with the
+//	// "visited" keyword, we don't start with the full list of history items
+//	this._addNormalizedVisualBadge(tab, "visited", false);
+
+	if(tab.tm.customGroupName != null) {
+		// We're adding the badge as a search-only badge (not visible) because
+		// the TileViewer has special logic to render this badge in the color
+		// of the custom group, based on tab.tm.customGroupName
+		this._addNormalizedVisualBadge(tab, tab.tm.customGroupName, false);
+	}
+
+	// We always want this to appear last, if the user configured it to be visible
+	this._addNormalizedVisualBadge(tab, tab.tm.extId, settingsStore.getOptionShowTabId());
+},
+
+// Static function
+getCachedFavIconUrl: function(url) {
+	// See https://stackoverflow.com/questions/10665321/reliably-getting-favicons-in-chrome-extensions-chrome-favicon
+	return "chrome://favicon/size/16@1x/" + url;
+},
+
 // Static function
 normalizeBookmarkId : function(id) {
 	return "b" + id;
@@ -298,12 +320,38 @@ _initBookmarkAsTab: function(tab) {
 	// from NormalizedTabs.normalizeTab().
 
 	// Add a prefix to the id. This is safe because we never need to map this id back to
-	// its original value to work with chrome.bookmarks events.
+	// its original value to work with chrome.bookmarks events. We also want to save the
+	// original ID in case we need it for some of the chrome.history functions.
+	tab.bookmarkId = tab.id;
 	tab.id = Classes.NormalizedTabs.normalizeBookmarkId(tab.id);
 	// BookmarkTreeNode doesn't include a favIcon for the bookmark, but we could be
 	// lucky and find one in the Chrome's favIcon cache...
-	// See https://stackoverflow.com/questions/10665321/reliably-getting-favicons-in-chrome-extensions-chrome-favicon
-	tab.favIconUrl = "chrome://favicon/size/16@1x/" + tab.url;
+	tab.favIconUrl = Classes.NormalizedTabs.getCachedFavIconUrl(tab.url);
+	tab.status = "unloaded";
+},
+
+// Static function
+normalizeHistoryItemId : function(id) {
+	return "h" + id;
+},
+
+// This is a static function called by normalizeTab(). Don't use "this" here.
+_initHistoryItemAsTab: function(tab) {
+	// We want each "HistoryItem" to be as similar as possible to a "tab" object...
+	// It already includes "title" and "url".
+	// It also includes an "id", but the numeric space for that ID overlaps with
+	// the space used by tabs.
+	// We want to add favIconUrl, a compatible "status" to render the history item in
+	// black&while like we render unloaded tabs, and some of the other things we get
+	// from NormalizedTabs.normalizeTab().
+
+	// Add a prefix to the id. This is safe because we never need to map this id back to
+	// its original value to work with chrome.history events. We also want to save the
+	// original ID in case we need it for some of the chrome.history functions.
+	tab.historyId = tab.id;
+	tab.id = Classes.NormalizedTabs.normalizeHistoryItemId(tab.id);
+	// Try to get an icon in the Chrome's favIcon cache...
+	tab.favIconUrl = Classes.NormalizedTabs.getCachedFavIconUrl(tab.url);
 	tab.status = "unloaded";
 },
 
@@ -323,10 +371,12 @@ _initRecentlyClosedAsTab: function(tab) {
 	// Using sessionId for tab.id is probably going to generate some duplicated tab IDs, so
 	// we're adding a prefix to the id. This is safe because we never need to map this id back to
 	// its original value to work with chrome.sessions events.
+	// Note that in this case we don't need to save the original ID, "sessionId" is already
+	// a different property from "id".
 	tab.id = Classes.NormalizedTabs.normalizeRecentlyClosedId(tab.sessionId);
 	if(tab.favIconUrl == null || tab.favIconUrl == "") {
 		// See BookmarksFinder.js for details about the favicon cache
-		tab.favIconUrl = "chrome://favicon/size/16@1x/" + tab.url;
+		tab.favIconUrl = Classes.NormalizedTabs.getCachedFavIconUrl(tab.url);
 	}
 	tab.status = "unloaded";
 },
@@ -361,6 +411,9 @@ normalizeTab: function(tab, objType) {
 			break;
 		case Classes.NormalizedTabs.type.BOOKMARK:
 			thisObj._initBookmarkAsTab(tab);
+			break;
+		case Classes.NormalizedTabs.type.HISTORY:
+			thisObj._initHistoryItemAsTab(tab);
 			break;
 		default:
 			// "tmUtils.err()" is the version of "this._err()" to be used in
@@ -434,6 +487,9 @@ normalizeTab: function(tab, objType) {
 			break;
 		case Classes.NormalizedTabs.type.BOOKMARK:
 			thisObj.updateBookmarkBadges(tab);
+			break;
+		case Classes.NormalizedTabs.type.HISTORY:
+			thisObj.updateHistoryBadges(tab);
 			break;
 		default:
 			tmUtils.err(logHead + "unknown objType", objType);
@@ -518,3 +574,4 @@ Classes.Base.roDef(Classes.NormalizedTabs.type, "TAB", "tab" );
 // RCTAB == "Recently Closed TAB"
 Classes.Base.roDef(Classes.NormalizedTabs.type, "RCTAB", "rctab" );
 Classes.Base.roDef(Classes.NormalizedTabs.type, "BOOKMARK", "bookmark" );
+Classes.Base.roDef(Classes.NormalizedTabs.type, "HISTORY", "history" );

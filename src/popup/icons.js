@@ -46,8 +46,10 @@ bookmark: `
 
 // This SVG was taken from the stackoverflow.com website. Unclear attribution requirements.
 // It's not from Font Awesome, as 
-history: `
-	<svg class="tm-fa-history" aria-hidden="true" focusable="false" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19 18"><path fill="currentColor" d="M3 9a8 8 0 113.73 6.77L8.2 14.3A6 6 0 105 9l3.01-.01-4 4-4-4h3L3 9zm7-4h1.01L11 9.36l3.22 2.1-.6.93L10 10V5z"></path></svg>
-`,
+history: function(...args) {
+	return `
+	<svg class="${args.join(" ")}" aria-hidden="true" focusable="false" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19 18"><path fill="currentColor" d="M3 9a8 8 0 113.73 6.77L8.2 14.3A6 6 0 105 9l3.01-.01-4 4-4-4h3L3 9zm7-4h1.01L11 9.36l3.22 2.1-.6.93L10 10V5z"></path></svg>
+	`;
+},
 
 };

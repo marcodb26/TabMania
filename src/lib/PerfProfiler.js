@@ -111,6 +111,8 @@ showSearch: function() {
 		"full search": [ "searchStart", "searchEnd" ],
 		"chrome.bookmarks.search()": [ "bookmarksSearchStart", "bookmarksSearchEnd" ],
 		"bookmarks reduce": [ "bookmarksReduceStart", "bookmarksReduceEnd" ],
+		"chrome.history.search()": [ "historySearchStart", "historySearchEnd" ],
+		"history reduce": [ "historyReduceStart", "historyReduceEnd" ],
 		"filter tabs": [ "searchFilterStart", "searchSortStart" ],
 		"sort tabs": [ "searchSortStart", "searchSortEnd" ],
 		"render": [ "searchRenderStart", "searchRenderEnd" ],

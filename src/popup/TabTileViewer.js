@@ -138,6 +138,10 @@ _renderMenuInner: function() {
 			this._menuViewer = Classes.TileBookmarkMenuViewer.create(this._tab);
 			this._menuViewer.attachToElement(this._menuElem);
 			break;
+		case Classes.NormalizedTabs.type.HISTORY:
+			this._menuViewer = Classes.TileHistoryMenuViewer.create(this._tab);
+			this._menuViewer.attachToElement(this._menuElem);
+			break;
 		default:
 			// A recently closed tab should not get here...
 			const logHead = "TabTileViewer::_renderMenuInner(tile " + this._id + "): ";
@@ -241,7 +245,10 @@ _renderBodyInner: function() {
 			specialIcon = icons.bookmark;
 			break;
 		case Classes.NormalizedTabs.type.RCTAB:
-			specialIcon = icons.history;
+			specialIcon = icons.history("tm-fa-recently-closed");
+			break;
+		case Classes.NormalizedTabs.type.HISTORY:
+			specialIcon = icons.history("tm-fa-history");
 			break;
 		case Classes.NormalizedTabs.type.TAB:
 			// No extra visual clue for standard tabs
@@ -386,27 +393,41 @@ _renderBody: function(queuePriority) {
 },
 
 _onTileClickCb: function(ev) {
-	const logHead = "TabsTabViewer::_onTileClickCb(): ";
-	if(this._tab.tm.type == Classes.NormalizedTabs.type.RCTAB) {
-		chromeUtils.wrap(chrome.sessions.restore, logHead, this._tab.sessionId);
-	} else {
-		Classes.TabsTabViewer.activateTab(this._tab);
-	}
+	Classes.TabsTabViewer.activateTab(this._tab);
 },
 
 _onTileCloseCb: function(ev) {
 	const logHead = "TabTileViewer::_onTileCloseCb(" + this._tab.id + "): ";
 
 	let removeFn = chrome.tabs.remove;
+	let fnParam = this._tab.id;
 	let completionMsg = "completed";
-	if(this._tab.tm.type == Classes.NormalizedTabs.type.BOOKMARK) {
-		removeFn = chrome.bookmarks.remove;
-		completionMsg = "bookmark deleted";
+
+	switch(this._tab.tm.type) {
+		case Classes.NormalizedTabs.type.BOOKMARK:
+			removeFn = chrome.bookmarks.remove;
+			// Remember, "this._tab.id" would be incorrect for bookmarks
+			fnParam = this._tab.bookmarkId;
+			completionMsg = "bookmark deleted";
+			break;
+		case Classes.NormalizedTabs.type.HISTORY:
+			removeFn = chrome.history.deleteUrl;
+			fnParam = { url: this._tab.url };
+			completionMsg = "history item deleted";
+			break;
+		case Classes.NormalizedTabs.type.TAB:
+			// All the variables have already been initialized correctly
+			break;
+		default:
+			// Note that we don't have a "close" button for rcTabs, so
+			// we don't need to check for Classes.NormalizedTabs.type.RCTAB
+			this._err(logHead + "unknown tab type", this_tab.tm.type);
+			break;
 	}
 
-	chromeUtils.wrap(removeFn, logHead, this._tab.id).then(
+	chromeUtils.wrap(removeFn, logHead, fnParam).then(
 		function() {
-			this._log(logHead + completionMsg);
+			this._log(logHead + completionMsg, fnParam);
 		}.bind(this)
 	);
 
@@ -472,7 +493,7 @@ _createRenderState: function(tab, tabGroup) {
 		}
 	} else {
 		// We need to add the check "tab.mutedInfo != null" because "tab" could
-		// actually be a tab.tm.type == Classes.NormalizedTabs.type.BOOKMARK,
+		// actually be a tab.tm.type == Classes.NormalizedTabs.type.BOOKMARK/HISTORY/RCTAB,
 		// which doesn't have "mutedInfo". The cleaner thing would be to check for
 		// type, but the current check seems to be a bit less verbose.
 		if(tab.mutedInfo != null && tab.mutedInfo.muted) {
@@ -530,8 +551,8 @@ update: function(tab, tabGroup, queuePriority) {
 		tab = this._tab;
 	} else {
 		// We're using this check to validate that the tab.id field remains unique across
-		// all different types of tabs (tabs, rctabs, bmnodes). Since we always reuse a
-		// tile only to represent the same tab.id, the tab's type should remain constant,
+		// all different types of tabs (tabs, rctabs, bmnodes, hitems). Since we always reuse
+		// a tile only to represent the same tab.id, the tab's type should remain constant,
 		// as no tab.id ever changes its type
 		this._assert(this._tab.id == tab.id, logHead + `tab.id changed from ${this._tab.id} to ${tab.id}`);
 		this._assert(this._tab.tm.type == tab.tm.type, logHead +

@@ -346,6 +346,15 @@ setOptionBookmarksInSearch: function(value) {
 	return this._setOption("bookmarksInSearch", value);
 },
 
+getOptionHistoryInSearch: function() {
+	// We want the default for this option to be "false"
+	return this._getBooleanOption("historyInSearch");
+},
+
+setOptionHistoryInSearch: function(value) {
+	return this._setOption("historyInSearch", value);
+},
+
 getOptionShowTabId: function() {
 	if(!this._getBooleanOption("devMode")) {
 		return false;
