@@ -1,3 +1,29 @@
+- Add "move tab to least tabbed window" action to the tile dropdown menu
+
+- Add title/name to shortcut keys, and use it in context menu
+
+- Listen to shortcut keys events and update shortcut keys context menus accordingly
+
+- BUG: "move to least tabbed" context menu can't find the tab...
+
+- Remove "pin" menu for bookmarks if we don't implement it in this release
+
+- Try again to prioritize tile rendering based on being visible on the screen
+
+- Context menu for "open in least tabbed" and for the 5 shortcuts
+  * Any way to do "move to least tabbed" for the current active tab?
+    - And add "move to least tabbed" in the dropdown menu of the tile
+
+- Make "undocked" the new default for the popup
+
+- Improve date visualization in TileHistoryMenuViewer._updateTitleMenuItem()
+  * Use moments.js or something equivalent?
+
+- Add spinner to unrendered tile body to let users know it's coming...
+
+- Create a small always-on-top notification with the list of pinned tabs (icons only)?
+  * Similar to Windows tray
+
 - TabsTabViewer needs a more precise caching mechanism for tile viewers
   * Right now we discard any tile that's not used in the current rendering iteration
   * This means that if you search and find 1,000 bookmarks, then get out of search, the
@@ -6,24 +32,13 @@
   * A proper cache would let those bookmark tiles expire after a certain amount of time
     instead of dropping them immediately
 
-- BUG: when switching from normal to search, we should take the scrollbar back to the top
-  * Same probably when switching from search to search (change input)...
-
-- Add support for history search
-  * https://developer.chrome.com/docs/extensions/reference/history
-  * Similar to bookmarks, with the advantage of offering a max-limit in the search API
-  * This should probably be disabled by default
-
 - Save size and position of undocked popup
 
-- Bug: if you're scrolled towards the bottom of the popup tiles, the effect of a
-  refresh is very ugly (the tiles having no height)
-  * Should we force a certain height for the tiles?
-    - Or other ways to fix this?
-	  E.g., as noted elsewhere, track which tiles are visible, then mak high
-	  prioriy the rendering of those tiles
-  * Mitigated a bit my forcing min-height to 3em, but still not great
-    - Besides 3em is not the right size of the tile when it's populated...
+- Instead of setting an arbitrary "3em" for the min-height of tiles, we should add some
+  code to measure the height of a populated tile right after startup, then use that exact
+  value for the empty tile body from that point on
+  * Tiles might measure different amounts for different users, but once a session has
+    started, the tabs should not change size for the duration of that session
 
 - Make bstabs disappear when they get too small and they would want to go on two lines
   * Can't use ".d-none .d-sm-block" as described in https://getbootstrap.com/docs/5.0/utilities/display/
@@ -48,22 +63,12 @@
 - If a tile is inside a group accordion, and the accordion is closed, put the tile in
   the low priority queue for rendering
 
-- Review TabsTabManager.js for use of "tabId" across the code. With the introduction of
-  bookmarks, now "tab.id" might not be unique, as it could either be a tab ID or a bookmark
-  ID. Some of the functions are ok because they only deal with real tabs (from normTabs),
-  but the functions that deal with tiles for sure need to be adjusted to discriminate
-  between tab and bookmark IDs
-
 - Auto-select-all in searchbox when user clicks the mouse there to edit
 
 - Add in settings total count of tabs and bookmarks
   * Don’t exclude folders when counting bookmarks, too expensive
   * Use pulseBadge class while recalculating values
   * Calculate values only when user on settings tab (otherwise just mark them as dirty and wait for settings tab to be in focus before you recalculate)
-
-- Support pinning bookmarks
-  * If a pinned bookmark is open, show only the open tab, not the bookmark
-  * We should force an opened tab to get automatically pinned, if its bookmark is pinned? Or just query for the match every time?
 
 - Sorting tiles, add secondary criteria
   * If two tabs have the same title, sort by url
@@ -79,19 +84,6 @@
 - BUG: when you click a menu or a close button, the searchbox loses focus and doesn't
   recover it even after the menu/close click is over
 
-- Re-render bookmark path if bookmark moves or its ancestors move
-
-- Remove "pin" menu for bookmarks if we don't implement it in this release
-
-- Add a star to a tile if it's bookmarked
-  * We must do this asynchronously, we can't wait for all these bookmark searches
-    to go through after every tab query
-    - Do it directly in the tile?
-	  * It could do it only when it becomes visible in the scrolling
-
-- Add badge "recent" to the last 10-15 visited tabs
-  * Independent of the "active" badge
-
 - The bstabs show an ugly URL at the bottom of the undocked window, we should
   get rid of it
 
@@ -105,10 +97,6 @@
 - Add logic to let "www.google.com" be recognized as a valid URL, even though new URL()
   won't consider it valid
   * Make it behave like the browser's omnibar...
-
-- Expand/collapse all groups (popup menu item)
-
-- Group/ungroup all groups (popup menu items)
 
 - BUG: the ellipsis of .text-truncate are not vertically align with the title of a tile
   now that the title of the tile uses Bootstrap's .align-middle (vertical-align: middle;)
@@ -272,7 +260,6 @@
 		to manage correctly the custom shortcuts
 
 
-
 DONE 1.1
 
 - Add back this._getTabMetaTags() to TabTileViewer::update()
@@ -360,6 +347,9 @@ DONE 1.1
 
 - Center the "Settings" bstab now that undocked popups can have their width expanded
 
+- Mitigated ugly slowness when rendering large number of tiles my forcing min-height to 3em
+  * Still not great, and besides 3em is not the right size of the tile when it's populated...
+
 - Added AsyncQueue class and worked on improving rendering performance when many
   tiles need to be rendered
 
@@ -414,6 +404,8 @@ DONE 1.1
   * They were not used before, but now that we reuse tiles, these update() function
     are a must have
 
+- Re-render bookmark path if bookmark moves or its ancestors move
+
 - BUG: when focusing a new window and selecting a different tab with the same click,
   you get both a "window-change" event and an "activated" event. Both add the previously
   active tab to _backTabs, but only one should. Very minor, we need to remove duplicates
@@ -427,16 +419,55 @@ DONE 1.1
     files in production
   * Since we're not using it, why letting it be in the way
 
+- Removed distinction between _searchRenderTabsInner_Merged() and _searchRenderTabsInner_Separate(),
+  the results are always merged, if you want them separated the right way is to allow users
+  to group results by source type (tabs, rcTabs, bmNodes, hItems)
+
+- When switching from normal to search, we should take the scrollbar back to the top
+  * Same probably when switching from search to search (change input)...
+
+- When switching from search to normal, we should put the scrollbar back where it was
+  before the search started
+
+- Add support for history search
+  * https://developer.chrome.com/docs/extensions/reference/history
+  * Similar to bookmarks, with the advantage of offering a max-limit in the search API
+  * This should probably be disabled by default
+
+- Moved "recently closed tabs" (chrome.sessions) functions and events to the HistoryFinder class
+
+- Initial support for context menus
+  * Move current page to least tabbed window
+  * Open link in least tabbed window
+  * With selected text
+    - Use launch/search shortcut
+	- Use any custom shortcuts with search enabled
 
 PUNTED TO NEXT RELEASE
 
-- Add option to merge bookmarks with tabs, or show them separately
-  * Right now it always merges
-  * Do we really care to show them separately?
-    - Or maybe should we only show them separately when doing grouping of results?
-	  * In which case users would have to choose to prioritize grouping "because they're
-	    bookmarks" vs. grouping bookmarks together with other custom group elements if
-		they belong together
+- Support pinning bookmarks
+  * If a pinned bookmark is open, show only the open tab, not the bookmark
+  * We should force an opened tab to get automatically pinned, if its bookmark is pinned? Or just query for the match every time?
+  * Do we want an option to let pinned bookmark land automatically in the "bookmark bar"?
+    - But don't use the bookmark bar as storage to know which tabs are pinned...
+	- What happens when a tab gets unpinned? Remove it from hte bookmark bar or leave it alone?
+
+- Expand/collapse all groups (popup menu item)
+
+- Group/ungroup all groups (popup menu items)
+  * In search, allow also to "group by source" (tabs, rcTabs, bmNodes, hItems)
+
+- Add a star to a tile if it's bookmarked
+  * We must do this asynchronously, we can't wait for all these bookmark searches
+    to go through after every tab query
+    - Do it directly in the tile?
+	  * It could do it only when it becomes visible in the scrolling
+
+- Add badge "recent" to the last 10-15 visited tabs
+  * Independent of the "active" badge
+  * We thought we should use the TabsManager back/fwd history, but it would make more sense
+    to actually measure how much time the user spends with a window in focus and a tab active,
+	across every tab/window transition, then get the most recent from there
 
 - BUG: chrome.tabs.update(tabId, { url: url }) loads a new "url" but sometimes replaces the
   existing URL instead of adding it to the tab navigation history
@@ -501,6 +532,8 @@ PUNTED TO NEXT RELEASE
 	  <span class="ytp-time-current">0:22</span>
 	  <span class="ytp-time-separator"> / </span>
 	  <span class="ytp-time-duration">2:00:21</span>
+  * This might be useless, given Chrome now has:
+    - https://support.google.com/chrome/answer/9692215?hl=en
 
 - Remove from SettingsStore.js the stuff that doesn't belong there
   * See comment at top of file. Dose background.js really need the

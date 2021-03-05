@@ -31,6 +31,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     window where it was originally located
   * Note that Chrome offers a maximum of 25 reently closed tabs, so this limits the
     usefuless of this feature
+- Search results now also include matching browsing history
+  * This feature is disabled by default
+  * When first enabled, the user is prompted to give TabMania permission to access the
+    user's browsing history (optional permission)
+  * TabMania requests and releases that permission every time the user enables and disables
+    searching browsing history
+  * The icon for recently closed and history is the same, but we use two different colors
+    to tell them apart
+- Some keyboard shortcuts can now be invoked via context menus
+  * Right click on page has new menu item "Move current page to least tabbed window"
+  * Right click on links has new menu item "Open link in least tabbed window"
+  * Right click when text is selected offers the following new menu items:
+    - Use launch/search shortcut
+	- Use any custom shortcuts with search enabled
 
 ## Changed
 - Updated Bootstrap to v.5.0.0-beta2
@@ -39,6 +53,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Shortcuts open new tabs in the "least tabbed window", to keep balancing tabs across
   all your open windows
 - Custom shortcuts now default to an "Open new tab" behavior when not configured
+- Improved tiles rendering efficiency
+  * Chunking tile bodies and dropdown menus to be rendered in async groups
+  * Caching and reusing tile viewers
+- Changing searchbox input reset the scrolling position back to the top
+  * Before it would try to stay in the same scrolling position across input changes
+- Closing a search opens the stanrdard view in the same scrolling position where it
+  was before the search started
 
 ## Fixed
 - Discard settings events if they arrive before the TabsTabViewer chrome query has completed (while
