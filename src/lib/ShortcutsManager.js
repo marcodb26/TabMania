@@ -315,6 +315,21 @@ getShortcutKeys: function() {
 	return this._shortcutKeys;
 },
 
+getSearchShortcutKeys: function() {
+	let retVal = [];
+
+	this._shortcutKeys.forEach(
+		function(key) {
+			// See _computeInfo() for the details about this check
+			if(this._shortcutsInfo[key].searchUrl != null) {
+				retVal.push(key);
+			}
+		}.bind(this)
+	);
+
+	return retVal;
+},
+
 // Given a tab, returns the list of shortcut keys associated to it, or an
 // empty list (never returns "null")
 // "firstCandidate" is optional (default "true"), and determines if we want
