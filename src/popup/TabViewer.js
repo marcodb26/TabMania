@@ -144,6 +144,10 @@ Classes.SearchableTabViewer = Classes.TabViewer.subclass({
 	// Boolean tracking if we're in search mode or not
 	_searchActive: null,
 
+	// The this._bodyElem.scrollTop in standard view, stored when switching to search view
+	// so we can put the user back where she was once she's done searching
+	_standardViewScrollTop: null,
+
 	// This class uses separate root and body elements (unlike TabViewer). See Classes.Viewer
 	// for details.
 	_bodyElem: null,
@@ -268,9 +272,14 @@ _bstabDeactivatedCb: function(ev) {
 // See _activateSearchBox() and _init() for why we split this call out of
 // _activateSearchBox().
 _SearchableTabViewer_searchBoxInactiveInner: function() {
+	const logHead = "SearchableTabViewer::_SearchableTabViewer_searchBoxInactiveInner(): ";
 	this._searchBoxElem.parentElement.classList.add("tm-hide");
 	this._bodyElem.classList.remove("tm-fit-after-search");
 	this._searchActive = false;
+
+	// Restore the scrolling position as it was before the user started searching
+	this._log(logHead + "about to call scrollTo(0, " + this._standardViewScrollTop + ")");
+	this._bodyElem.scrollTo(0, this._standardViewScrollTop);
 },
 
 // DO NOT CALL THIS FUNCTION DURING _init() of this class. Use _SearchableTabViewer_searchBoxInactiveInner()
@@ -284,6 +293,10 @@ _activateSearchBox: function(active) {
 	active = optionalWithDefault(active, true);
 
 	if(active) {
+		// First, we want to store the scroll position of the standard view so we can
+		// esume it after the search
+		this._standardViewScrollTop = this._bodyElem.scrollTop;
+
 		// When the searchbox appears, the "position:absolute;" (class .tm-fit-bottom)
 		// body needs to be shifted down to make sure it doesn't end up under the
 		// searchbox, that's what class .tm-fit-after-search is for.
@@ -401,7 +414,7 @@ _setSearchBoxCount: function(cnt) {
 	if(cnt == null) {
 		this._searchBoxCountElem.innerHTML = "Searching...";
 	} else {
-		this._searchBoxCountElem.textContent = (cnt < 1000) ? cnt : "999+";
+		this._searchBoxCountElem.textContent = (cnt < 10000) ? cnt : "9999+";
 	}
 },
 
