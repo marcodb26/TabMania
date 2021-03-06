@@ -149,6 +149,9 @@ formatExtendedId: function(tab, objType) {
 			// will only target a tab with ID 36).
 			return "bm[" + ((tab.parentId != null) ? tab.parentId : "") + "." + tab.bookmarkId + "]";
 
+		case Classes.NormalizedTabs.type.HISTORY:
+			return "h[" + tab.historyId + "]";
+
 		default:
 			const logHead = "NormalizedTabs::formatExtendedId(): ";
 			tmUtils.err(logHead + "unknown objType", objType, tab);
