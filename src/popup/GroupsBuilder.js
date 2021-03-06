@@ -37,11 +37,25 @@ _findFavIconUrl: function(groupName, tabs) {
 		return favIconUrl;
 	}
 
+	let secondChoice = null;
 	// Default case, grab the first favicon you find in the list of tabs
 	for(var i = 0; i < tabs.length; i++) {
 		if(tabs[i].favIconUrl != null) {
-			return tabs[i].favIconUrl;
+			if(tabs[i].tm.cachedFavIcon) {
+				// We return with confidence only if there's a direct favIconUrl,
+				// while if we created the favIconUrl from the Chrome cache we have
+				// less confidence, so we save this second choice only to be used
+				// if no better choice is found
+				secondChoice = tabs[i].favIconUrl;
+			} else {
+				return tabs[i].favIconUrl;
+			}
 		}
+	}
+	// If we get here, we didn't find a "full confidence" favIconUrl, but we might have
+	// found a second choice favIconUrl...
+	if(secondChoice != null) {
+		return secondChoice;
 	}
 	return "";
 },

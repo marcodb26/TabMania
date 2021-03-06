@@ -328,9 +328,11 @@ _initBookmarkAsTab: function(tab) {
 	// original ID in case we need it for some of the chrome.history functions.
 	tab.bookmarkId = tab.id;
 	tab.id = Classes.NormalizedTabs.normalizeBookmarkId(tab.id);
-	// BookmarkTreeNode doesn't include a favIcon for the bookmark, but we could be
-	// lucky and find one in the Chrome's favIcon cache...
-	tab.favIconUrl = Classes.NormalizedTabs.getCachedFavIconUrl(tab.url);
+
+// Now promoted to NormalizeTab()
+//	// BookmarkTreeNode doesn't include a favIcon for the bookmark, but we could be
+//	// lucky and find one in the Chrome's favIcon cache...
+//	tab.favIconUrl = Classes.NormalizedTabs.getCachedFavIconUrl(tab.url);
 	tab.status = "unloaded";
 },
 
@@ -354,8 +356,10 @@ _initHistoryItemAsTab: function(tab) {
 	// original ID in case we need it for some of the chrome.history functions.
 	tab.historyId = tab.id;
 	tab.id = Classes.NormalizedTabs.normalizeHistoryItemId(tab.id);
-	// Try to get an icon in the Chrome's favIcon cache...
-	tab.favIconUrl = Classes.NormalizedTabs.getCachedFavIconUrl(tab.url);
+
+// Now promoted to NormalizeTab()
+//	// Try to get an icon in the Chrome's favIcon cache...
+//	tab.favIconUrl = Classes.NormalizedTabs.getCachedFavIconUrl(tab.url);
 	tab.status = "unloaded";
 },
 
@@ -378,10 +382,11 @@ _initRecentlyClosedAsTab: function(tab) {
 	// Note that in this case we don't need to save the original ID, "sessionId" is already
 	// a different property from "id".
 	tab.id = Classes.NormalizedTabs.normalizeRecentlyClosedId(tab.sessionId);
-	if(tab.favIconUrl == null || tab.favIconUrl == "") {
-		// See BookmarksFinder.js for details about the favicon cache
-		tab.favIconUrl = Classes.NormalizedTabs.getCachedFavIconUrl(tab.url);
-	}
+
+// Now promoted to NormalizeTab()
+//	if(tab.favIconUrl == null || tab.favIconUrl == "") {
+//		tab.favIconUrl = Classes.NormalizedTabs.getCachedFavIconUrl(tab.url);
+//	}
 	tab.status = "unloaded";
 },
 
@@ -433,6 +438,15 @@ normalizeTab: function(tab, objType) {
 	let lowerCaseTitle = tab.title.toLowerCase();
 	let [ protocol, hostname ] = thisObj.getProtocolHostname(url);
 
+	// Bookmarks and history have no favIconUrl, but sometimes recently closed and
+	// standard tabs also don't have favIconUrl, so let's just try the cache here
+	// for all these cases...
+	let cachedFavIcon = false;
+	if(tab.favIconUrl == null || tab.favIconUrl == "") {
+		tab.favIconUrl = Classes.NormalizedTabs.getCachedFavIconUrl(url);
+		cachedFavIcon = true;
+	}
+
 	tab.tm = {
 		type: objType,
 
@@ -446,6 +460,7 @@ normalizeTab: function(tab, objType) {
 		lowerCaseUrl: url.toLowerCase(),
 		lowerCaseTitle: lowerCaseTitle,
 		normTitle: thisObj.normalizeLowerCaseTitle(lowerCaseTitle),
+		cachedFavIcon: cachedFavIcon,
 		// Bookmarks have extended IDs too
 		extId: thisObj.formatExtendedId(tab, objType),
 

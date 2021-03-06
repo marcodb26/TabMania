@@ -64,6 +64,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * Before it would try to stay in the same scrolling position across input changes
 - Closing a search opens the standard view in the same scrolling position where it
   was before the search started
+- Started using Chrome favicon cache for standard tabs with no favicon
+  * Typically some tabs that have stayed unloaded for a very long time
 
 ## Fixed
 - Discard settings events if they arrive before the TabsTabViewer chrome query has completed (while
