@@ -130,22 +130,32 @@ formatExtendedId: function(tab, objType) {
 	// iteration of optionalWithDefault() will correct that
 	objType = optionalWithDefault(objType, Classes.NormalizedTabs.type.TAB);
 
-	if(objType == Classes.NormalizedTabs.type.TAB) {
-		return tab.windowId + ":" + tab.id + "/" + tab.index;
+	switch(objType) {
+		case Classes.NormalizedTabs.type.TAB:
+			return tab.windowId + ":" + tab.id + "/" + tab.index;
+
+		case Classes.NormalizedTabs.type.RCTAB:
+			// Can use "tab.id", as it's already been prefixed for uniqueness by the
+			// time this function gets called
+			return "rc[" + tab.sessionId + "]";
+
+		case Classes.NormalizedTabs.type.BOOKMARK:
+			// Extended ID for bookmark: "bm[10.36]" (or "bm[.36]" for bookmarks with
+			// no parent).
+			// Note that we've explicitly chosen a different format from that of tab extended
+			// IDs because we want to make it easier to search specifically for just bookmark
+			// IDs, or just for tab IDs (e.g., the text ".36" will only target a bookmark with
+			// ID "36" (though you can't search it as a standalone keyword) while the text ":36"
+			// will only target a tab with ID 36).
+			return "bm[" + ((tab.parentId != null) ? tab.parentId : "") + "." + tab.bookmarkId + "]";
+
+		default:
+			const logHead = "NormalizedTabs::formatExtendedId(): ";
+			tmUtils.err(logHead + "unknown objType", objType, tab);
+			break;
 	}
 
-	if(objType == Classes.NormalizedTabs.type.RCTAB) {
-		return "rc[" + tab.id + "]";
-	}
-
-	// Extended ID for bookmark: "bm[10.36]" (or "bm[.36]" for bookmarks with
-	// no parent).
-	// Note that we've explicitly chosen a different format from that of tab extended
-	// IDs because we want to make it easier to search specifically for just bookmark
-	// IDs, or just for tab IDs (e.g., the text ".36" will only target a bookmark with
-	// ID "36" (though you can't search it as a standalone keyword) while the text ":36"
-	// will only target a tab with ID 36).
-	return "bm[" + ((tab.parentId != null) ? tab.parentId : "") + "." + tab.id + "]";
+	return "[none]";
 },
 
 _addNormalizedShortcutBadges: function(tab, secondary) {
