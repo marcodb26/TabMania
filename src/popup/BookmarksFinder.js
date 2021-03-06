@@ -1,7 +1,7 @@
 // CLASS BookmarksFinder
 //
 // This class generates events Classes.EventManager.Events.UPDATED, with "detail"
-// set to { target: <this object>, id: <id of the bookmakr that changed, or "undefined"> }.
+// set to { target: <this object>, id: <id of the bookmark that changed, or "undefined"> }.
 Classes.BookmarksFinder = Classes.Base.subclass({
 	_bookmarkImportInProgress: null,
 
