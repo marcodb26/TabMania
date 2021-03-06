@@ -119,7 +119,18 @@ _init: function({ setFn, getFn, label, placeholderText, helpHtml, updateKey }) {
 	Classes.SettingsItemViewer._init.apply(this, arguments);
 	this.debug();
 
-	this._placeholderText = this._safeText(placeholderText);
+	if(placeholderText == null || placeholderText == "") {
+		// Note the need to leave the placeholderText non-empty, Bootstrap
+		// requires it for the ".form-floating" (floating labels) class
+		// https://getbootstrap.com/docs/5.0/forms/floating-labels/#example
+		// The placeholderText will never show up, but let's continue to
+		// behave as if it did, in case we decide to remove ".form-floating"
+		// later.
+		this._placeholderText = " ";
+	} else {
+		this._placeholderText = this._safeText(placeholderText);
+	}
+
 	this._helpHtml = helpHtml;
 
 	this._renderTextItem();
@@ -148,13 +159,6 @@ _renderTextItem: function() {
 
 	// We're using type search just because we want to get the "x" to erase
 	// the current text
-
-//	const bodyHtml = `
-//	<label for="${inputId}" class="form-label">${this._label}</label>
-//  <input type="search" id="${inputId}" class="form-control text-truncate" ${extraAttrs.join(" ")}
-//			aria-describedby="${helpId}">
-//  <div id="${helpId}" class="form-text">${this._help}</div>
-//	`;
 
 	// Note that for "form-floating" to work, the <label> must be below the <input>
 	// Also the documentation shows how the label should show up bigger if there's no
@@ -273,6 +277,9 @@ setInvalid: function(msgHtml) {
 Classes.SettingsTextAreaItemViewer = Classes.SettingsItemViewer.subclass({
 	__idPrefix: "SettingsTextAreaItemViewer",
 
+	_placeholderText: null,
+	_helpHtml: null,
+
 	_inputElem: null,
 
 	// Functions to read and write the persistent state
@@ -285,7 +292,18 @@ _init: function({ setFn, getFn, label, placeholderText, helpHtml, updateKey }) {
 	Classes.SettingsItemViewer._init.apply(this, arguments);
 	this.debug();
 
-	this._placeholderText = this._safeText(placeholderText);
+	if(placeholderText == null || placeholderText == "") {
+		// Note the need to leave the placeholderText non-empty, Bootstrap
+		// requires it for the ".form-floating" (floating labels) class
+		// https://getbootstrap.com/docs/5.0/forms/floating-labels/#example
+		// The placeholderText will never show up, but let's continue to
+		// behave as if it did, in case we decide to remove ".form-floating"
+		// later.
+		this._placeholderText = " ";
+	} else {
+		this._placeholderText = this._safeText(placeholderText);
+	}
+
 	this._helpHtml = helpHtml;
 
 	this._renderTextAreaItem();
@@ -294,8 +312,8 @@ _init: function({ setFn, getFn, label, placeholderText, helpHtml, updateKey }) {
 // Override parent class
 _setAttributesHtml: function(extraAttrs) {
 
-	if(this._placeholder != null && this._placeholder != "") {
-		extraAttrs.push(`placeholder="${this._placeholder}"`);
+	if(this._placeholderText != null && this._placeholderText != "") {
+		extraAttrs.push(`placeholder="${this._placeholderText}"`);
 	}
 
 	// Finally call the parent class to make sure no extra attributes are lost
@@ -316,14 +334,6 @@ _renderTextAreaItem: function() {
 
 	// From Chris Coyier's codepen: https://codepen.io/chriscoyier/pen/XWKEVLy
 	// Codepen license is MIT: https://blog.codepen.io/documentation/licensing/
-//	const bodyHtml = `
-//	<label for="${inputId}" class="form-label">${this._label}</label>
-//	<div class="tm-autosize" data-replicated-value="${this._safeText(currentText)}">
-//		<textarea id="${inputId}" class="form-control" ${extraAttrs.join(" ")}
-//				aria-describedby="${helpId}">${this._safeText(currentText)}</textarea>
-//	</div>
-//	<div id="${helpId}" class="form-text">${this._helpHtml}</div>
-//	`;
 
 	// The explicit style "height: auto;" is needed to override the calculated height
 	// added by Bootstrap "form-floating". If you don't use "form-floating", you can
