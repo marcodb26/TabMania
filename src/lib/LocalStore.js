@@ -91,7 +91,8 @@ setActiveBsTab: function(bsTabName) {
 // Same name as popupDocker.isPopupDocked(), but this function returns the stored value,
 // while popupDocker.isPopupDocked() returns the current state for the current popup.
 isPopupDocked: function() {
-	return optionalWithDefault(this._bootstrapTabs.get("docked"), true);
+	// Undocked is the new default
+	return optionalWithDefault(this._bootstrapTabs.get("docked"), false);
 },
 
 setPopupDocked: function(docked) {
