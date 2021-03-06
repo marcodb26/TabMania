@@ -395,7 +395,7 @@ Classes.TileBookmarkMenuViewer = Classes.MenuViewer.subclass({
 	_subtitleElem: null,
 
 	_openBookmarkManagerMenuItem: null,
-	_pinMenuItem: null,
+//	_pinMenuItem: null,
 	_deleteMenuItem: null,
 
 _init: function(bm) {
@@ -457,10 +457,10 @@ _initMenuItems: function() {
 		this.append(this._openBookmarkManagerMenuItem);
 	}
 
-	// Placeholder for later
-	this._pinMenuItem = Classes.MenuItemViewer.create(this._bm.pinned ? "Unpin" : "Pin",
-								this._actionPinToggleCb.bind(this));
-	this.append(this._pinMenuItem);
+//	// Placeholder for later
+//	this._pinMenuItem = Classes.MenuItemViewer.create(this._bm.pinned ? "Unpin" : "Pin",
+//								this._actionPinToggleCb.bind(this));
+//	this.append(this._pinMenuItem);
 
 	this._deleteMenuItem = Classes.MenuItemViewer.create("Delete", this._actionDeleteCb.bind(this));
 	this.append(this._deleteMenuItem);
@@ -468,7 +468,7 @@ _initMenuItems: function() {
 
 _updateMenuItems: function() {
 	this._updateTitleMenuItem();
-	this._pinMenuItem.setText(this._bm.pinned ? "Unpin" : "Pin");
+//	this._pinMenuItem.setText(this._bm.pinned ? "Unpin" : "Pin");
 	// Nothing to update for _deleteMenuItem
 },
 

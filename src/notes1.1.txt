@@ -6,8 +6,6 @@
 
 - Remove "Advanced mode" options
 
-- Remove "pin" menu for bookmarks if we don't implement it in this release
-
 - In search, consider multiple words to be multiple keywords separated by "or"
   * Right now multiple words are still pat of a single string
   * Is that compatible with using the "+" as launch/search?
@@ -265,7 +263,9 @@ DONE 1.1
 - Cleaned up debugging commands for Chrome dev tools console
 
 - Changed "Discard from memory" menu item to "Suspend"
-  - Also changed the search badge from "discarded" to "suspended"
+  * Also changed the search badge from "discarded" to "suspended"
+
+- Remove "pin" menu for bookmarks if we don't implement it in this release
 
 
 PUNTED TO NEXT RELEASE
