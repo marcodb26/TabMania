@@ -4,8 +4,6 @@
 
 - Add shortcut title to dropdown menu of tabs
 
-- Remove "Advanced mode" options
-
 - In search, consider multiple words to be multiple keywords separated by "or"
   * Right now multiple words are still pat of a single string
   * Is that compatible with using the "+" as launch/search?
@@ -266,6 +264,8 @@ DONE 1.1
   * Also changed the search badge from "discarded" to "suspended"
 
 - Remove "pin" menu for bookmarks if we don't implement it in this release
+
+- Remove "Advanced mode" options
 
 
 PUNTED TO NEXT RELEASE

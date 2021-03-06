@@ -430,14 +430,13 @@ _renderSettings: function() {
 		this._generalSettingsContainer.append(showTabId);
 	}
 
-	let advancedMenu = Classes.SettingsCheckboxItemViewer.create({
-		setFn: settingsStore.setOptionAdvancedMenu.bind(settingsStore),
-		getFn: settingsStore.getOptionAdvancedMenu.bind(settingsStore),
-		label: "Show advanced items in tab tiles menu",
-		updateKey: "options",
-	});
-
-	this._generalSettingsContainer.append(advancedMenu);
+//	let advancedMenu = Classes.SettingsCheckboxItemViewer.create({
+//		setFn: settingsStore.setOptionAdvancedMenu.bind(settingsStore),
+//		getFn: settingsStore.getOptionAdvancedMenu.bind(settingsStore),
+//		label: "Show advanced items in tab tiles menu",
+//		updateKey: "options",
+//	});
+//	this._generalSettingsContainer.append(advancedMenu);
 
 	this._renderIncognitoInfo();
 
