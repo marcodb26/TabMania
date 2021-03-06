@@ -51,10 +51,23 @@ a few visible bits of information about the state of a browser tab:
   disappears, indicating the tab is fully `loaded` (search keyword)
 
 ## Custom groups
-[ Work in progress - section missing ]
+Custom groups are a convenient way to keep related tabs grouped together. In the _Custom groups setting_
+under the _Settings_ tab you can associate a list of hostnames (or substrings of hostnames) to a custom
+group, and TabMania will display all matching tabs grouped together. Use this functionality to
+automatically group all your favorite news site, or all the websites you visit for work, so they
+always show up together. You can assign a color to a custom group, and that allows members of the
+custom group to stand out during searches (see __Custom groups and search__ below). Custom groups
+can be explicitly pinned, giving you a convenient alternative to having to pin each individual
+tab in the group (for more details, see __Pinned tabs and groups__ below).
 
-If you don't specify a favicon for a custom group, it will pick one from one of the matching tabs
-listed inside.
+You can optionally assign a fivicon to a custom group, but if you don't specify one, TabMania will pick
+one from the member tabs listed inside.
+
+### Custom groups and search
+In a search, a tile for a tab belonging to a custom group will show a hint of the group's configured
+color on its left border, and the custom group name will be displayed as a badge in the configured
+color. Since the custom group name is a badge on each member tab's tile, you can also search by custom
+group name.
 
 ## Search
 Start typing to enter search mode. The search string is case insensitive. It will match against
