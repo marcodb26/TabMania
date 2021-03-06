@@ -137,6 +137,18 @@ deepClone: function(obj) {
 	return retVal;
 },
 
+// Debugging-only function, do not call in the code
+clearStorage: function() {
+	chrome.storage.local.clear();
+	chrome.storage.sync.clear();
+},
+
+// This function is intended to be called from the Chrome dev tools console
+showStorage: function() {
+	chrome.storage.local.get(function(result){console.log(result)});
+	chrome.storage.sync.get(function(result){console.log(result)});
+},
+
 }); // Classes.TmUtils
 
 Classes.Base.roDef(window, "tmUtils", Classes.TmUtils.create());

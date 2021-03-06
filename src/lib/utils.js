@@ -293,24 +293,6 @@ _debugResponse: function(cmd, response) {
 
 
 
-// This function is intended to be called from the Chrome dev tools console
-function tmStats() {
-	chromeUtils.wrap(chrome.tabs.query, "tmStats(): ", {}).then(
-		function(tabs) {
-			console.log("Total tabs count: " + tabs.length);
-			// This works if invoked directly from the console by calling "tmStats()", it
-			// only doesn't work if used in the runtime code
-			console.table(performance.getEntriesByType("measure"), ["name", "duration", "startTime" ]);
-		}
-	);
-}
-
-// This function is intended to be called from the Chrome dev tools console
-function tmStorage() {
-	chrome.storage.local.get(function(result){console.log(result)});
-	chrome.storage.sync.get(function(result){console.log(result)});
-}
-
 function optArrayWithDefault(value, defaultValue) {
 	if(typeof(value) === "undefined" || value == null || value.length == 0) {
 		return defaultValue;

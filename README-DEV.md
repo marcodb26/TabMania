@@ -1,12 +1,18 @@
 # TabMania for developers
+Here are a few commands you can call from the dev tool console (some work only on the background
+page, some only on the popups) to monitor the state of the extension, or make changes.
 
 * Call `settingsStore.setOptionDevMode(true)` to enable extra options and menus for developers
   - For now this only adds the _Extended tabId_ configuration checkbox
   - You might want to reload the popup for the changes to take effect
 
-* Call `tmStats()` on the dev tools console of the popup to see some popup performance statistics.
+* Performance statistics (only for the popup console)
+  - Call `perfProf.showAsyncQueues()` to see the performance of AsyncQueues
+  - Call `perfProf.showStats()` to see some general popup performance statistics.
+  - Call `perfProf.showSearch()` to see performance statistics related to the search functionality.
 
-* Call `tmStorage()` to get a full view of all chrome.storage variables currently set.
+* Call `tmUtils.showStorage()` to get a full view of all chrome.storage variables currently set.
+* Call `tmUtils.clearStorage()` in the background page console to reset all persisted state to default
 
 * Call `popupDockerBg.showState()` in the background page console to find the state of the popup (docked or undocked)
 

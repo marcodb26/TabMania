@@ -131,6 +131,18 @@ showAsyncQueues: function() {
 	console.table(this._getMarksByPrefix(toMeasure), [ "name", "startTime" ] );
 },
 
+// This function is intended to be called from the Chrome dev tools console
+showStats: function() {
+	chromeUtils.wrap(chrome.tabs.query, "PerfProfiler::tmStats(): ", {}).then(
+		function(tabs) {
+			console.log("Total tabs count: " + tabs.length);
+			// This works if invoked directly from the console by calling "tmStats()", it
+			// only doesn't work if used in the runtime code
+			console.table(performance.getEntriesByType("measure"), ["name", "duration", "startTime" ]);
+		}
+	);
+},
+
 }); // Classes.PerfProfiler
 
 Classes.Base.roDef(window, "perfProf", Classes.PerfProfiler.create());
