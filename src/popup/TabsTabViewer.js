@@ -164,8 +164,10 @@ Classes.TabsTabViewer = Classes.SearchableTabViewer.subclass({
 	// if there are too many events.
 	_queryAndRenderDelay: 200, //2000,
 
-	// Dictionary tracking all the tab tiles, in case we need to update their contents
+	// Dictionary tracking all the tab tiles, in case we need to update their contents.
+	// Also used to track if a first rendering cycle has been completed...
 	_tilesByTabId: null,
+
 	// When we go through a refresh cycle, we want to reset _tilesByTabId so that we refill
 	// it with only tiles that still exist after the refresh. However, we try to aggressively
 	// reuse the tiles we've created in previous iterations, and for that we want to store
@@ -375,9 +377,34 @@ _tabUpdatedCb: function(cbType, tabId, activeChangeRemoveInfo, tab) {
 	//	return;
 	//}
 
+	if(this._tilesByTabId == null) {
+		// We're receiving events before we've completed our first rendering cycle
+		// (otherwise we would have some _tilesByTabId).
+		// We can't continue the processing below until after the first rendering
+		// cycle has been completed.
+		// Note that this event might get lost, or might be included in the query
+		// response we get from the Chrome API... potential race condition that we're
+		// going to ignore for now. The reason we're ignoring it is that we've observed
+		// this case only because the undocked popup itself triggers these events as
+		// it loads. We get one "updated" event because its status moves to "complete",
+		// then one because it gets a favIconUrl. Sometimes the sequence starts with
+		// a first event about the "title" being added to the tab. These are all
+		// events we can probably ignore (?)
+		//
+		// Note that this check is also possibly inaccurate unless all tiles get populated
+		// in _tilesByTabId without any event cycle interfering, which is currently the
+		// case because we loop through all the results of chrome.tabs.query() without
+		// any interruption, but might not be the case in general later, if that loop
+		// becomes too expensive. It would be better to track this with some other
+		// dedicated flag, but if we land in that case, the race condition described above
+		// might become real...
+		this._log(logHead + "ignoring while running first rendering cycle", activeChangeRemoveInfo, tab);
+		return;
+	}
+
 	// Very crude... we re-render everything for every update. But at least we try
 	// to reduce the frequency of the re-render in some cases.
-	this._log(logHead + "entering");
+	this._log(logHead + "entering", activeChangeRemoveInfo, tab);
 
 	switch(cbType) {
 		case Classes.TabsTabViewer.CbType.REMOVED:

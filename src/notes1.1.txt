@@ -8,11 +8,6 @@
   * Right now multiple words are still pat of a single string
   * Is that compatible with using the "+" as launch/search?
 
-- BUG: every time the popup opens
-  * popup.html:1 Error in event handler: TypeError: Cannot use 'in' operator to search for '1712' in null
-    at Object._tabUpdatedCb (chrome-extension://flhpmmboiepkmkippdhjllnejfolajdb/popup/TabsTabViewer.js:399:14)
-  * That's the tab ID of the popup
-
 - BUG: now that we have a way to persist the popup beyond the life of a tab/window,
   we're starting to see race conditions we did not see before:
   * [2] ChomeUtils::inject(695): unknown error: No tab with id: 695.
@@ -28,20 +23,6 @@
 - Disable Base._assert() for production code
 
 - Point users directly to https://github.com/marcodb26/TabMania#readme for documentation
-
-- BUG: between the scrollbar on the right and the extension border you can see a bit of background,
-  you shouldn't see it
-  * See for example the screenshot used to publish the extension
-
-- BUG: creating a custom group with just name and no other settings leads to no group
-  displayed
-  * Sequence
-    - First create a group A with some properties
-	- Then create a group B with only a name
-	- Now delete the group A
-	- Close the popup and reopen it, group B is gone, but its name can't be reassigned
-	  to another group
-	- Eventually group B shows up again (weird)
 
 
 DONE 1.1
@@ -267,6 +248,11 @@ DONE 1.1
 
 - Remove "Advanced mode" options
 
+- BUG: every time the popup opens
+  * popup.html:1 Error in event handler: TypeError: Cannot use 'in' operator to search for '1712' in null
+    at Object._tabUpdatedCb (chrome-extension://flhpmmboiepkmkippdhjllnejfolajdb/popup/TabsTabViewer.js:399:14)
+  * That's the tab ID of the popup
+
 
 PUNTED TO NEXT RELEASE
 
@@ -410,6 +396,17 @@ PUNTED TO NEXT RELEASE
   * We thought we should use the TabsManager back/fwd history, but it would make more sense
     to actually measure how much time the user spends with a window in focus and a tab active,
 	across every tab/window transition, then get the most recent from there
+
+- BUG: creating a custom group with just name and no other settings leads to no group
+  displayed
+  * Sequence
+    - First create a group A with some properties
+	- Then create a group B with only a name
+	- Now delete the group A
+	- Close the popup and reopen it, group B is gone, but its name can't be reassigned
+	  to another group
+	- Eventually group B shows up again (weird)
+  * Towards the end of 1.1, can't reproduce anymore
 
 - BUG: chrome.tabs.update(tabId, { url: url }) loads a new "url" but sometimes replaces the
   existing URL instead of adding it to the tab navigation history
@@ -592,6 +589,14 @@ PUNTED TO NEXT RELEASE
 - Implement TileMenuViewer._updateShortcutMenuItems()
   * Or do we really care, given that most of the times we need to rebuild the
     entire set of tabs from scratch
+
+- BUG: between the scrollbar on the right and the extension border you can see a bit of background,
+  you shouldn't see it
+  * See for example the screenshot used to publish the extension
+  * Tried to set the <body> color to black, and that tiny strip next to the scrollbar
+    is still transparent
+	- It seems to be an issue with the scrollbar itself, not sure how to fix it, maybe
+	  it will go away when we replace/remove the scrollbar
 
 - BUG: When opening the undocked popup, the tiles rendering always happens twice: first
   because we opened it and queried for all tabs, second because we received a notification
