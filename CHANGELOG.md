@@ -30,8 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * This feature is enabled by default, but it can be disabled via settings
   * Clicking the tile of a recently closed tab will restore the closed tab in the same
     window where it was originally located
-  * Note that Chrome offers a maximum of 25 reently closed tabs, so this limits the
-    usefuless of this feature
+  * Note that Chrome offers a maximum of 25 recently closed tabs, so this limits the
+    usefulness of this feature
 - Search results now also include matching browsing history
   * This feature is disabled by default
   * When first enabled, the user is prompted to give TabMania permission to access the
@@ -77,6 +77,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The serchbox gets activated if a shortcut CTRL+[key] is pressed while keyboard focus is on the
   TabMania popup, but the searchbox remains empty and can't easily be closed
   * Only for CTRL+[key] that are not TabMania configured shortcuts
+- Bootstrap floating labels for input boxes and textareas don't apply consistently
 
 # [1.0.0] - 2021-02-20
 ## Added

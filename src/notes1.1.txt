@@ -1,3 +1,6 @@
+- BUG: after suspending and searching "suspended", some tiles lost their dropdown menu
+  * Probably some race condition discarding AsyncQueue before it finished rendering the menu
+
 - Remove all injection code in preparation for release (again)
 
 - Disable Base._assert() for production code
@@ -42,7 +45,6 @@ DONE 1.1
 
 - Include bookmarks in search results, besides open tabs
   * https://developer.chrome.com/docs/extensions/reference/bookmarks/#method-search
-  * Sort bookmarks before rendering
   * Add option to include or not bookmarks in search results
     - Auto-updates search results if changed while a search is in progress
   * Manage pressing "Enter" when a bookmark is first in _currentSearchResults
@@ -240,8 +242,25 @@ DONE 1.1
 	- At least the user can do a Settings -> Home -> Settings to see the update,
 	  instead of a close -> open popup...
 
+- Using Chrome favicon cache for standard tabs too, as sometimes they're missing
+  * Making sure that when a group has to pick a favIcon from one if its members,
+    members with a real favIcon are prioitized over members pointing to the cache
+
+- Added extended ID for browsing history items
+
+- BUG: NormalizedTabs.formatExtendedId() uses tab.id for reTabs/BmNodes/hItems instead
+  of using the available non-prefixed version (tab.sessionId/tab.bookmarkId/tab.historyId)
 
 PUNTED TO NEXT RELEASE
+
+- Support "undo" for deleted bookmarks
+  * Can we also "undo" deleted browsing history items?
+
+- Add a global shortcut to bring the undocked TabMania popup to the front or open
+  it if it's closed
+  * This is already possible with the standard "invoke popup" shortcut, but that shortcut
+    is restricted to work only in "Chrome" scope, and we want to have an alternative for
+	global scope when the popup is undocked
 
 - In search, consider multiple words to be multiple keywords separated by "or"
   * Right now multiple words are still pat of a single string

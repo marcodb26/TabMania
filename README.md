@@ -75,9 +75,12 @@ The hidden badges include `audible`, `muted`, `highlighted`, `incognito`, `pinne
 __Example__: a tab is playing sounds and you want to mute it; type "audible" to get a list of tabs that
 are currently playing sounds, and mute it by clicking the "mute" menu action in the tile.
 
+### Search modifiers
 A couple of search modifiers are available to change the standard search behavior ("match anywhere").
 They must be specified at the very beginning of the search string:
 * `!` (exclamation mark) inverts the search to match all browser tab tiles _not_ matching the search string
+  - This modifier only works with open tabs or _Recently closed_ tabs, not with _Bookmarks_ or _Browsing
+    history_ items (see __Searching beyond open tabs__ below).
 * `^` (caret) matches title, URL or search keywords starting with the search string
 * `!^` combines the two
 
@@ -85,6 +88,34 @@ __Example__: if your search string is _loaded_, you'll match both the `loaded` s
 as the `unloaded` search keyword (since "loaded" is contained in `unloaded`). This will likely generate
 a list of search results including all the browser tabs you have (unless some are `loading`). If you only
 want to find the `loaded` tabs, type _^loaded_, and the `unloaded` tabs won't be included.
+
+### Searching beyond open tabs
+TabMania allows to include _Bookmarks_, _Recently closed_ tabs and _Browsing history_ items in your
+search. Go to the _Settings_ page, and under _General settings_ choose which you want included and
+which excluded. Do it at any time, even mid-search to filter in or out extra pages. TabMania restricts
+_Bookmarks_ and _Browsing history_ to a maximum of 500 items each during a search. _Recently closed_
+tabs are capped by Chrome at a maximum of 25 top level items (either closed tabs or closed windows).
+
+Since all these classes represent pages that are not currently loaded, the TabMania convention is
+to show their tiles in black&white, similar to `unloaded` and `suspended` tabs.
+The tiles for each one of these classes of objects adds a little icon right before the page title, so you
+can easily identify which class they belong to. _Bookmarks_ and _Browsing history_ tiles also have their
+own dropdown menus, with specific actions you can take on them (for example, _Browsing history_ tiles
+will tell you how many times you've visited that page in the past, and when was the last time you've
+seen it). _Recently closed_ tabs on the other hand don't offer any action besides restoring the tab.
+
+Clicking on a _Recently closed_ tab will simply restore the tab, exactly like the corresponding action
+on the Chrome menu. Chrome removes tabs from the _Recently closed_ list once they're restored.
+When clicking on _Bookmarks_ or _Browsing history_ items, TabMania will instead first try to locate an
+open tab matching the same URL. If it finds one, it simply activates that tab and bring its window into
+focus, as if you had clicked the tile of that open tab. If TabMania can't find an open tab matching
+the URL of the _Bookmarks_ or _Browsing history_ item, it will open the corresponding URL in a new tab,
+either recycling an unused new tab you already have open, or opening a fresh new tab in the least
+tabbed window.
+
+Clicking the _Close_ button of _Bookmarks_ and _Browsing history_ items deletes the items from the
+_Bookmarks_ or _Browsing history_ (no undo).
+
 
 ## Pinned tabs and groups
 You can pin tabs (either via the Chrome tab menu or the extension tile menu action), and you can pin
@@ -121,13 +152,14 @@ itself (`CTRL+T`, or the "+" button on Chrome)? Here are a few reasons:
 ## Keyboard shortcuts
 TabMania includes a number of useful shortcuts, described below. You can configure the shortcuts
 by visiting the TabMania's shortcuts box inside chrome://extensions/shortcuts. The same location
-can be reached via the _Settings_ menu, in the _Shortcuts settings_ section.
+can be reached via the _Settings_ menu, in the _Shortcuts settings_ section, by clicking on the
+shortcut key combination badge under a shortcut title.
 
-Most of the shortcuts defined by TabMania are designed to be "Global", but you can decide whether
-you want to set them as `Chrome` (available only when a Chrome window is in focus) or `Global`
-(available from anywhere in the system). We're suggesting a few keyboard combinations below, but
-every system, application and personal preference is different, you should decide which combinations
-make more sense for you.
+Most of the shortcuts defined by TabMania are designed to be used in `Global` scope. You can decide
+whether you want to set them as `Chrome` scope (available only when a Chrome window is in focus) or
+ `Global` scope (available from anywhere in the system). We're suggesting a few keyboard combinations
+below, but every system, application and personal preference is different, you should decide which
+combinations make more sense to you.
 
 ### Shortcut to activate TabMania
 It can be useful to add a shortcut to open TabMania without the need to click on TabMania's icon.
@@ -137,9 +169,9 @@ __Suggested keyboard shortcuts__: `CTRL+SHIFT+ArrowUp`
 ### Navigation shortcuts ("tabs history")
 TabMania remembers the sequence of browser tabs you're visiting, and offers shortcuts to move back
 and forward within your tab navigation history. Navigation is not restricted to a single Chrome window.
-If you choose to assign these shortcuts in `Global` mode, you can even jump right back to the last
+If you choose to assign these shortcuts in `Global` scope, you can even jump right back to the last
 browser tab you were reading, after your little detour to other applications (regardless of how
-many applications you've visited in the meantime, unlike, say, ALT+Tab).
+many applications you've visited in the meantime, unlike, say, `ALT+Tab`).
 
 __Suggested keyboard shortcuts__: `CTRL+SHIFT+ArrowLeft` (for "back") and `CTRL+SHIFT+ArrowRight` (for "forward")
 
@@ -171,11 +203,16 @@ __Suggested keyboard shortcuts__: `CTRL+SHIFT+ArrowDown`
 TabMania includes up to 5 custom shortcuts. These shortcuts can be used to jump to a specific tab
 from any other application, regardless of whether the tab is active. For example, you can set a
 shortcut to bring to the front the browser tab running your email client. Alternatively, you can
-configure these shortcuts to offer you more clipboard-based search, if you are the type who searches
+configure these shortcuts to offer you more search engine options, if you are the type who searches
 for different things at different times (web searches with different search engines, product searches
 on different eCommerce platforms, Wikipedia searches, book searches at your library's website).
+When set to _Search mode_, these shortcuts attempt to use the contents of your clipboard to determine
+the search query. The same shortcut configuration is also available in context menus on the pages
+you visit, but in that case TabMania will use the text selected on the page as search query, not
+the contents of the clipboard (see __Context menus__ below for more details).
 
-Because of this, they're particularly useful when set to `Global` mode instead of `Chrome`.
+Because of their search via clipboard capabilities, these shortcuts particularly useful when set
+to `Global` scope instead of `Chrome` scope.
 
 __Configuring custom shortcuts__
 Custom shortcuts can be configured in the _Shortcuts settings_ section of TabMania's _Settings_
@@ -214,16 +251,26 @@ For each custom shortcut:
   any of the existing tabs), TabMania will try to find an existing "New tab". If none exists,
   it will open the new tab in the least tabbed window, like the "Open new tab" logic (see _The
   "open new tab" button_ section for more details)
-* Last, if you don't configure a custom shortcut (or empty the _Hostname or URL_ input), the
+* Last, if you don't configure a custom shortcut (or clear the _Hostname or URL_ input), the
   custom shortcut will default to an "Open new tab" behavior.
 
 __Suggested keyboard shortcuts__: `CTRL+SHIFT+1`, ..., `CTRL+SHIFT+5`
 
-## Undocking popup
+## Context menus
+TabMania adds context menus to the pages you visit. The main role of these context menus is to
+activate search-based keyboard shortcuts like _Launch/search_ or _custom shortcuts_ (see __Keyboard
+shortcuts__ above) using the text selected on the current page instead of the clipboard contents.
+Other context menu items activate when right-clicking the background of a page or a link, and
+they're mostly about rebalancing tabs among your open windows (_Move to least tabbed window_
+and _Open in least tabbed window_).
 
-You can undock the popup to change its size (the docked popup has a fixed size), or to have your
-tab list always in view. When you undock, all the open docked popups will close. The shortcut to
-open the popup will continue to work for the undocked popup, so you can always bring it to the
-foreground, though that shortcut is restricted to work only when the browser is in focus (`Chrome`
-mode, not `Global` mode).
-The docking state is stored locally on one device, but it's not synced among multiple devices.
+## Docking/undocking popup
+By default the TabMania popup opens in its own undocked window. This allows you to change its size
+and to put it in a place on your desktop where it can be always available for you. There's also an
+option to dock the popup, though the docked popup has certain disadvantages over the undocked popup,
+as Chrome tends to close it off under certain conditions, plus it's always covering your tab contents.
+The docking state is local to one device, so you can keep TabMania docked on just one device, while
+it remains undocked on all other devices.
+
+Unfortunately the standard Chrome shortcut to open the popup works only in `Chrome` scope (can't be
+configured for `Global` scope), so a Chrome window must be in focus.
