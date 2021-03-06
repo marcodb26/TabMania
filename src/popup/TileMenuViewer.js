@@ -67,11 +67,17 @@ _MenuViewer_render: function() {
 	this._rootElem = this._elementGen(menuButtonHtml);
 	this._bodyElem = this.getElementById(menuItemsContainerId);
 
+	let menuElem = this.getElementById(menuId);
+	let bootstrapObj = new bootstrap.Dropdown(menuElem);
 	// Prevent clicks on the menu items from propagating all the way
 	// down to the page owning the menu
 	this._rootElem.addEventListener("click",
 		function(ev) {
 			ev.stopPropagation();
+			// Since the click doesn't propagate, the menu won't close by itself when
+			// clicked (?). Actually not sure this is the real root cause, but calling
+			// the next function fixes the problem.
+			bootstrapObj.hide();
 		},
 		false);
 },
@@ -120,6 +126,12 @@ _renderMenuItem: function(text) {
 	// consolidating them all to look like:
 	// <li><div class="dropdown-item">Action</div></li>
 	// Then we can add callbacks to the click handler anyway...
+	// Update: the menu doesn't close automatically when you click an item.
+	// Tried to switch back to <a>, but the link causes the popup to move to status
+	// "loading" and then "complete" every time you click a menu item. That causes
+	// the menu to close, but only because we re-render, when you hover the menu
+	// is actually still open.
+	// Fixed the problem of menu staying open in MenuViewer._MenuViewer_render().
 	const rootHtml = `
 		<li id="${this._id}">
 			<div id="${bodyId}" class="dropdown-item tm-dropdown-item"></div>
@@ -225,15 +237,19 @@ _initMenuItems: function() {
 								this._actionHighlightToggleCb.bind(this));
 	this.append(this._highlightMenuItem);
 
-	this._playMenuItem = Classes.MenuItemViewer.create("Toggle play",
-									this._actionPlayToggleCb.bind(this));
-	this.append(this._playMenuItem);
+//	this._playMenuItem = Classes.MenuItemViewer.create("Toggle play",
+//									this._actionPlayToggleCb.bind(this));
+//	this.append(this._playMenuItem);
 
-	this._discardMenuItem = Classes.MenuItemViewer.create("Discard from memory",
+	this._moveToLeastTabbedMenuItem = Classes.MenuItemViewer.create("Move to least tabbed window",
+								this._actionMoveToLeastTabbedCb.bind(this));
+	this.append(this._moveToLeastTabbedMenuItem);
+
+	this._discardMenuItem = Classes.MenuItemViewer.create("Suspend (discard from memory)",
 								this._actionDiscardCb.bind(this));
-	if(!settingsStore.getOptionAdvancedMenu()) {
-		this._discardMenuItem.hide();
-	}
+//	if(!settingsStore.getOptionAdvancedMenu()) {
+//		this._discardMenuItem.hide();
+//	}
 	this.append(this._discardMenuItem);
 
 	this._closeMenuItem = Classes.MenuItemViewer.create("Close", this._actionCloseCb.bind(this));
@@ -308,6 +324,20 @@ _actionPlayToggleCb: function(ev) {
 		function(chromeLastError) { // onRejected
 			this._err(logHead + "unknown error: " + chromeLastError.message, this._tab);
 			return chromeLastError;
+		}.bind(this)
+	);
+},
+
+_actionMoveToLeastTabbedCb: function(ev) {
+	const logHead = "TileTabMenuViewer::_actionMoveToLeastTabbedCb(" + this._tab.id + "): ";
+	// We're moving it in the background, no reason to activate it
+	chromeUtils.moveTabToLeastTabbedWindow(this._tab, false).then(
+		function(result) {
+			if(result != null) {
+				this._log(logHead + "completed");
+			} else {
+				this._log(logHead + "no action taken");
+			}
 		}.bind(this)
 	);
 },
