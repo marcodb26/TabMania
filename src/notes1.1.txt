@@ -1,3 +1,8 @@
+- Create a static response to chrome.tabs.query() to display some repeatabole set
+  of tiles when staging the TabMania popup for release screenshots
+
+- Add devTools function to retrieve a specific tab and its tile and dump them to console
+
 - BUG: after suspending and searching "suspended", some tiles lost their dropdown menu
   * Probably some race condition discarding AsyncQueue before it finished rendering the menu
 
@@ -66,7 +71,7 @@ DONE 1.1
   * Replace the "bookmark" badge in bookmark tiles with some other visual clue
 	- We should not show a badge because one can't search the keyword "bookmark"
 	  * It would be crazy to show just a flat list of all bookmarks
-  * Limit search results to 50 bookmarks to avoid slowing down search too much
+  * Limit search results to 500 bookmarks to avoid slowing down search too much
     - Otherwise single-letter searches can take forever for heavy bookmark users
 
 - Recognize CTRL+V in the keydown handler, and open the searchbox just in time to capture
@@ -101,8 +106,8 @@ DONE 1.1
   tiles need to be rendered
 
 - Added support for searching among the recently closed tab
-  * Use the search badge "closed" to list them
   * Controlled by a settings option
+  * Use the search badge "closed" to list them
   * Tiles of recently closed tabs don't have any dropdown and don't have a "close" button,
     because the only action you can take on them is to restore them
 	- When restored, a tab disappears from the recently closed list
@@ -133,7 +138,7 @@ DONE 1.1
 - Now reusing tiles instead of just recreating them at every refresh
   * Not really a full-fledged cache of tiles, but close enough...
 
-- Cleaned up NormalizedTabs.normalizeTab() to fully support tabs, rctabs and bmnodes
+- Cleaned up NormalizedTabs.normalizeTab() to fully support tabs, rctabs, bmnodes
 
 - Added prefix to rctab and bmnode IDs to avoid collisions with the numeric space of standard tab IDs.
 
@@ -250,6 +255,7 @@ DONE 1.1
 
 - BUG: NormalizedTabs.formatExtendedId() uses tab.id for reTabs/BmNodes/hItems instead
   of using the available non-prefixed version (tab.sessionId/tab.bookmarkId/tab.historyId)
+
 
 PUNTED TO NEXT RELEASE
 

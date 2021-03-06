@@ -49,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 	- Added a _title_ to the custom shortcuts configuration, to display useful text
 	  in the context menu
 - Added _Move to least tabbed window_ action to the tile dropdown menu
+- Displaying in _Shortcut settings_ the shortcut keys configured for each custom shortcut
 
 ## Changed
 - Updated Bootstrap to v.5.0.0-beta2
@@ -66,6 +67,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   was before the search started
 - Started using Chrome favicon cache for standard tabs with no favicon
   * Typically some tabs that have stayed unloaded for a very long time
+- Tab tile dropdown menu item _Discard from memory_ is now called _Suspend_
+  * Hidden badge `Discarded` is now correspondingly `Suspended`
+  * Made this menu item a standard item (it was listed under _Advanced mode_ before)
+- Removed _Advanced mode_ option, as we don't have any advanced option left
 
 ## Fixed
 - Discard settings events if they arrive before the TabsTabViewer chrome query has completed (while
@@ -78,6 +83,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   TabMania popup, but the searchbox remains empty and can't easily be closed
   * Only for CTRL+[key] that are not TabMania configured shortcuts
 - Bootstrap floating labels for input boxes and textareas don't apply consistently
+- Tiles dropdown menu stays open instead of closing when clicking on a menu item
 
 # [1.0.0] - 2021-02-20
 ## Added

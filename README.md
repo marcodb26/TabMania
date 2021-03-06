@@ -70,7 +70,8 @@ first tab in the list of results.
 Search keywords are a combination of the badges you can find on the tile, plus hidden badges added
 for search convenience.
 The hidden badges include `audible`, `muted`, `highlighted`, `incognito`, `pinned`, `suspended`,
-`unloaded` and `loaded`. For _recently closed tabs_, the extra search badge `closed` is also available.
+`unloaded` and `loaded`. For _recently closed tabs_ (see __Searching beyond open tabs__ below),
+the extra search badge `closed` is also available.
 
 __Example__: a tab is playing sounds and you want to mute it; type "audible" to get a list of tabs that
 are currently playing sounds, and mute it by clicking the "mute" menu action in the tile.
@@ -80,7 +81,7 @@ A couple of search modifiers are available to change the standard search behavio
 They must be specified at the very beginning of the search string:
 * `!` (exclamation mark) inverts the search to match all browser tab tiles _not_ matching the search string
   - This modifier only works with open tabs or _Recently closed_ tabs, not with _Bookmarks_ or _Browsing
-    history_ items (see __Searching beyond open tabs__ below).
+    history_ items (see __Searching beyond open tabs__ below)
 * `^` (caret) matches title, URL or search keywords starting with the search string
 * `!^` combines the two
 
@@ -96,7 +97,7 @@ which excluded. Do it at any time, even mid-search to filter in or out extra pag
 _Bookmarks_ and _Browsing history_ to a maximum of 500 items each during a search. _Recently closed_
 tabs are capped by Chrome at a maximum of 25 top level items (either closed tabs or closed windows).
 
-Since all these classes represent pages that are not currently loaded, the TabMania convention is
+Since all these classes represent pages that are not currently loaded, TabMania's convention is
 to show their tiles in black&white, similar to `unloaded` and `suspended` tabs.
 The tiles for each one of these classes of objects adds a little icon right before the page title, so you
 can easily identify which class they belong to. _Bookmarks_ and _Browsing history_ tiles also have their
@@ -116,6 +117,9 @@ tabbed window.
 Clicking the _Close_ button of _Bookmarks_ and _Browsing history_ items deletes the items from the
 _Bookmarks_ or _Browsing history_ (no undo).
 
+`Recently closed` tabs support search by hidden badges, and add the `closed` hidden badge to identify
+them. _Bookmarks_ and _Browsing history_ items don't support any hidden badges, and can only be matched
+on title and URL.
 
 ## Pinned tabs and groups
 You can pin tabs (either via the Chrome tab menu or the extension tile menu action), and you can pin
@@ -153,7 +157,10 @@ itself (`CTRL+T`, or the "+" button on Chrome)? Here are a few reasons:
 TabMania includes a number of useful shortcuts, described below. You can configure the shortcuts
 by visiting the TabMania's shortcuts box inside chrome://extensions/shortcuts. The same location
 can be reached via the _Settings_ menu, in the _Shortcuts settings_ section, by clicking on the
-shortcut key combination badge under a shortcut title.
+shortcut key combination badge under a shortcut title. Note that if you update your shortcuts in
+the chrome://extensions/shortcuts page, you might need to close and reopen the _Shortcuts settings_
+section of the _Settings_ page for the changes to be updated (unfortunately Chrome APIs don't
+offer notifications back to extensions for changes you make to chrome://extensions/shortcuts).
 
 Most of the shortcuts defined by TabMania are designed to be used in `Global` scope. You can decide
 whether you want to set them as `Chrome` scope (available only when a Chrome window is in focus) or
@@ -216,7 +223,7 @@ to `Global` scope instead of `Chrome` scope.
 
 __Configuring custom shortcuts__
 Custom shortcuts can be configured in the _Shortcuts settings_ section of TabMania's _Settings_
-tab. Firt though, be sure to have enabled the actual shortcuts in
+tab. First though, be sure to have enabled the actual shortcuts in
 [chrome://extensions/shortcuts](chrome://extensions/shortcuts).
 For each custom shortcut:
 * You can set a shortcut to target either a hostname or a URL (not both)
@@ -262,7 +269,11 @@ activate search-based keyboard shortcuts like _Launch/search_ or _custom shortcu
 shortcuts__ above) using the text selected on the current page instead of the clipboard contents.
 Other context menu items activate when right-clicking the background of a page or a link, and
 they're mostly about rebalancing tabs among your open windows (_Move to least tabbed window_
-and _Open in least tabbed window_).
+and _Open in least tabbed window_). Note that _Move to least tabbed window_ will take action
+only if the current tab is in a window that has at least two more tabs than the least tabbed
+window (no point in moving a tab if it doesn't rebalance anything). If TabMania decides the
+tab is ok in the window where it's currently hosted, it will blink its popup's badge to indicate
+that.
 
 ## Docking/undocking popup
 By default the TabMania popup opens in its own undocked window. This allows you to change its size
