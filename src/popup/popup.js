@@ -34,17 +34,20 @@ function testSettings() {
 	settingsStore.pinGroup("Work");
 	settingsStore.getShortcutsManager().setShortcut(window.ExtCommands.SHORTCUT01,
 		{
+			title: "Gmail",
 			hostname: "mail.google.com",
 		}
 	);
 	settingsStore.getShortcutsManager().setShortcut(window.ExtCommands.SHORTCUT02,
 		{
+			title: "Los Angeles Public Library",
 			url: "https://lapl.overdrive.com/search?query=%s",
 			useClipboard: true,
 		}
 	);
 	settingsStore.getShortcutsManager().setShortcut(window.ExtCommands.SHORTCUT03,
 		{
+			title: "Wikipedia",
 			url: "https://en.wikipedia.org/wiki/%s",
 			useClipboard: true,
 		}

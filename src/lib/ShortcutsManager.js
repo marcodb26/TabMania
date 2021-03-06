@@ -22,6 +22,8 @@ Classes.ShortcutsManager = Classes.AsyncBase.subclass({
 	_storageKeyPrefix: null,
 
 	// A shortcut includes the following properties:
+	// - title: the name of the shortcut, to be used when displaying a context menu item
+	//   for the custom shortcut
 	// - hostname: the hostname associated to this shortcut
 	// - url: the URL associated to this shortcut
 	// - alwaysNewTab: whether or not the shortcut should always trigger opening a new tab
@@ -383,6 +385,14 @@ delShortcutProp: function(shortcutKey, prop) {
 
 getShortcutProp: function(shortcutKey, prop) {
 	return this._shortcutsStore[shortcutKey].get(prop);
+},
+
+setShortcutTitle: function(shortcutKey, value) {
+	return this.setShortcutProp(shortcutKey, "title", value);
+},
+
+getShortcutTitle: function(shortcutKey) {
+	return optionalWithDefault(this.getShortcutProp(shortcutKey, "title"), "");
 },
 
 setShortcutHostnameOrUrl: function(shortcutKey, value) {

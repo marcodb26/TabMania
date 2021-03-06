@@ -68,7 +68,14 @@ getExtensionId: function() {
 
 //// Utils to work with tabs (chrome.tabs)
 
-getLeastTabbedWindowId: function() {
+// "preferredWinId" is an optional argument. It's possible multiple windows are all equally
+// least tabbed. There are two use cases for getLeastTabbedWindowId():
+// - To create a new tab, any of those window at random will be ok (leave "preferredWinId"
+//   undefined)
+// - To move an existing tab. In this case, if the current window of the tab is a contender
+//   for least tabbed, then it makes no sense to pick a different window and move the tab
+//   there, we should instead let the tab stay where it is. That's what we call "preferredWinId"
+getLeastTabbedWindowId: function(preferredWinId) {
 	const logHead = "ChromeUtils::getLeastTabbedWindowId(): ";
 	let options = {
 		populate: true,
@@ -76,8 +83,21 @@ getLeastTabbedWindowId: function() {
 		windowTypes: [ "normal" ]
 	};
 
+	// Pick a big number as "invalid" marker, can a real window have these many tabs?
+	let preferredWinTabsCount = 999999;
+
 	function leastTabbedReducer(currentMinWin, winInfo) {
 		let tabsCount = winInfo.tabs.length;
+
+		// Too tired to mess with the original logic (before I added "preferredWinId").
+		// Let's just have the reducer take its course, but note down the number of
+		// tabs of the preferred window, and we can decide later to replace the winner
+		// with the preferred window ID.
+		// "preferredWinId" might be undefined, but if it is, it's definitely different
+		// from winInfo.id, so we're covered in that case too.
+		if(winInfo.id == preferredWinId) {
+			preferredWinTabsCount = tabsCount;
+		}
 		 // currentMinWin == 0 means the accumulator is not initialized
 		if(currentMinWin == 0 || currentMinWin.tabsCount > tabsCount) {
 			return { winInfo: winInfo, tabsCount: tabsCount };
@@ -92,8 +112,19 @@ getLeastTabbedWindowId: function() {
 				return null;
 			}
 			let minWin = winList.reduce(leastTabbedReducer, 0);
-			this._log(logHead + "Found: ", minWin);
-			return minWin.winInfo.id;
+			// "preferredWinTabsCount - 1", because if we move the tab there, we don't want
+			// to turn preferredWinId to "leastTabbed". The goal of rebalancing is to keep
+			// things balanced: if leastTabbed has 6 tabs and preferred has 7, there's no
+			// value in swapping their roles...
+			if(minWin.tabsCount < (preferredWinTabsCount - 1)) {
+				this._log(logHead + "Found: ", minWin);
+				return minWin.winInfo.id;
+			}
+
+			// minWin could be one less or same as preferredWinTabsCount, but not more
+			this._assert(minWin.tabsCount <= preferredWinTabsCount, logHead + "unexpected");
+			this._log(logHead + "Found multiple matches, returning preferredWinId", preferredWinId, minWin);
+			return preferredWinId;
 		}.bind(this)
 	);
 },
@@ -210,14 +241,19 @@ loadUrl: function(url, tabId, winId) {
 	return Promise.all([ promiseA, promiseB ]);
 },
 
-moveTabToLeastTabbedWindow: function(tab) {
-	const logHead = "chromeUtils::moveTabToLeastTabbedWindow(): ";
+// "activate" is optional (default "false"), if "true", activate the tab in the new
+// window and focus it, otherwise stay where you are.
+// Returns a Promise that resolves to an array of values if we've taken an action,
+// and "null" if we didn't need to take any action.
+moveTabToLeastTabbedWindow: function(tab, activate) {
+	activate = optionalWithDefault(activate, false);
+	const logHead = "chromeUtils::moveTabToLeastTabbedWindow(activate: " + activate + "): ";
 
-	return this.getLeastTabbedWindowId().then(
+	return this.getLeastTabbedWindowId(tab.windowId).then(
 		function(winId) {
 			if(tab.windowId == winId) {
 				this._log(logHead + "tab " + tab.id + " is already in the least tabbed window " + winId);
-				return;
+				return null;
 			}
 
 			let moveProperties = {
@@ -225,8 +261,16 @@ moveTabToLeastTabbedWindow: function(tab) {
 				windowId: winId,
 			};
 			let movePromise = this.wrap(chrome.tabs.move, logHead, tab.id, moveProperties);
-			let focusPromise = this.wrap(chrome.windows.update, logHead, winId, { focused: true });
-			return Promise.all([ movePromise, focusPromise ]);
+			let focusPromise = null;
+			let activatePromise = null;
+			if(activate) {
+				focusPromise = this.wrap(chrome.windows.update, logHead, winId, { focused: true });
+				activatePromise = this.wrap(chrome.tabs.update, logHead, tab.id, { active: true });
+			} else {
+				focusPromise = Promise.resolve();
+				activatePromise = Promise.resolve();
+			}
+			return Promise.all([ movePromise, focusPromise, activatePromise ]);
 		}.bind(this)
 	);
 },

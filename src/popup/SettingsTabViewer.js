@@ -1,13 +1,74 @@
+// CLASS SettingsShortcutCardViewer
+// "LOS": "Launch Or Search"
+Classes.SettingsShortcutCardViewer = Classes.SettingsCardViewer.subclass({
+	__idPrefix: "SettingsShortcutCardViewer",
+
+	_shortcutKeyViewer: null,
+	_shortcutUnsetText: "Not set",
+
+	_settingsTabViewerObj: null,
+
+_init: function(title, settingsTabViewerObj) {
+	this.debug();
+
+	// Overriding the parent class' _init(), but calling that original function first
+	Classes.SettingsCardViewer._init.call(this, title);
+
+	this._settingsTabViewerObj = settingsTabViewerObj;
+
+
+	this._shortcutKeyViewer = Classes.HtmlViewer.create(`<div></div>`);
+	this.append(this._shortcutKeyViewer);
+},
+
+setShortcutText: function(text) {
+	const buttonId = this._id + "scTextBtn";
+	let bgColorClass = "bg-dark";
+
+	if(text == null || text == "") {
+		bgColorClass = "bg-secondary";
+		text = this._shortcutUnsetText;
+	}
+
+	const targetUrl = "chrome://extensions/shortcuts";
+
+	// We'll keep the HREF in the link, even though we won't be able to use that
+	// HREF. We'll simulate a real link but instead redirect the request to the
+	// background.js to open the URL. Chrome doesn't allow opening a chrome://
+	// URL from within the popup.
+
+	// WAS: <a id=${buttonId} class="btn ${btnColorClass} btn-sm" role="button" href="${targetUrl}" target="_blank">${text}</a>
+	// We want a button, but we don't really want a bootstrap button, they're too big
+	// even when using ".btn-sm". Let's force a button behavior on our <span>
+	let html = `
+	<div class="ms-2">
+		<span id=${buttonId} class="badge tm-text-badge ${bgColorClass}" style="cursor: pointer">${text}</span>
+	</div>
+	`;
+
+	this._shortcutKeyViewer.setHtml(html);
+
+	let buttonElem = this._shortcutKeyViewer.getElementById(buttonId);
+	buttonElem.addEventListener("click",
+		function(ev) {
+			this._settingsTabViewerObj.loadUrlThroughBackground(targetUrl);
+			ev.preventDefault();
+		}.bind(this), false);
+},
+
+}); // Classes.SettingsShortcutCardViewer
+
+
 // CLASS SettingsLosShortcutViewer
 // "LOS": "Launch Or Search"
-Classes.SettingsLosShortcutViewer = Classes.SettingsCardViewer.subclass({
+Classes.SettingsLosShortcutViewer = Classes.SettingsShortcutCardViewer.subclass({
 	__idPrefix: "SettingsLosShortcutViewer",
 
 _init: function(title) {
 	this.debug();
 
 	// Overriding the parent class' _init(), but calling that original function first
-	Classes.SettingsCardViewer._init.call(this, title);
+	Classes.SettingsShortcutCardViewer._init.call(this, title);
 
 	this._renderShortcutSettings();
 },
@@ -30,16 +91,16 @@ _renderShortcutSettings: function() {
 
 
 // CLASS SettingsCustomShortcutViewer
-Classes.SettingsCustomShortcutViewer = Classes.SettingsCardViewer.subclass({
+Classes.SettingsCustomShortcutViewer = Classes.SettingsShortcutCardViewer.subclass({
 	__idPrefix: "SettingsCustomShortcutViewer",
 
 	_shortcutKey: null,
 
-_init: function(shortcutKey, title) {
+_init: function(shortcutKey, title, settingsTabViewerObj) {
 	this.debug();
 
 	// Overriding the parent class' _init(), but calling that original function first
-	Classes.SettingsCardViewer._init.call(this, title);
+	Classes.SettingsShortcutCardViewer._init.call(this, title, settingsTabViewerObj);
 
 	this._shortcutKey = shortcutKey;
 	this._renderShortcutSettings();
@@ -48,12 +109,22 @@ _init: function(shortcutKey, title) {
 _renderShortcutSettings: function() {
 	let sm = settingsStore.getShortcutsManager();
 
+	let shortcutTitle = Classes.SettingsTextItemViewer.create({
+		setFn: sm.setShortcutTitle.bind(sm, this._shortcutKey),
+		getFn: sm.getShortcutTitle.bind(sm, this._shortcutKey),
+		label: "Title",
+		helpHtml: this._safeText("If you enable search, this title will be used for the context menu item associated to this shortcut"),
+		updateKey: this._shortcutKey
+	});
+
+	this.append(shortcutTitle);
+
 	let hostnameOrUrl = Classes.SettingsTextItemViewer.create({
 		setFn: sm.setShortcutHostnameOrUrl.bind(sm, this._shortcutKey),
 		getFn: sm.getShortcutHostnameOrUrl.bind(sm, this._shortcutKey),
 		label: "Hostname or URL",
 		placeholderText: "e.g.: www.google.com",
-		helpHtml: this._safeText("If enabling search, use %s to indicate where the text from the clipboard should get pasted"),
+		helpHtml: this._safeText("If you enable search, use %s to indicate where the text from the clipboard should get pasted"),
 		updateKey: this._shortcutKey
 	});
 
@@ -79,6 +150,104 @@ _renderShortcutSettings: function() {
 },
 
 }); // Classes.SettingsCustomShortcutViewer
+
+
+// CLASS SettingsCustomShortcutsContainerViewer
+//
+Classes.SettingsCustomShortcutsContainerViewer = Classes.CollapsibleContainerViewer.subclass({
+
+	_shortcutViewers: null,
+
+	_settingsTabViewerObj: null,
+
+_init: function(settingsTabViewerObj) {
+	// Overriding the parent class' _init(), but calling that original function first
+	Classes.CollapsibleContainerViewer._init.call(this, { border: false });
+	this.debug();
+
+	this._settingsTabViewerObj = settingsTabViewerObj;
+
+	this._shortcutViewers = [];
+
+	this.setHeadingHtml(`<div class="fw-bold">Shortcuts settings</div>`);
+//	this.addExpandedListener(this._containerExpandedCb.bind(this));
+//	this.addCollapsedListener(this._containerCollapsedCb.bind(this));
+	this.addClasses("mt-3");
+
+// Now that we have the clickable shortcut text for all shortcuts, we don't need
+// this other button here
+//
+//	this._renderExtensionShortcutsLink();
+
+	let losShortcut = Classes.SettingsLosShortcutViewer.create("Shortcut launch/search");
+	this._shortcutViewers[window.ExtCommands.LAUNCHORSEARCH] = losShortcut;
+	this.append(losShortcut);
+
+	let sm = settingsStore.getShortcutsManager();
+	sm.getShortcutKeys().forEach(
+		function(key) {
+			this._shortcutViewers[key] = Classes.SettingsCustomShortcutViewer.create(key,
+								"Custom shortcut " + sm.keyToUiString(key), settingsTabViewerObj);
+			this.append(this._shortcutViewers[key]);
+		}.bind(this)
+	);
+
+	this._getExtShortcuts();
+},
+
+_getExtShortcuts: function() {
+	const logHead = "SettingsCustomShortcutViewer::_getExtShortcuts(): ";
+	chromeUtils.wrap(chrome.commands.getAll, logHead).then(
+		function(commands) {
+			this._log(logHead + "received", commands);
+			commands.forEach(
+				function(cmd) {
+					if(this._shortcutViewers[cmd.name] != null) {
+						this._shortcutViewers[cmd.name].setShortcutText(cmd.shortcut);
+					} else {
+						this._log(logHead + "ignoring command \"" + cmd.name + "\"");
+					}
+				}.bind(this)
+			);
+		}.bind(this)
+	);
+},
+
+//_renderExtensionShortcutsLink: function() {
+//	const buttonId = this._id + "-extShortcutsBtn";
+//
+//	// I thought I could have a page for only the shortcuts of my extension, but
+//	// the page generated by this doesn't exist:
+//	// ${chrome.runtime.getURL("shortcuts")}
+//	const targetUrl = "chrome://extensions/shortcuts";
+//
+//	// You could use "col-10 mx-auto" instead of "mx-2" to make the button a bit
+//	// smaller but still centered.
+//	//
+//	// We'll keep the HREF in the link, even though we won't be able to use that
+//	// HREF. We'll simulate a real link but instead redirect the request to the
+//	// background.js to open the URL. Chrome doesn't allow opening a chrome://
+//	// URL from within the popup.
+//	const bodyHtml = `
+//	<div class="d-grid gap-2 mx-2 mt-3">
+//		<a id=${buttonId} class="btn btn-primary" role="button" href="${targetUrl}" target="_blank">
+//			Edit extension shortcuts
+//		</a>
+//	</div>
+//	`;
+//
+//	let viewer = Classes.HtmlViewer.create(bodyHtml);
+//	let buttonElem = viewer.getElementById(buttonId);
+//	buttonElem.addEventListener("click",
+//		function(ev) {
+//			this._settingsTabViewerObj.loadUrlThroughBackground(targetUrl);
+//			ev.preventDefault();
+//		}.bind(this), false);
+//
+//	this.append(viewer);
+//},
+
+}); // Classes.SettingsCustomShortcutsContainerViewer
 
 
 // CLASS SettingsTabViewer
@@ -124,10 +293,12 @@ _init: function(tabLabelHtml) {
 	settingsStore.addEventListener(Classes.EventManager.Events.UPDATED, this._updatedCb.bind(this));
 },
 
-_loadUrlThroughBackground: function(url) {
+// This is not a private function because it needs to be called by other classes
+// contained in SettingsTabViewer
+loadUrlThroughBackground: function(url) {
 	this._msgClient.sendRequest("launchUrl", { url: url }).then(
 		function(response) {
-			const logHead = "SettingsTabViewer::_loadUrlThroughBackground().response(): ";
+			const logHead = "SettingsTabViewer::loadUrlThroughBackground().response(): ";
 			if(response.status == "success") {
 				this._log(logHead + "received ", response);
 			} else {
@@ -162,40 +333,6 @@ _renderTitle: function() {
 	`;
 
 	this.setHtml(bodyHtml);
-},
-
-_renderExtensionShortcutsLink: function() {
-	const buttonId = this._id + "-extShortcutsBtn";
-
-	// I thought I could have a page for only the shortcuts of my extension, but
-	// the page generated by this doesn't exist:
-	// ${chrome.runtime.getURL("shortcuts")}
-	const targetUrl = "chrome://extensions/shortcuts";
-
-	// You could use "col-10 mx-auto" instead of "mx-2" to make the button a bit
-	// smaller but still centered.
-	//
-	// We'll keep the HREF in the link, even though we won't be able to use that
-	// HREF. We'll simulate a real link but instead redirect the request to the
-	// background.js to open the URL. Chrome doesn't allow opening a chrome://
-	// URL from within the popup.
-	const bodyHtml = `
-	<div class="d-grid gap-2 mx-2 mt-3">
-		<a id=${buttonId} class="btn btn-primary" role="button" href="${targetUrl}" target="_blank">
-			Edit extension shortcuts
-		</a>
-	</div>
-	`;
-
-	let viewer = Classes.HtmlViewer.create(bodyHtml);
-	let buttonElem = viewer.getElementById(buttonId);
-	buttonElem.addEventListener("click",
-		function(ev) {
-			this._loadUrlThroughBackground(targetUrl);
-			ev.preventDefault();
-		}.bind(this), false);
-
-	this._shortcutsContainer.append(viewer);
 },
 
 _renderIncognitoInfo: function() {
@@ -235,7 +372,7 @@ _renderIncognitoInfo: function() {
 			let linkElem = viewer.getElementById(linkId);
 			linkElem.addEventListener("click",
 				function(ev) {
-					this._loadUrlThroughBackground(targetUrl);
+					this.loadUrlThroughBackground(targetUrl);
 					ev.preventDefault();
 				}.bind(this), false);
 		}.bind(this)
@@ -325,27 +462,8 @@ _renderSettings: function() {
 	let addCustomGroupButton = Classes.SettingsAddCustomGroupViewer.create(this._customGroupsContainer);
 	outerCustomGroupsContainer.append(addCustomGroupButton);
 
-	this._shortcutsContainer = Classes.CollapsibleContainerViewer.create({ border: false });
-	this._shortcutsContainer.setHeadingHtml(`<div class="fw-bold">Shortcuts settings</div>`);
-//	this._shortcutsContainer.addExpandedListener(this._containerExpandedCb.bind(this));
-//	this._shortcutsContainer.addCollapsedListener(this._containerCollapsedCb.bind(this));
-	this._shortcutsContainer.addClasses("mt-3");
+	this._shortcutsContainer = Classes.SettingsCustomShortcutsContainerViewer.create(this);
 	this.append(this._shortcutsContainer);
-
-	this._renderExtensionShortcutsLink();
-
-	let losShortcut = Classes.SettingsLosShortcutViewer.create("Shortcut launch/search");
-
-	this._shortcutsContainer.append(losShortcut);
-
-	let sm = settingsStore.getShortcutsManager();
-	sm.getShortcutKeys().forEach(
-		function(key) {
-			let shortcut = Classes.SettingsCustomShortcutViewer.create(key,
-								"Custom shortcut " + sm.keyToUiString(key));
-			this._shortcutsContainer.append(shortcut);
-		}.bind(this)
-	);
 },
 
 _addCustomGroups: function(namesList) {

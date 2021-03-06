@@ -2,86 +2,69 @@
 //
 Classes.ContextMenu = Classes.Base.subclass({
 
-	// Dictionary of click handlers for all menu items, keyed by menu item ID
-	_menuItemsClickFns: null,
+	_allMenuItems: null,
 
 _init: function() {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.Base._init.call(this);
 
-	this._menuItemsClickFns = [];
+// This callback is not needed, we can manage with just the "onclick" within each menu item
+//	// https://developer.chrome.com/docs/extensions/reference/contextMenus/#event-onClicked
+//	chrome.contextMenus.onClicked.addListener(this._onClickedCb.bind(this));
 
-	// https://developer.chrome.com/docs/extensions/reference/contextMenus/#event-onClicked
-	chrome.contextMenus.onClicked.addListener(this._onClickedCb.bind(this));
+	settingsStore.getShortcutsManager().addEventListener(Classes.EventManager.Events.UPDATED, this._onShortcutUpdatedCb.bind(this));
 
-	this._addAll();
+	this._allMenuItems = this._defineAllMenuItems();
+	this._addAllMenuItems(this._allMenuItems);
 },
 
-_addMenuItem: function(createProps, fnCb) {
-	const logHead = "ContextMenu::_addMenuItem(): ";
-	this._menuItemsClickFns[createProps.id] = {
-		fn: fnCb
+_blinkPopupIconBadge: async function(tabId) {
+	const logHead = "ContextMenu::_blinkPopupIconBadge(" + tabId + ")";
+
+	let origColorArray = await chromeUtils.wrap(chrome.browserAction.getBadgeBackgroundColor, logHead, { tabId: tabId });
+	let setBadgeBgColor = chrome.browserAction.setBadgeBackgroundColor;
+	for(let i = 0; i < 3; i++) {
+		await chromeUtils.wrap(setBadgeBgColor, logHead, { tabId: tabId, color: "#FF0000" });
+		await delay(150);
+		await chromeUtils.wrap(setBadgeBgColor, logHead, { tabId: tabId, color: origColorArray });
+		await delay(150);
 	}
-	chromeUtils.wrap(chrome.contextMenus.create, logHead, createProps);
 },
 
-_moveToLeastTabbedCb: function(itemData) {
+_moveToLeastTabbedCb: function(itemData, tab) {
 	const logHead = "ContextMenu::_moveToLeastTabbedCb(): ";
 
-	if(itemData.pageUrl == null) {
-		this._err(logHead + "no page URL, nothing to do", itemData);
-		return;
-	}
+	this._log(logHead + "entering", itemData, tab);
+	chromeUtils.moveTabToLeastTabbedWindow(tab, true);
 
-	this._log(logHead + "entering", itemData);
-
-	// itemData gives you pageUrl, but what if you have 10 pages showing the same URL?
-	// Search only in the current window, and find only the active tab...
-	let queryInfo = {
-		url: itemData.pageUrl,
-		currentWindow: true,
-		active: true,
-	};
-
-	chromeUtils.wrap(chrome.tabs.query, logHead, queryInfo).then(
-		function(tabs) {
-			if(tabs.length == 0) {
-				chromeUtils.wrap(chrome.windows.getCurrent, logHead, null).then(
-					function(window) {
-						this._err(logHead + "tab not found in window " + window.id, itemData);
-					}.bind(this)
-				);
-				return;
-			}
-			this._assert(tabs.length == 1, logHead + "more than one active tab in one window?");
-
-			return chromeUtils.moveTabToLeastTabbedWindow(tabs[0]);
-		}.bind(this)
-	);
+	// This is the only action that can decide to do nothing, so we need some
+	// extra visual feedback to let the user know we heard the click, but there
+	// was nothing to do
+	this._blinkPopupIconBadge(tab.id);
 },
 
-_openInLeastTabbedCb: function(itemData) {
+_openInLeastTabbedCb: function(itemData, tab) {
 	const logHead = "ContextMenu::_openInLeastTabbedCb(): ";
 
 	if(itemData.linkUrl == null) {
-		this._err(logHead + "no link URL, nothing to do", itemData);
+		this._err(logHead + "no link URL, nothing to do", itemData, tab);
 		return;
 	}
 
-	this._log(logHead + "entering", itemData);
+	this._log(logHead + "entering", itemData, tab);
 
 	chromeUtils.loadUrl(itemData.linkUrl);
 },
 
-_searchCb: function(shortcutKey, itemData) {
+_searchCb: function(shortcutKey, itemData, tab) {
 	const logHead = "ContextMenu::_searchCb(shortcutKey: " + shortcutKey + "): ";
 
 	if(itemData.selectionText == null || itemData.selectionText == "") {
-		this._log(logHead + "no text selected, nothing to do", itemData);
+		this._log(logHead + "no text selected, nothing to do", itemData, tab);
 		return;
 	}
 
-	this._log(logHead + "entering", itemData);
+	this._log(logHead + "entering", itemData, tab);
 
 	if(shortcutKey == null) {
 		// Launch/search case
@@ -93,48 +76,81 @@ _searchCb: function(shortcutKey, itemData) {
 	keyboardShortcuts.runCustomShortcutSearch(scInfo, itemData.selectionText);
 },
 
-_addAll: function() {
-	const logHead = "ContextMenu::_addAll(): ";
+_addAllMenuItems: function(allMenuItems) {
+	let promisesList = [];
 
-	let createProps = {
-		id: "moveToLeastTabbed",
-		title: "Move this tab to least tabbed window",
-		contexts: [ "page" ]
-	};
-	this._addMenuItem(createProps, this._moveToLeastTabbedCb.bind(this));
+	allMenuItems.forEach(
+		function(menuItem) {
+			const logHead = "ContextMenu::_addAllMenuItems().iter(" + menuItem.id + "): ";
+			promisesList.push(chromeUtils.wrap(chrome.contextMenus.create, logHead, menuItem));
+		}.bind(this)
+	);
 
-	createProps = {
-		id: "openInLeastTabbed",
-		title: "Open in least tabbed window",
-		contexts: [ "link" ]
-	};
-	this._addMenuItem(createProps, this._openInLeastTabbedCb.bind(this));
+	return Promise.all(promisesList);
+},
 
-	createProps = {
-		id: "launchOrSearch",
-		title: "Launch or search",
-		contexts: [ "selection" ]
-	};
-	this._addMenuItem(createProps, this._searchCb.bind(this, null));
+_defineSelectionMenuItems: function() {
+	let allSelectionMenuItems = [
+		{
+			id: "launchOrSearch",
+			title: "Launch or search",
+			contexts: [ "selection" ],
+			onclick: this._searchCb.bind(this, null)
+		}
+	];
 
-	let searchKeys = settingsStore.getShortcutsManager().getSearchShortcutKeys();
+	let sm = settingsStore.getShortcutsManager();
+	let searchKeys = sm.getSearchShortcutKeys();
 
 	searchKeys.forEach(
 		function(key) {
-			let createProps = {
+			let shortcutTitle = sm.getShortcutTitle(key);
+			let title = "";
+
+			if(shortcutTitle != "") {
+				title = "Search with " + shortcutTitle + " (" + sm.keyToUiString(key) + ")";
+			} else {
+				title = "Search with sm.keyToUiString(key) (no title assigned)";
+			}
+
+			allSelectionMenuItems.push({
 				id: key,
-				title: "Search with shortcut key " + key,
-				contexts: [ "selection" ]
-			};
-			this._addMenuItem(createProps, this._searchCb.bind(this, key));
-			
+				title: title,
+				contexts: [ "selection" ],
+				onclick: this._searchCb.bind(this, key)
+			});
 		}.bind(this)
 	);
+
+	return allSelectionMenuItems;
+},
+
+_defineAllMenuItems: function() {
+	const logHead = "ContextMenu::_defineAllMenuItems(): ";
+
+	let allMenuItems = [ 
+		{
+			id: "moveToLeastTabbed",
+			title: "Move this tab to least tabbed window",
+			contexts: [ "page" ],
+			onclick: this._moveToLeastTabbedCb.bind(this)
+		},
+		{
+			id: "openInLeastTabbed",
+			title: "Open in least tabbed window",
+			contexts: [ "link" ],
+			onclick: this._openInLeastTabbedCb.bind(this)
+		},
+	]
+
+	return allMenuItems.concat(this._defineSelectionMenuItems());
 },
 
 // Note that the documentation seems to be wrong, it claims the event doesn't take any
 // input parameter, but that's not possible, and in fact the samples show a parameter:
 // https://github.com/GoogleChrome/chrome-extensions-samples/blob/main/apps/samples/context-menu/main.js
+// Update: discovered it takes two parameters (itemData and tab, like the "onclick" callback
+// used in chrome.contextMenus.create()).
 // See also for explanation of the context types: https://stackoverflow.com/a/31379357/10791475
 //
 // "itemData" for selection (ContextType "selection") includes:
@@ -173,15 +189,29 @@ _addAll: function() {
 //   frameId: 0
 //   menuItemId: "test"
 //   pageUrl: "https://stackoverflow.com/questions/31366938/chrome-contextmenus-api-contexttype"
-// It doesn't seem very useful as it doesn't tell you which input was in focus, but you can
-// probably search for the element with focus to find out. It also doesn't tell you what text
-// is currently in that info, but probably same answer, find what's in focus and figure it out
 
-_onClickedCb: function(itemData) {
-	const logHead = "ContextMenu::_onClickedCb(): ";
-	this._log(logHead + "entering", itemData);
+//_onClickedCb: function(itemData, tab) {
+//	const logHead = "ContextMenu::_onClickedCb(): ";
+//	this._log(logHead + "entering", arguments);
+//},
 
-	this._menuItemsClickFns[itemData.menuItemId].fn(itemData);
+_onShortcutUpdatedCb: function(ev) {
+	let key = ev.detail.key;
+	const logHead = "ContextMenu::_onShortcutUpdatedCb(" + key + "): ";
+
+	// We don't have a lot of menu items, rather than going through the trouble of
+	// figuring out which items have been removed (shortcut deleted or removed search
+	// option), or have been modified (title changed), let's just delete all and add
+	// all again...
+	chromeUtils.wrap(chrome.contextMenus.removeAll, logHead).then(
+		function() {
+			this._log(logHead + "menus cleared, building them again");
+
+			this._allMenuItems = this._defineAllMenuItems();
+			this._addAllMenuItems(this._allMenuItems);
+		}.bind(this)
+	);
 },
+
 
 }); // Classes.ContextMenu
