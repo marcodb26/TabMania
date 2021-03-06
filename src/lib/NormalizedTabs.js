@@ -201,7 +201,11 @@ updateSearchBadges: function(tab) {
 	}
 
 	if(tab.discarded) {
-		this._addNormalizedVisualBadge(tab, "discarded", false);
+		// Another discrepancy besides "loaded" instead of "complete", it seems
+		// like "discard" is a well known term than "suspend" for this action,
+		// even though "suspend" doesn't seem that accurate... anyway let's
+		// go with the flow
+		this._addNormalizedVisualBadge(tab, "suspended", false);
 	}
 
 	if(tab.tm.type == Classes.NormalizedTabs.type.RCTAB) {

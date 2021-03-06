@@ -1,9 +1,5 @@
 - Remove all injection code in preparation for release (again)
 
-- Changed "Discard from memory" menu item to "Suspend", now do we need to change
-  the search badge from "discarded" to "suspended" too?
-  * Probably
-
 - Find a way to refresh shortcut text (no event for that)
 
 - Add shortcut title to dropdown menu of tabs
@@ -267,6 +263,9 @@ DONE 1.1
 - Link (click) shortcut text badges to extension shortcut config?
 
 - Cleaned up debugging commands for Chrome dev tools console
+
+- Changed "Discard from memory" menu item to "Suspend"
+  - Also changed the search badge from "discarded" to "suspended"
 
 
 PUNTED TO NEXT RELEASE

@@ -170,7 +170,7 @@ Classes.TileTabMenuViewer = Classes.MenuViewer.subclass({
 	_muteMenuItem: null,
 	_highlightMenuItem: null,
 	_playMenuItem: null,
-	_discardMenuItem: null,
+	_suspendMenuItem: null,
 	_closeMenuItem: null,
 	// An array of menu items associated to custom shortcuts
 	_shortcutMenuItems: null,
@@ -245,12 +245,12 @@ _initMenuItems: function() {
 								this._actionMoveToLeastTabbedCb.bind(this));
 	this.append(this._moveToLeastTabbedMenuItem);
 
-	this._discardMenuItem = Classes.MenuItemViewer.create("Suspend (discard from memory)",
-								this._actionDiscardCb.bind(this));
+	this._suspendMenuItem = Classes.MenuItemViewer.create("Suspend (discard from memory)",
+								this._actionSuspendCb.bind(this));
 //	if(!settingsStore.getOptionAdvancedMenu()) {
-//		this._discardMenuItem.hide();
+//		this._suspendMenuItem.hide();
 //	}
-	this.append(this._discardMenuItem);
+	this.append(this._suspendMenuItem);
 
 	this._closeMenuItem = Classes.MenuItemViewer.create("Close", this._actionCloseCb.bind(this));
 	this.append(this._closeMenuItem);
@@ -263,7 +263,7 @@ _updateMenuItems: function() {
 	this._pinMenuItem.setText(this._tab.pinned ? "Unpin" : "Pin");
 	this._muteMenuItem.setText(this._tab.mutedInfo.muted ? "Unmute" : "Mute");
 	this._highlightMenuItem.setText(this._tab.highlighted ? "Remove highlight" : "Highlight");
-	// Nothing to update for _discardMenuItem and _closeMenuItem
+	// Nothing to update for _suspendMenuItem and _closeMenuItem
 	this._updateShortcutMenuItems();
 },
 
@@ -342,8 +342,8 @@ _actionMoveToLeastTabbedCb: function(ev) {
 	);
 },
 
-_actionDiscardCb: function(ev) {
-	const logHead = "TileTabMenuViewer::_actionDiscardCb(" + this._tab.id + "): ";
+_actionSuspendCb: function(ev) {
+	const logHead = "TileTabMenuViewer::_actionSuspendCb(" + this._tab.id + "): ";
 	chromeUtils.wrap(chrome.tabs.discard, logHead, this._tab.id).then(
 		function() {
 			this._log(logHead + "completed");
@@ -469,7 +469,7 @@ _initMenuItems: function() {
 _updateMenuItems: function() {
 	this._updateTitleMenuItem();
 	this._pinMenuItem.setText(this._bm.pinned ? "Unpin" : "Pin");
-	// Nothing to update for _discardMenuItem and _deleteMenuItem
+	// Nothing to update for _deleteMenuItem
 },
 
 _actionActivateCb: function(ev) {
