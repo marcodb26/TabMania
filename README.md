@@ -45,10 +45,10 @@ a few visible bits of information about the state of a browser tab:
   appear. You can use the close button to close the tab without bringing it to the foreground.
 * If a tile displays in black&white and its title is italicized, then the browser tab is in state
   `unloaded` (search keyword). The tab exists, but Chrome has not fully loaded it yet. Note that
-  you can also explicitly unload a browser tab by using the advanced menu action _Discard from memory_;
-  you can search for all tabs you've discarded this way with the search keyword `discarded`.
-* A browser tab displays the `loading` (search keyword) badge while it's loading a page, then the badge disappears,
-  indicating the tab is fully `loaded` (search keyword)
+  you can also explicitly unload a browser tab by using the menu action _Suspend_;
+  you can search for all tabs you've suspended this way with the search keyword `suspended`.
+* A browser tab displays the `loading` (search keyword) badge while it's loading a page, then the badge
+  disappears, indicating the tab is fully `loaded` (search keyword)
 
 ## Custom groups
 [ Work in progress - section missing ]
@@ -69,7 +69,7 @@ first tab in the list of results.
 
 Search keywords are a combination of the badges you can find on the tile, plus hidden badges added
 for search convenience.
-The hidden badges include `audible`, `muted`, `highlighted`, `incognito`, `pinned`, `discarded`,
+The hidden badges include `audible`, `muted`, `highlighted`, `incognito`, `pinned`, `suspended`,
 `unloaded` and `loaded`. For _recently closed tabs_, the extra search badge `closed` is also available.
 
 __Example__: a tab is playing sounds and you want to mute it; type "audible" to get a list of tabs that

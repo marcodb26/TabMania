@@ -1,8 +1,8 @@
-- Remove all injection code in preparation for release (again)
-
 - Find a way to refresh shortcut text (no event for that)
-
-- Add shortcut title to dropdown menu of tabs
+  * Initially let's just override _bstabActivatedCb() to let it trigger a rebuild
+    of those shortcut texts
+	- At least the user can do a Settings -> Home -> Settings to see the update,
+	  instead of a close -> open popup...
 
 - In search, consider multiple words to be multiple keywords separated by "or"
   * Right now multiple words are still pat of a single string
@@ -19,6 +19,8 @@
 	    update for a tab that's been closed?
 	  * And why was this not happening with docked popup when closing a tab from
 	    within the popup?
+
+- Remove all injection code in preparation for release (again)
 
 - Disable Base._assert() for production code
 
@@ -255,6 +257,10 @@ DONE 1.1
 
 
 PUNTED TO NEXT RELEASE
+
+- Add shortcut title to dropdown menu of tabs
+  * We use the "shortcut title" in context menus, should we also use it in the tile
+    dropdown (maybe as a subtitle?) to tell the user what that "SC2" badge means?
 
 - When clicking on the "shortcut text" in the shortcut settings, we open the Chrome page for
   extension shortcuts settings in a new window with every click

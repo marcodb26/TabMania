@@ -13,6 +13,8 @@ page, some only on the popups) to monitor the state of the extension, or make ch
 
 * Call `tmUtils.showStorage()` to get a full view of all chrome.storage variables currently set.
 * Call `tmUtils.clearStorage()` in the background page console to reset all persisted state to default
+  - Optional permissions might get reset, but Chrome keeps his cache of what was already granted and
+    won't request permission to the user again
 
 * Call `popupDockerBg.showState()` in the background page console to find the state of the popup (docked or undocked)
 
