@@ -190,7 +190,7 @@ addHeadingClasses: function(...args) {
 
 // The signature of the callback is function(event).
 // Note that the event happens on the parent of _bodyElem, so watch out.
-addCollapsedListener: function(fn) {
+addCollapsedStartListener: function(fn) {
 	// We're attaching to "hide.bs.collapse", which is the event generated at
 	// the start of the container collapse action, but before the animations
 	// have completed
@@ -199,7 +199,7 @@ addCollapsedListener: function(fn) {
 
 // The signature of the callback is function(event).
 // Note that the event happens on the parent of _bodyElem, so watch out.
-addExpandedListener: function(fn) {
+addExpandedStartListener: function(fn) {
 	// We're attaching to "show.bs.collapse", which is the event generated at
 	// the start of the container expand action, but before the animations
 	// have completed

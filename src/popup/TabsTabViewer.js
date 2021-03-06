@@ -79,8 +79,8 @@ _groupHeadingHtml: function() {
 
 _TilesGroupViewer_render: function() {
 	this.setHeadingHtml(this._groupHeadingHtml());
-	this.addExpandedListener(this._containerExpandedCb.bind(this));
-	this.addCollapsedListener(this._containerCollapsedCb.bind(this));
+	this.addExpandedStartListener(this._containerExpandedCb.bind(this));
+	this.addCollapsedStartListener(this._containerCollapsedCb.bind(this));
 
 	if(this._tabGroup.type == Classes.GroupsBuilder.Type.CUSTOM) {
 		let cgm = settingsStore.getCustomGroupsManager();

@@ -1,25 +1,3 @@
-- Find a way to refresh shortcut text (no event for that)
-  * Initially let's just override _bstabActivatedCb() to let it trigger a rebuild
-    of those shortcut texts
-	- At least the user can do a Settings -> Home -> Settings to see the update,
-	  instead of a close -> open popup...
-
-- In search, consider multiple words to be multiple keywords separated by "or"
-  * Right now multiple words are still pat of a single string
-  * Is that compatible with using the "+" as launch/search?
-
-- BUG: now that we have a way to persist the popup beyond the life of a tab/window,
-  we're starting to see race conditions we did not see before:
-  * [2] ChomeUtils::inject(695): unknown error: No tab with id: 695.
-  * It looks like when we close a tab, we might still have it for a while and try to
-    inject scripts into it
-	- As a minimum we should suppress this error, but better trying to figure out
-	  why we have this race, I thought we injected only on full refresh?
-	  * Probably we inject also on single-tab update, but why would we get an
-	    update for a tab that's been closed?
-	  * And why was this not happening with docked popup when closing a tab from
-	    within the popup?
-
 - Remove all injection code in preparation for release (again)
 
 - Disable Base._assert() for production code
@@ -255,8 +233,19 @@ DONE 1.1
     at Object._tabUpdatedCb (chrome-extension://flhpmmboiepkmkippdhjllnejfolajdb/popup/TabsTabViewer.js:399:14)
   * That's the tab ID of the popup
 
+- Find a way to refresh shortcut text (no event for that)
+  * Initially let's just register for Settings bsTab activation and shortcuts
+    collapsible container expansion to let them trigger a rebuild of those
+	shortcut texts
+	- At least the user can do a Settings -> Home -> Settings to see the update,
+	  instead of a close -> open popup...
+
 
 PUNTED TO NEXT RELEASE
+
+- In search, consider multiple words to be multiple keywords separated by "or"
+  * Right now multiple words are still pat of a single string
+  * Is that compatible with using the "+" as launch/search?
 
 - Add shortcut title to dropdown menu of tabs
   * We use the "shortcut title" in context menus, should we also use it in the tile
@@ -317,6 +306,19 @@ PUNTED TO NEXT RELEASE
   * They were align to the baseline of the text before the .align-middle change...
   * .text-truncate is in the parent element, but setting .align-middle there too has
     no effect at all
+
+- BUG: now that we have a way to persist the popup beyond the life of a tab/window,
+  we're starting to see race conditions we did not see before:
+  * [2] ChomeUtils::inject(695): unknown error: No tab with id: 695.
+  * It looks like when we close a tab, we might still have it for a while and try to
+    inject scripts into it
+	- As a minimum we should suppress this error, but better trying to figure out
+	  why we have this race, I thought we injected only on full refresh?
+	  * Probably we inject also on single-tab update, but why would we get an
+	    update for a tab that's been closed?
+	  * And why was this not happening with docked popup when closing a tab from
+	    within the popup?
+  * At the end of the 1.1 development, unable to reproduce this issue
 
 - Limit maximum number of tabs in a window
   * To be used with the "least tabbed window" logic to decide to open a new tab in a

@@ -170,8 +170,8 @@ _init: function(settingsTabViewerObj) {
 	this._shortcutViewers = [];
 
 	this.setHeadingHtml(`<div class="fw-bold">Shortcuts settings</div>`);
-//	this.addExpandedListener(this._containerExpandedCb.bind(this));
-//	this.addCollapsedListener(this._containerCollapsedCb.bind(this));
+	this.addExpandedStartListener(this._containerExpandedCb.bind(this));
+//	this.addCollapsedStartListener(this._containerCollapsedCb.bind(this));
 	this.addClasses("mt-3");
 
 // Now that we have the clickable shortcut text for all shortcuts, we don't need
@@ -192,11 +192,11 @@ _init: function(settingsTabViewerObj) {
 		}.bind(this)
 	);
 
-	this._getExtShortcuts();
+	this.updateShortcutText();
 },
 
-_getExtShortcuts: function() {
-	const logHead = "SettingsCustomShortcutViewer::_getExtShortcuts(): ";
+updateShortcutText: function() {
+	const logHead = "SettingsCustomShortcutViewer::updateShortcutText(): ";
 	chromeUtils.wrap(chrome.commands.getAll, logHead).then(
 		function(commands) {
 			this._log(logHead + "received", commands);
@@ -211,6 +211,13 @@ _getExtShortcuts: function() {
 			);
 		}.bind(this)
 	);
+},
+
+_containerExpandedCb: function(ev) {
+	const logHead = "SettingsCustomShortcutViewer::_containerExpandedCb(" + ev.target.id + "): ";
+	this._log(logHead + "container expanded", ev);
+
+	this.updateShortcutText();
 },
 
 //_renderExtensionShortcutsLink: function() {
@@ -292,7 +299,7 @@ _init: function(tabLabelHtml) {
 	// in this container.
 	settingsStore.addEventListener(Classes.EventManager.Events.UPDATED, this._updatedCb.bind(this));
 
-	this.addBsTabActivationEndListener(this._bsTabActivatedCb.bind(this));
+	this.addBsTabActivationStartListener(this._bsTabActivatedCb.bind(this));
 },
 
 // This is not a private function because it needs to be called by other classes
@@ -389,8 +396,8 @@ _renderSettings: function() {
 		border: false
 	});
 	this._generalSettingsContainer.setHeadingHtml(`<div class="fw-bold">General settings</div>`);
-//	this._generalSettingsContainer.addExpandedListener(this._containerExpandedCb.bind(this));
-//	this._generalSettingsContainer.addCollapsedListener(this._containerCollapsedCb.bind(this));
+//	this._generalSettingsContainer.addExpandedStartListener(this._containerExpandedCb.bind(this));
+//	this._generalSettingsContainer.addCollapsedStartListener(this._containerCollapsedCb.bind(this));
 	this.append(this._generalSettingsContainer);
 
 	let recentlyClosedInSearch = Classes.SettingsCheckboxItemViewer.create({
@@ -447,8 +454,8 @@ _renderSettings: function() {
 	// to add new groups
 	let outerCustomGroupsContainer = Classes.CollapsibleContainerViewer.create({ border: false });
 	outerCustomGroupsContainer.setHeadingHtml(`<div class="fw-bold">Custom groups settings</div>`);
-//	outerCustomGroupsContainer.addExpandedListener(this._containerExpandedCb.bind(this));
-//	outerCustomGroupsContainer.addCollapsedListener(this._containerCollapsedCb.bind(this));
+//	outerCustomGroupsContainer.addExpandedStartListener(this._containerExpandedCb.bind(this));
+//	outerCustomGroupsContainer.addCollapsedStartListener(this._containerCollapsedCb.bind(this));
 	outerCustomGroupsContainer.addClasses("mt-3");
 	this.append(outerCustomGroupsContainer);
 
@@ -567,6 +574,8 @@ _bsTabActivatedCb: function(ev) {
 	const logHead = "SettingsTabViewer::_bsTabActivatedCb(" + ev.target.id + "): ";
 	this._log(logHead + "tab activated", ev);
 
+	this._shortcutsContainer.updateShortcutText();
+},
 
 }); // Classes.SettingsTabViewer
 
