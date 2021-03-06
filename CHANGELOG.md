@@ -6,7 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Added
 - Added this Changelog file
 - Moved release process to [README-DEV.md](https://github.com/marcodb26/TabMania/blob/main/README-DEV.md)
-- Added ability to undock the popup, so users can resize it and have it always available
+- Added ability to dock/undock the popup.
+  * The new default is "undocked", so users can have it always available
 - Added "+" button to open a new tab; the tab will recycle leftover "new tabs" or use the
   "least tabbed window"
   * If a search is active, the "+" button opens a launch/search with the search text instead
@@ -45,6 +46,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * Right click when text is selected offers the following new menu items:
     - Use launch/search shortcut
 	- Use any custom shortcuts with search enabled
+	- Added a _title_ to the custom shortcuts configuration, to display useful text
+	  in the context menu
+- Added _Move to least tabbed window_ action to the tile dropdown menu
 
 ## Changed
 - Updated Bootstrap to v.5.0.0-beta2
@@ -56,9 +60,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved tiles rendering efficiency
   * Chunking tile bodies and dropdown menus to be rendered in async groups
   * Caching and reusing tile viewers
-- Changing searchbox input reset the scrolling position back to the top
+- Changing searchbox input resets the scrolling position back to the top
   * Before it would try to stay in the same scrolling position across input changes
-- Closing a search opens the stanrdard view in the same scrolling position where it
+- Closing a search opens the standard view in the same scrolling position where it
   was before the search started
 
 ## Fixed

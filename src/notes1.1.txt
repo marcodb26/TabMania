@@ -1,12 +1,14 @@
-- Make "undocked" the new default for the popup
+- Remove all injection code in preparation for release (again)
 
-- Add "move tab to least tabbed window" action to the tile dropdown menu
+- Changed "Discard from memory" menu item to "Suspend", now do we need to change
+  the search badge from "discarded" to "suspended" too?
+  * Probably
 
-- Add title/name to shortcut keys, and use it in context menu
+- Find a way to refresh shortcut text (no event for that)
 
-- Listen to shortcut keys events and update shortcut keys context menus accordingly
+- Add shortcut title to dropdown menu of tabs
 
-- BUG: "move to least tabbed" context menu can't find the tab...
+- Remove "Advanced mode" options
 
 - Remove "pin" menu for bookmarks if we don't implement it in this release
 
@@ -235,8 +237,49 @@ DONE 1.1
 
 - Save size and position of undocked popup
 
+- Make "undocked" the new default for the popup
+
+- BUG: ".form-floating" doesn't seem to work
+  * Needed to add a non-empty placeholder at all times
+
+- Add title/name to shortcut keys, and use it in context menu
+
+- BUG: need to consider multiple matches for chromeUtils.getLeastTabbedWindowId()
+
+- Blink popup badge if a triggered action has no effect (e.g. "move to least tabbed window"
+  but the tab is already in the least tabbed window)
+
+- Listen to shortcut keys events and update shortcut keys context menus accordingly
+
+- BUG: "move to least tabbed" context menu can't find the tab...
+
+- Removed "Toggle play" menu item
+  * Added temporarily to play around with it
+
+- BUG: tiles dropdown menu stays open when clicking on a menu item
+  * It might go away because you hover somewhere else, but when you hover back
+    it's still open
+
+- Add "move tab to least tabbed window" action to the tile dropdown menu
+
+- Change the shortcut text "unset" to lighter gray, to show it's not set
+
+- Link (click) shortcut text badges to extension shortcut config?
+
+- Cleaned up debugging commands for Chrome dev tools console
+
 
 PUNTED TO NEXT RELEASE
+
+- When clicking on the "shortcut text" in the shortcut settings, we open the Chrome page for
+  extension shortcuts settings in a new window with every click
+  * We should first try to find if the page is already opened instead, and reuse it
+  * This might disrupt the docked popup (we didn't want anything to happen to the
+    window where the popup is opened, that's why we chose the "always new window"
+	behavior)
+    - But nowadays the undocked is the better version, and it doesn't suffer this problem
+	- Maybe we can at least choose the better behavior only when undocked, and revert
+	  to "always open new in new window, never reuse" when docked
 
 - TabsTabViewer needs a more precise caching mechanism for tile viewers
   * Right now we discard any tile that's not used in the current rendering iteration
@@ -264,6 +307,9 @@ PUNTED TO NEXT RELEASE
 
 - BUG: when you click a menu or a close button, the searchbox loses focus and doesn't
   recover it even after the menu/close click is over
+  * Probably related:
+	- BUG: in search mode, when the searchbox is not in focus, CTRL+A should select the full
+	  text of the searchbox, but instead it selects everything on the entire page
 
 - The bstabs show an ugly URL at the bottom of the undocked window, we should
   get rid of it
