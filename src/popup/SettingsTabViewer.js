@@ -291,6 +291,8 @@ _init: function(tabLabelHtml) {
 	// won't be able to distinguish a delete from a rename. That needs to be tracked
 	// in this container.
 	settingsStore.addEventListener(Classes.EventManager.Events.UPDATED, this._updatedCb.bind(this));
+
+	this.addBsTabActivationEndListener(this._bsTabActivatedCb.bind(this));
 },
 
 // This is not a private function because it needs to be called by other classes
@@ -560,6 +562,11 @@ _updatedCb: function(ev) {
 	this._delCustomGroups(toBeDeleted);
 	this._addCustomGroups(toBeAdded);
 },
+
+_bsTabActivatedCb: function(ev) {
+	const logHead = "SettingsTabViewer::_bsTabActivatedCb(" + ev.target.id + "): ";
+	this._log(logHead + "tab activated", ev);
+
 
 }); // Classes.SettingsTabViewer
 

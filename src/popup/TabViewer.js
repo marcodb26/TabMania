@@ -55,14 +55,14 @@ _createTab: function(tabLabelHtml) {
 // The signature of the callback is function(event).
 // The activated tab is in "event.target", and the deactivated tab
 // in "event.relatedTarget".
-addTabActivationStartListener: function(fn) {
+addBsTabActivationStartListener: function(fn) {
 	// We're attaching to "show.bs.tab", which is the event generated at
 	// tab switch, but before the new tab panel has been rendered
 	// Ses https://getbootstrap.com/docs/5.0/components/navs-tabs/#events
 	this._triggerElem.addEventListener("show.bs.tab", fn);
 },
 
-addTabActivationEndListener: function(fn) {
+addBsTabActivationEndListener: function(fn) {
 	// We're attaching to "shown.bs.tab", which is the event generated at
 	// the end of the tab switch, after the new tab panel has been rendered
 	// Ses https://getbootstrap.com/docs/5.0/components/navs-tabs/#events
@@ -72,7 +72,7 @@ addTabActivationEndListener: function(fn) {
 // The signature of the callback is function(event).
 // The deactivated tab is in "event.target", and the activated tab
 // in "event.relatedTarget".
-addTabDeactivationStartListener: function(fn) {
+addBsTabDeactivationStartListener: function(fn) {
 	// We're attaching to "hide.bs.tab", which is the event generated at
 	// tab switch, but before the tab switch has happened.
 	// Ses https://getbootstrap.com/docs/5.0/components/navs-tabs/#events
@@ -82,7 +82,7 @@ addTabDeactivationStartListener: function(fn) {
 // The signature of the callback is function(event).
 // The deactivated tab is in "event.target", and the activated tab
 // in "event.relatedTarget".
-addTabDeactivationEndListener: function(fn) {
+addBsTabDeactivationEndListener: function(fn) {
 	// We're attaching to "hidden.bs.tab", which is the event generated at
 	// tab switch, after the tab switch has happened.
 	// Ses https://getbootstrap.com/docs/5.0/components/navs-tabs/#events
@@ -153,7 +153,7 @@ Classes.SearchableTabViewer = Classes.TabViewer.subclass({
 	_bodyElem: null,
 
 	// _activateSearchCb() needs to be added and removed as an event listener depending on whether
-	// or not the searchable bstab is active (see _bstabActivatedCb()/_bstabDeactivatedCb()).
+	// or not the searchable bstab is active (see _bsTabActivatedCb()/_bsTabDeactivatedCb()).
 	// Since removeEventListener() relies on the call info to be the same as addEventListener(),
 	// we can't call each with "this._activateSearchCb.bind(this)", because each call to bind()
 	// generates a different function pointer. We need to store the same bound function pointer
@@ -173,7 +173,7 @@ _init: function(tabLabelHtml) {
 	// Don't call _activateSearchBox() (see _activateSearchBox() for details).
 	this._SearchableTabViewer_searchBoxInactiveInner();
 	// Classes.TabViewer starts all Bootstrap tabs as inactive, so we don't need to
-	// explicitly call _bstabActivatedCb(), the event will fire when the tab gets
+	// explicitly call _bsTabActivatedCb(), the event will fire when the tab gets
 	// activated for the first time
 },
 
@@ -237,15 +237,15 @@ _SearchableTabViewer_initBodyElem: function() {
 	this._bodyElem = this.getElementById(bodyId);
 
 	// Note that we need to attach to the end of the tab activation, because the
-	// _bstabActivatedCb() call needs to set focus on the search box, and if you attach
+	// _bsTabActivatedCb() call needs to set focus on the search box, and if you attach
 	// to the start of the tab activation, that focus gets lost again as part of the
 	// activation process
-	this.addTabActivationEndListener(this._bstabActivatedCb.bind(this));
-	this.addTabDeactivationEndListener(this._bstabDeactivatedCb.bind(this));
+	this.addBsTabActivationEndListener(this._bsTabActivatedCb.bind(this));
+	this.addBsTabDeactivationEndListener(this._bsTabDeactivatedCb.bind(this));
 },
 
-_bstabActivatedCb: function(ev) {
-	const logHead = "SearchableTabViewer::_bstabActivatedCb(): ";
+_bsTabActivatedCb: function(ev) {
+	const logHead = "SearchableTabViewer::_bsTabActivatedCb(): ";
 	this._log(logHead + "searchable tab activated");
 
 	// We're setting the listener very broadly to "window" instead of putting a more
@@ -261,8 +261,8 @@ _bstabActivatedCb: function(ev) {
 	}
 },
 
-_bstabDeactivatedCb: function(ev) {
-	const logHead = "SearchableTabViewer::_bstabDeactivatedCb(): ";
+_bsTabDeactivatedCb: function(ev) {
+	const logHead = "SearchableTabViewer::_bsTabDeactivatedCb(): ";
 	this._log(logHead + "searchable tab deactivated");
 
 	// See _activateSearchCbBoundFn above for details on this._activateSearchCbBoundFn here.

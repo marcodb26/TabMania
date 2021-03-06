@@ -149,8 +149,8 @@ _initActiveTabId: function(results) {
 	this.getTabViewerById(this._activeBsTabId).activate();
 },
 
-_bstabActivatedCb: function(ev) {
-	const logHead = "PopupViewer::_bstabActivatedCb(" + ev.target.id + "): ";
+_bsTabActivatedCb: function(ev) {
+	const logHead = "PopupViewer::_bsTabActivatedCb(" + ev.target.id + "): ";
 	this._log(logHead + "tab activated", ev);
 
 	this._activeBsTabId = ev.target.id;
@@ -163,7 +163,7 @@ _createTab: function(suffix, htmlLabel, tabViewerSubclass) {
 	
 	this._tabViewersDict[bsTabId] = tabViewerSubclass.createAs(bsTabId, htmlLabel);
 
-	this._tabViewersDict[bsTabId].addTabActivationStartListener(this._bstabActivatedCb.bind(this));
+	this._tabViewersDict[bsTabId].addBsTabActivationStartListener(this._bsTabActivatedCb.bind(this));
 	this.append(this._tabViewersDict[bsTabId]);
 
 	return this._tabViewersDict[bsTabId];
