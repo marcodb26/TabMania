@@ -370,11 +370,11 @@ _renderBody: function(queuePriority) {
 		function() {
 			this._renderBodyInner();
 
-			this._getTabMetaTags().then(
-				function(metaTags) {
-					this._tab.tm.metaTags = metaTags;
-				}.bind(this)
-			);
+//			this._getTabMetaTags().then(
+//				function(metaTags) {
+//					this._tab.tm.metaTags = metaTags;
+//				}.bind(this)
+//			);
 
 			this._renderBodyCompleted = true;
 		}.bind(this),
