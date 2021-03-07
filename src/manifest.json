@@ -119,11 +119,10 @@
 		"128": "images/icon-128.png"
 	},
 
-	// https://cdn.jsdelivr.net is needed to get Bootstrap.
+	// https://cdn.jsdelivr.net is needed to get Bootstrap (but we now store it locally.
 	// See: https://stackoverflow.com/questions/34950009/chrome-extension-refused-to-load-the-script-because-it-violates-the-following-c
 	// https://cdnjs.cloudflare.com is needed for Font Awesome
-//	"content_security_policy": "script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; object-src 'self'",
+	// "content_security_policy": "script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; object-src 'self'",
 
-	"content_security_policy": "script-src 'self' https://cdnjs.cloudflare.com; object-src 'self'",
 	"manifest_version": 2
 }
