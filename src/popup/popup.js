@@ -31,7 +31,8 @@ function testSettings() {
 	settingsStore.setOptionSearchUrl("https://duckduckgo.com/?q=%s");
 //	settingsStore.setOptionShowTabId(true);
 	settingsStore.setOptionAdvancedMenu(true);
-	settingsStore.pinGroup("Work");
+	settingsStore.unpinGroup("Work");
+	settingsStore.pinGroup("Tech news");
 	settingsStore.getShortcutsManager().setShortcut(window.ExtCommands.SHORTCUT01,
 		{
 			title: "Gmail",
@@ -70,6 +71,43 @@ function testSettings() {
 	settingsStore.getCustomGroupsManager().setCustomGroup("Wikipedia", {
 		color: "cyan",
 		matchList: "wikipedia.org"
+	});
+	settingsStore.getCustomGroupsManager().setCustomGroup("News", {
+		color: "cyan",
+		matchList: `
+	aeon.co
+	getpocket.com
+	glamour.com
+	nautil.us
+	npr.org
+	nytimes.com
+	vox.com
+		`
+	});
+	settingsStore.getCustomGroupsManager().setCustomGroup("Tech news", {
+		color: "yellow",
+		matchList: `
+	venturebeat.com
+	techcrunch.com
+		`
+	});
+	settingsStore.getCustomGroupsManager().setCustomGroup("Shopping", {
+		color: "green",
+		matchList: `
+	amazon.com
+	bestbuy.com
+	houzz.com
+	techradar.com
+	wayfair.com
+		`
+	});
+	settingsStore.getCustomGroupsManager().setCustomGroup("Searches", {
+		color: "blue",
+		matchList: `
+	www.google.com
+	bing.com
+	duckduckgo.com
+		`
 	});
 }
 

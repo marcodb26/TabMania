@@ -1,0 +1,51 @@
+- Make sure to include staging/Staging.js in popup/popup.html
+
+- Screenshots have to be 1280x800 and 24 bits (no transparent backgrounds)
+  * We use a 1280x800 background image (21.03.07 - background.png)
+  * We take screenshots that are 512px x 800px and put them in the center
+    of the background image
+
+- If you're showing a new browser window as background, make sure to hide
+  * The bookmark bar
+  * Any other browser extension (unpin them)
+
+- Store screenshots for a new release in TabMania/past-releases/[version]
+
+
+screenshot01.png (popup undocked):
+- Home tab, no search
+- Stay at the top of the tiles list
+- Make sure "www.youtube.com" and "News" tabs are open
+- The screen should show (no need to take action, just verify)
+  * 99% Invisible is muted
+  * Youtube Csardas is audible
+
+screenshot02.png (popup undocked):
+- Home tab, search keyword "nature"
+- Prep work:
+  * Open Google search for "BBC nature documentaries", then close it
+    - URL?
+  * Open https://www.bbc.co.uk/programmes/p04hr089, then close tab
+- Verify that:
+  * Bookmarks show up
+  * Recently closed tabs show
+    - Google search above with "Searches" custom group badge
+	- https://www.bbc.co.uk/programmes/p04hr089 above
+
+screenshot03.png (popup undocked):
+- Settings tab
+- Prep work:
+  * "Inspect" page and remove "-DEV" from TabMania version
+  * Delete custom groups "Companies" and "Microsoft"
+    - "News" should be first in the list of custom groups
+  * Make sure the "Display extended tab ID badge" option is not visible
+    - Remove it with settingsStore.setOptionDevMode(false)
+- Stay scrolled at top
+- Open "Custom groups settings" accordion
+
+screenshot04.png (popup undocked):
+- Settings tab
+- Close "Custom groups settings" accordion
+- Open "Shortcuts settings" accordion
+- Scroll to leave in view the full config of "Custom shortcut SC1" ("Gmail"),
+  but have SC2 out of view below it

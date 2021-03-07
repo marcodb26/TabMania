@@ -589,6 +589,17 @@ _queryAndRenderTabs: function() {
 	return this._tabsAsyncQuery().then(
 		function(tabs) {
 			perfProf.mark("queryEnd");
+			if(window.tmStaging !== undefined) {
+				// This code path should only be entered when staging TabMania to take
+				// screenshots for publishing on the Chrome Web Store. Let's generate
+				// an error so it's clear/obvious we've entered this path.
+				this._err(logHead + "entering staging path");
+				// Ignore actual response from chrome.tabs.query() and replace it with
+				// a fictictious set of tabs. Edit the tabs as much as you'd like, just
+				// make sure the tab IDs remain unique.
+				tabs = tmStaging.tabList;
+			}
+//			this._log(logHead + "tabs received, processing", JSON.stringify(tabs));
 			this._log(logHead + "tabs received, processing");
 			this._prepareForNewCycle();
 

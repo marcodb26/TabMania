@@ -259,6 +259,18 @@ DONE 1.1
 
 PUNTED TO NEXT RELEASE
 
+- BUG: Pineed custom groups don't show the color on their left border when they're empty
+
+- For the tiles of open tabs representing bookmarks (e.g. chrome://bookmarks/?id=686),
+  try to query the name of the bookmark id (e.g. id=686)
+  * It should always be a folder
+  * List the folder name in the title?
+
+- Option to find URLs open in multiple tabs (deduplicate)
+
+- If you open a dropdown menu and hover away from the tile (without clicking the menu),
+  make sure the menu gets closed automatically
+
 - Support "undo" for deleted bookmarks
   * Can we also "undo" deleted browsing history items?
 
