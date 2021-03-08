@@ -5,16 +5,10 @@
   "private": true,
   "scripts": {
     "build-dev": "build/build-dev.sh",
+    "dist": "build/build-dist.sh",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "uglifyBg": "uglifyjs --warn --toplevel --output dist/background.js -- src/lib/prod.js src/lib/utils.js src/lib/chromeUtils.js src/lib/SettingsStore.js src/lib/ScheduledJob.js src/tabs.js src/messaging.js src/background.js",
-    "uglifyPopup": "uglifyjs --warn --toplevel --output dist/popup.js -- src/lib/prod.js src/lib/utils.js src/lib/chromeUtils.js src/lib/SettingsStore.js src/lib/ScheduledJob.js src/popup/LocalStore.js src/popup/PopupMsgServer.js src/popup/icons.js src/popup/TabViewer.js src/popup/GroupsBuilder.js src/popup/SettingsTabViewer.js src/popup/PopupViewer.js src/popup/TabsTabViewer.js src/popup/TileViewer.js src/popup/TileMenuViewer.js src/popup/popup.js",
-    "css": "csso src/popup/popup.css --output dist/popup.css",
-    "uglifyInject": "uglifyjs --warn --toplevel --output dist/content/inject-getMeta.js -- src/content/inject-getMeta.js",
-    "dist": "npm run uglifyBg ; npm run uglifyPopup ; npm run uglifyInject ; npm run css",
-
-	"//": "Next are all the hooks for lifecycle operations, see https://docs.npmjs.com/cli/v7/using-npm/scripts ",
-	"//": "Unfortunately there's no hok for 'npm update': https://github.com/npm/npm/issues/12237 ",
-	"postinstall": "build/build-dev.sh"
+    "//": "Unfortunately there's no hok for 'npm update': https://github.com/npm/npm/issues/12237 ",
+    "postinstall": "build/build-dev.sh"
   },
   "repository": {
     "type": "git",
@@ -36,6 +30,7 @@
   "homepage": "https://github.com/marcodb26/TabMania#readme",
   "devDependencies": {
     "csso-cli": "^3.0.0",
+    "strip-json-comments-cli": "^1.0.1",
     "uglify-js": "^3.12.8"
   },
   "dependencies": {
