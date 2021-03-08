@@ -259,6 +259,42 @@ DONE 1.1
 
 PUNTED TO NEXT RELEASE
 
+- BUG: search a single letter ("a"), get 1,100 results, then scroll to the bottom
+  * Focus on a window and change active tab
+    - The search count badge blinks, then stops blinking, everything is visible
+  * Repeat the same but this time close a tab
+    - The search count badge blinks, but when it stops, all tiles at the bottom
+	  become whilte, and remain white for a while before getting re-rendered
+	  * What's the difference between changing active tab and closing a tab???
+
+- BUG: while testing production, "Open in least tabbed window" chose a window with
+  more tabs than the one where the parent tab was
+  * Need to check what happens if calling "Open in least tabbed window" while on
+    the least tab window (with a lot less tabs than the next tabbed window)
+  * Also, the bug happened when clicking on a link for a tab that had just been
+    moved to the least tabbed window
+
+- BUG: the chrome.history.search API is tricky... if I search for "Los a" it finds
+  history of visits to the "Los Angeles Public Library", but if I search for "Los an"
+  those results disappear
+  * We've seen similar problems with "Go" generating less results than "Goo"
+    - While both should capture "Google", and definitely a shorter query should
+	  generate more results, not less
+
+- To improve on the update of custom shortcuts text, we could trigger an update to the
+  custom shortcuts text badge every time the user focuses on the TabMania popup (for
+  undocked, need to find the equivalent for docked), since in order to change the shortcuts
+  the user needs to go to the extension page
+  * To make it less frequent, we could monitor that the previous tab in focus before the
+    popup was the extensions/shortcuts tab
+	- But the user could have closed it, or could have navigated through other tabs,
+	  or could have used the extensions/shortcuts tab to load other stuff
+  * "When the popup gets focused" seems to be the only reliable way to trigger the check
+    - Event initiated from background.js, since background.js knows
+
+- Add back this._getTabMetaTags() to TabTileViewer::_renderBody()
+  * And add back host permission "*://*/*" to allow the code injection to run properly
+
 - BUG: Pineed custom groups don't show the color on their left border when they're empty
 
 - For the tiles of open tabs representing bookmarks (e.g. chrome://bookmarks/?id=686),
@@ -737,6 +773,7 @@ ENVIRONMENT
   > npm config set shell "C:\\Program Files\\Git\\git-bash.exe"
   > npm config set script-shell "C:\\Program Files\\Git\\git-bash.exe"
   * Use "npm config list" to check
+  * UPDATE: this makes "npx" fail on Windows...
 
 - Installed Bootstrap
   > npm install bootstrap@5.0.0-beta1
@@ -751,6 +788,10 @@ ENVIRONMENT
   > npm install csso-cli --save-dev
   * Really liked the documentation of cssnano (https://cssnano.co/docs/getting-started), but
     decided to go with csso because it seemed to be more "independent" of other modules
+
+- Installed strip-json-comments-cli v.1.0.1
+  > npm install strip-json-comments-cli --save-dev
+  - It added 49 packages (???)
 
 
 PREPARING DIST

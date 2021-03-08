@@ -77,69 +77,45 @@ you point Chrome to `src/` for `manifest.json`, or any time you edit a file in `
 # Release process
 Very manual until I have some time to focus on automation
 
-* Copy `/src/manifest.json` to `/dist/manifest.json`
+* Make sure BG_SOURCES in build/build-dist.sh includes all the files listed in manifest.json
+  background.scripts
+  - Copy the list from manifest.json background.scripts, but make sure to remove the commas
+    between files
+
+* Make sure POPUP_SOURCES in build/build-dist.sh includes all scripts listed in popup.html
+  - Exactly as listed (and in the same order) in popup.html, all relative to the src/popup folder
+
+* Delete /dist
+
+* Run `npm run dist`
 
 * With `/dist/manifest.json`
   * Replace all background.scripts with just `background.js`
-  * Remove permissions `tabGroups` (until they become available in the stable channel)
   * Rename `default_popup` from `popup/popup.html` to `popup.html`
-  * Remove all comments
-  * Remove completely the `content_security_policy` line at the bottom
-    * We used to need it because we were using Bootstrap online, but not anymore
-	* We keep it for dev in case we want to experiment with new Font Awesome icons,
-	  but we don't use remote icons in productions
-
-* Copy `/src/popup/popup.html` to `/dist/popup.html`
-
-* Copy `/src/bootstrap.min.css` to `/dist/bootstrap.min.css`
-  * Why not copy from `/node_modules/bootstrap/dist/css`? Because the process is still
-    very manual, and if we've tested from `/src`, better to include from `/src`, in case
-	we forgot to update these files in `/src` when we (thought we) upgraded Bootstrap
-
-* Copy `/src/bootstrap.bundle.min.js` to `/dist/bootstrap.bundle.min.js`
-  * Why not copy from `/node_modules/bootstrap/dist/js`? Because the process is still
-    very manual, and if we've tested from `/src`, better to include from `/src`, in case
-	we forgot to update these files in `/src` when we (thought we) upgraded Bootstrap
-
-* Remove sourcemap comment from the bottom of `/dist/bootstrap.min.css` and `/dist/bootstrap.bundle.min.js`
+  * Remove all the empty lines
+  * Ideally take the following two steps by commenting out these permissions in the source manifest.json:
+    * Remove permissions `tabGroups` (until they become available in the stable channel)
+    * Remove permissions `*://*/*` (only needed for the script injection testing)
 
 * With `/dist/popup.html`
-  * Replace all local `<script>` tags (including all "inject" tags) with just `popup.js`
-  * Update location of favicon `<link rel="icon" href="../images/icon-16.png" [...]` to point
-    to `/dist/images` as `<link rel="icon" href="images/icon-16.png" [...]`
-  * Remove Font Awesome stuff
-	* `<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" rel="stylesheet">`
-	* `<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/js/all.min.js"></script>`
+  * Remove all local `<script>` tags (including all "inject" tags) from `<head>`, leaving only `popup.js`
+    - Also leave the script for `bootstrap.bundle.min.js` in the body
+  * Remove "../" from the HREF of the favicon, from `<link rel="icon" href="../images/icon-16.png" [...]`
+    to `<link rel="icon" href="images/icon-16.png" [...]`
   * Remove all comments
-
-* Copy `/src/images` to `/dist/images`
 
 * Create `/dist/content`
   * Or not, wait until we actually need it...
-
-* Run `npm run uglifyBg` to minify `dist/background.js`
-  * `uglifyBg` should include the option `--compress`, but that option triggers strange
-    warnings (it reshuffles uses of variables and starts finding "Dropping duplicated definition
-	of variable [xyz]"), plus it discards the unused `tmStats()` (which we'd like not to discard)
-	* All of this for a gain of 2KB (from 52KB to 50KB, without `--mangle`), not worth it
-	* We also tried `--mangle`, without `--compress` it takes the code down from 52KB to 45KB,
-	  but again you lose `tmStats()`
-	* We'll clean this up later and possibly add back `--compress` and `--mangle`
-	  * And also add back `--source-map` once we understand if we really need it
-
-* Run `npm run uglifyPopup` to minify `dist/popup.js`
-  * Try to use `--compress` temporarily just to see if it comes up with any useful warnings...
-  * Without `--compress` the code amounts to 113KB, with it (but no `--mangle`) it's 109KB
-    * No difference at all...
-	* With `--mangle --compress` we're down to 95KB (but again, for now let's build without these options)
-
-* Run `npm run css` to minify `dist/popup.css`
 
 * Run `npm run uglifyInject` to minify `dist/content/inject-getMeta.js`
   * Or not, if you have not created `/dist/content` (see above)
 
 * Bundle `/dist` in a zip file of form `TabMania vX.Y.zip`, where `X.Y` is the same version as the version
   in the `manifest.json` file
+  - Make sure the files inside the zip file don't start with a top level "/dist" directory
+
+* Test the created `/dist` files
+  * Call `tmUtils.clearStorage()` before you start testing
 
 * Post the new version on the Google developer console at https://chrome.google.com/webstore/devconsole
 
