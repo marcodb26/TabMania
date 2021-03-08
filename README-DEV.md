@@ -117,7 +117,7 @@ Very manual until I have some time to focus on automation
 * Test the created `/dist` files
   * Call `tmUtils.clearStorage()` before you start testing
 
-* Update CHANGELOG.md
+* Update and commit CHANGELOG.md
   - Change title `# [Unreleased]` to `# [X.Y.0] - YYYY-MM-DD`
     * There should be no `# [Unreleased]` in the file until after the tag has been created
 
@@ -127,8 +127,9 @@ Very manual until I have some time to focus on automation
 
 * Tag commit by creating a release in github
   * https://docs.github.com/en/github/administering-a-repository/managing-releases-in-a-repository
+    - Click on the "Releases" block on the right
   * Create a tag as part of the release creation process
-    * The tag must have format `vX.Y`, where X.Y is the same version as the version in the `manifest.json` file
+    - The tag must have format `vX.Y`, where X.Y is the same version as the version in the `manifest.json` file
   * Use same _title_ as the tag name (`vX.Y`)
   * Don't add any _description_ yet, we'll need tagged files to be linked in the description.
   * Add `TabMania.v[X.Y].distribution.zip` to the release assets
@@ -136,8 +137,13 @@ Very manual until I have some time to focus on automation
     assets as well
 
 * Once the tag is available, navigate to the tagged sources and get a link to README.md in that tag
-  * Then edit the release object just created, and add the "Documentation here" hyperlink to the
-    README.md in the release tag
+  * https://github.com/marcodb26/TabMania/commits then click the `< >` button (_Browse the repository
+    at this point in the history_)
+  * Note down the link of README.md and CHANGELOG.md
+    - Readme: https://github.com/marcodb26/TabMania/blob/1b6c1fda47d89bb3df7e5d9b2d7b30301206f8f0/README.md
+	- Changelog: https://github.com/marcodb26/TabMania/blob/1b6c1fda47d89bb3df7e5d9b2d7b30301206f8f0/CHANGELOG.md
+  * Then edit the release object just created, and add:
+	 `See the documentation and changelog for this release.` with appropriate hyperlinks
 
 * Post the new version on the Google developer console at https://chrome.google.com/webstore/devconsole
   * Use the same tagged link to the README.md
@@ -148,5 +154,7 @@ Very manual until I have some time to focus on automation
 
 * Edit `package.json` and update `version` to the next expected release version
 
-* Commit this change alone with message `First commit for vX.Y`, where X.Y is the same version as the new
-  version you've just edited in the `manifest.json` and `package.json` files
+* Update CHANGELOG.md again, by adding a new `# [Unreleased]` section at the top
+
+* Commit these changes with message `First commit for vX.Y`, where X.Y is the same version as the new
+  version you've just edited in the `manifest.json`, `package.json` and `CHANGELOG.md` files
