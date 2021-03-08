@@ -31,7 +31,7 @@ declare -r TGT="src/content-gen"
 
 mkdir -p ${TGT}
 
-declare -r PREAMBLE="// AUTO-GENERATED FILE, do not edit, use \'npm run buildinject\' to build\n"
+declare -r PREAMBLE="// AUTO-GENERATED FILE, do not edit, use \'npm run build-dev\' to build\n"
 
 
 runUglifyJs() {
