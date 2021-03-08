@@ -30,21 +30,6 @@ _renderTabsContainer: function() {
 	const menuId = this._id + "-menu";
 	const bodyId = this._id + "-body";
 
-	const dockToggleBtnTxt = popupDocker.isPopupDocked() ? "Undock" : "Dock";
-
-//	const headingHtml = `
-//	<div class="d-flex">
-//		<div class="flex-grow-1">
-//			<!-- https://getbootstrap.com/docs/5.0/components/navs-tabs/ -->
-//			<ul class="nav nav-tabs nav-fill" id="${headingId}" role="tablist">
-//			</ul>
-//		</div>
-//		<div id="${menuId}">
-//			<a href="#" id="${dockToggleBtnId}">${dockToggleBtnTxt}</a>
-//		</div>
-//	</div>
-//	`;
-
 	// The <div id="${menuId}"> should always be last after the button bar, that's why
 	// we don't want it inside the button bar.
 	// The right margin for the button bar is not needed, the menu button takes care of that.
