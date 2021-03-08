@@ -117,6 +117,10 @@ Very manual until I have some time to focus on automation
 * Test the created `/dist` files
   * Call `tmUtils.clearStorage()` before you start testing
 
+* Update CHANGELOG.md
+  - Change title `# [Unreleased]` to `# [X.Y.0] - YYYY-MM-DD`
+    * There should be no `# [Unreleased]` in the file until after the tag has been created
+
 * Commit `/dist` to github
   * Use commit message `Pushing /dist for vX.Y`
   * Then don't touch `/dist` until the next release cycle
@@ -125,6 +129,8 @@ Very manual until I have some time to focus on automation
   * https://docs.github.com/en/github/administering-a-repository/managing-releases-in-a-repository
   * Create a tag as part of the release creation process
     * The tag must have format `vX.Y`, where X.Y is the same version as the version in the `manifest.json` file
+  * Use same _title_ as the tag name (`vX.Y`)
+  * Don't add any _description_ yet, we'll need tagged files to be linked in the description.
   * Add `TabMania.v[X.Y].distribution.zip` to the release assets
   * Ideally also add new screenshots (those you use in the Chrome Web Store developer console) to the
     assets as well
