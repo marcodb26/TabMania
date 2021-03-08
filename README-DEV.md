@@ -117,9 +117,8 @@ Very manual until I have some time to focus on automation
 * Test the created `/dist` files
   * Call `tmUtils.clearStorage()` before you start testing
 
-* Post the new version on the Google developer console at https://chrome.google.com/webstore/devconsole
-
 * Commit `/dist` to github
+  * Use commit message `Pushing /dist for vX.Y`
   * Then don't touch `/dist` until the next release cycle
 
 * Tag commit by creating a release in github
@@ -133,6 +132,9 @@ Very manual until I have some time to focus on automation
 * Once the tag is available, navigate to the tagged sources and get a link to README.md in that tag
   * Then edit the release object just created, and add the "Documentation here" hyperlink to the
     README.md in the release tag
+
+* Post the new version on the Google developer console at https://chrome.google.com/webstore/devconsole
+  * Use the same tagged link to the README.md
 
 * Use `git fetch` to get the new tag to your clone repo
 
