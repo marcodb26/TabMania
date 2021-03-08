@@ -1,6 +1,6 @@
 {
   "name": "tabmania",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "A simple tab manager enabling some essential keyboard shortcuts",
   "private": true,
   "scripts": {

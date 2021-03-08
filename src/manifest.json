@@ -1,16 +1,16 @@
 {
 	"name": "TabMania",
-	"version": "1.1",
+	"version": "1.2",
 	"description": "A simple tab manager enabling some essential keyboard shortcuts",
 	"permissions": [
 		"bookmarks",
 		"contextMenus",
 		"tabs",
-//		"tabGroups", // https://developer.chrome.com/docs/extensions/reference/tabGroups/
+		"tabGroups", // https://developer.chrome.com/docs/extensions/reference/tabGroups/
 		"sessions", // https://developer.chrome.com/docs/extensions/reference/sessions/
 		"storage",
 		"clipboardRead", // See: https://stackoverflow.com/questions/22702446/how-to-get-clipboard-data-in-chrome-extension
-//		"*://*/*",    // Needed to allow script injection in tabs (see chromeUtils.inject())
+		"*://*/*",    // Needed to allow script injection in tabs (see chromeUtils.inject())
 
 		// We need to add permission "chrome://favicon/" to gain access to the favIcon cache, needed to have
 		// an icon for the tiles displaying bokmarks. Some people say you also need to have "content_security_policy"
