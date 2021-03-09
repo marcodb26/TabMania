@@ -35,6 +35,7 @@ TODO 1.2
   * Can an extension customize its menu before the item gets clicked?
     - Is there a "page right click" handler for a specific page to update the menu when the
 	  right click happens?
+	- Would https://developer.mozilla.org/en-US/docs/Web/API/Element/contextmenu_event work?
 
 - BUG: after suspending and searching "suspended", some tiles lost their dropdown menu
   * Probably some race condition discarding AsyncQueue before it finished rendering the menu
