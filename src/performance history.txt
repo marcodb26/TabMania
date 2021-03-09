@@ -1,0 +1,94 @@
+Performance on 21.02.04 (pre v1.0) (start of day, 199 tiles and some groups)
+
+"Loading window": 		375ms	346ms	317ms	321ms
+"Loading settings": 	144ms	142ms	139ms	145ms
+"Creating popupViewer": 8ms		6.8ms	6.6ms	7ms
+"Attaching popupViewer": 289ms	302ms	281ms	286ms
+"Query": 				146ms	119ms	113ms	121ms
+"Normalize": 			5.6ms	6.3ms	6ms		6ms
+"Shortcuts": 			0.78ms	1ms		1ms		1ms
+"Rendering": 			574ms	523ms	543ms	552ms
+
+"Create groups": 12ms
+"Render tiles": 538ms
+
+
+After making tiles body rendering async ("Render tiles" almost cuts in half):
+
+"Attaching popupViewer": 325ms	296ms	285ms
+"Rendering": 			304ms	295ms	311ms
+"Create groups": 		9ms		7ms		13.8ms
+"Render tiles":			293ms	286ms	294ms
+
+
+If hiding PopupViewer (temporary test, not keeping that, of course)
+
+"Attaching popupViewer": 288ms	292ms	284ms
+"Rendering": 			276ms	293ms	287ms
+"Create groups": 		5ms		7ms		13.8ms
+"Render tiles":			268ms	285ms	279ms
+
+
+Attaching TabsTabViewer's top _containerViewer to TabsTabViewer's body
+at the end of the sync rendering (shaves another 60ms off "Render tiles",
+not a lot, but visually helps a lot by avoiding the "No tabs" view
+for about half a second):
+
+"Attaching popupViewer": 276ms	286ms	277ms
+"Rendering": 			245ms	234ms	242ms
+"Create groups": 		6ms		6ms		7.7ms
+"Render tiles":			237ms	226ms	232ms
+"Attach tiles cont.":	6ms		6ms		7.9ms
+
+
+After removing extra serialization delay by loading all chrome.storage
+without waiting for window's "onLoad" (note that now "Query" starts before
+"Attaching popupViewer", since it's not serialized after it anymore. The reason
+why it takes so much longer now it's likely because "Attaching popupViewer"
+inserts itserf to completion after the query start, and therefore we can
+start processing the query only once "Attaching popupViewer" is done):
+
+"Loading window": 		260ms	385ms	736ms	403ms
+"Loading settings": 	116ms	176ms	233ms	215ms
+"Loading localStore":	110ms	172ms	228ms	209ms
+"Creating popupViewer": 6.5ms	7.8ms	7.1ms	10.1ms
+"Query": 				343ms	351ms	293ms	376ms
+"Attaching popupViewer": 316ms	305ms	265ms	324ms
+"Normalize": 			7.2ms	6.8ms	5.1ms	6ms
+"Shortcuts": 			0.78ms	0.86ms	0.7ms	0.8ms
+"Rendering": 			306ms	322ms	273ms	344ms
+"Create groups":		6.3ms	11.2ms	6ms		11.3ms
+"Render tiles":			298ms	309ms	265ms	330ms
+"Attach tiles cont.":	39ms	6.8ms	6.4ms	6ms
+
+
+Fixed another serialization delay I had forgot:
+
+"Loading window": 		358ms	302ms	314ms	396ms
+"Loading settings": 	182ms	111ms	23ms	24ms
+"Loading localStore":	175ms	106ms	20ms	20ms
+"Creating popupViewer": 8.1ms	8.9ms	6.9ms	6.7ms
+"Query": 				342ms	375ms	241ms	200ms
+"Attaching popupViewer": 298ms	337ms	201ms	141ms
+"Normalize": 			7ms		4.1ms	7ms		9.4ms
+"Shortcuts": 			0.73ms	0.7ms	1.1ms	1.5ms
+"Rendering": 			372ms	390ms	246ms	359ms
+"Create groups":		11.8ms	9ms		9.9ms	17.6ms
+"Render tiles":			358ms	378ms	233ms	338ms
+"Attach tiles cont.":	5.8ms	9.4ms	6ms		6ms
+
+
+Stop too much logging during tiles rendering
+
+"Loading window": 		209ms	295ms	365ms	273ms
+"Loading settings": 	65ms	108ms	109ms	115ms
+"Loading localStore":	64ms	105ms	107ms	110ms
+"Creating popupViewer": 4.4ms	7.3ms	7.6ms	6.9ms
+"Query": 				96ms	141ms	149ms	137ms
+"Attaching popupViewer": 70ms	106ms	107ms	106ms
+"Normalize": 			3.4ms	4.3ms	4.1ms	3.9ms
+"Shortcuts": 			0.5ms	0.8ms	0.9ms	1.3ms
+"Rendering": 			232ms	230ms	271ms	256ms
+"Create groups":		5.3ms	6.6ms	9.9ms	6.9ms
+"Render tiles":			222ms	222ms	260ms	243ms
+"Attach tiles cont.":	9.9ms	14.1ms	4.3ms	4.1ms

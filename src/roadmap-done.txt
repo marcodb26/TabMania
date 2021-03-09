@@ -1,0 +1,589 @@
+DONE 1.2
+
+- Update uglify-js to v.3.13.0
+
+
+DONE 1.1
+
+- Add back this._getTabMetaTags() to TabTileViewer::update()
+  * And add back host permission "*://*/*" to allow the code injection to run properly
+
+- Moved release process to README-DEV.md
+
+- BUG: need to discard settings events if they arrive before the TabsTabViewer chrome
+  query has completed, while _normTabs is still uninitialized
+
+- Learned chrome.extension.getBackgroundPage can't be used in the injected content scripts
+
+- Updated Bootstrap to v.5.0.0-beta2
+
+- BUG: Shortcut05 can't be invoked
+
+- Added Base._log.bg() and Base._err.bg() to direct popup log/error messages to the console
+  of the background page
+
+- Track changes to localStore.isPopupDocked() (use event listener) in all opened
+  popup windows to close automatically when the docked state changes
+  * We should not have more than one undocked popup, but we could have more than
+    one docked popup
+
+- Removed fixed "width: 400px" from initialization to support the undocked case
+  * We force the width and height of <body> in popupDocker only when the popup is docked
+  * This fixed an issue with double scroll bars vertically
+  * We still have an issue with double scroll bars horizontally (when very small width)
+
+- Fixed behavior of this._errorMustSubclass(), the changes made to help uglifyjs
+  felt suspicious
+
+- Review code to verify there are no other silly this._err() in there (like those attached
+  to user input validation, that didn't make sense)
+
+- Include bookmarks in search results, besides open tabs
+  * https://developer.chrome.com/docs/extensions/reference/bookmarks/#method-search
+  * Add option to include or not bookmarks in search results
+    - Auto-updates search results if changed while a search is in progress
+  * Manage pressing "Enter" when a bookmark is first in _currentSearchResults
+    - Can we unify the behavior of "Enter" and "tile click"?
+	  * They're currently in two different classes...
+  * Use tile "close" button to delete a bookmark
+  * Decide what happens when you click a bookmark
+    - What happens if you click a bookmark that's alreay opened?
+	  * Now it will try to recycle the existing tab instead of opening a new one
+  * Discard a bookmark if it's also loaded
+    - Do we care to do this, is it ok if it shows up twice?
+	- NO let's show it twice
+  * Make sure bookmark search works correctly with search modifiers
+    - Avoid it if the "!" modifier is added
+	- For "^" we filter initial chrome.bookmarks.search() results for beginning of
+	    title or URL or custom group badge
+  * Update search results when bookmarks change
+  * Define Extended ID of bookmark as "BM[parentID].[bmID]"
+  * Replace the "bookmark" badge in bookmark tiles with some other visual clue
+	- We should not show a badge because one can't search the keyword "bookmark"
+	  * It would be crazy to show just a flat list of all bookmarks
+  * Limit search results to 500 bookmarks to avoid slowing down search too much
+    - Otherwise single-letter searches can take forever for heavy bookmark users
+
+- Recognize CTRL+V in the keydown handler, and open the searchbox just in time to capture
+  the pasted text
+  * If the clipboard doesn't have text, the searchbox will close again
+
+- Show bookmark folder path when opening bookmark menu
+
+- Add option "Go to folder" to open the folder of the bookmark in Chrome's bookmark manager
+  * Just set URL to "chrome://bookmarks/?id=686", with the ID of the parent folder
+    - This didn't seem to require a trip to the background page to launch...
+
+- BUG: we should not keep bookmark folders in search results, they don't have "url":
+  * TabsTabViewer.js:593 [popup-tabs-home] TabsTabViewer::_renderTabsFlatInner(): iterating through tabs, at tabId 812 TypeError: Cannot read property 'startsWith' of undefined
+    at Object._cleanupUrl (TileViewer.js:299)
+    at Object.update (TileViewer.js:328)
+    at Object._init (TileViewer.js:29)
+    at Object.createAs (utils.js:167)
+    at Object.create (utils.js:121)
+    at Object._renderTile (TabsTabViewer.js:623)
+    at utils.js:1120
+    at Array.forEach (<anonymous>)
+    at Object._renderTabsFlatInner (TabsTabViewer.js:590)
+    at Object._searchRenderTabsInner_Merged (TabsTabViewer.js:830)
+
+- Center the "Settings" bstab now that undocked popups can have their width expanded
+
+- Mitigated ugly slowness when rendering large number of tiles my forcing min-height to 3em
+  * Still not great, and besides 3em is not the right size of the tile when it's populated...
+
+- Added AsyncQueue class and worked on improving rendering performance when many
+  tiles need to be rendered
+
+- Added support for searching among the recently closed tab
+  * Controlled by a settings option
+  * Use the search badge "closed" to list them
+  * Tiles of recently closed tabs don't have any dropdown and don't have a "close" button,
+    because the only action you can take on them is to restore them
+	- When restored, a tab disappears from the recently closed list
+  * Chrome only returns a maximum of 25 tabs and windows, so don't expect a lot of history
+    - Most of the 25 could be taken by windows to be restored from the last reboot, and
+	  unfortunately due to a bug with chrome.sessions.restore() we must suppress them
+	  (and anyway they would be duplicates of open tabs). Things get better a few hours
+	  after the reboot, when normal windows and tabs take over the recently closed tabs
+  * Incognito tabs are not saved in "Recently closed" when closed
+
+- AsyncQueue: add high priority and low priority queues
+
+- Activate search results count badge immediately (empty?) when the initial search starts,
+  otherwise we have no visual cue that the search is in progress
+  * The current blinking cue shows up only after the first search, after further
+    edits to the search string
+
+- Added favicon to undocked popup
+  * Without it, the tile of the TabMania popup in TabMania was showing up without an icon
+    (while for some reason the tile in Windows showed the icon anyway)
+
+- NormalizedTabs::normalizeTab() needs a class-instance independent version of "this._err()"
+  * Defined tmUtils.err() for that purpose
+
+- Promoted deepClone() and isEqual() to tmUtils, and added basic support for Arrays
+  * Before they could only be used inside PersistentDict
+
+- Now reusing tiles instead of just recreating them at every refresh
+  * Not really a full-fledged cache of tiles, but close enough...
+
+- Cleaned up NormalizedTabs.normalizeTab() to fully support tabs, rctabs, bmnodes
+
+- Added prefix to rctab and bmnode IDs to avoid collisions with the numeric space of standard tab IDs.
+
+- Added "state" describing all the rendering needs of a tile, to simplify comparing during update()
+  to confirm there are or not real updates to make
+
+- Cleaned up difference between rendering/updating tile body, and rendering/updating tile menu
+  * They also get scheduled separately, and in different queues (tile body uses high/normal priorities,
+    tile menu uses low priority)
+
+- Make sure tile update() doesn't get fooled if a previous update() didn't complete because it scheduled
+  the update, but then the AsyncQueue got discarded before it could take the action
+
+- Cleaned up tab and bookmark menus update() function
+  * They were not used before, but now that we reuse tiles, these update() function
+    are a must have
+
+- Re-render bookmark path if bookmark moves or its ancestors move
+
+- BUG: when focusing a new window and selecting a different tab with the same click,
+  you get both a "window-change" event and an "activated" event. Both add the previously
+  active tab to _backTabs, but only one should. Very minor, we need to remove duplicates
+  for other reasons anyway, but better to keep things clean.
+
+- BUG: the Font Awesome 5.15.2 javascript slows down tremendously the rendering of TabMania
+  when there are many tiles (testing with 700 tiles)... 3/4 of the total time was Font
+  Awesome with its event listeners... we don't even diretly call a single FA API!!!
+  * See "docs/21.03.03 - Font Awesome 5.15.2 performance issue" for details
+  * This would not have been an issue in production, since we don't package Font Awesome
+    files in production
+  * Since we're not using it, why letting it be in the way
+
+- Removed distinction between _searchRenderTabsInner_Merged() and _searchRenderTabsInner_Separate(),
+  the results are always merged, if you want them separated the right way is to allow users
+  to group results by source type (tabs, rcTabs, bmNodes, hItems)
+
+- When switching from normal to search, we should take the scrollbar back to the top
+  * Same probably when switching from search to search (change input)...
+
+- When switching from search to normal, we should put the scrollbar back where it was
+  before the search started
+
+- Add support for history search
+  * https://developer.chrome.com/docs/extensions/reference/history
+  * Similar to bookmarks, with the advantage of offering a max-limit in the search API
+  * This should probably be disabled by default
+
+- Moved "recently closed tabs" (chrome.sessions) functions and events to the HistoryFinder class
+
+- Initial support for context menus
+  * Move current page to least tabbed window
+  * Open link in least tabbed window
+  * With selected text
+    - Use launch/search shortcut
+	- Use any custom shortcuts with search enabled
+
+- Save size and position of undocked popup
+
+- Make "undocked" the new default for the popup
+
+- BUG: ".form-floating" doesn't seem to work
+  * Needed to add a non-empty placeholder at all times
+
+- Add title/name to shortcut keys, and use it in context menu
+
+- BUG: need to consider multiple matches for chromeUtils.getLeastTabbedWindowId()
+
+- Blink popup badge if a triggered action has no effect (e.g. "move to least tabbed window"
+  but the tab is already in the least tabbed window)
+
+- Listen to shortcut keys events and update shortcut keys context menus accordingly
+
+- BUG: "move to least tabbed" context menu can't find the tab...
+
+- Removed "Toggle play" menu item
+  * Added temporarily to play around with it
+
+- BUG: tiles dropdown menu stays open when clicking on a menu item
+  * It might go away because you hover somewhere else, but when you hover back
+    it's still open
+
+- Add "move tab to least tabbed window" action to the tile dropdown menu
+
+- Change the shortcut text "unset" to lighter gray, to show it's not set
+
+- Link (click) shortcut text badges to extension shortcut config?
+
+- Cleaned up debugging commands for Chrome dev tools console
+
+- Changed "Discard from memory" menu item to "Suspend"
+  * Also changed the search badge from "discarded" to "suspended"
+
+- Remove "pin" menu for bookmarks if we don't implement it in this release
+
+- Remove "Advanced mode" options
+
+- BUG: every time the popup opens
+  * popup.html:1 Error in event handler: TypeError: Cannot use 'in' operator to search for '1712' in null
+    at Object._tabUpdatedCb (chrome-extension://flhpmmboiepkmkippdhjllnejfolajdb/popup/TabsTabViewer.js:399:14)
+  * That's the tab ID of the popup
+
+- Find a way to refresh shortcut text (no event for that)
+  * Initially let's just register for Settings bsTab activation and shortcuts
+    collapsible container expansion to let them trigger a rebuild of those
+	shortcut texts
+	- At least the user can do a Settings -> Home -> Settings to see the update,
+	  instead of a close -> open popup...
+
+- Using Chrome favicon cache for standard tabs too, as sometimes they're missing
+  * Making sure that when a group has to pick a favIcon from one if its members,
+    members with a real favIcon are prioitized over members pointing to the cache
+
+- Added extended ID for browsing history items
+
+- BUG: NormalizedTabs.formatExtendedId() uses tab.id for reTabs/BmNodes/hItems instead
+  of using the available non-prefixed version (tab.sessionId/tab.bookmarkId/tab.historyId)
+
+- Create a static response to chrome.tabs.query() to display some repeatable set
+  of tiles when staging the TabMania popup for release screenshots
+
+- Point users directly to https://github.com/marcodb26/TabMania#readme for documentation
+
+
+DONE 1.0
+
+- BUG: search should not be case sensitive
+
+- Add badge to extension icon counting the total number of tabs
+
+- BUG: creating new tab doesn't flash "Home" tab
+
+- BUG: search doesn't autoupdate if an extra result becomes available
+  (but it autoupdates if a result disappears, tried with SOPhI, which went through JIRA login)
+
+- Included Font Awesome 5.15.2 from cdnjs.com (not through their "kit")
+
+- Add count of search results somewhere
+
+- Centered correctly the caret of the dropdown-toggle
+
+- Debounce re-render (updated RecurringJob and renamed ScheduledJob)
+  * Update tile immediately if full re-rendering is delayed
+
+- Clean up tile logic to re-render only what's necessary when the corresponding
+  tab has an update (re-render the content, not the skeleton)
+  * Mostly making sure the dropdown toggle doesn't get re-rendered for every
+    update, because that would cause open menus to disappear at random
+
+- BUG: search for all the uses of setHtml() or ${html} and replace them with
+  setText() if they're using text coming from outside sources (which could lead
+  to HTML injection attacks)
+
+- BUG: closing a tab from the popup sometimes causes the corresponding window to move
+  to the foreground
+  * When clicking the "x" icon of a tab in the popup, we should not let the click get
+    to the default "bring to front" action, we need to stop the click notification
+	from getting there
+
+- Action menu actions
+
+- Add back ability to click on title in menu to jump to tab
+
+- Use chrome.tabs.discard() to discard a tab from memory (still reloadable)
+  * Added as an advanced option in the tile dropdown menu
+
+- Shortcuts to support clipboard search like omnibar (setting option). Need to be an
+  explicit option because URLs might have %s
+  * Shortcuts use hostname or URL
+  * Shortcuts “open in new tab” option, otherwise open in new tab only if hostname
+    not present (if open in new tab, open in new tab only if full url not present,
+	or search enabled)
+  * When hostname based, pick the left-most tab in the smallest window ID (that should
+    persist across reboots), and allow other tabs to take that position as menu option
+
+- Started supporting search by tile badges, still not working
+
+- BUG: don't use CTRL + left/right arrow, as it competes with the standard word/by/word
+  moving around
+
+- Rename the keyboard shortcut commands to have a numeric value in front, to allow
+  for proper sorting in the extensions shortcuts page (they're sorted alphabetically)
+
+- Added tab index to "tab extended ID" badge/search
+
+- Added ability to inject scripts in tabs via ChromeUtils
+
+- Added retrieval of <meta> tags from all tabs (if they're loaded)
+
+- BUG: the open/close state of the tiles group accordion
+    doesn't get saved across popup restarts (it used to work...)
+
+- BUG: tab info normalization happens only on query, it doesn't happen for "tab"
+  info coming from update listeners
+
+- The "tabs" received on a full query need to be "live" and updated every
+  time a listener fires with a new tab information
+  * The new tab object from an update should replace the tab object in the tabs array
+    - That way, when tile rendering sets searchBadges, the search logic can
+	  find the right badges
+
+- Include tile badge keywords in search
+  * If a tab has the badge "highlighted", allow to find it when searching "highlighted"
+
+- Done some performance testing and updated some logic to improve rendering performance
+  * Made tile body rendering async, so it starts happening after the loop that
+    generates all the tiles skeletons and inserts them in the container
+  * Moved all chrome.storage initialization to the beginning of time, before
+    the window.onLoad event is triggered. Before we were trying to be clean
+	and putting storage in the objects that need to use it, but that was adding
+	extra serialization delays by having some data loaded first, dependency,
+	then more data loaded later, other dependency
+  * Attaching TabsTabViewer's top _containerViewer to TabsTabViewer's body
+    at the end of the synchronous part of the tile rendering (attaching tiles
+	while the container is not in the DOM speeds up rendering slightly)
+  * Removed some unnecessary verbose logs from _getTabMetaTags()
+
+- BUG: "home" tab only displays data if switching to another tab first...
+  * Race condition discovered as a result of the performance improvements done today
+
+- Added support for onAttached and onMoved events, to track tabs moving around,
+  since that's affecting the candidate tab for custom shortcuts
+
+- BUG: search doesn't auto-update when you add a new tab that matches
+  * Repurposed "prop" notifications to fix this
+
+- BUG: each "prop" notifications is generated multiple times if multiple "props" match,
+  one per matching "prop"
+
+- Change .createNew() back to .create()
+
+- Implement shortcut actions ("set me as candidate tab for shortcut SCx")
+
+- Show candidate tabs for shortcuts with grayed out badges, so you can search
+  for all candidates by typing the shortcut "SCx" in the search box
+
+- Changed PersistentDict to use "_id" as "_keyInStorage" (makes log messages a lot
+  more readable)
+
+- Implement "live sync" of chrome.storage.sync for SettingsStore
+  * This is urgent now, otherwise when the user changes the shortcuts configuration
+    in the popup, the background.js (which needs to operate the shortcut) won't be
+	informed about the change
+
+- BUG: tabs.js in the background page needs to call updateTabs() for the
+  shortcutManager, to remain in sync with what the popup is displaying
+
+- BUG: cleanup _queryTabsCount() and move settingsStore.getShortcutsManager().updateTabs(tabs);
+  to a proper place (including getting continuous updates as all the tabs change,
+  currently TabsManager is not listening to all tabs changes...
+
+- Started decoupling background.js from the web monitoring files
+  - Incomplete, more cleanup to do
+
+- Added to Settings the tiles modifiers (advanced menu, show extended ID)
+
+- Added to Settings customization of the search engine for the "clipboard launch/search" shortcut
+
+- Added to Settings customization of the custom shortcuts
+
+- Add link to keyboard shortcuts in settings
+  * But it broke the next day with a Chrome update, not possible anymore
+
+- Added to Settings information about whether Incognito access is granted or not
+
+- Implemented EventManager based on DOM events
+
+- BUG: tile menu gets rendered with tile skeleton, not with tile body (it
+  doesn't get updated as users change Settings)
+
+- Change group builder parser to concatenate regex with “or” operator
+
+- Manage group settings
+
+- Added production flag (visible in Settings menu)
+
+- Added accordion for custom group and shortcut settings
+
+- Use gray background for incognito tiles, and reversed color of menu and close icons
+
+- Changed model for adding new custom groups, so that a full card is created
+  immediately
+  * It required supporting cards with no group name (a valid group name was
+    required in the cards before this change)
+
+- BUG: remove "No custom groups defined" message from custom groups inner
+  container if we can't find an easy way to let it be in sync
+  * The problem is that the container counts the number of .append() calls
+    made, but nobody calls the container to update it when it calls .detach()
+	on itself. To make things worse, one can simply work with the DOM regardless
+	of the container, and it's impossible to keep it in sync...
+	The only time that "Empty" message is accurate is before the first .append()...
+	that's good enough for the tiles view (given the continuous full re-query/re-render
+	cycles), but doesn't work for something more dynamic like the custom group cards
+  * Fixed by forcing calls to clear() in the container when it's supposed to be empty
+
+- Automatically give focus to the group name input when creating a new card
+
+- Completed syncing of color info from custom group settings
+
+- Disabled color radios when a custom group has no name
+
+- Allow users to specify custom groups hostnames as regular text, not
+  standard regex
+
+- Publish on github 
+
+- Add copyright header to files
+  * Per github convention, added info only in LICENSE file
+
+- BUG: accordion tiles don't remain open anymore
+
+- BUG: TabsTabViewer enter search mode when typing in an <input> of SettingsTabViewer.
+  This should not happen, what happens in SettingsTabViewer stays in SettingsTabViewer.
+
+- BUG: GroupsBuilder was triggering an update even when the changed key was not "customGroups"
+
+- Reduced number of unnecessary settings refreshes. Each settings viewer now listens only
+  to changes for a specific event "key"
+
+- If you reload a window that's in search results based on search
+  badges (e.g., search for "sc2", the shortcut), all tabs disappear from the
+  search results, because we trigger a full re-query/re-render and therefore
+  no tabs have the search badges when the re-render starts
+  * We definitely need to move the prep for the search badges to the normalization
+    stage. That would easily solve this problem. We'll need to address the challenge
+    we had that during normalization some of the things we need in the badges won't
+    be knowable (custom shortcuts?), but the normalization step is currently very fast
+    (less than 5ms with 199 tabs per the latest performance measurements), so we can
+    afford to spend a few extra cycles to update those (and the shortcuts info gets
+    built very fast, less than 1ms).
+
+- Include special attributes that don't have a badge in search badges
+  * E.g. "unloaded" is visualized with visual clues other than a badge, but we should
+    be able to find it by typing "unloaded"
+  * Possible candidates: "unloaded", "unpinned"
+  * Fix note: unfortunately "loaded" is a substring of "unloaded", so now when we search
+    for "loaded" it matches both "loaded" and "unloaded", making it impossible to search
+	only for "loaded" things...
+
+- Added more search badges, switched to use "active" instead of "highlighted", and translated
+  the hidden status "complete" to "loaded" for UX-friendly symmetry with "unloaded"
+
+- BUG: unfortunately "loaded" is a substring of "unloaded", so now when we search
+  for "loaded" it matches both "loaded" and "unloaded", making it impossible to search
+  only for "loaded" things...
+  * Implemented special characters at the beginning of the search string:
+    - "^": regex-like syntax to indicate "search strings starting with",
+	- "!": negation, indicating to match tabs that don't contain the search string
+	- "!^": negation of regex-like syntax, that is, "search strings not starting with"
+    - E.g. "^loaded" matches only "loaded" and not "unloaded" hidden badges
+
+- Added tmStats() to be called directly from the Chrome devtools console of the popup
+
+- BUG: "active" badge doesn't get removed from tab in search result when a different
+  tab becomes active
+
+- Added icons for audible and muted
+
+- Added "mute/unmute" menu item
+
+- Cleaned up use of Font Awesome icons
+
+- Removed the logic that tried to avoid unnecessary re-query/re-render cycles, as it was
+  too brittle due to the issues with the lack of info in the Chrome tab events
+  * Now full refreshes occur for every event, with a little 200ms debouncing, and
+    we should be done with things not updating in search mode
+
+- Remove "https://" from URL displayed in tiles (but only "https://", leave any
+  other protocol visible, matching what Chrome does in the omnibar)
+
+- Added "highlight / remove-highlight" menu item
+  * Decided to avoid calling it "select/unselect" because we want to support tiles
+    selection later, and that's a different thing
+
+- Don't try to render space for favicon if a favicon is not available
+
+- Include custom group names (non-hostname) in search badges, and possibly in badges
+  too while in search mode (while not in search mode there's no reason to do that
+  since all tiles are grouped under the group name)
+
+- Color badges from custom groups (not very useful when inside the groups, but possibly
+  useful when the tile is in a search result)
+
+- Workaround for Chrome bug: chrome.window.onFocusChange doesn't fire when switching from
+  a Chrome window to the window of another application
+  * Need to fix it for the "back" command to work properly when switching back from another
+    app to the last opened Chrome tab
+
+- BUG: "back" needs to support the "global" case, and in that case just bring up
+  the Chrome window and stay on the same tab (like it happens when "back" from a
+  "-1" window)
+  * It worked out of the box after the workaround for the Chrome bug...
+
+- BUG: when creating a new custom group, the tabs re-query re-render doesn't
+  seem to get triggered automatically
+
+- BUG: custom group container tile doesn't update color callout when color changed
+  * The tiles inside the container do change color...
+
+- Explicitly show badge for custom group (colored?)
+
+- BUG: Custom groups with pinned tabs don't get pushed to the top, they
+  follow standard sorting
+  * Hostname-based groups get pushed to the top instead
+
+- BUG: Since 2021.02.05, access to "chrome://" URLs seems to be prevented from
+  within the popup, and the links in Settings are dead
+  * The error message in the console is "Not allowed to load local resource"
+  * https://chromereleases.googleblog.com/
+  * https://www.theverge.com/2021/2/5/22267872/chrome-88-zero-day-vulnerability-government-backed-hackers-security-researchers
+
+- Added thumbtack icon and removed badge for "pinned"
+
+- Remove visible badge for "discarded" (it's just confusing, too similar to "unloaded")
+
+- Made pinning configurable for custom groups
+
+- Increased vertical size of container tiles, to be closer to the size of tab tiles
+
+- Added thumbtack to container tiles
+  * Black if the group is pinned, gray if one of the tiles inside is pinned
+  * No need to worry about Incognito color inversion, custom group accordion
+    headers are never dark, even if they only contain incognito tabs
+  * Restructured TabsTabViewer.js (extracted class TilesGroupViewer) in preparation
+    for supporting more decorations of the container tiles
+
+- Improved rendering of badges when some badges are too long (the name of the custom
+  groups have no length limits, and they show up in badges)
+
+- Figured out how to center the "x" button to close tiles and delete custom groups
+
+- Changed Github repository name to TabMania and updated local repo to https://github.com/marcodb26/TabMania.git
+  * git remote set-url origin https://github.com/marcodb26/TabMania.git
+
+- Completed documentation for v1.0
+
+- Cleaned up prod vs. dev selection, by adding a prod.js to be included only in prod builds
+
+- Started documenting release process and steps
+  * Added some scripts to the NPM's package.json
+
+- Manually populated /dist directory for 1.0 release
+  * We'll worry about automating the build later...
+
+- BUG: uninitialized "options" PersistentDict leads to showing extTabId badge (it shouldn't)
+
+- BUG: User input validation logic puts an _err() on the console when a user input is
+  validated as invalid
+
+- Moved the documentation for developers to README-DEV.md
+
+- Prepping for publishing
+  * Removed host permissions and meta tag retrieval until we have a real use for it
+  * Removed "activeTab" permission as it doesn't seem to be needed...
+    - We wanted to use it to take a screenshot of the active tab, but probably no reason
+	  to do that anymore
+  * Using a local copy of Bootstrap (instead of getting the code from a CDN) to avoid the
+    'are you using remote code?' scrutiny in the Chrome Web Store

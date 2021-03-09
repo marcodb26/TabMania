@@ -156,5 +156,60 @@ Very manual until I have some time to focus on automation
 
 * Update CHANGELOG.md again, by adding a new `# [Unreleased]` section at the top
 
+* Add `DONE X.Y` for the new expected release version to `src/roadmap-done.txt`
+
+* Replace the version number in `TODO X.Y` at the top of `src/roadmap-todo.txt`
+
 * Commit these changes with message `First commit for vX.Y`, where X.Y is the same version as the new
   version you've just edited in the `manifest.json`, `package.json` and `CHANGELOG.md` files
+
+* Find out if any NPM packages need updates using `npm outdated`
+  - Then update them with `npm update` and update `CHANGELOG.md` accordingly
+  - List current versions in the __Environment__ sectoin below
+
+# Environment
+- Google developer console: https://chrome.google.com/webstore/devconsole
+
+- Upgraded GIT to v.2.30.1.windows.1
+  * To upgrade:
+    > `git update-git-for-windows`
+  * Repo at: https://github.com/marcodb26/TabMania.git
+  * To clone
+    > `git clone https://github.com/marcodb26/TabMania.git`
+  * To see commits history
+	- https://github.com/marcodb26/TabMania/commits
+
+- Upgraded NPM to v.7.5.4
+  * To upgrade:
+    - Run PowerShell as Administrator
+      > `Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force`
+      > `npm install -g npm-windows-upgrade`
+      > `npm-windows-upgrade`
+  * Created project with `npm init`
+    - Edited package.json to make project private
+	  * Add line after `description`:
+		> `"private": true,`
+
+- Changed shell for NPM
+  * Original: `"C:\\WINDOWS\\system32\\cmd.exe"`
+  * New: `"C:\\Program Files\\Git\\git-bash.exe"`
+  > `npm config set shell "C:\\Program Files\\Git\\git-bash.exe"`
+  > `npm config set script-shell "C:\\Program Files\\Git\\git-bash.exe"`
+  * Use `npm config list` to check
+  * UPDATE: this makes `npx` fail on Windows...
+
+- Installed Bootstrap
+  > `npm install bootstrap@5.0.0-beta1`
+  * Call `npm run build-dev` when upgrading bootstrap again
+
+- Installed uglify-js v.3.13.0 (was v.3.12.8)
+  > `npm install uglify-js --save-dev`
+
+- Installed csso-cli v.3.0.0 (https://www.npmjs.com/package/csso-cli)
+  > `npm install csso-cli --save-dev`
+  * Really liked the documentation of cssnano (https://cssnano.co/docs/getting-started), but
+    decided to go with csso because it seemed to be more "independent" of other modules
+
+- Installed strip-json-comments-cli v.1.0.1
+  > `npm install strip-json-comments-cli --save-dev`
+  * It added 49 packages (???)
