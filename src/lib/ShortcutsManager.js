@@ -416,6 +416,9 @@ getShortcutTitle: function(shortcutKey) {
 setShortcutHostnameOrUrl: function(shortcutKey, value) {
 	const logHead = "ShortcutsManager::setShortcutHostnameOrUrl(" + shortcutKey + ", \"" + value + "\"): ";
 
+	// Remove leading and trailing whitespaces
+	value = value.trim();
+
 	let currDict = this._shortcutsStore[shortcutKey].getAll();
 
 	if(value == "" || value.toLowerCase() == "tabmania") {
