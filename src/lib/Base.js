@@ -276,10 +276,18 @@ Classes.EventManager = Classes.Base.subclass({
 
 	_ownerObj: null,
 
-_init: function() {
+// If "domId" is "undefined", the element will not be appended to the DOM.
+// See Classes.PopupDockerBg for use cases of appending these DOM elements
+// to the real DOM.
+_init: function(domId) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.Base._init.call(this);
 	this._elem = document.createElement("div");
+
+	if(domId != null) {
+		this._elem.setAttribute("id", domId);
+		document.body.append(this._elem);
+	}
 
 	this.addEventListener = this._elem.addEventListener.bind(this._elem);
 	this.removeEventListener = this._elem.removeEventListener.bind(this._elem);

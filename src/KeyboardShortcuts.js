@@ -2,49 +2,55 @@
 //
 Classes.KeyboardShortcuts = Classes.Base.subclass({
 
+	_clipboardTextAreaElem: null,
+
 _init: function() {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.Base._init.call(this);
+
+	this._initClipboardDomTextArea();
 
 	// https://developer.chrome.com/docs/extensions/reference/commands/
 	chrome.commands.onCommand.addListener(this._onCommandCb.bind(this));
 },
 
-_getClipboardAsText: function() {
-	const logHead = "KeyboardShortcuts::_getClipboardAsText(): ";
-	const textAreaId = "clipboard";
+_initClipboardDomTextArea: function() {
+	const logHead = "KeyboardShortcuts::_initClipboardDomTextArea(): ";
+	const textAreaId = "KeyboardShortcutsClipboard";
 	const textAreaHtml = `
 		<textarea id="${textAreaId}" name="clipboard"></textarea>
 	`;
 
-	// See https://developer.chrome.com/docs/extensions/reference/extension/#method-getBackgroundPage
-	let backgroundPage = chrome.extension.getBackgroundPage();
+	let elem = document.createElement("div");
+	elem.innerHTML = textAreaHtml;
 
-	if(backgroundPage == null) {
-		this._err(logHead + "unable to load DOM from background page");
-		return null;
-	}
+	// We append a few DOM elements to the _generated_background_page.html,
+	// one here, one in the PopupDockerBg class. The assumption is that each
+	// one of these classes is intended to have a single instance running.
+	document.body.append(elem);
 
-	backgroundPage.document.body.innerHTML = textAreaHtml;
-	let textAreaElem = backgroundPage.document.getElementById(textAreaId);
+	this._clipboardTextAreaElem = document.getElementById(textAreaId);
 
-	if(textAreaElem == null) {
+	if(this._clipboardTextAreaElem == null) {
 		this._err(logHead + "unable to get textarea element");
-		return null;
 	}
+},
 
-	textAreaElem.focus();
+_getClipboardAsText: function() {
+	const logHead = "KeyboardShortcuts::_getClipboardAsText(): ";
+
+	this._clipboardTextAreaElem.focus();
 	// See https://developer.mozilla.org/en-US/docs/Web/API/Document/execCommand
 	// It says execCommand() is deprecated, let's see...
-	if(!backgroundPage.document.execCommand("paste")) {
+	if(!document.execCommand("paste")) {
 		this._err(logHead + "paste command not supported");
 		return null;
 	}
 
-	let retVal = textAreaElem.value;
+	let retVal = this._clipboardTextAreaElem.value;
 
 	// Clean up
-	backgroundPage.document.body.textContent = "";
+	this._clipboardTextAreaElem.value = "";
 
 	return retVal;
 },
@@ -81,6 +87,13 @@ runCustomShortcutSearch: function(scInfo, searchText) {
 
 	if(searchText == null || searchText == "") {
 		this._log(logHead + "no search text, nothing to do");
+		return;
+	}
+
+	// Special case, we need to search in the TabMania popup
+	if(scInfo.tabMania) {
+		this._log(logHead + "running search query in the the TabMania popup");
+		popupDockerBg.runPopupSearch(searchText);
 		return;
 	}
 

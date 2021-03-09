@@ -56,6 +56,12 @@ _openInLeastTabbedCb: function(itemData, tab) {
 	chromeUtils.loadUrl(itemData.linkUrl);
 },
 
+_searchPopupCb: function(itemData, tab) {
+	const logHead = "ContextMenu::_searchPopupCb(): ";
+	this._log(logHead + "entering", itemData, tab);
+	popupDockerBg.runPopupSearch(itemData.selectionText);
+},
+
 _searchCb: function(shortcutKey, itemData, tab) {
 	const logHead = "ContextMenu::_searchCb(shortcutKey: " + shortcutKey + "): ";
 
@@ -102,6 +108,9 @@ _defineSelectionMenuItems: function() {
 	let sm = settingsStore.getShortcutsManager();
 	let searchKeys = sm.getSearchShortcutKeys();
 
+	// "searchKeys" includes only "real URL-based search" shortcuts, not the
+	// TabMania search case. We need to add the TabMania search separately at
+	// the bottom of the list of menu items below
 	searchKeys.forEach(
 		function(key) {
 			let shortcutTitle = sm.getShortcutTitle(key);
@@ -121,6 +130,13 @@ _defineSelectionMenuItems: function() {
 			});
 		}.bind(this)
 	);
+
+	allSelectionMenuItems.push({
+		id: "tabManiaSearch",
+		title: "Search tabs in TabMania",
+		contexts: [ "selection" ],
+		onclick: this._searchPopupCb.bind(this)
+	});
 
 	return allSelectionMenuItems;
 },

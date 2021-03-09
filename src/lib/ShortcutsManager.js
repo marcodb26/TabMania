@@ -26,6 +26,10 @@ Classes.ShortcutsManager = Classes.AsyncBase.subclass({
 	//   for the custom shortcut
 	// - hostname: the hostname associated to this shortcut
 	// - url: the URL associated to this shortcut
+	// - tabMania: if set, this overrides "hostname" and "url" to indicate the action should
+	//   be taken with the TabMania popup ("alwaysNewTab" is ignored)
+	//   * Note that we need this as a boolean, but we're storing it as a string so we
+	//     can exactly remember in what case (lower, upper, mixed) the user typed it.
 	// - alwaysNewTab: whether or not the shortcut should always trigger opening a new tab
 	// - useClipboard: "useClipboard" should be set to "true" if "url" includes a "%s"
 	//   that should be replaced by the data in the clipboard
@@ -246,11 +250,17 @@ _computeByUrl: function(sc) {
 
 _computeInfo: function(shortcutKey) {
 	// Shortcut in store is: { hostname: , url: , alwaysNewTab: , useClipboard: }
-	// shortcusInfo[key]: 
+	// shortcusInfo[key]:
+	// - TabMania-mode: { tabMania: true } (take action in TabMania popup)
 	// - No search: { url: } (open in new tab), or { tab: } (open in existing tab),
 	// - Search: { searchUrl: } (open in new tab), or { searchUrl: , candidateTabs: } (open in existing tab),
 	// - No data: { empty: true } 
 	let sc = this._shortcutsStore[shortcutKey];
+
+	if(sc.get("tabMania") != null) {
+		this._shortcutsInfo[shortcutKey] = { tabMania: true };
+		return;
+	}
 
 	if(sc.get("hostname") != null) {
 		// Replace any info that might already be there
@@ -317,6 +327,10 @@ getShortcutKeys: function() {
 	return this._shortcutKeys;
 },
 
+// This function returns the list of shortcut keys that are associated to
+// searches, to be used by ContextMenu. To build the resulting set of keys,
+// we ignore both the "hostname" case and the "tabMania" case, we only
+// return real URL searches.
 getSearchShortcutKeys: function() {
 	let retVal = [];
 
@@ -395,18 +409,32 @@ getShortcutTitle: function(shortcutKey) {
 	return optionalWithDefault(this.getShortcutProp(shortcutKey, "title"), "");
 },
 
+// "value" will be selected between URL and hostname. If "value" is the empty string,
+// both URL and hostname will be removed. If "value" is the reserved keyword "tabmania"
+// (case insensitive), URL and hostname will be unset, and "tabMania" will be set to
+// true, indicating the shortcut is about interacting with the TabMania popup.
 setShortcutHostnameOrUrl: function(shortcutKey, value) {
 	const logHead = "ShortcutsManager::setShortcutHostnameOrUrl(" + shortcutKey + ", \"" + value + "\"): ";
 
 	let currDict = this._shortcutsStore[shortcutKey].getAll();
 
-	if(value == "") {
+	if(value == "" || value.toLowerCase() == "tabmania") {
 		// Special case, we need to delete both...
 		this._log(logHead + "clearing both hostname and URL");
 		delete currDict["hostname"];
 		delete currDict["url"];
+
+		if(value.toLowerCase() == "tabmania") {
+			currDict["tabMania"] = value; // Remember the way the user typed it...
+		} else {
+			// Just in case it was set...
+			delete currDict["tabMania"];
+		}
 		return this.setShortcut(shortcutKey, currDict);
 	}
+
+	// Just in case it was set...
+	delete currDict["tabMania"];
 
 	let toSet = "hostname";
 	let toDel = "url";
@@ -426,6 +454,11 @@ setShortcutHostnameOrUrl: function(shortcutKey, value) {
 },
 
 getShortcutHostnameOrUrl: function(shortcutKey) {
+	let tabMania = this.getShortcutProp(shortcutKey, "tabMania");
+	if(tabMania != null) {
+		return tabMania;
+	}
+
 	// Remember that the logic in the background page will prioritize the hostname
 	// over the URL, if both are present, so we want to do the same here.
 	// "hostname" can be an empty string as a result of being set that way by the
