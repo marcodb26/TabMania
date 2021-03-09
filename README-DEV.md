@@ -6,6 +6,17 @@ page, some only on the popups) to monitor the state of the extension, or make ch
   - For now this only adds the _Extended tabId_ configuration checkbox
   - You might want to reload the popup for the changes to take effect
 
+* Call `tmUtils.showTabInfo(<tabId>)` to get tab and tile information about a tab that's currently
+  being displayed in TabMania's popup
+  - The <tabId> must be a normalized tab ID (not an extended tab ID, see below) to be able to
+    retrieve any class of tiles (open tabs, recently closed tabs, bookmarks, or browsing history
+	items)
+	* Tab info are sometimes taken from TabsTabViewer._normTabs, and sometimes from the tile
+	  info, depending on what's available (we have _normTabs only for standard open tabs, not
+	  for the other classes)
+  - Remember that most normalized tab IDs are strings (only tab IDs of standard tabs are numbers),
+    so enclose the normalized tab ID in quotes
+
 * Performance statistics (only for the popup console)
   - Call `perfProf.showAsyncQueues()` to see the performance of AsyncQueues
   - Call `perfProf.showStats()` to see some general popup performance statistics.

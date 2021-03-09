@@ -17,8 +17,6 @@ TODO 1.2
     10:33:07.505 chromeUtils.js:27 [3] ChromeUtils::wrap().cb: ContextMenu::_addAllMenuItems().iter(moveToLeastTabbed): chrome.runtime.lastError = Cannot create item with duplicate id moveToLeastTabbed
 	[ ... then more, one per menu ID, repeated twice for each menu ID ... ]
 
-- Add devTools function to retrieve a specific tab and its tile and dump them to console
-
 - Interrupt updates if the pointer is on the "Close" button of a tile
   * It's happened a couple of times that I was trying to close a tab from the tile, and
     instead I brought the tab to the foreground

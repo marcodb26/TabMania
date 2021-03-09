@@ -137,6 +137,8 @@ deepClone: function(obj) {
 	return retVal;
 },
 
+// FUNCTIONS FOR CHROME DEV TOOLS CONSOLE
+
 // Debugging-only function, do not call in the code
 clearStorage: function() {
 	chrome.storage.local.clear();
@@ -147,6 +149,20 @@ clearStorage: function() {
 showStorage: function() {
 	chrome.storage.local.get(function(result){console.log(result)});
 	chrome.storage.sync.get(function(result){console.log(result)});
+},
+
+showTabInfo: function(tabId) {
+	const homeBsTabId = popupViewer.getHomeBsTabId();
+	let allTabsBsTabViewer = popupViewer.getBsTabViewerById(homeBsTabId);
+
+	let [ tabInfo, tileInfo ] = allTabsBsTabViewer.getTabInfo(tabId);
+
+	if(tileInfo != null && tabInfo == null) {
+		this._log("tabInfo (through tile):", tileInfo.getTabInfo());
+	} else {
+		this._log("tabInfo:", tabInfo);
+	}
+	this._log("tileInfo:", tileInfo);
 },
 
 }); // Classes.TmUtils

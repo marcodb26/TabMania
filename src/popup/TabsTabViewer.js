@@ -781,6 +781,11 @@ _getAllTabGroups: function() {
 	return chromeUtils.wrap(chrome.tabGroups.query, logHead, {});
 },
 
+// Used for debugging by tmUtils.showTabInfo()
+getTabInfo: function(tabId) {
+	return [ this._normTabs.getTabByTabId(tabId), this._tilesByTabId[tabId] ];
+},
+
 // TBD when Chrome tabGrops APIs become generally available
 _processTabGroupsCb: function(tabGroups) {
 	const logHead = "TabsTabViewer::_processTabGroupsCb(): ";

@@ -615,6 +615,10 @@ getTabId: function() {
 	return this._tab.id;
 },
 
+getTabInfo: function() {
+	return this._tab;
+},
+
 setClickCloseHandler: function(fn) {
 	this._closeElem.addEventListener("click", fn, false);
 },

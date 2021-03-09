@@ -2,6 +2,8 @@ DONE 1.2
 
 - Update uglify-js to v.3.13.0
 
+- Add devTools function to retrieve a specific tab and its tile and dump them to console
+
 
 DONE 1.1
 
