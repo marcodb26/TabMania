@@ -131,7 +131,7 @@ _initActiveTabId: function(results) {
 	}
 
 	this._log(logHead + "_activeBsTabId = " + this._activeBsTabId);
-	this.getTabViewerById(this._activeBsTabId).activate();
+	this.getBsTabViewerById(this._activeBsTabId).activate();
 },
 
 _bsTabActivatedCb: function(ev) {
@@ -174,7 +174,7 @@ attachToElement: function() {
 	// we've been attached to the window.document DOM)
 },
 
-getTabViewerById: function(bsTabId) {
+getBsTabViewerById: function(bsTabId) {
 	return this._tabViewersDict[bsTabId];
 },
 
@@ -182,7 +182,7 @@ getActiveBsTabId: function() {
 	return this._activeBsTabId;
 },
 
-_getHomeBsTabId: function() {
+getHomeBsTabId: function() {
 	return this._id + "-home";
 },
 
@@ -190,8 +190,8 @@ _getHomeBsTabId: function() {
 // in search mode. If the settings tab is visible, this function returns false
 // regardless of the SearchableTabViewer.isSearchActive() response.
 isSearchActive: function() {
-	let homeBsTabId = this._getHomeBsTabId();
-	if(this.getTabViewerById(homeBsTabId).isSearchActive() && this.getActiveBsTabId() == homeBsTabId) {
+	let homeBsTabId = this.getHomeBsTabId();
+	if(this.getBsTabViewerById(homeBsTabId).isSearchActive() && this.getActiveBsTabId() == homeBsTabId) {
 		return true;
 	}
 	return false;		
@@ -202,8 +202,8 @@ getSearchQuery: function() {
 		return null;
 	}
 
-	let homeBsTabId = this._getHomeBsTabId();
-	return this.getTabViewerById(homeBsTabId).getSearchQuery();
+	let homeBsTabId = this.getHomeBsTabId();
+	return this.getBsTabViewerById(homeBsTabId).getSearchQuery();
 },
 
 }); // Classes.PopupViewer
