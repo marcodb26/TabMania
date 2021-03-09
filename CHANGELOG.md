@@ -4,6 +4,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 # [Unreleased]
 ## Added
+- Added `tmUtils.showTabInfo(<tabId>)` for debugging from the Chrome dev tools console
 
 ## Changed
 
