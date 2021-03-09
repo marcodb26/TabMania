@@ -113,3 +113,5 @@ showState: function() {
 
 }); // Classes.PopupDockerBase
 
+Classes.Base.roDef(Classes.PopupDockerBase, "cmd", {} );
+Classes.Base.roDef(Classes.PopupDockerBase.cmd, "SEARCH", "search" );

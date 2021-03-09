@@ -25,6 +25,8 @@ _init: function() {
 	window.addEventListener("load", this._loadCb.bind(this));
 	localStore.addEventListener(Classes.EventManager.Events.UPDATED, this._updatedCb.bind(this));
 
+	this._addBackgroundCommandsListener();
+
 	if(!this.isPopupDocked()) {
 		chromeUtils.wrap(chrome.tabs.query, logHead, { currentWindow: true }).then(
 			function(tabs) {
@@ -43,6 +45,24 @@ _init: function() {
 			}.bind(this)
 		);
 	}
+},
+
+_addBackgroundCommandsListener: function() {
+	const logHead = "PopupDocker::_addBackgroundCommandListener(): ";
+
+	let backgroundPage = chrome.extension.getBackgroundPage();
+	if(backgroundPage == null) {
+		this._err(logHead + "unable to load DOM from background page");
+		return;
+	}
+
+	let popupDockerBgElem = backgroundPage.document.getElementById("popupDockerBg")
+	if(popupDockerBgElem == null) {
+		this._err(logHead + "unable to get element with ID \"popupDockerBg\"");
+		return;
+	}
+
+	popupDockerBgElem.addEventListener(Classes.EventManager.Events.UPDATED, this._backgroundCommandCb.bind(this));
 },
 
 _loadCb: function(ev) {
@@ -78,6 +98,21 @@ _updatedCb: function(ev) {
 	}
 
 	this._log(logHead + "docking state unchanged");
+},
+
+_backgroundCommandCb: function(ev) {
+	const logHead = "PopupDocker::_backgroundCommandCb(" + ev.detail.cmd + "): ";
+	if(ev.detail.cmd != Classes.PopupDockerBase.cmd.SEARCH) {
+		this._log(logHead + "ignoring command");
+		return;
+	}
+
+	this._log(logHead + "starting search", ev.detail);
+
+	const homeBsTabId = popupViewer.getHomeBsTabId();
+	let allTabsBsTabViewer = popupViewer.getBsTabViewerById(homeBsTabId);
+	allTabsBsTabViewer.activate();
+	allTabsBsTabViewer.setSearchQuery(ev.detail.data);
 },
 
 // This function monitors if any other tab attempts to open in our window, and if that

@@ -6,9 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Added
 - Added `tmUtils.showTabInfo(<tabId>)` for debugging from the Chrome dev tools console
 
+- Added support for "Search tabs with TabMania" as context menu and shortcuts option
+  * Use keyword "tabmania" (case insensitive) in the _Hostname or URL_ field of a shortcut
+    to enable this functionality in a shortcut
+	- All other fields of the shortcut definition are ignored
+
 ## Changed
 
 ## Fixed
+- Trimming input value for shortcuts hostname/URL, to guarantee correct processing
 
 
 # [1.1.0] - 2021-03-07

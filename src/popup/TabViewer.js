@@ -343,7 +343,7 @@ _isPasteKeyboardShortcut(ev, modifier) {
 _activateSearchCb: function(ev) {
 	const logHead = "SearchableTabViewer::_activateSearchCb(key = " + ev.key + "): ";
 
-	if (ev.defaultPrevented) {
+	if(ev.defaultPrevented) {
 		// See https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key
 		this._log(logHead + "defaultPrevented == true, event already processed");
 		return; // Do nothing if the event was already processed
@@ -443,6 +443,14 @@ getSearchQuery: function() {
 	}
 
 	return this._searchBoxElem.value;
+},
+
+setSearchQuery: function(searchQuery) {
+	if(!this.isSearchActive()) {
+		this._activateSearchBox();
+	}
+	this._searchBoxElem.value = searchQuery;
+	this._searchBoxProcessData(searchQuery);
 },
 
 // You should not need to register explicitly for the "search" event, the

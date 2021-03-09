@@ -27,7 +27,7 @@ _init: function() {
 },
 
 runPopupSearch: function(searchQuery) {
-	this.sendEvent(Classes.PopupDockerBg.cmd.SEARCH, searchQuery)
+	this.sendEvent(Classes.PopupDockerBase.cmd.SEARCH, searchQuery);
 },
 
 sendEvent: function(cmd, data) {
@@ -44,6 +44,3 @@ _onClickedCb: function() {
 },
 
 }); // Classes.PopupDockerBg
-
-Classes.Base.roDef(Classes.PopupDockerBg, "cmd", {} );
-Classes.Base.roDef(Classes.PopupDockerBg.cmd, "SEARCH", "search" );
