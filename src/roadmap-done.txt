@@ -1,8 +1,14 @@
 DONE 1.2
 
+- Delete from git src/notes.txt and src/notes1.1.txt
+  * Contents restructured and distributed between README-DEV.md, src/roadmap-todo.txt, src/roadmap-done.txt
+    and "src/performance history.txt"
+
 - Update uglify-js to v.3.13.0
 
 - Add devTools function to retrieve a specific tab and its tile and dump them to console
+
+- Add a "selection" context menu to launch a tab search in TabMania with the selected text
 
 
 DONE 1.1

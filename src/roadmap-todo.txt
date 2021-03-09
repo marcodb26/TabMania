@@ -1,8 +1,9 @@
 TODO 1.2
 
-- Delete from git src/notes.txt and src/notes1.1.txt
-  * Contents restructured and distributed between README-DEV.md, src/roadmap-todo.txt, src/roadmap-done.txt
-    and "src/performance history.txt"
+- Figure out a way to open the TabMania popup if it's closed when the user uses
+  the "Search tabs with TabMania" context menu item
+
+- Context menu (on page) and dropdown menu (on tab) to add hostname to a custom group
 
 - BUG: there could be multiple concurrent calls to ContextMenu._onShortcutUpdatedCb() if
   users make multiple changes quickly (or when calling testSettings() from popup.js with
@@ -28,8 +29,6 @@ TODO 1.2
 		- What timeout can we apply? If the user forgets the mouse there, will we never
 		  ever update again?
 
-- Add a "selection" context menu to launch a tab search in TabMania with the selected text
-
 - Context menu "Open in least tabbed" should directly try to tell if the link is already
   open (is that even possible???)
   * Can an extension customize its menu before the item gets clicked?
@@ -39,8 +38,6 @@ TODO 1.2
 
 - BUG: after suspending and searching "suspended", some tiles lost their dropdown menu
   * Probably some race condition discarding AsyncQueue before it finished rendering the menu
-
-- Context menu (on page) and dropdown menu (on tab) to add hostname to a custom group
 
 - Improve displaying of hostnames in custom groups configuration
   * Instead of a text area, list each hostname as their own input box, with options to
