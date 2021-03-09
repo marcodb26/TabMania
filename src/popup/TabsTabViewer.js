@@ -1031,7 +1031,6 @@ _searchRenderTabsInner: function(tabs, bmNodes, hItems, newSearch) {
 	}
 },
 
-
 _searchRenderTabs: function(tabs, newSearch) {
 	const logHead = "TabsTabViewer::_searchRenderTabs(newSearch: " + newSearch + "): ";
 
