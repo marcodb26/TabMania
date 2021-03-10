@@ -10,6 +10,26 @@ DONE 1.2
 
 - Add a "selection" context menu to launch a tab search in TabMania with the selected text
 
+- Restructured search code into a new SearchQuery class
+
+- More sophisticated parsing of the search string, trying to match the syntax used by
+  google search
+  * https://support.google.com/websearch/answer/2466433?hl=en
+  * https://ahrefs.com/blog/google-advanced-search-operators/
+  * Support for "AND" and "OR" binary operators
+    - "AND" has precedence over "OR" (not sure if Google does this)
+  * Multiple tokens separated by spaces are considered having implicit "AND"
+  * Support for unary operators
+    - "-" to indicate exclusion/negation
+	  * Replaces the "!" we used before
+	- Other operators TBD, based on the syntax "<oper>:"
+	- The text affected by the unary operators must be attached to the unary operators,
+	  no whitespaces allowed
+  * Use quotes (single or double) to indicate exact match (or to escape "AND" and "OR")
+  * Use "\" to escape quotes, "-" and ":" (and of course "\" too) (not sure if Google
+    does this)
+  * This should be compatible with using the "+" as launch/search (?)
+
 
 DONE 1.1
 

@@ -1,9 +1,118 @@
 TODO 1.2
 
+- Search: implement unary operators
+  * Define a unary operator to replace the "^" of v.1.1
+  * Support "site:", "intitle:", "inurl:", "inbadge:" (?)
+
+- Search: measure performance
+
+- Search: replace raw strings (token types) with proper enumerations
+
+- Search: how does the new multi-token model work with bookmarks and history?
+
+- BUG: when websites disappear, icons shown in tiles are broken icons
+
+- Support pinning bookmarks
+  * If a pinned bookmark is open, show only the open tab, not the bookmark
+  * We should force an opened tab to get automatically pinned, if its bookmark is pinned? Or just query for the match every time?
+  * Do we want an option to let pinned bookmark land automatically in the "bookmark bar"?
+    - But don't use the bookmark bar as storage to know which tabs are pinned...
+	- What happens when a tab gets unpinned? Remove it from hte bookmark bar or leave it alone?
+
+- Add logic to let "www.google.com" be recognized as a valid URL, even though new URL()
+  won't consider it valid
+  * Make it behave like the browser's omnibar...
+
 - Figure out a way to open the TabMania popup if it's closed when the user uses
   the "Search tabs with TabMania" context menu item
 
+- Add a global shortcut to bring the undocked TabMania popup to the front or open
+  it if it's closed
+  * This is already possible with the standard "invoke popup" shortcut, but that shortcut
+    is restricted to work only in "Chrome" scope, and we want to have an alternative for
+	global scope when the popup is undocked
+
+- BUG: when you click a menu or a close button, the searchbox loses focus and doesn't
+  recover it even after the menu/close click is over
+  * Probably related:
+	- BUG: in search mode, when the searchbox is not in focus, CTRL+A should select the full
+	  text of the searchbox, but instead it selects everything on the entire page
+
+- The bstabs show an ugly URL at the bottom of the undocked window, we should
+  get rid of it
+
+- Sorting tiles, add secondary criteria
+  * If two tabs have the same title, sort by url
+  * Same URL, sort by index in window (to match their appearance on chrome)
+  * Any other sorting criteria besides "title" and "url"?
+
+- Instead of setting an arbitrary "3em" for the min-height of tiles, we should add some
+  code to measure the height of a populated tile right after startup, then use that exact
+  value for the empty tile body from that point on
+  * Tiles might measure different amounts for different users, but once a session has
+    started, the tabs should not change size for the duration of that session
+
+- Add tab count badge to "Home" bstab
+  * Maybe only when it's undocked? It's redundant when docked
+
+- Add in settings total count of tabs and bookmarks
+  * Don’t exclude folders when counting bookmarks, too expensive
+  * Use pulseBadge class while recalculating values
+  * Calculate values only when user on settings tab (otherwise just mark them as dirty and wait for settings tab to be in focus before you recalculate)
+
+- Group tabs with same title and same URL to show as a single collapsed tile with a count
+  * Support expansion (persisted)
+  * Include corresponding bookmarks in group (match only by URL for bookmarks, since they might have a title out of sync)
+  * This should be done for all modes (standard and search), maybe in different stages, because otherwise search can never use the flat rendering
+
+- Expand/collapse all groups (popup menu item)
+
+- Group/ungroup all groups (popup menu items)
+  * In search, allow also to "group by source" (tabs, rcTabs, bmNodes, hItems)
+  * Group by window
+
+- Organize groups by host name inside top level groups (second level)
+  * With group/ungroup option for each top level group
+
+- TabsTabViewer needs a more precise caching mechanism for tile viewers
+  * Right now we discard any tile that's not used in the current rendering iteration
+  * This means that if you search and find 1,000 bookmarks, then get out of search, the
+    tiles of those bookmarks will be discarded, and not available the next time you
+	search again
+  * A proper cache would let those bookmark tiles expire after a certain amount of time
+    instead of dropping them immediately
+
+- Try again to prioritize tile rendering based on being visible on the screen
+
+- If a tile is inside a group accordion, and the accordion is closed, put the tile in
+  the low priority queue for rendering
+
+- Add spinner to unrendered tile body to let users know it's coming...
+
 - Context menu (on page) and dropdown menu (on tab) to add hostname to a custom group
+
+- Improve displaying of hostnames in custom groups configuration
+  * Instead of a text area, list each hostname as their own input box, with options to
+    delete or disable
+	- Plus a button to add a line
+  * Internally they can still be stored as a long string (?)
+    - Prepend a line with a comment ("//") to identify lines that are disabled
+	  * Or should we support real comments, in which case we might need a special prefix
+	    for lines that are disabled
+
+- Decouple shortcut keypress from shortcut menu item
+  * The shortcut configuration should allow remapping of existing known keypresses to
+    specific shortcut configurations, and leave ohter shortcuts without a keypress
+	and available only in context menus
+
+- Add more shortcut keypresses (SC6-SC10?)
+
+- BUG: Pineed custom groups don't show the color on their left border when they're empty
+
+- For the tiles of open tabs representing bookmarks (e.g. chrome://bookmarks/?id=686),
+  try to query the name of the bookmark id (e.g. id=686)
+  * It should always be a folder
+  * List the folder name in the title?
 
 - BUG: there could be multiple concurrent calls to ContextMenu._onShortcutUpdatedCb() if
   users make multiple changes quickly (or when calling testSettings() from popup.js with
@@ -29,6 +138,20 @@ TODO 1.2
 		- What timeout can we apply? If the user forgets the mouse there, will we never
 		  ever update again?
 
+- BUG: search a single letter ("a"), get 1,100 results, then scroll to the bottom
+  * Focus on a window and change active tab
+    - The search count badge blinks, then stops blinking, everything is visible
+  * Repeat the same but this time close a tab
+    - The search count badge blinks, but when it stops, all tiles at the bottom
+	  become whilte, and remain white for a while before getting re-rendered
+	  * What's the difference between changing active tab and closing a tab???
+
+- When text is selected, update context menu to show the text that will be searched
+  * Use getSelection() and event selectionchange
+    - To generate event to update context menus in active tab
+      https://stackoverflow.com/questions/5379120/get-the-highlighted-selected-text
+      https://developer.mozilla.org/en-US/docs/Web/API/Document/selectionchange_event
+
 - Context menu "Open in least tabbed" should directly try to tell if the link is already
   open (is that even possible???)
   * Can an extension customize its menu before the item gets clicked?
@@ -36,17 +159,17 @@ TODO 1.2
 	  right click happens?
 	- Would https://developer.mozilla.org/en-US/docs/Web/API/Element/contextmenu_event work?
 
+- Auto-select-all in searchbox when user clicks the mouse there to edit
+
 - BUG: after suspending and searching "suspended", some tiles lost their dropdown menu
   * Probably some race condition discarding AsyncQueue before it finished rendering the menu
 
-- Improve displaying of hostnames in custom groups configuration
-  * Instead of a text area, list each hostname as their own input box, with options to
-    delete or disable
-	- Plus a button to add a line
-  * Internally they can still be stored as a long string (?)
-    - Prepend a line with a comment ("//") to identify lines that are disabled
-	  * Or should we support real comments, in which case we might need a special prefix
-	    for lines that are disabled
+- BUG: while testing production, "Open in least tabbed window" chose a window with
+  more tabs than the one where the parent tab was
+  * Need to check what happens if calling "Open in least tabbed window" while on
+    the least tab window (with a lot less tabs than the next tabbed window)
+  * Also, the bug happened when clicking on a link for a tab that had just been
+    moved to the least tabbed window
 
 
 PREP FOR NEXT RELEASE
@@ -58,20 +181,46 @@ PREP FOR NEXT RELEASE
 
 PUNTED TO NEXT RELEASE
 
-- BUG: search a single letter ("a"), get 1,100 results, then scroll to the bottom
-  * Focus on a window and change active tab
-    - The search count badge blinks, then stops blinking, everything is visible
-  * Repeat the same but this time close a tab
-    - The search count badge blinks, but when it stops, all tiles at the bottom
-	  become whilte, and remain white for a while before getting re-rendered
-	  * What's the difference between changing active tab and closing a tab???
+- Multi-select of tiles to take actions on selection
+  * We'd need to stop updating the tiles list during selection
 
-- BUG: while testing production, "Open in least tabbed window" chose a window with
-  more tabs than the one where the parent tab was
-  * Need to check what happens if calling "Open in least tabbed window" while on
-    the least tab window (with a lot less tabs than the next tabbed window)
-  * Also, the bug happened when clicking on a link for a tab that had just been
-    moved to the least tabbed window
+- Manage incognito tabs (same view, different BS-tab, hide, etc)
+
+- Add action menu to containers
+
+- Make bstabs disappear when they get too small and they would want to go on two lines
+  * Can't use ".d-none .d-sm-block" as described in https://getbootstrap.com/docs/5.0/utilities/display/
+    - It removes them when the window is still way too large
+
+- Remove vertical scrollbar and replace it with buttons at the top and bottom of the
+  popup view
+  * Even if without full scrollbar, users should be able to scroll using modern
+    wheels / gestures
+	- Doesn't work with "overflow: hidden;", but it should work with this:
+	  https://www.w3schools.com/howto/howto_css_custom_scrollbar.asp
+	  e.g.:
+		::-webkit-scrollbar {
+			width: 0px;
+		}
+  * Optional controlled by Settings?
+  * Only for undocked popup?
+  * Needed to make the undocked popup look slicker when very narrow and long
+    - The vertical scrollbar takes up precious real estate in that case, and forces
+	  the popup to be slightly wider to get the same amount of visible text
+
+- Add badge "recent" to the last 10-15 visited tabs
+  * Independent of the "active" badge
+  * We thought we should use the TabsManager back/fwd history, but it would make more sense
+    to actually measure how much time the user spends with a window in focus and a tab active,
+	across every tab/window transition, then get the most recent from there
+  * To implement "recent" tabs, start with TabsManager::_notifyPopup()
+
+- Shortcuts1-5 with option to select incognito tabs
+  * If not selected, ignore incognito tabs
+
+- Menu item to move all tabs in a custom group to the same window
+
+- Time slice settings (fixed or relative times), just do fixed times for now
 
 - BUG: the chrome.history.search API is tricky... if I search for "Los a" it finds
   history of visits to the "Los Angeles Public Library", but if I search for "Los an"
@@ -94,13 +243,6 @@ PUNTED TO NEXT RELEASE
 - Add back this._getTabMetaTags() to TabTileViewer::_renderBody()
   * And add back host permission "*://*/*" to allow the code injection to run properly
 
-- BUG: Pineed custom groups don't show the color on their left border when they're empty
-
-- For the tiles of open tabs representing bookmarks (e.g. chrome://bookmarks/?id=686),
-  try to query the name of the bookmark id (e.g. id=686)
-  * It should always be a folder
-  * List the folder name in the title?
-
 - Option to find URLs open in multiple tabs (deduplicate)
 
 - If you open a dropdown menu and hover away from the tile (without clicking the menu),
@@ -108,16 +250,6 @@ PUNTED TO NEXT RELEASE
 
 - Support "undo" for deleted bookmarks
   * Can we also "undo" deleted browsing history items?
-
-- Add a global shortcut to bring the undocked TabMania popup to the front or open
-  it if it's closed
-  * This is already possible with the standard "invoke popup" shortcut, but that shortcut
-    is restricted to work only in "Chrome" scope, and we want to have an alternative for
-	global scope when the popup is undocked
-
-- In search, consider multiple words to be multiple keywords separated by "or"
-  * Right now multiple words are still pat of a single string
-  * Is that compatible with using the "+" as launch/search?
 
 - Add shortcut title to dropdown menu of tabs
   * We use the "shortcut title" in context menus, should we also use it in the tile
@@ -133,45 +265,7 @@ PUNTED TO NEXT RELEASE
 	- Maybe we can at least choose the better behavior only when undocked, and revert
 	  to "always open new in new window, never reuse" when docked
 
-- TabsTabViewer needs a more precise caching mechanism for tile viewers
-  * Right now we discard any tile that's not used in the current rendering iteration
-  * This means that if you search and find 1,000 bookmarks, then get out of search, the
-    tiles of those bookmarks will be discarded, and not available the next time you
-	search again
-  * A proper cache would let those bookmark tiles expire after a certain amount of time
-    instead of dropping them immediately
-
-- Try again to prioritize tile rendering based on being visible on the screen
-
-- Support pinning bookmarks
-  * If a pinned bookmark is open, show only the open tab, not the bookmark
-  * We should force an opened tab to get automatically pinned, if its bookmark is pinned? Or just query for the match every time?
-  * Do we want an option to let pinned bookmark land automatically in the "bookmark bar"?
-    - But don't use the bookmark bar as storage to know which tabs are pinned...
-	- What happens when a tab gets unpinned? Remove it from hte bookmark bar or leave it alone?
-
-- Group tabs with same title and same URL to show as a single collapsed tile with a count
-  * Support expansion (persisted)
-  * Include corresponding bookmarks in group (match only by URL for bookmarks, since they might have a title out of sync)
-  * This should be done for all modes (standard and search), maybe in different stages, because otherwise search can never use the flat rendering
-
 - Menu action to re-sync bookmark title if a corresponding tab is open and its title doesn’t match(?)
-
-- BUG: when you click a menu or a close button, the searchbox loses focus and doesn't
-  recover it even after the menu/close click is over
-  * Probably related:
-	- BUG: in search mode, when the searchbox is not in focus, CTRL+A should select the full
-	  text of the searchbox, but instead it selects everything on the entire page
-
-- The bstabs show an ugly URL at the bottom of the undocked window, we should
-  get rid of it
-
-- Add tab count badge to "Home" bstab
-  * Maybe only when it's undocked? It's redundant when docked
-
-- Add logic to let "www.google.com" be recognized as a valid URL, even though new URL()
-  won't consider it valid
-  * Make it behave like the browser's omnibar...
 
 - BUG: the ellipsis of .text-truncate are not vertically align with the title of a tile
   now that the title of the tile uses Bootstrap's .align-middle (vertical-align: middle;)
@@ -204,58 +298,11 @@ PUNTED TO NEXT RELEASE
 - Create subsystem to monitor which tiles are currently visible
   * This will be useful later to perform more complex computations only on visible tabs
 
-- If a tile is inside a group accordion, and the accordion is closed, put the tile in
-  the low priority queue for rendering
-
-- Auto-select-all in searchbox when user clicks the mouse there to edit
-
-- Add in settings total count of tabs and bookmarks
-  * Don’t exclude folders when counting bookmarks, too expensive
-  * Use pulseBadge class while recalculating values
-  * Calculate values only when user on settings tab (otherwise just mark them as dirty and wait for settings tab to be in focus before you recalculate)
-
-- Sorting tiles, add secondary criteria
-  * If two tabs have the same title, sort by url
-  * Same URL, sort by index in window (to match their appearance on chrome)
-
-- Instead of setting an arbitrary "3em" for the min-height of tiles, we should add some
-  code to measure the height of a populated tile right after startup, then use that exact
-  value for the empty tile body from that point on
-  * Tiles might measure different amounts for different users, but once a session has
-    started, the tabs should not change size for the duration of that session
-
-- Make bstabs disappear when they get too small and they would want to go on two lines
-  * Can't use ".d-none .d-sm-block" as described in https://getbootstrap.com/docs/5.0/utilities/display/
-    - It removes them when the window is still way too large
-
-- Remove vertical scrollbar and replace it with buttons at the top and bottom of the
-  popup view
-  * Even if without full scrollbar, users should be able to scroll using modern
-    wheels / gestures
-	- Doesn't work with "overflow: hidden;", but it should work with this:
-	  https://www.w3schools.com/howto/howto_css_custom_scrollbar.asp
-	  e.g.:
-		::-webkit-scrollbar {
-			width: 0px;
-		}
-  * Optional controlled by Settings?
-  * Only for undocked popup?
-  * Needed to make the undocked popup look slicker when very narrow and long
-    - The vertical scrollbar takes up precious real estate in that case, and forces
-	  the popup to be slightly wider to get the same amount of visible text
-
 - Improve date visualization in TileHistoryMenuViewer._updateTitleMenuItem()
   * Use moments.js or something equivalent?
 
-- Add spinner to unrendered tile body to let users know it's coming...
-
 - Create a small always-on-top notification with the list of pinned tabs (icons only)?
   * Similar to Windows tray
-
-- Expand/collapse all groups (popup menu item)
-
-- Group/ungroup all groups (popup menu items)
-  * In search, allow also to "group by source" (tabs, rcTabs, bmNodes, hItems)
 
 - Suspend tiles refresh when displaying menu items
   * Especially at brwser startup time, there are lots of refreshes, and they cause
@@ -270,12 +317,6 @@ PUNTED TO NEXT RELEASE
     to go through after every tab query
     - Do it directly in the tile?
 	  * It could do it only when it becomes visible in the scrolling
-
-- Add badge "recent" to the last 10-15 visited tabs
-  * Independent of the "active" badge
-  * We thought we should use the TabsManager back/fwd history, but it would make more sense
-    to actually measure how much time the user spends with a window in focus and a tab active,
-	across every tab/window transition, then get the most recent from there
 
 - BUG: creating a custom group with just name and no other settings leads to no group
   displayed
@@ -317,16 +358,13 @@ PUNTED TO NEXT RELEASE
 - Expanded accordions have a bothering blue tint
   * Remove the tint, or, for custom groups, align it to the color of the custom group
 
-- Shortcuts1-5 with option to select incognito tabs
-  * If not selected, ignore incognito tabs
-
 - Show a badge/icon if a tab is in full screen
   * https://stackoverflow.com/questions/4296005/determining-if-chrome-is-in-fullscreen-mode-for-extension-development
   * And set/remove full screen?
     - https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullScreen
 	- Probably hard to detect in general which elements need to call the API
 
-- Find a way to keep the popup open when it triggers the creation or removal of a tab in
+- Find a way to keep the docked popup open when it triggers the creation or removal of a tab in
   the same window
   * It's very annoying to click "x" on a tile to remove a tab, and have the entire popup
     disappear
@@ -348,8 +386,6 @@ PUNTED TO NEXT RELEASE
 
 - Show current tab in current window at the top of the tabs list?
 
-- Sort/group tabs by other means (by window, etc.)
-
 - Reorganize TabsTabViewer to leverage a separate "TabsSet" object to manage the querying
   and maintenance of tabs subsets (instead of spreading that logic within the class code
   * One such object for the standard view, one for the search view, in future possibly
@@ -364,13 +400,10 @@ PUNTED TO NEXT RELEASE
 
 - Track and visualize time spent on each active tab (while the window is in foreground)
 
-- Menu item to move all tabs in a custom group to the same window
-
-- Time slice settings (fixed or relative times), just do fixed times for now
-
 - BUG: what's wrong with the "CTRL+SHIFT+5" shortcut? If you set this key combo on a shortcut,
   the shortcut becomes dead and doesn't arrive to the background page anymore
   * Then you change it, the shortcut is still dead until you reload the extension
+  * As of 21.03.09 it seems to be working fine again
 
 - Display details about video
   * For Zoom video playback, you can use:
@@ -380,7 +413,6 @@ PUNTED TO NEXT RELEASE
     <input type="button" pseudo="-webkit-media-controls-play-button" aria-label="play" class="pause" style="">
 	<div aria-label="elapsed time: 0:00" pseudo="-webkit-media-controls-current-time-display" style="">0:00</div>
 	(though the time seems to be stuck at "0:00")
-
   * Actually this has all the data (updated in real time):	
 	<div class="vjs-control-bar" dir="ltr">
 	  <div class="vjs-progress-control vjs-control">
@@ -388,7 +420,6 @@ PUNTED TO NEXT RELEASE
 		[...]
 		  <div class="vjs-time-tooltip" aria-hidden="true" style="right: -23.0156px;">14:45</div>
 		  <div class="vjs-time-tooltip" aria-hidden="true">04:38</div>
-
   * For Youtube can use:
     <div class="ytp-time-display notranslate" style="">
 	  <span class="ytp-time-current">0:22</span>
@@ -402,13 +433,7 @@ PUNTED TO NEXT RELEASE
     "NormalizedTabs" class or the "ShortcutManager" class?
 	- Yes to both (see TabsManager)
 
-- Can we re-use tiles as we do full re-renders?
-  * Right now we just discard all the existing tiles and create new ones
-  * Ideally we should reuse tiles for the same tabID, to also minimize the
-    chances of body re-rendering (this implies creating a function during
-	body updates that validates whether or not the tab info has changed at all)
-
-- BUG: when closing and reopening popup, the scroll goes back to the top, we should
+- BUG: when closing and reopening docked popup, the scroll goes back to the top, we should
   remember the scrolling position when the popup was closed
   * Or should "go back to top" be expected to be the right behavior?
 
@@ -420,9 +445,6 @@ PUNTED TO NEXT RELEASE
 
 - Use chrome.tabs.captureVisibleTab() to capture a screenshot of the tab
   * Works only when the tab is active
-
-- Implement "recent" tabs
-  * Start with TabsManager::_notifyPopup()
 
 - Keyboard navigation through tiles
 
@@ -470,8 +492,8 @@ PUNTED TO NEXT RELEASE
   * Or do we really care, given that most of the times we need to rebuild the
     entire set of tabs from scratch
 
-- BUG: between the scrollbar on the right and the extension border you can see a bit of background,
-  you shouldn't see it
+- BUG: for docked popup, between the scrollbar on the right and the extension border you
+  can see a bit of background, you shouldn't see it
   * See for example the screenshot used to publish the extension
   * Tried to set the <body> color to black, and that tiny strip next to the scrollbar
     is still transparent
@@ -489,10 +511,6 @@ PUNTED TO NEXT RELEASE
 
 - Find a good way to manage console.log() in injected files (leveraging lib/prod.js)
   * Then add lib/prod.js to the "npm run inject" script
-
-- Manage incognito tabs (same view, different BS-tab, hide, etc)
-
-- Add action menu to containers
 
 - BUG: the popup icon badge shows the wrong count when entering search mode, it
   seems to be getting updated to the number of tabs in the search results...
@@ -517,9 +535,6 @@ PUNTED TO NEXT RELEASE
   so our functions this._log() and this._log.info() are the same thing...
   maybe we should use console.debug() as this._log()?
   * With or without renaming this._log()?
-
-- Organize groups by host name inside top level groups (second level)
-  * With group/ungroup option for each top level group
 
 - Work with tab groups, introduced by Chrome in 2020
   * https://dev.to/otomer/google-chrome-s-new-update-finally-allows-you-to-organize-tabs-easily-this-is-how-you-can-use-it-3f99
