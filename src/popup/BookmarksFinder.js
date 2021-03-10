@@ -116,8 +116,8 @@ _processBookmarkTreeNodes: function(nodes) {
 },
 
 // Returns an unsorted list of bookmark nodes, normalized with NormalizedTabs.normalizeTabs()
-find: function(searchString) {
-	const logHead = "BookmarksFinder::find(" + searchString + "): ";
+find: function(searchQuery) {
+	const logHead = "BookmarksFinder::find(\"" + searchQuery.getQuery() + "\"): ";
 	if(!settingsStore.getOptionBookmarksInSearch()) {
 		this._log(logHead + "bookmarks are disabled in search, nothing to do");
 		// Pretend we searched and found no bookmarks (empty array)
@@ -126,7 +126,7 @@ find: function(searchString) {
 
 	this._log(logHead + "processing bookmarks");
 	perfProf.mark("bookmarksSearchStart");
-	return chromeUtils.wrap(chrome.bookmarks.search, logHead, searchString).then(this._processBookmarkTreeNodes.bind(this));
+	return chromeUtils.wrap(chrome.bookmarks.search, logHead, searchQuery.getQuery()).then(this._processBookmarkTreeNodes.bind(this));
 },
 
 }); // Classes.BookmarksFinder

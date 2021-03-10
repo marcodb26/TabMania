@@ -154,10 +154,7 @@ Classes.TabsTabViewer = Classes.SearchableTabViewer.subclass({
 	// String to show when the container is empty
 	_emptyContainerString: null,
 
-	// This will be initialized by the first call to _activateSearchBox()
-	_currentSearchInput: null,
-	// This is only for debugging, the actual processing depends on _searchCompareFn()
-	_currentSearchMode: null,
+	_searchQuery: null,
 
 	_queryAndRenderJob: null,
 	// Delay before a full re-render happens. Use this to avoid causing too many re-renders
@@ -792,102 +789,6 @@ _processTabGroupsCb: function(tabGroups) {
 	this._log(logHead, tabGroups);
 },
 
-///// Search-related functionality
-
-// See Classes.SearchableTabViewer._activateSearchBox() for details about why
-// we separated out this sub-function, and call only this standalong at _init()
-// time (instead of just calling _activateSearchBox(false)).
-_TabsTabViewer_searchBoxInactiveInner: function() {
-	this._currentSearchResults = null;
-	this._currentSearchInput = "";
-	this._currentSearchMode = "[ uninitialized ]";
-	this._renderTabs = this._standardRenderTabs;
-},
-
-// Override this function from Classes.SearchableTabViewer
-_activateSearchBox: function(active) {
-	// Call the original function first
-	Classes.SearchableTabViewer._activateSearchBox.apply(this, arguments);
-
-	active = optionalWithDefault(active, true);
-
-	const logHead = "TabsTabViewer::_activateSearchBox(" + active + "): ";
-	// When search mode gets activated, we need to switch from a standard view of
-	// tabs and tabgroups to a view of only tabs. And viceversa when the search
-	// mode gets deactivated.
-	if(!active) {
-		this._log(logHead, "switching to standard render");
-		// Switch back to the standard view
-		this._TabsTabViewer_searchBoxInactiveInner();
-		// Since we're exiting the search, we need to re-render the standard view:
-		// since we didn't have tiles for some of the tabs, some updates have not
-		// been processed in the _normTabs info, and we can't rely on what we have
-		// there to be updated.
-		this._queryAndRenderTabs();
-	} else {
-		this._log(logHead, "switching to search render");
-		this._currentSearchResults = null;
-		this._setSearchBoxCount();
-		this._renderTabs = this._searchRenderTabs;
-		// We don't need to call this._queryAndRenderTabs() in this case, because
-		// it's already being invoked as part of _searchBoxProcessData().
-	}
-},
-
-// "newSearch" is an optional parameter that should be set to "true" only when the
-// update is triggered by a change in the searchbox input, and left to "false" for
-// all other cases (typically, updates triggered by tab/bookmark/history events where
-// the searchbox input remains the same). The flag is needed to make sure we reset
-// the scrolling position of the popup only when the new search results start to
-// display (that is, at the same time the search count stop blinking). Doing it
-// before that (in this function or in the caller, since searches are async) would
-// result in an odd visual effect.
-_updateSearchResults: function(newSearch) {
-	newSearch = optionalWithDefault(newSearch, false);
-
-	perfProf.mark("searchStart");
-	this._prepareForNewCycle();
-	this._searchRenderTabs(this._normTabs.getTabs(), newSearch);
-	perfProf.mark("searchEnd");
-},
-
-// Override this function from Classes.SearchableTabViewer
-_searchBoxProcessData: function(value) {
-	// If value.length == 0, this function doesn't get called...
-	this._assert(value.length != 0);
-
-	let searchMode = [];
-	this._isTabInCurrentSearch = this._isTabInCurrentSearchPositive.bind(this);
-
-	if(value[0] == "!") {
-		searchMode.push("neg");
-		this._isTabInCurrentSearch = this._isTabInCurrentSearchNegative.bind(this);
-		// Move to the next character, the first character has been used
-		value = value.substring(1);
-	}
-
-	if(value.length != 0 && value[0] == "^") {
-		searchMode.push("startsWith");
-		this._searchCompareFn = this._searchCompareFnInner.bind(this, "startsWith");
-		value = value.substring(1);
-	} else {
-		searchMode.push("includes");
-		this._searchCompareFn = this._searchCompareFnInner.bind(this, "includes");
-	}
-
-	this._currentSearchMode = searchMode.join("-");
-
-	// Search is case insensitive
-	this._currentSearchInput = value.toLowerCase();
-	// Redraw the tab list.
-	// We used to call "this._queryAndRenderTabs()" here, but there's no need
-	// to query the tabs when this event happens, the tabs have not changed,
-	// only the search box has changed.
-	this._updateSearchResults(true);
-	// Also, whenever the search input changes, scroll back to the top of the
-	// new set of results
-},
-
 // This is a static function, because we need it both in the "Enter" handler as
 // well as in the "click" handler (see TabTileViewer), and there was no cleaner way
 // to make this code available in both
@@ -920,6 +821,82 @@ activateTab: function(tab) {
 	);
 },
 
+
+///// Search-related functionality
+
+// See Classes.SearchableTabViewer._activateSearchBox() for details about why
+// we separated out this sub-function, and call only this standalong at _init()
+// time (instead of just calling _activateSearchBox(false)).
+_TabsTabViewer_searchBoxInactiveInner: function() {
+	this._currentSearchResults = null;
+	this._searchQuery = null;
+	this._renderTabs = this._standardRenderTabs;
+},
+
+// Override this function from Classes.SearchableTabViewer
+_activateSearchBox: function(active) {
+	// Call the original function first
+	Classes.SearchableTabViewer._activateSearchBox.apply(this, arguments);
+
+	active = optionalWithDefault(active, true);
+
+	const logHead = "TabsTabViewer::_activateSearchBox(" + active + "): ";
+	// When search mode gets activated, we need to switch from a standard view of
+	// tabs and tabgroups to a view of only tabs. And viceversa when the search
+	// mode gets deactivated.
+	if(!active) {
+		this._log(logHead, "switching to standard render");
+		// Switch back to the standard view
+		this._TabsTabViewer_searchBoxInactiveInner();
+		// Since we're exiting the search, we need to re-render the standard view:
+		// since we didn't have tiles for some of the tabs, some updates have not
+		// been processed in the _normTabs info, and we can't rely on what we have
+		// there to be updated.
+		this._queryAndRenderTabs();
+	} else {
+		this._log(logHead, "switching to search render");
+		this._searchQuery = Classes.SearchQuery.create();
+		this._currentSearchResults = null;
+		this._setSearchBoxCount();
+		this._renderTabs = this._searchRenderTabs;
+		// We don't need to call this._queryAndRenderTabs() in this case, because
+		// it's already being invoked as part of _searchBoxProcessData().
+	}
+},
+
+// "newSearch" is an optional parameter that should be set to "true" only when the
+// update is triggered by a change in the searchbox input, and left to "false" for
+// all other cases (typically, updates triggered by tab/bookmark/history events where
+// the searchbox input remains the same). The flag is needed to make sure we reset
+// the scrolling position of the popup only when the new search results start to
+// display (that is, at the same time the search count stop blinking). Doing it
+// before that (in this function or in the caller, since searches are async) would
+// result in an odd visual effect.
+_updateSearchResults: function(newSearch) {
+	newSearch = optionalWithDefault(newSearch, false);
+
+	perfProf.mark("searchStart");
+	this._prepareForNewCycle();
+	this._searchRenderTabs(this._normTabs.getTabs(), newSearch);
+	perfProf.mark("searchEnd");
+},
+
+// Override this function from Classes.SearchableTabViewer
+_searchBoxProcessData: function(value) {
+	// If value.length == 0, this function doesn't get called...
+	this._assert(value.length != 0);
+
+	this._searchQuery.update(value);
+
+	// Redraw the tab list.
+	// We used to call "this._queryAndRenderTabs()" here, but there's no need
+	// to query the tabs when this event happens, the tabs have not changed,
+	// only the search box has changed.
+	this._updateSearchResults(true);
+	// Also, whenever the search input changes, scroll back to the top of the
+	// new set of results
+},
+
 _respondToEnterKey: function(searchBoxText) {
 	const logHead = "TabsTabViewer::_respondToEnterKey(" + searchBoxText + "): ";
 
@@ -933,58 +910,13 @@ _respondToEnterKey: function(searchBoxText) {
 	Classes.TabsTabViewer.activateTab(this._currentSearchResults[0]);
 },
 
-_searchCompareFnInner: function(fnName, targetString, searchString) {
-	return targetString[fnName](searchString);
-},
-
-// Unlike _searchCompareFnInner(), _searchCompareFn has signature
-// _searchCompareFn(targetString, searchString), that is, the "fnName"
-// argument has been bound when the _searchCompareFn value has been assigned
-_searchCompareFn: null,
-
-_isTabInCurrentSearchPositive: function(tab) {
-	const logHead = "TabsTabViewer::_isTabInCurrentSearchPositive(): ";
-//	this._log(logHead + "entering for tab", tab);
-	if(this._searchCompareFn(tab.tm.lowerCaseTitle, this._currentSearchInput)) {
-		return true;
-	}
-
-	if(this._searchCompareFn(tab.tm.lowerCaseUrl, this._currentSearchInput)) {
-		return true;
-	}
-
-	for(let i = 0; i < tab.tm.searchBadges.length; i++) {
-		if(this._searchCompareFn(tab.tm.searchBadges[i], this._currentSearchInput)) {
-			return true;
-		}
-	}
-
-	return false;
-},
-
-_isTabInCurrentSearchNegative: function(tab) {
-	if(tab.tm.type == Classes.NormalizedTabs.type.BOOKMARK ||
-		tab.tm.type == Classes.NormalizedTabs.type.HISTORY) {
-		// Bookmarks/history don't belong in negative searches, because we're not scanning
-		// the entire set of bookmarks/history, only the set of results from a positive search,
-		// not a negative one.
-		return false;
-	}
-	return !this._isTabInCurrentSearchPositive(tab);
-},
-
-// Similar to _searchCompareFn(), this function gets selected (between _isTabInCurrentSearchPositive
-// and _isTabInCurrentSearchNegative) as the user types the search input
-_isTabInCurrentSearch: null,
-
 _filterByCurrentSearch: function(inputTabs) {
-	const logHead = "TabsTabViewer::_filterByCurrentSearch(value: \"" + this._currentSearchInput +
-						"\", mode: " + this._currentSearchMode + "): ";
+	const logHead = "TabsTabViewer::_filterByCurrentSearch(" + this._searchQuery.getState() + "): ";
 	this._log(logHead + "inputTabs = ", inputTabs);
 	return inputTabs.reduce(
 		function(result, tab) {
 			//this._log(logHead + "inside tab ", tab);
-			if(this._isTabInCurrentSearch(tab)) {
+			if(this._searchQuery.isTabInSearch(tab)) {
 				result.push(tab);
 				return result;
 			}
@@ -1034,20 +966,56 @@ _searchRenderTabsInner: function(tabs, bmNodes, hItems, newSearch) {
 _searchRenderTabs: function(tabs, newSearch) {
 	const logHead = "TabsTabViewer::_searchRenderTabs(newSearch: " + newSearch + "): ";
 
+	if(!this._searchQuery.isInitialized()) {
+		// Sometimes users can enter search mode while this class is going through a
+		// TabsTabViewer::_queryAndRenderTabs() for standard tabs. If that happens
+		// while _queryAndRenderTabs() is waiting for the response from
+		// chrome.tabs.query(), the transition to search mode will "hijack" the
+		// _queryAndRenderTabs() cycle, by switching the pointer this._renderTabs to
+		// this._searchRenderTabs() instead of this._standardRenderTabs().
+		// Normally, when in search mode, this._searchRenderTabs() would be called
+		// by _updateSearchResults() via _searchBoxProcessData() when the "input"
+		// listener callback is invoked, and the input listener callback (which is
+		// _searchBoxProcessData()) sets the _searchQuery to the value in the input
+		// box before calling this._searchRenderTabs(). Since instead we have hijacked
+		// a standart rendering cycle, this._searchRenderTabs() will be called when
+		// chrome.tabs.query() (which was invoked for a standard render, not a search)
+		// returns, and that can be before the input callback has time to run.
+		// In that case the sequence is:
+		// - Start _queryAndRenderTabs() for standard mode
+		// - _activateSearchBox() gets called as part of the processing of the "keydown"
+		//   event (which runs before the "input" event)
+		// - this._renderTabs is switched to this._searchRenderTabs() inside _activateSearchBox()
+		// - chrome.tabs.query() returns inside _queryAndRenderTabs()
+		// - this._renderTabs() (and therefore this._searchRenderTabs()) is invoked to
+		//   process the data from chrome.tabs.query()
+		//   **** This check protects at this point in the sequence
+		// - Finally the "input" event is triggered, and _searchBoxProcessData()
+		//   sets the searchbox input value to the _searchQuery
+		//   * this._searchRenderTabs() can only do processing correctly after this point
+		//
+		// Note that we can't anticipate the initialization of _searchQuery to the "keydown"
+		// event (in _activateSearchBox()), because the "keydown" event knows the raw key
+		// that was pressed, but can't know what that means for the input box (e.g., if
+		// the raw key is "v" and the CTRL modifier is pressed, the "input" event will
+		// report a bunch of text pasted from the clipboard, which the "keydown" event
+		// had no idea of). So the only option is to discard any attempts to call this
+		// function (this._searchRenderTabs()) until the "input" event has taken its sweet
+		// time to get _searchQuery initialized.
+		this._log(logHead + "_searchQuery still pending initialization, nothing to do");
+		return;
+	}
+
 	// Give some feedback to the user in case this search is going to take a while...
 	this._setSearchBoxCountBlinking();
-
-	// Temporary variable, eventually we might want to have a user-facing configuration
-	// option to control this.
-	let merge = true;
 
 	Promise.all([
 		// Unlike bookmarks and history items that support search, recently closed tabs
 		// don't support search, but there's only a maximum of 25 of them, so we can just
 		// scoop them all up and pretend they were always together with the standard tabs
 		this._historyFinder._getRecentlyClosedTabs(),
-		this._bookmarksFinder.find(this._currentSearchInput),
-		this._historyFinder.find(this._currentSearchInput),
+		this._bookmarksFinder.find(this._searchQuery),
+		this._historyFinder.find(this._searchQuery),
 	]).then(
 		function([ rcTabs, bmNodes, hItems ]) {
 			// We need to this._containerViewer.clear() in all cases, but we're trying to

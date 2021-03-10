@@ -153,8 +153,8 @@ _processHistoryItems: function(items) {
 },
 
 // Returns an unsorted list of history items, normalized with NormalizedTabs.normalizeTabs()
-find: function(searchString) {
-	const logHead = "HistoryFinder::find(" + searchString + "): ";
+find: function(searchQuery) {
+	const logHead = "HistoryFinder::find(\"" + searchQuery.getQuery() + "\"): ";
 	if(!settingsStore.getOptionHistoryInSearch()) {
 		this._log(logHead + "history is disabled in search, nothing to do");
 		// Pretend we searched and found no history (empty array)
@@ -167,7 +167,7 @@ find: function(searchString) {
 	let query = {
 		maxResults: this._maxHistoryItems,
 		startTime: 0,
-		text: searchString,
+		text: searchQuery.getQuery(),
 	};
 	return chromeUtils.wrap(chrome.history.search, logHead, query).then(this._processHistoryItems.bind(this));
 },
