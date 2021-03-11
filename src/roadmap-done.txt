@@ -52,7 +52,7 @@ DONE 1.2
   * 5ms to filter if you search for only "a" and get 675 results
 
 - Added debug function tmUtils.showSearchParserInfo() to monitor how SearchQuery is interpreting
-  the user input in the serch
+  the user input in the serch, and to show some search statistics
 
 
 DONE 1.1

@@ -11,7 +11,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     to enable this functionality in a shortcut
 	- All other fields of the shortcut definition are ignored
 
+- Added debug function tmUtils.showSearchParserInfo() to monitor how SearchQuery is interpreting
+  the user input in the serch, and to show some search statistics
+
 ## Changed
+- Replaced search mode parser, the new parser is trying to match the syntax used by
+  google search (case insensitive)
+  * Support for `AND` and `OR` binary operators
+    - `AND` has precedence over `OR`
+  * Multiple tokens separated by spaces are considered having implicit `AND` in between
+  * Support for unary operators
+    - Boolean unary operator `-` to indicate exclusion/negation
+	  * Replaces the `!` we used before
+	- Unary search modifiers `site:` (search only hostname), `intitle:`, `inurl:`, `inbadge:`,
+      `ingroup:` (searches only custom group labels assigned to a tab)
+	- The text affected by the unary operators must be attached to the unary operators,
+	  no whitespaces allowed
+	- Unary operators can be concatenated/nested, only the innermost search modifier takes
+	  effect, while one or more `-` always work regardless of other modifiers
+  * Use quotes (single or double) to indicate exact match (or to escape all operators `"AND"`,
+    `"OR"`, etc.)
+  * Use `\` to escape quotes, `-` and `:` (and of course to escape `\` too) (not sure if Google
+    does this)
+  * The v.1.1 operator `^` (for "starts with") is not supported anymore
 
 ## Fixed
 - Trimming input value for shortcuts hostname/URL, to guarantee correct processing
