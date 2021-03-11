@@ -1,3 +1,14 @@
+Search performance on 21.03.10 (pre v.1.2)
+
+- Search: measure performance
+  * 24ms to filter 211 standard tabs (and ~500 bookmarks), with search query "a b c d e f g"
+    (entered via CTRL+V so it executes all in one go)
+	- Generating 257 results
+	- "a b c d e f g" should be a relatively expensive query because the implicit "AND" means
+	  each property of each tile needs to be checked 7 times (one per letter, no shortcuts)
+  * 5ms to filter if you search for only "a" and get 675 results
+
+
 Performance on 21.02.04 (pre v1.0) (start of day, 199 tiles and some groups)
 
 "Loading window": 		375ms	346ms	317ms	321ms

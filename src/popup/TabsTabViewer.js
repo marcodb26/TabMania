@@ -913,7 +913,8 @@ _respondToEnterKey: function(searchBoxText) {
 _filterByCurrentSearch: function(inputTabs) {
 	const logHead = "TabsTabViewer::_filterByCurrentSearch(" + this._searchQuery.getState() + "): ";
 	this._log(logHead + "inputTabs = ", inputTabs);
-	return inputTabs.reduce(
+
+	let filteredTabs = inputTabs.reduce(
 		function(result, tab) {
 			//this._log(logHead + "inside tab ", tab);
 			if(this._searchQuery.isTabInSearch(tab)) {
@@ -926,6 +927,10 @@ _filterByCurrentSearch: function(inputTabs) {
 		}.bind(this),
 		[] // Initial value for reducer
 	);
+
+	this._searchQuery.aggregateStats(inputTabs);
+
+	return filteredTabs;
 },
 
 _searchRenderTabsInner: function(tabs, bmNodes, hItems, newSearch) {
@@ -937,6 +942,7 @@ _searchRenderTabsInner: function(tabs, bmNodes, hItems, newSearch) {
 
 	perfProf.mark("searchFilterStart");
 	objects = this._filterByCurrentSearch(objects);
+
 	perfProf.mark("searchSortStart");
 	objects = objects.sort(Classes.NormalizedTabs.compareTabsFn);
 	perfProf.mark("searchSortEnd");
@@ -1033,6 +1039,15 @@ _searchRenderTabs: function(tabs, newSearch) {
 			this._searchRenderTabsInner(mergedTabs, bmNodes, hItems, newSearch);
 		}.bind(this)
 	);
+},
+
+getSearchParserInfo: function() {
+	const logHead = "TabsTabViewer::getSearchParserInfo(): ";
+	if(this._searchQuery == null || !this._searchQuery.isInitialized()) {
+		return null;
+	}
+
+	return "Parsed query: " + this._searchQuery.getParsedQuery() + "\n" + this._searchQuery.getStats();
 },
 
 }); // Classes.TabsTabViewer

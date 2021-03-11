@@ -1,14 +1,27 @@
 TODO 1.2
 
-- Search: implement unary operators
-  * Define a unary operator to replace the "^" of v.1.1
-  * Support "site:", "intitle:", "inurl:", "inbadge:" (?)
+- Search: do we need a unary op modifier to select class of tiles? (bookmark, history, recently
+  closed, standard tiles)
+  * We could use hidden search badges for that...
 
-- Search: measure performance
+- Search: the unary operator "^" of v.1.1 is not supported anymore
+  * The main use case was to distinguish "loaded" and "unloaded", do we still want it?
 
-- Search: replace raw strings (token types) with proper enumerations
+- Do we need to support search as a textarea instead of an input box?
 
 - Search: how does the new multi-token model work with bookmarks and history?
+  * We need a simplified query string (purged of operators?) to pass to BookmarksFinder
+    and HistoryFinder
+
+- Search optimization: if two TextNodes A and B are ORed, replace them with a regex of (A)|(B)
+
+- Search optimization: if there are multiple consecutive "-", merge them into one or two
+  * Should we consider "--" to be equivalent to "no-op", and "---" to be equivalent to "-"?
+
+- Search optimization: if there are binary operators with the same operand on both sides,
+  replace the 3 nodes (operator, operand, operand) with a single operand node
+
+- BUG: lowercase "g" gets cut in tile title
 
 - BUG: when websites disappear, icons shown in tiles are broken icons
 

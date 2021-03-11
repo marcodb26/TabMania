@@ -17,6 +17,9 @@ page, some only on the popups) to monitor the state of the extension, or make ch
   - Remember that most normalized tab IDs are strings (only tab IDs of standard tabs are numbers),
     so enclose the normalized tab ID in quotes
 
+* Call `tmUtils.showSearchParserInfo()` to see how the search parser interpreted the active query
+  - Works only while the TabMania popup is in search mode
+
 * Performance statistics (only for the popup console)
   - Call `perfProf.showAsyncQueues()` to see the performance of AsyncQueues
   - Call `perfProf.showStats()` to see some general popup performance statistics.

@@ -30,6 +30,30 @@ DONE 1.2
     does this)
   * This should be compatible with using the "+" as launch/search (?)
 
+- Added basic optimization for search evaluation, using C-style "short-circuiting behavior"
+  for binary operators (if the left operand is enough to determine truth value, don't
+  evaluate the right operand)
+
+- Search: implement unary operators
+  * Support: "site:" (search only hostname), "intitle:", "inurl:", "inbadge:",
+    "ingroup:" (checks only custom group labels assigned to a tab)
+
+- Search: clean up modifiers during unaryOp parsing
+  * If the user enters a modifier that doesn't exist, discard it silently
+
+- Search: replace raw strings (token types) with proper enumerations (cleanup)
+
+- Search: measure performance
+  * 24ms to filter 211 standard tabs (and ~500 bookmarks), with search query "a b c d e f g"
+    (entered via CTRL+V so it executes all in one go)
+	- Generating 257 results
+	- "a b c d e f g" should be a relatively expensive query because the implicit "AND" means
+	  each property of each tile needs to be checked 7 times (one per letter, no shortcuts)
+  * 5ms to filter if you search for only "a" and get 675 results
+
+- Added debug function tmUtils.showSearchParserInfo() to monitor how SearchQuery is interpreting
+  the user input in the serch
+
 
 DONE 1.1
 

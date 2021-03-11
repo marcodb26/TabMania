@@ -165,6 +165,22 @@ showTabInfo: function(tabId) {
 	this._log("tileInfo:", tileInfo);
 },
 
+showSearchParserInfo: function() {
+	const logHead = "TmUtils::showSearchParserInfo(): ";
+
+	const homeBsTabId = popupViewer.getHomeBsTabId();
+	let allTabsBsTabViewer = popupViewer.getBsTabViewerById(homeBsTabId);
+
+	let searchParserText = allTabsBsTabViewer.getSearchParserInfo();
+
+	if(searchParserText == null) {
+		console.log(logHead + "no active search, nothing to show");
+		return;
+	}
+
+	console.log(logHead + searchParserText);
+},
+
 }); // Classes.TmUtils
 
 Classes.Base.roDef(window, "tmUtils", Classes.TmUtils.create());

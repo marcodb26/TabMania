@@ -275,6 +275,7 @@ updateSearchBadges: function(tab) {
 		// the TileViewer has special logic to render this badge in the color
 		// of the custom group, based on tab.tm.customGroupName
 		this._addNormalizedVisualBadge(tab, tab.tm.customGroupName, false);
+		tab.tm.customGroupBadges.push(tab.tm.customGroupName.toLowerCase());
 	}
 
 	// We always want this to appear last, if the user configured it to be visible
@@ -492,6 +493,10 @@ normalizeTab: function(tab, objType) {
 		// search. Search won't (or at least, should not) happen anyway until
 		// after the tiles are rendered.
 		searchBadges: [],
+		// We track custom group names both in searchBadges and customGroupBadges.
+		// The duplication is required to support the "ingroup:" unaryOp modifier
+		// in search (see SearchQuery._evaluateTextNode()).
+		customGroupBadges: [],
 
 		// The following two are shortcut badges for visualization, not for search,
 		// and as such the text should show up in the case (upper/lower) combination
