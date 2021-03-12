@@ -49,10 +49,42 @@ _compareDateAdded: function(a, b) {
 	return 0;
 },
 
-_loadBookmarkTreeNodes: function(nodes) {
+_loadBookmarkTreeNode: function(node) {
+	const logHead = "BookmarksManager::_loadBookmarkTreeNode(): ";
+
+	// Make sure to do this before calling Classes.NormalizedTabs.normalizeTab(), we
+	// want original chrome-API-style IDs as keys, since we use these keys to work
+	// events from chrome APIs, or to create folder paths
+	this._bookmarksDict[node.id] = node;
+
+	if(node.url == null) {
+		// Per https://developer.chrome.com/docs/extensions/reference/bookmarks/#type-BookmarkTreeNode
+		// folder are identifiable by the absence of "url".
+		// The following actions are only for non-folders.
+		return;
+	}
+
+	Classes.NormalizedTabs.normalizeTab(node, Classes.NormalizedTabs.type.BOOKMARK);
+
+	// We're assuming chrome.bookmarks.getRecent() returns the data sorted by "dateAdded",
+	// and that's the sorting order we want to have too, because if we need to honor
+	// "this._maxBookmarkNodesInSearch", we want to return the most recently added bookmarks
+	// in the results set.
+	// Let's just confirm that sorting assumption is true, rather than forcing a re-sort.
+	// UPDATE: experimentally we found the data is sorted from newer to older, and some
+	// bookmarks share the same "dateAdded" (probably from an import/sync?).
+	if(this._bookmarks.length != 0) {
+		let lastNode = this._bookmarks[this._bookmarks.length - 1];
+		this._assert(this._compareDateAdded(lastNode, node) >= 0, logHead + "incoming data not sorted", lastNode, node);
+	}
+
+	this._bookmarks.push(node);
+},
+
+_loadBookmarkTreeNodeList: function(nodes) {
 	perfProf.mark("bookmarksLoadEnd");
 
-	const logHead = "BookmarksManager::_loadBookmarkTreeNodes(): ";
+	const logHead = "BookmarksManager::_loadBookmarkTreeNodeList(): ";
 	this._log(logHead + "received: ", nodes);
 
 	this._bookmarksDict = {};
@@ -61,35 +93,7 @@ _loadBookmarkTreeNodes: function(nodes) {
 	perfProf.mark("bookmarksSetupStart");
 
 	for(let i = 0; i < nodes.length; i++) {
-		let node = nodes[i];
-
-		// Make sure to do this before calling Classes.NormalizedTabs.normalizeTab(), we
-		// want original chrome-API-style IDs as keys, since we use these keys to work
-		// events from chrome APIs, or to create folder paths
-		this._bookmarksDict[node.id] = node;
-
-		if(node.url == null) {
-			// Per https://developer.chrome.com/docs/extensions/reference/bookmarks/#type-BookmarkTreeNode
-			// folder are identifiable by the absence of "url".
-			// The following actions are only for non-folders.
-			continue;
-		}
-
-		Classes.NormalizedTabs.normalizeTab(node, Classes.NormalizedTabs.type.BOOKMARK);
-
-		// We're assuming chrome.bookmarks.getRecent() returns the data sorted by "dateAdded",
-		// and that's the sorting order we want to have too, because if we need to honor
-		// "this._maxBookmarkNodesInSearch", we want to return the most recently added bookmarks
-		// in the results set.
-		// Let's just confirm that sorting assumption is true, rather than forcing a re-sort.
-		// UPDATE: experimentally we found the data is sorted from newer to older, and some
-		// bookmarks share the same "dateAdded" (probably from an import/sync?).
-		if(i != 0) {
-			let lastNode = this._bookmarks[this._bookmarks.length - 1];
-			this._assert(this._compareDateAdded(lastNode, node) >= 0, logHead + "incoming data not sorted", lastNode, node);
-		}
-
-		this._bookmarks.push(node);
+		this._loadBookmarkTreeNode(nodes[i]);
 	}
 	perfProf.mark("bookmarksSetupEnd");
 },
@@ -102,7 +106,7 @@ _loadBookmarks: function() {
 	this._bookmarksLoadingPromise = chromeUtils.wrap(chrome.bookmarks.getRecent, logHead, this._maxBookmarkNodesTracked).then(
 		function(nodes) { // onFulfill
 			try {
-				this._loadBookmarkTreeNodes(nodes);
+				this._loadBookmarkTreeNodeList(nodes);
 			} catch(e) {
 				this._err(logHead, e);
 			}
@@ -262,6 +266,92 @@ find: function(searchQuery) {
 
 	perfProf.mark("bookmarksSearchEnd");
 	return Promise.resolve(searchResults);
+},
+
+// This function uses the "Chrome bookmark ID" (not the modified ID defined in NormalizedTabs),
+// since its main use case right now is to navigate through folders for getBmPathList()
+getBmNode: function(bmNodeId) {
+	let bmNode = this._bookmarksDict[bmNodeId];
+
+	if(bmNode != null) {
+		return bmNode;
+	}
+	return null;
+},
+
+// We have two separate versions of "getBmPathList", a sync and an async version.
+// The async version is very expensive, because every time we call chrome.bookmarks.get()
+// we end up giving up on the current event cycle and having to wait for the next cycle.
+// The sync version instead doesn't give up the current execution context, so it can
+// return very quickly, provided all the data is in _bookmarksDict.
+// We could have a single function that picks sync or async, but if we mark such function
+// "async" to support the async path, then we'll always have to give up the current event
+// cycle at least once when returning to the caller, and that would be a waste.
+getBmPathListAsync: async function(bmNode) {
+	const logHead = "BookmarksManager::getBmPathListAsync(" + bmNode.id + "): ";
+
+	let pathList = [];
+
+//	this._log(logHead + "entering");
+
+	while(bmNode != null && bmNode.parentId != null) {
+		//this._log(logHead + "current round: " + bmNode.title);
+
+		let parentNode = this.getBmNode(bmNode.parentId);
+		if(parentNode == null) {
+			let result = await chromeUtils.wrap(chrome.bookmarks.get, logHead, bmNode.parentId);
+			if(result.length > 0) {
+				parentNode = result[0];
+				// Let's track this folder for next time...
+				this._loadBookmarkTreeNode(parentNode);
+			}
+		}
+
+		bmNode = parentNode;
+
+		if(bmNode != null) {
+			// The root ID "0" should have an empty title, but you never know...
+			pathList.push(bmNode.title != null ? bmNode.title : "");
+			//this._log(logHead + "next round: ", bmNode);
+		} else {
+			// It should never get here, but just in case
+			this._err(logHead + "unexpected, it should not get here");
+		}
+	}
+
+	pathList.reverse();
+//	this._log(logHead + "full pathList = ", pathList);
+	return pathList;
+},
+
+// Returns "null" if at least one parent in the folders path is missing from
+// this._bookmarksDict, meaning the folder did not fit within our limit
+// "this._maxBookmarkNodesTracked". When that happens, the caller must try
+// the async version of this function instead: BookmarksManager.getBmPathListAsync()
+getBmPathListSync: function(bmNode) {
+	const logHead = "BookmarksManager::getBmPathListSync(" + bmNode.id + "): ";
+
+	let pathList = [];
+
+//	this._log(logHead + "entering");
+
+	while(bmNode != null && bmNode.parentId != null) {
+		//this._log(logHead + "current round: " + bmNode.title);
+
+		bmNode = this.getBmNode(bmNode.parentId);
+		if(bmNode == null) {
+			// One folder in the path not found, use getBmPathListAsync() instead
+			return null;
+		}
+
+		// The root ID "0" should have an empty title, but you never know...
+		pathList.push(bmNode.title != null ? bmNode.title : "");
+		//this._log(logHead + "next round: ", bmNode);
+	}
+
+	pathList.reverse();
+//	this._log(logHead + "full pathList = ", pathList);
+	return pathList;
 },
 
 }); // Classes.BookmarksManager

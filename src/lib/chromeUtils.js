@@ -307,6 +307,9 @@ inject: function(tabId, jsFile) {
 
 //// Utils to work with bookmarks (chrome.bookmarks)
 
+// This function is obsolete, use bookmarksManager.getBmPathListSync() or
+// bookmarksManager.getBmPathListAsync() instead
+//
 // Easier to use async functions to manage a sequential loop of promises...
 getBookmarkPathList: async function(bmNode) {
 	const logHead = "ChomeUtils::getBookmarkPathList(" + bmNode.id + "): ";

@@ -63,6 +63,9 @@ DONE 1.2
 - Added new BookmarksManager class to replace BookmarksFinder, as chrome.bookmarks.search()
   is too inadequate to support our search needs
 
+- Improved performance of TileBookmarkMenuViewer._updateTitleMenuItem() by providing a sync
+  version of the folder path building logic leveraging the bookmark shadow data in bookmarksManager
+
 
 DONE 1.1
 

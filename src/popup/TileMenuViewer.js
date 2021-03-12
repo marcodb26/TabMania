@@ -413,7 +413,7 @@ _init: function(bm) {
 _renderSubtitleHtml: function(pathList) {
 	let createdText = (new Date(this._bm.dateAdded)).toString();
 
-	// chromeUtils.getBookmarkPathList() returns an array that starts with an empty
+	// bookmarksManager.getBmPathListSync()() returns an array that starts with an empty
 	// string (the root element of the bookmarks tree has no title), and that's
 	// perfect to have .join("/") add a leading "/".
 	return `
@@ -443,7 +443,15 @@ _renderTitle: function() {
 _updateTitleMenuItem: function() {
 	this._titleElem.innerHTML = `<b>${this._safeText(this._bm.title)}</b>`;
 
-	chromeUtils.getBookmarkPathList(this._bm).then(
+	let pathList = bookmarksManager.getBmPathListSync(this._bm);
+	if(pathList != null) {
+		this._subtitleElem.innerHTML = this._renderSubtitleHtml(pathList);
+		return;
+	}
+
+	// If we get here, the sync version of getBmPathList didn't have all the data
+	// to provide the full folder set, we need to rely on the async version instead
+	bookmarksManager.getBmPathListAsync(this._bm).then(
 		function(pathList) {
 			this._subtitleElem.innerHTML = this._renderSubtitleHtml(pathList);
 		}.bind(this)
