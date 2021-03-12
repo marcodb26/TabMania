@@ -20,6 +20,11 @@ Classes.BookmarksManager = Classes.Base.subclass({
 	// Note that _bookmarksDict contains everything, while _bookmarks excludes folders
 	_bookmarksDict: null,
 	_bookmarks: null,
+	// The bookmarksManager runtime doesn't really need "_folders", but we need it to
+	// debug the folders logic
+	_folders: null,
+
+	_stats: null,
 
 _init: function() {
 	// Overriding the parent class' _init(), but calling that original function first
@@ -28,6 +33,23 @@ _init: function() {
 
 	this._eventManager = Classes.EventManager.create();
 	this._eventManager.attachRegistrationFunctions(this);
+
+	this._stats = {
+		load: 0,
+		find: 0,
+		bookmarks: 0,
+		folders: 0,
+
+		// Counting events received
+		onCreated: 0,
+		// We ignore an "onCreated" event if there's an import in progress
+		onCreatedIgnored: 0,
+		onChanged: 0,
+		onRemoved: 0,
+		onMoved: 0,
+		onImportBegan: 0,
+		onImportEnded: 0,
+	};
 
 	this._loadBookmarks().then(
 		function() {
@@ -49,22 +71,63 @@ _compareDateAdded: function(a, b) {
 	return 0;
 },
 
+// "replace" is a flag indicating if the action is append or replace.
+// "debugName" is only needed to provide more context for log messages.
+_appendOrReplaceNode: function(nodeToAdd, replace, targetList, debugName) {
+	const logHead = "BookmarksManager::_appendOrReplaceNode(" + nodeToAdd.id + "): ";
+
+	if(!replace) {
+		targetList.push(nodeToAdd);
+		return;
+	}
+
+	let idx = targetList.findIndex(node => node.id === nodeToAdd.id);
+	if(idx == -1) {
+		this._err(logHead + "node should aready exist, but not found", debugName, nodeToAdd);
+		targetList.push(nodeToAdd);
+	} else {
+		this._log(logHead + "replacing existing", debugName, nodeToAdd);
+		targetList[idx] = nodeToAdd;
+	}
+},
+
 _loadBookmarkTreeNode: function(node) {
 	const logHead = "BookmarksManager::_loadBookmarkTreeNode(): ";
 
 	// Make sure to do this before calling Classes.NormalizedTabs.normalizeTab(), we
 	// want original chrome-API-style IDs as keys, since we use these keys to work
 	// events from chrome APIs, or to create folder paths
+	let bmAlreadyTracked = false;
+	if(this._bookmarksDict[node.id] != null) {
+		// The challenge with adding the same "node" twice is that the latest version of
+		// the node replaces the previous version in this._bookmarksDict, but it appends
+		// the new version after the existing version in this._bookmarks and this._folders.
+		// So we need to assert that adding twice does not happen, or alternatively handle
+		// it properly by replacing the existing node instead of adding a second copy.
+		// The problem with replacing is that it requires a linear scan to find the node
+		// we want to replace, so it's an expensive operation we'd rather avoid.
+		// Asserting is fine to get a signal of the problem, but we still need to process
+		// the insertion of the node correctly, and that is done by _appendOrReplaceNode().
+		bmAlreadyTracked = true;
+		this._assert(!bmAlreadyTracked, logHead + "unexpected, bookmark/folder node already tracked", node);
+	}
+
 	this._bookmarksDict[node.id] = node;
 
 	if(node.url == null) {
 		// Per https://developer.chrome.com/docs/extensions/reference/bookmarks/#type-BookmarkTreeNode
 		// folder are identifiable by the absence of "url".
-		// The following actions are only for non-folders.
+		
 //		this._err(logHead + "added folder", node);
+//		this._log.trace(logHead, node, stackTrace());
+		this._stats.folders++;
+		this._appendOrReplaceNode(node, bmAlreadyTracked, this._folders, "folder");
 		return;
 	}
 
+	// The following actions are only for non-folders.
+
+	this._stats.bookmarks++;
 	Classes.NormalizedTabs.normalizeTab(node, Classes.NormalizedTabs.type.BOOKMARK);
 
 	// We're assuming chrome.bookmarks.getRecent() returns the data sorted by "dateAdded",
@@ -79,7 +142,7 @@ _loadBookmarkTreeNode: function(node) {
 		this._assert(this._compareDateAdded(lastNode, node) >= 0, logHead + "incoming data not sorted", lastNode, node);
 	}
 
-	this._bookmarks.push(node);
+	this._appendOrReplaceNode(node, bmAlreadyTracked, this._bookmarks, "bookmark");
 },
 
 _loadBookmarkTreeNodeList: function(nodes) {
@@ -90,6 +153,10 @@ _loadBookmarkTreeNodeList: function(nodes) {
 
 	this._bookmarksDict = {};
 	this._bookmarks = [];
+	this._folders = [];
+
+	this._stats.folders = 0;
+	this._stats.bookmarks = 0;
 
 	perfProf.mark("bookmarksSetupStart");
 
@@ -104,6 +171,7 @@ _loadBookmarks: function() {
 	perfProf.mark("bookmarksLoadStart");
 
 	this._log(logHead + "loading bookmarks");
+	this._stats.load++;
 	this._bookmarksLoadingPromise = chromeUtils.wrap(chrome.bookmarks.getRecent, logHead, this._maxBookmarkNodesTracked).then(
 		function(nodes) { // onFulfill
 			try {
@@ -140,15 +208,17 @@ _initListeners: function() {
 // We need an event entry point _bookmarkCreatedCb() (instead of using the generic _delayableEventCb())
 // because for bookmark creation we must track "_bookmarksImportInProgress".
 _bookmarkCreatedCb: function(id, bmNode) {
+	this._stats.onCreated++;
+
 	if(this._bookmarksImportInProgress) {
 		// Per the documentation, ignore chrome.bookmarks.onCreated events
 		// while a bulk import is in progress.
 		// See https://developer.chrome.com/docs/extensions/reference/bookmarks/#event-onImportBegan
+		this._stats.onCreatedIgnored++;
 		return;
 	}
 
-	this._delayableEventCb(this._applyBookmarkCreateCb.bind(this), id, bmNode)
-	this._eventManager.notifyListeners(Classes.EventManager.Events.UPDATED, { id: Classes.NormalizedTabs.normalizeBookmarkId(id) });
+	this._delayableEventCb(this._applyBookmarkCreateCb.bind(this), id, bmNode);
 },
 
 _delayableEventCb: function(eventCb, id, eventInfo) {
@@ -166,6 +236,8 @@ _delayableEventCb: function(eventCb, id, eventInfo) {
 _applyBookmarkCreateCb: function(id, bmNode) {
 	const logHead = "BookmarksManager::_applyBookmarkCreateCb(" + id + "): ";
 
+	this._log(logHead + "processing", bmNode);
+
 	// A create event is problematic because we don't want our bookmark store to start
 	// growing, we want to continue to have a maximum of this._maxBookmarkNodesTracked
 	// bookmark nodes. Easier to just reload everything...
@@ -178,6 +250,8 @@ _applyBookmarkCreateCb: function(id, bmNode) {
 
 _applyBookmarkChangeCb: function(id, changeInfo) {
 	const logHead = "BookmarksManager::_applyBookmarkChangeCb(" + id + "): ";
+	this._stats.onChanged++;
+
 	let bm = this._bookmarksDict[id];
 	if(bm != null) {
 		this._log(logHead + "processing", changeInfo);
@@ -192,6 +266,9 @@ _applyBookmarkChangeCb: function(id, changeInfo) {
 
 _applyBookmarkRemoveCb: function(id, removeInfo) {
 	const logHead = "BookmarksManager::_applyBookmarkRemoveCb(" + id + "): ";
+	this._stats.onRemoved++;
+
+	this._log(logHead + "processing", removeInfo);
 
 	// A remove event is tricky business, since per the documentation, you get a single
 	// event for the top element being deleted, and if it's a folder, you don't get any
@@ -207,6 +284,7 @@ _applyBookmarkRemoveCb: function(id, removeInfo) {
 
 _applyBookmarkMoveCb: function(id, moveInfo) {
 	const logHead = "BookmarksManager::_applyBookmarkMoveCb(" + id + "): ";
+	this._stats.onMoved++;
 
 	let bm = this._bookmarksDict[id];
 	if(bm != null) {
@@ -227,17 +305,25 @@ _applyBookmarkMoveCb: function(id, moveInfo) {
 },
 
 _bookmarkImportBeganCb: function() {
+	const logHead = "BookmarksManager::_bookmarkImportBeganCb(): ";
+	this._log(logHead + "import started");
+
 	// In theory we could just call a removeListener() for _bookmarkCreatedCb() when
 	// we get out of search mode, but it's not even clear how well supported that
 	// function is, since it's not well documented... see: https://stackoverflow.com/a/13522461/10791475
 	// Anyway these events should not be very frequent, so no reason to optimize
 	// too much. Using the flag to disable any expensive operation should be sufficient.
 	this._bookmarksImportInProgress = true;
+	this._stats.onImportBegan++;
 	// No other action needs to be taken in this case
 },
 
 _bookmarkImportEndedCb: function() {
+	const logHead = "BookmarksManager::_bookmarkImportBeganCb(): ";
+	this._log(logHead + "import ended");
+
 	this._bookmarksImportInProgress = false;
+	this._stats.onImportEnded++;
 
 	// Let's do a full refresh of the search results after a bulk import.
 	// We can't include a single "id" in the event in this case, so let's just leave
@@ -254,6 +340,7 @@ find: function(searchQuery) {
 	perfProf.mark("bookmarksSearchStart");
 
 	const logHead = "BookmarksManager::find(): ";
+	this._stats.find++;
 	let searchResults = [];
 
 	if(!settingsStore.getOptionBookmarksInSearch()) {
@@ -304,7 +391,14 @@ getBmPathListAsync: async function(bmNode) {
 			if(result.length > 0) {
 				parentNode = result[0];
 				// Let's track this folder for next time...
-				this._loadBookmarkTreeNode(parentNode);
+				// Since chrome.bookmarks.get() is async, there could be multiple calls to
+				// getBmPathListAsync() pending, but we don't want to call _loadBookmarkTreeNode()
+				// multiple times, because it's expensive to manage replacing an existing node
+				// in that function. So once the "await" is over, let's check again if in the
+				// meantime some other codepath got to this folder first...
+				if(this.getBmNode(parentNode.id) == null) {
+					this._loadBookmarkTreeNode(parentNode);
+				}
 			}
 		}
 
@@ -354,5 +448,9 @@ getBmPathListSync: function(bmNode) {
 //	this._log(logHead + "full pathList = ", pathList);
 	return pathList;
 },
+
+getStats: function() {
+	return this._stats;
+}
 
 }); // Classes.BookmarksManager

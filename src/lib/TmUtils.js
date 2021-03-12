@@ -138,6 +138,8 @@ deepClone: function(obj) {
 },
 
 // FUNCTIONS FOR CHROME DEV TOOLS CONSOLE
+// Use console.log() instead of this._log() here, otherwise the output won't
+// be available with the dist vesion of TabMania
 
 // Debugging-only function, do not call in the code
 clearStorage: function() {
@@ -158,11 +160,11 @@ showTabInfo: function(tabId) {
 	let [ tabInfo, tileInfo ] = allTabsBsTabViewer.getTabInfo(tabId);
 
 	if(tileInfo != null && tabInfo == null) {
-		this._log("tabInfo (through tile):", tileInfo.getTabInfo());
+		console.log("tabInfo (through tile):", tileInfo.getTabInfo());
 	} else {
-		this._log("tabInfo:", tabInfo);
+		console.log("tabInfo:", tabInfo);
 	}
-	this._log("tileInfo:", tileInfo);
+	console.log("tileInfo:", tileInfo);
 },
 
 showSearchParserInfo: function() {
@@ -179,6 +181,10 @@ showSearchParserInfo: function() {
 	}
 
 	console.log(logHead + searchParserText);
+},
+
+showBookmarksStats: function() {
+	console.log("bookmarksManager statistics:", bookmarksManager.getStats());
 },
 
 }); // Classes.TmUtils

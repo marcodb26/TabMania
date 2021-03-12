@@ -99,6 +99,10 @@ _getMarksByPrefix: function(measuresTable) {
 	return p;
 },
 
+// FUNCTIONS FOR CHROME DEV TOOLS CONSOLE
+// Use console.log() instead of this._log() here, otherwise the output won't
+// be available with the dist vesion of TabMania
+
 _showMeasures: function(measuresTable) {
 	console.table(this._getMarksByPrefix(measuresTable), [ "name", "startTime" ] );
 	console.table(this._getMeasures(measuresTable), [ "name", "duration", "startTime" ]);
