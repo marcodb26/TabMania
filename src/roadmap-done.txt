@@ -54,6 +54,15 @@ DONE 1.2
 - Added debug function tmUtils.showSearchParserInfo() to monitor how SearchQuery is interpreting
   the user input in the serch, and to show some search statistics
 
+- Added a simplified query string (purged of operators) to pass to BookmarksFinder
+  and HistoryFinder
+  * Not really helping much, Bookmarks seem to take the strings as "and"
+
+- Show "dateAdded" for bookmarks in dropdown details
+
+- Added new BookmarksManager class to replace BookmarksFinder, as chrome.bookmarks.search()
+  is too inadequate to support our search needs
+
 
 DONE 1.1
 

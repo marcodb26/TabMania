@@ -1,29 +1,26 @@
 TODO 1.2
 
-- Search: do we need a unary op modifier to select class of tiles? (bookmark, history, recently
-  closed, standard tiles)
-  * We could use hidden search badges for that...
+- Add debouncing to BookmarksManager._loadBookmarks()
 
-- Search: the unary operator "^" of v.1.1 is not supported anymore
-  * The main use case was to distinguish "loaded" and "unloaded", do we still want it?
-
-- Do we need to support search as a textarea instead of an input box?
+- Enable/disable BookmarkManager based on configuration
 
 - Search: how does the new multi-token model work with bookmarks and history?
   * We need a simplified query string (purged of operators?) to pass to BookmarksFinder
     and HistoryFinder
 
-- Search optimization: if two TextNodes A and B are ORed, replace them with a regex of (A)|(B)
-
-- Search optimization: if there are multiple consecutive "-", merge them into one or two
-  * Should we consider "--" to be equivalent to "no-op", and "---" to be equivalent to "-"?
-
-- Search optimization: if there are binary operators with the same operand on both sides,
-  replace the 3 nodes (operator, operand, operand) with a single operand node
-
 - BUG: lowercase "g" gets cut in tile title
 
 - BUG: when websites disappear, icons shown in tiles are broken icons
+
+- BUG: Class .tm-dropdown-menu says "min-width: 20em", causing the popup to have
+  a horizontal scroller when the popup width is less than 20em
+  - We need to replace that with a more dynamic setting
+  - It's also exacerbated by the fact that the menu doesn't close when you
+    remove the hover, so the scrollbar stays even though the menu is not visible
+	* Maybe we just want to fix this and live with a menu that's too big just
+	  when you open it?
+	  - There's no point in making a menu too narrow, ideally it should show up
+	    outside of the popup window...
 
 - Support pinning bookmarks
   * If a pinned bookmark is open, show only the open tab, not the bookmark
@@ -183,6 +180,23 @@ TODO 1.2
     the least tab window (with a lot less tabs than the next tabbed window)
   * Also, the bug happened when clicking on a link for a tab that had just been
     moved to the least tabbed window
+
+- Search: do we need a unary op modifier to select class of tiles? (bookmark, history, recently
+  closed, standard tiles)
+  * We could use hidden search badges for that...
+
+- Search: the unary operator "^" of v.1.1 is not supported anymore
+  * The main use case was to distinguish "loaded" and "unloaded", do we still want it?
+
+- Do we need to support search as a textarea instead of an input box?
+
+- Search optimization: if two TextNodes A and B are ORed, replace them with a regex of (A)|(B)
+
+- Search optimization: if there are multiple consecutive "-", merge them into one or two
+  * Should we consider "--" to be equivalent to "no-op", and "---" to be equivalent to "-"?
+
+- Search optimization: if there are binary operators with the same operand on both sides,
+  replace the 3 nodes (operator, operand, operand) with a single operand node
 
 
 PREP FOR NEXT RELEASE
