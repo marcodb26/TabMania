@@ -425,34 +425,54 @@ _escapeText: function(text) {
 	return retVal;
 },
 
-// Debugging function to validate what the parser has done
-rebuildQueryString: function(node) {
+// When "fullRebuild" is set to "true", this function behaves as a debugging function
+// to validate what the parser has done.
+// When it's set to false, it generates a simplified version of the query string with
+// all operators omitted, to be used with the chrome.history.search() and
+// chrome.bookmarks.search() APIs.
+rebuildQueryString: function(node, fullRebuild) {
 	let retVal = [];
 
 	switch(node.type) {
-		case Classes.SearchTokenizer.type.BINARYOP:			
-			retVal.push("(");
+		case Classes.SearchTokenizer.type.BINARYOP:
+			if(fullRebuild) {
+				retVal.push("(");
+			}
 			retVal.push(this.rebuildQueryString(node.leftOperand));
-			retVal.push(node.value.toUpperCase());
+			if(fullRebuild) {
+				retVal.push(node.value.toUpperCase());
+			}
 			retVal.push(this.rebuildQueryString(node.rightOperand));
-			retVal.push(")");
+			if(fullRebuild) {
+				retVal.push(")");
+			}
 			return retVal.join(" ");
 
 		case Classes.SearchTokenizer.type.UNARYOP:
-			retVal.push(node.value);
-			if(node.value != "-") {
-				retVal.push(":");
+			if(fullRebuild) {
+				retVal.push(node.value);
+				if(node.value != "-") {
+					retVal.push(":");
+				}
 			}
 			retVal.push(this.rebuildQueryString(node.operand));
 			// No spaces between tokens for unary operators
 			return retVal.join("");
 
 		case Classes.SearchTokenizer.type.TEXT:
-			return this._escapeText(node.value);
+			if(fullRebuild) {
+				return this._escapeText(node.value);
+			} else {
+				return node.value;
+			}
 
 		case Classes.SearchTokenizer.type.QUOTEDTEXT:
-			// Unfortunately we don't track which type of quotes were used in the original text...
-			return "\"" + this._escapeText(node.value) + "\"";
+			if(fullRebuild) {
+				// Unfortunately we don't track which type of quotes were used in the original text...
+				return "\"" + this._escapeText(node.value) + "\"";
+			} else {
+				return node.value;
+			}
 	}
 },
 
@@ -474,13 +494,13 @@ Classes.SearchQuery = Classes.Base.subclass({
 	_searchQuery: null,
 	_parsedQuery: null,
 
-	// Statistics
+	// Statistics about the parser
 	_cntParsedNodes: null,
 	// Text nodes are the only expensive nodes to process...
 	_cntParsedTextNodes: null,
-	_totalEvaluated: null,
-	_totalEvaluatedText: null,
-	_totalTabsEvaluated: null,
+
+	// Statistics about the tabs searched
+	_stats: null,
 
 // "value" is optional
 _init: function(value) {
@@ -702,19 +722,79 @@ isTabInSearch: function(tab, stats) {
 	return this._evaluate(tab, this._parsedQuery, tab.tm.searchStats);
 },
 
-aggregateStats: function(tabs) {
-	const logHead = " SearchQuery::aggregateStats(): ";
-	this._totalEvaluated = 0;
-	this._totalEvaluatedText = 0;
+// "maxResults" is an optional parameter. If specified, the search will stop after
+// "maxResults" have been accumulated
+search: function(inputTabs, statsSource, maxResults) {
+	const logHead = "SearchQuery::search(" + this.getState() + "): ";
+	this._log(logHead + "inputTabs", inputTabs);
 
-	this._totalTabsEvaluated = tabs.length;
-
-	for(let i = 0; i < tabs.length; i++) {
-		this._totalEvaluated += tabs[i].tm.searchStats.cntEvaluated;
-		this._totalEvaluatedText += tabs[i].tm.searchStats.cntEvaluatedText;
+	function maxReached(results) {
+		if(maxResults == null) {
+			return false;
+		}
+		return results.length >= maxResults;
+	}
+		
+	let filteredTabs = [];
+	let i = 0; // Initializing here because we need it after the for() loop
+	for(let i = 0; i < inputTabs.length && !maxReached(filteredTabs); i++) {
+		let tab = inputTabs[i];
+		if(this.isTabInSearch(tab)) {
+			filteredTabs.push(tab);
+		}
 	}
 
-	this._log(logHead, this.getStats());
+// Reduce is overrated, this is simple enough for a classic for() loop...
+//
+//	let filteredTabs = inputTabs.reduce(
+//		function(result, tab) {
+//			//this._log(logHead + "inside tab ", tab);
+//			if(this.isTabInSearch(tab)) {
+//				result.push(tab);
+//				return result;
+//			}
+//
+//			// Not added
+//			return result;
+//		}.bind(this),
+//		[] // Initial value for reducer
+//	);
+
+	let interrupted = false;
+	if(maxReached(filteredTabs) && i < inputTabs.length) {
+		this._log(logHead + "max (" + maxResults + ") reached, interrupting search for " + statsSource);
+		interrupted = true;
+	}
+
+	this._aggregateStats(inputTabs, statsSource, maxResults, interrupted);
+
+	return filteredTabs;
+},
+
+_aggregateStats: function(tabs, statsSource, maxResults, maxReached) {
+	const logHead = " SearchQuery::_aggregateStats(): ";
+
+	let stats = {
+		source: statsSource,
+		totalEvaluated: 0,
+		totalEvaluatedText: 0,
+		totalTabsEvaluated: maxReached ? maxResults : tabs.length,
+		maxResults: maxResults,
+		maxReached: maxReached
+	};
+
+	for(let i = 0; i < tabs.length; i++) {
+		// "tabs[i].tm.searchStats" could be "null" if the search was interrupted
+		// due to reaching "maxResults" (see SearchQuery.search())
+		if(tabs[i].tm.searchStats != null) {
+			stats.totalEvaluated += tabs[i].tm.searchStats.cntEvaluated;
+			stats.totalEvaluatedText += tabs[i].tm.searchStats.cntEvaluatedText;
+		}
+	}
+
+	this._stats[statsSource] = stats;
+
+	this._log(logHead, this.getStats(statsSource));
 },
 
 update: function(value) {
@@ -727,31 +807,72 @@ update: function(value) {
 	this._searchQuery = value;
 	this._parse(value);
 	this._log(logHead + "_parse() returned", this._parsedQuery);
+
+	this._simplifiedSearchQuery = this._parser.rebuildQueryString(this._parsedQuery, false);
 },
 
 reset: function() {
 	this._searchQuery = "";
+	this._simplifiedSearchQuery = "";
 	this._parsedQuery = null;
 	this._cntParsedNodes = null;
+	this._cntParsedTextNodes = null;
+	this._stats = {};
 },
 
-getParsedQuery: function() {
-	return this._parser.rebuildQueryString(this._parsedQuery);
-},
+// "source" is optional. If not provided, we dump all the stats, if provided we dump
+// only the stats from that source
+getStats: function(source) {
+	let retVal = "";
 
-getStats: function() {
+	let keys = Object.keys(this._stats);
+	let i = 0;
+	let max = keys.length;
+
 	try {
-		return `Total nodes evaluated: ${this._totalEvaluated}, for ${this._totalTabsEvaluated}` +
-			` tabs (average of ${(this._totalEvaluated / this._totalTabsEvaluated).toFixed(1)} nodes per tab (of ${this._cntParsedNodes}))\n` +
-			`Total text nodes evaluated: ${this._totalEvaluatedText}, for ${this._totalTabsEvaluated}` +
-			` tabs (average of ${(this._totalEvaluatedText / this._totalTabsEvaluated).toFixed(1)} nodes per tab (of ${this._cntParsedTextNodes}))`;
+		if(source != null) {
+			// Simulate a loop of only one index
+			i = keys.indexOf(source);
+			if(i == -1) {
+				return `Source "${source}" not found`;
+			}
+			max = i + 1;
+		}
+
+		for(; i < max; i++) {
+			s = this._stats[keys[i]];
+			retVal +=
+				`For source "${s.source}":\n` +
+				`\tTotal nodes evaluated: ${s.totalEvaluated}, for ${s.totalTabsEvaluated} ` +
+				`tabs (average of ${(s.totalEvaluated / s.totalTabsEvaluated).toFixed(1)} nodes per tab ` +
+				`(of ${this._cntParsedNodes}))\n` +
+				`\tTotal text nodes evaluated: ${s.totalEvaluatedText}, for ${s.totalTabsEvaluated} ` +
+				`tabs (average of ${(s.totalEvaluatedText / s.totalTabsEvaluated).toFixed(1)} nodes per tab ` +
+				`(of ${this._cntParsedTextNodes}))\n`;
+			if(s.maxResults != null) {
+				retVal += `\tResults limited to a max of ${s.maxResults} (limit ${s.maxReached ? "" : "not "}reached)\n`;
+			}
+		}
+		return retVal;
 	} catch(e) {
 		return e;
 	}
 },
 
+// Returns the original query as typed by the user
 getQuery: function() {
 	return this._searchQuery;
+},
+
+// Returns a filtered version of the original query, dropping all operators, to
+// be used with the chrome.history and chrome.bookmarks search() API
+getSimplifiedQuery: function() {
+	return this._simplifiedSearchQuery;
+},
+
+// Returns a rebuild of the text query starting from the parsed nodes
+getParsedQuery: function() {
+	return this._parser.rebuildQueryString(this._parsedQuery, true);
 },
 
 getState: function() {

@@ -195,7 +195,8 @@ _init: function(tabLabelHtml) {
 	this._queryAndRenderJob.debug();
 
 	this._bookmarksFinder = Classes.BookmarksFinder.create();
-	this._bookmarksFinder.addEventListener(Classes.EventManager.Events.UPDATED, this._bookmarkUpdatedCb.bind(this));
+//	this._bookmarksFinder.addEventListener(Classes.EventManager.Events.UPDATED, this._bookmarkUpdatedCb.bind(this));
+	bookmarksManager.addEventListener(Classes.EventManager.Events.UPDATED, this._bookmarkUpdatedCb.bind(this));
 
 	this._historyFinder = Classes.HistoryFinder.create();
 	this._historyFinder.addEventListener(Classes.EventManager.Events.UPDATED, this._historyUpdatedCb.bind(this));
@@ -910,41 +911,17 @@ _respondToEnterKey: function(searchBoxText) {
 	Classes.TabsTabViewer.activateTab(this._currentSearchResults[0]);
 },
 
-_filterByCurrentSearch: function(inputTabs) {
-	const logHead = "TabsTabViewer::_filterByCurrentSearch(" + this._searchQuery.getState() + "): ";
-	this._log(logHead + "inputTabs = ", inputTabs);
-
-	let filteredTabs = inputTabs.reduce(
-		function(result, tab) {
-			//this._log(logHead + "inside tab ", tab);
-			if(this._searchQuery.isTabInSearch(tab)) {
-				result.push(tab);
-				return result;
-			}
-
-			// Not added
-			return result;
-		}.bind(this),
-		[] // Initial value for reducer
-	);
-
-	this._searchQuery.aggregateStats(inputTabs);
-
-	return filteredTabs;
-},
-
-_searchRenderTabsInner: function(tabs, bmNodes, hItems, newSearch) {
+_searchRenderTabsInner: function(tabs, bmNodes, newSearch) {
 	const logHead = "TabsTabViewer::_searchRenderTabsInner(): ";
 
-	// Using Array.concat() instead of the spread operator [ ...tabs, ...bmNodes] because
-	// it seems to be faster, and because we're potentially dealing with large arrays here
-	let objects = tabs.concat(bmNodes, hItems);
-
 	perfProf.mark("searchFilterStart");
-	objects = this._filterByCurrentSearch(objects);
+	let searchResult = this._searchQuery.search(tabs, logHead);
 
 	perfProf.mark("searchSortStart");
-	objects = objects.sort(Classes.NormalizedTabs.compareTabsFn);
+	// Using Array.concat() instead of the spread operator [ ...tabs, ...bmNodes] because
+	// it seems to be faster, and because we're potentially dealing with large arrays here
+	searchResult = searchResult.concat(bmNodes);
+	searchResult = searchResult.sort(Classes.NormalizedTabs.compareTabsFn);
 	perfProf.mark("searchSortEnd");
 
 	// This logic is very crude, ideally we should have a more seamless transition from
@@ -952,18 +929,18 @@ _searchRenderTabsInner: function(tabs, bmNodes, hItems, newSearch) {
 	this._containerViewer.clear();
 
 	this._setSearchBoxCountBlinking(false);
-	this._setSearchBoxCount(objects.length);
+	this._setSearchBoxCount(searchResult.length);
 	if(newSearch) {
 		this._bodyElem.scrollTo(0, 0);
 	}
 
-	if(objects.length == 0) {
+	if(searchResult.length == 0) {
 		this._log(logHead + "no tabs in search results");
 		this._currentSearchResults = null;
 	} else {
-		this._currentSearchResults = objects;
+		this._currentSearchResults = searchResult;
 		perfProf.mark("searchRenderStart");
-		this._renderTabsFlatInner(this._containerViewer, objects);
+		this._renderTabsFlatInner(this._containerViewer, searchResult);
 		perfProf.mark("searchRenderEnd");
 		this._logCachedTilesStats(logHead);
 	}
@@ -1020,7 +997,8 @@ _searchRenderTabs: function(tabs, newSearch) {
 		// don't support search, but there's only a maximum of 25 of them, so we can just
 		// scoop them all up and pretend they were always together with the standard tabs
 		this._historyFinder._getRecentlyClosedTabs(),
-		this._bookmarksFinder.find(this._searchQuery),
+//		this._bookmarksFinder.find(this._searchQuery),
+		bookmarksManager.find(this._searchQuery),
 		this._historyFinder.find(this._searchQuery),
 	]).then(
 		function([ rcTabs, bmNodes, hItems ]) {
@@ -1033,10 +1011,14 @@ _searchRenderTabs: function(tabs, newSearch) {
 			// here to inside the this._searchRenderTabsInner() calls. A small duplication
 			// for a good UX cause.
 
-			// concat() dosn't modify "tabs", so this call is safe
-			let mergedTabs = tabs.concat(rcTabs);
+			// We're merging all tabs that still need to be searched. We're not including
+			// bmNodes because bookmarks have already been searched via this._searchQuery.search(),
+			// while history items have only been searched via chrome.history.search() (with
+			// the simplified query string to boot), so it needs a second pass.
+			// concat() dosn't modify "tabs", so this call is safe.
+			let mergedTabs = tabs.concat(rcTabs, hItems);
 
-			this._searchRenderTabsInner(mergedTabs, bmNodes, hItems, newSearch);
+			this._searchRenderTabsInner(mergedTabs, bmNodes, newSearch);
 		}.bind(this)
 	);
 },
@@ -1047,7 +1029,9 @@ getSearchParserInfo: function() {
 		return null;
 	}
 
-	return "Parsed query: " + this._searchQuery.getParsedQuery() + "\n" + this._searchQuery.getStats();
+	return "Parsed query: " + this._searchQuery.getParsedQuery() + "\n" +
+			"Simplified parsed query: " + this._searchQuery.getSimplifiedQuery() + "\n" +
+			this._searchQuery.getStats();
 },
 
 }); // Classes.TabsTabViewer

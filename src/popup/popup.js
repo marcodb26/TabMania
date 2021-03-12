@@ -128,6 +128,8 @@ function init() {
 
 			let rootElem = document.getElementById("popup-tabs-div");
 
+			Classes.Base.roDef(window, "bookmarksManager", Classes.BookmarksManager.create());
+
 			perfProf.mark("popupViewerStart");
 			Classes.Base.roDef(window, "popupViewer", Classes.PopupViewer.createAs("popup-tabs", rootElem));
 

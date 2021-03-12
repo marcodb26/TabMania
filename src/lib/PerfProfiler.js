@@ -109,12 +109,11 @@ _showMeasures: function(measuresTable) {
 showSearch: function() {
 	let toMeasure = {
 		"full search": [ "searchStart", "searchEnd" ],
-		"chrome.bookmarks.search()": [ "bookmarksSearchStart", "bookmarksSearchEnd" ],
-		"bookmarks reduce": [ "bookmarksReduceStart", "bookmarksReduceEnd" ],
 		"chrome.history.search()": [ "historySearchStart", "historySearchEnd" ],
 		"history reduce": [ "historyReduceStart", "historyReduceEnd" ],
-		"filter tabs": [ "searchFilterStart", "searchSortStart" ],
-		"sort tabs": [ "searchSortStart", "searchSortEnd" ],
+		"filter bookmarks": [ "bookmarksSearchStart", "bookmarksSearchEnd" ],
+		"filter tabs + rcTabs + hItems": [ "searchFilterStart", "searchSortStart" ],
+		"sort search results": [ "searchSortStart", "searchSortEnd" ],
 		"render": [ "searchRenderStart", "searchRenderEnd" ],
 	}
 

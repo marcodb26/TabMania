@@ -283,9 +283,9 @@ updateSearchBadges: function(tab) {
 },
 
 updateBookmarkBadges: function(tab) {
-//	// Don't add "bookmark" to the search badges, users can't search with the
-//	// "bookmark" keyword, we don't start with the full list of bookmarks
-//	tab.tm.visualBadges.push("bookmark");
+	// Now that we have BookmarksManager we don't need to rely on chrome.bookmarks.search(),
+	// and that means we can also allow users to search the "bookmark" keyword in badges
+	tab.tm.searchBadges.push("bookmark");
 
 	if(tab.tm.customGroupName != null) {
 		// We're adding the badge as a search-only badge (not visible) because
