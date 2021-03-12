@@ -410,12 +410,14 @@ _init: function(bm) {
 	this._initMenuItems();
 },
 
-_renderPathHtml: function(pathList) {
+_renderSubtitleHtml: function(pathList) {
+	let createdText = (new Date(this._bm.dateAdded)).toString();
+
 	// chromeUtils.getBookmarkPathList() returns an array that starts with an empty
 	// string (the root element of the bookmarks tree has no title), and that's
 	// perfect to have .join("/") add a leading "/".
 	return `
-	Bookmark from <i>${pathList.join("/")}</i>
+	Bookmark at <i>${pathList.join("/")}</i>, created on ${createdText}
 	`;
 },
 
@@ -443,7 +445,7 @@ _updateTitleMenuItem: function() {
 
 	chromeUtils.getBookmarkPathList(this._bm).then(
 		function(pathList) {
-			this._subtitleElem.innerHTML = this._renderPathHtml(pathList);
+			this._subtitleElem.innerHTML = this._renderSubtitleHtml(pathList);
 		}.bind(this)
 	);
 },
