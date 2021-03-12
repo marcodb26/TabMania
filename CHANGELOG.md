@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * Use `\` to escape quotes, `-` and `:` (and of course to escape `\` too) (not sure if Google
     does this)
   * The v.1.1 operator `^` (for "starts with") is not supported anymore
+- Removed _Close_ button and _Delete_ menu item for bookmarks marked unmodifiable
 
 ## Fixed
 - Trimming input value for shortcuts hostname/URL, to guarantee correct processing

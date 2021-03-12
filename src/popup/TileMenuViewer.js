@@ -413,11 +413,16 @@ _init: function(bm) {
 _renderSubtitleHtml: function(pathList) {
 	let createdText = (new Date(this._bm.dateAdded)).toString();
 
+	let typeHtml = "Bookmark";
+	if(this._bm.unmodifiable != null) {
+		typeHtml = `Read-only bookmark (reason: "${this._safeText(this._bm.unmodifiable)}")`;
+	}
+
 	// bookmarksManager.getBmPathListSync()() returns an array that starts with an empty
 	// string (the root element of the bookmarks tree has no title), and that's
 	// perfect to have .join("/") add a leading "/".
 	return `
-	Bookmark at <i>${pathList.join("/")}</i>, created on ${createdText}
+	${typeHtml} at <i>${pathList.join("/")}</i><br>Created on ${createdText}
 	`;
 },
 
@@ -472,8 +477,11 @@ _initMenuItems: function() {
 //								this._actionPinToggleCb.bind(this));
 //	this.append(this._pinMenuItem);
 
-	this._deleteMenuItem = Classes.MenuItemViewer.create("Delete", this._actionDeleteCb.bind(this));
-	this.append(this._deleteMenuItem);
+	// Can't delete an unmodifiable bookmark
+	if(this._bm.unmodifiable == null) {
+		this._deleteMenuItem = Classes.MenuItemViewer.create("Delete", this._actionDeleteCb.bind(this));
+		this.append(this._deleteMenuItem);
+	}
 },
 
 _updateMenuItems: function() {

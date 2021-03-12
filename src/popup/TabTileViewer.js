@@ -74,9 +74,11 @@ _renderEmptyTile: function() {
 	this._menuElem = this.getElementById(menuId);
 	this._closeElem = this.getElementById(closeId);
 
-	if(this._tab.tm.type == Classes.NormalizedTabs.type.RCTAB) {
-		// You can't close or delete a recently closed tab, so no reason to show
-		// a "close" button, let's just hide it
+	if(this._tab.tm.type == Classes.NormalizedTabs.type.RCTAB ||
+		(this._tab.tm.type == Classes.NormalizedTabs.type.BOOKMARK && this._tab.unmodifiable != null)) {
+		// You can't close or delete a recently closed tab, so no reason to show a "close" button.
+		// You also can't delete a bookmark if it's marked "unmodifiable".
+		// Let's just hide the "close" button in these cases.
 		this._closeElem.classList.add("tm-hide");
 	}
 

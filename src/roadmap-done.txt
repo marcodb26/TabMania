@@ -73,6 +73,8 @@ DONE 1.2
 
 - Add rate-limiting to BookmarksManager._loadBookmarks()
 
+- Removed "Close" button and "Delete" menu item for bookmarks marked unmodifiable
+
 
 DONE 1.1
 
