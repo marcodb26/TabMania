@@ -258,7 +258,7 @@ _updateUnaryOps: function(tokenList) {
 				// binary operators (we add dummy nodes instead).
 				// Marking as _err() instead of _log() because this should never happen by construction,
 				// so if it happens, the SearchTokenizer.tokenize() logic is broken.
-				this._err(logHead + "unary operator without operand (end of tokenList), demoting to text")
+				this._log(logHead + "unary operator without operand (end of tokenList), demoting to text")
 				node.type = Classes.SearchTokenizer.type.TEXT;
 			}
 		}
