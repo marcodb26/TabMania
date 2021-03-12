@@ -66,6 +66,11 @@ DONE 1.2
 - Improved performance of TileBookmarkMenuViewer._updateTitleMenuItem() by providing a sync
   version of the folder path building logic leveraging the bookmark shadow data in bookmarksManager
 
+- For the tiles of open tabs representing bookmarks (e.g. chrome://bookmarks/?id=686),
+  try to query the name of the bookmark id (e.g. id=686)
+  * It should always be a folder
+  * List the folder name in the title?
+
 
 DONE 1.1
 

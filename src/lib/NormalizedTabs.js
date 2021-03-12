@@ -122,6 +122,60 @@ normalizeLowerCaseTitle: function(lowerCaseTitle) {
 },
 
 // Static function
+cleanupTitle: function(title, url) {
+	const logHead = "NormalizedTabs.cleanupTitle(" + url + "): ";
+
+	if(url == null || !url.startsWith("chrome://bookmarks/?id=")) {
+		return title;
+	}
+
+	// "chrome://bookmarks/?id=123" is the URL that displays a bookmarks (or
+	// bookmark folder), which has title "Bookmarks", not very informative.
+	// We want to add the name of the bookmark/folder to it.
+
+	if(title != "Bookmarks") {
+		// We expected the original title to be "Bookmarks", if it's not, we don't
+		// necessarily know what's going on (though typically this means we've
+		// already called this function on this tab in a previous iteration), so
+		// let's not touch anything
+		return title;
+	}
+
+	let split = url.split("=");
+	if(split.length < 2) {
+		// Not able to parse...
+		return title;
+	}
+
+	// "+split[1]" means convert the string to a number. Since in the general case
+	// that's not guaranteed to work (in case the url is messed up and "split[1]"
+	// is not actually a number), then we want to protect this code with a try/catch.
+	let bmNode = null;
+	try {
+		bmNode = bookmarksManager.getBmNode(+split[1]);
+	} catch(e) {
+		return title;
+	}
+
+	if(bmNode == null) {
+		// If this is a folder, it might eventually get loaded, we don't want
+		// to bother trying loading it here, this cleanup is just best effort
+		return title;
+	}
+
+	let type = "Folder";
+	if(bmNode.url != null) {
+		// Note that thees URLs right now seem to exist only for folders, if you try
+		// to craft the same URL with a non-folder bookmark ID in it, Chrome immediately
+		// redirects you to "chrome://bookmarks". But just in case this behavior
+		// changes later...
+		type = "Bookmark";
+	}
+
+	return `${title} - ${type} "${bmNode.title}"`;
+},
+
+// Static function
 formatExtendedId: function(tab, objType) {
 	if(tab.tm != null) {
 		objType = optionalWithDefault(objType, tab.tm.type);
@@ -449,6 +503,9 @@ normalizeTab: function(tab, objType) {
 	// But in some cases, tab.url is empty, and tab.pendingUrl doesn't even exist,
 	// so we use optionalWithDefault() to cover that last corner case.
 	let url = optionalWithDefault((tab.url != "") ? tab.url : tab.pendingUrl, "");
+
+	tab.title = thisObj.cleanupTitle(tab.title, url);
+
 	let lowerCaseTitle = tab.title.toLowerCase();
 	let [ protocol, hostname ] = thisObj.getProtocolHostname(url);
 

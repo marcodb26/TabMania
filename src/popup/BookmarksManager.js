@@ -61,6 +61,7 @@ _loadBookmarkTreeNode: function(node) {
 		// Per https://developer.chrome.com/docs/extensions/reference/bookmarks/#type-BookmarkTreeNode
 		// folder are identifiable by the absence of "url".
 		// The following actions are only for non-folders.
+//		this._err(logHead + "added folder", node);
 		return;
 	}
 

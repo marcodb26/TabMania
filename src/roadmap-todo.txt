@@ -1,5 +1,7 @@
 TODO 1.2
 
+- BUG: chrome.bookmarks.getRecent() doesn't return folders...
+
 - Add debouncing to BookmarksManager._loadBookmarks()
 
 - Enable/disable BookmarkManager based on configuration
@@ -118,11 +120,6 @@ TODO 1.2
 - Add more shortcut keypresses (SC6-SC10?)
 
 - BUG: Pineed custom groups don't show the color on their left border when they're empty
-
-- For the tiles of open tabs representing bookmarks (e.g. chrome://bookmarks/?id=686),
-  try to query the name of the bookmark id (e.g. id=686)
-  * It should always be a folder
-  * List the folder name in the title?
 
 - BUG: there could be multiple concurrent calls to ContextMenu._onShortcutUpdatedCb() if
   users make multiple changes quickly (or when calling testSettings() from popup.js with
