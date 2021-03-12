@@ -1,5 +1,21 @@
 // CLASS BookmarksManager
 //
+// Some issues with the chrome.bookmarks APIs as of 21.03.12:
+// - chrome.bookmarks.getRecent() doesn't include folders (why not? But regardless, it
+//   would be good if this was clearly stated in the documentation)
+// - chrome.bookmarks.search() should accept a search string or an object of
+//   { query:, url:, title: }, but if you opt for the object, only the key "query"
+//   seems to have any effect (if you add the others, you get "undefined"). Not a
+//   big deal because chrome.bookmarks.search() is unusable anyway, it seems to only
+//   accept "strings of words" that need to all match in exact sequence (no options for
+//   "and" or "or" operators)
+// - chrome.bookmarks.onMoved: usual challenge: if you have [ A, B ] and you move "A" so
+//   it becomes [ B, A ], can you really claim only A got an onMoved event? Both A and
+//   B have changed their indices. So, can't really rely on the payload of the event,
+//   just use it as a hint that "something" has changed, and rebuild the entire shadow
+//   copy of the bookmarks/folders. For a bug of onMoved with moves of multi-selected
+//   bookmarks via Chrome's Bookmark Manager, see _applyBookmarkMoveCb() below.
+//
 // This class generates events Classes.EventManager.Events.UPDATED, with "detail"
 // set to { target: <this object>, id: <id of the bookmark that changed, or "undefined"> }.
 Classes.BookmarksManager = Classes.Base.subclass({
@@ -14,7 +30,6 @@ Classes.BookmarksManager = Classes.Base.subclass({
 	// the popup in the worst case... 500 already seems like a lot of scrolling
 	// down the search results.
 	_maxBookmarkNodesInSearch: 500,
-
 	_maxBookmarkNodesTracked: 2000,
 
 	// Note that _bookmarksDict contains everything, while _bookmarks excludes folders
@@ -23,6 +38,13 @@ Classes.BookmarksManager = Classes.Base.subclass({
 	// The bookmarksManager runtime doesn't really need "_folders", but we need it to
 	// debug the folders logic
 	_folders: null,
+
+	_loadBookmarksJob: null,
+	// Delay before a full bookmarks reload happens. Use this to rate-limit reloads if
+	// there are too many chrome.bookmarks events. This is especially important if the
+	// user uses Chrome's Bookmark Manager to move multi-selected bookmarks, because
+	// the action triggers one event per bookmark in the selection.
+	_loadBookmarksDelay: 500, //2000,
 
 	_stats: null,
 
@@ -51,7 +73,10 @@ _init: function() {
 		onImportEnded: 0,
 	};
 
-	this._loadBookmarks().then(
+	this._loadBookmarksJob = Classes.ScheduledJob.create(this._loadBookmarks.bind(this));
+	this._loadBookmarksJob.debug();
+
+	this._loadBookmarks(false).then(
 		function() {
 			perfProf.measure("Loading bookmarks (chrome.bookmarks.getRecent())", "bookmarksLoadStart", "bookmarksLoadEnd");
 			perfProf.measure("Setting up bookmarks", "bookmarksSetupStart", "bookmarksSetupEnd");
@@ -166,8 +191,13 @@ _loadBookmarkTreeNodeList: function(nodes) {
 	perfProf.mark("bookmarksSetupEnd");
 },
 
-_loadBookmarks: function() {
-	const logHead = "BookmarksManager::_loadBookmarks(): ";
+// "sendEvent" is an optional flag that controls whether or not this function should
+// notify listeners once the processing of the (re)loaded bookmarks is completed.
+// Defaults to "true".
+_loadBookmarks: function(sendEvent) {
+	sendEvent = optionalWithDefault(sendEvent, true);
+
+	const logHead = "BookmarksManager::_loadBookmarks(" + sendEvent + "): ";
 	perfProf.mark("bookmarksLoadStart");
 
 	this._log(logHead + "loading bookmarks");
@@ -180,6 +210,9 @@ _loadBookmarks: function() {
 				this._err(logHead, e);
 			}
 			this._bookmarksLoadingPromise = null;
+			if(sendEvent) {
+				this._eventManager.notifyListeners(Classes.EventManager.Events.UPDATED, { });
+			}
 		}.bind(this),
 		function(e) { // onReject
 			this._err(logHead, "rejected", e);
@@ -241,11 +274,7 @@ _applyBookmarkCreateCb: function(id, bmNode) {
 	// A create event is problematic because we don't want our bookmark store to start
 	// growing, we want to continue to have a maximum of this._maxBookmarkNodesTracked
 	// bookmark nodes. Easier to just reload everything...
-	this._loadBookmarks().then(
-		function() {
-			this._eventManager.notifyListeners(Classes.EventManager.Events.UPDATED, { id: Classes.NormalizedTabs.normalizeBookmarkId(id) });
-		}.bind(this)
-	);
+	this._loadBookmarksJob.run(this._loadBookmarksDelay);
 },
 
 _applyBookmarkChangeCb: function(id, changeInfo) {
@@ -275,11 +304,7 @@ _applyBookmarkRemoveCb: function(id, removeInfo) {
 	// event for the rest of the subtree... probably less trouble to just reload the
 	// entire structure. Also, we want to continue to have a maximum of this._maxBookmarkNodesTracked
 	// bookmark nodes, and removing a node/subtree can make room for other nodes.
-	this._loadBookmarks().then(
-		function() {
-			this._eventManager.notifyListeners(Classes.EventManager.Events.UPDATED, { id: Classes.NormalizedTabs.normalizeBookmarkId(id) });
-		}.bind(this)
-	);
+	this._loadBookmarksJob.run(this._loadBookmarksDelay);
 },
 
 _applyBookmarkMoveCb: function(id, moveInfo) {
@@ -294,8 +319,19 @@ _applyBookmarkMoveCb: function(id, moveInfo) {
 		bm.parentId = moveInfo.parentId;
 
 		// We don't really care about the index of the bookmark within its parent folder, but
-		// since we got the data, let's take
-		this._assert(bm.index == moveInfo.oldIndex);
+		// since we got the data, let's take it...
+		// UPDATE: we can't make this assert, because the way indices are reported in onMoved
+		// callbacks is kind of broken when you multi-select and move multiple bookmarks.
+		// Specifically, say you select two adjacent bookmarks A and B with indices 1 and 2 and
+		// move them below the bookmark that's currently at index 3. It looks like internally
+		// the API moves the bookmark with lower index first (so A), and generates an event for
+		// A, but it also updates all indices without generating events for B and C. Then the API
+		// moves B, and generates an event for B, but claims that B was at index 1, not at index
+		// 2, before its onMoved event... and of course no event is generated for C, but if A and
+		// B changed index, C changed index too...
+		// All right, let's drop this assert.
+		//
+		//this._assert(bm.index == moveInfo.oldIndex);
 		bm.index = moveInfo.index;
 	} else {
 		this._log(logHead + "not tracked, ignoring", moveInfo);
@@ -328,11 +364,7 @@ _bookmarkImportEndedCb: function() {
 	// Let's do a full refresh of the search results after a bulk import.
 	// We can't include a single "id" in the event in this case, so let's just leave
 	// the property missing.
-	this._loadBookmarks().then(
-		function() {
-			this._eventManager.notifyListeners(Classes.EventManager.Events.UPDATED, { });
-		}.bind(this)
-	);
+	this._loadBookmarksJob.run(this._loadBookmarksDelay);
 },
 
 // Returns an unsorted list of bookmark nodes (it's sorted by "dateAdded", not by title)

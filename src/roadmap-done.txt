@@ -71,6 +71,8 @@ DONE 1.2
   * It should always be a folder
   * List the folder name in the title?
 
+- Add rate-limiting to BookmarksManager._loadBookmarks()
+
 
 DONE 1.1
 

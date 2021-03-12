@@ -2,8 +2,6 @@ TODO 1.2
 
 - BUG: chrome.bookmarks.getRecent() doesn't return folders...
 
-- Add rate-limiting to BookmarksManager._loadBookmarks()
-
 - Enable/disable BookmarkManager based on configuration
 
 - Search: how does the new multi-token model work with bookmarks and history?
