@@ -129,7 +129,7 @@ _popupDefenderCb: function(tab) {
 },
 
 _onResizeCb: function(ev) {
-	// Using _savePopupSizeJob to debounce the resize event, otherwise we'll get
+	// Using _savePopupSizeJob to rate-limit the resize event, otherwise we'll get
 	// too much data to the Chrome storage pipe...
 	this._savePopupSizeJob.run(this._savePopupSizeDelay);
 },

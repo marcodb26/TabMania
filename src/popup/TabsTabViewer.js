@@ -161,6 +161,14 @@ Classes.TabsTabViewer = Classes.SearchableTabViewer.subclass({
 	// if there are too many events.
 	_queryAndRenderDelay: 200, //2000,
 
+	_updateSearchResultsJob: null,
+	// Delay before a full re-render happens (search case). Use this to avoid causing too many
+	// re-renders if there are too many bookmarks/history events during search.
+	// Query changes are already rate-limited by the "search" input box, no need to add an
+	// extra rate-limiting, worst case you'll have one _updateSearchResults() running because
+	// of a query change and one running because of a rate-limited bookmarks/history event.
+	_updateSearchResultsDelay: 200, //2000,
+
 	// Dictionary tracking all the tab tiles, in case we need to update their contents.
 	// Also used to track if a first rendering cycle has been completed...
 	_tilesByTabId: null,
@@ -193,6 +201,9 @@ _init: function(tabLabelHtml) {
 
 	this._queryAndRenderJob = Classes.ScheduledJob.create(this._queryAndRenderTabs.bind(this));
 	this._queryAndRenderJob.debug();
+
+	this._updateSearchResultsJob = Classes.ScheduledJob.create(this._updateSearchResults.bind(this));
+	this._updateSearchResultsJob.debug();
 
 	this._bookmarksFinder = Classes.BookmarksFinder.create();
 //	this._bookmarksFinder.addEventListener(Classes.EventManager.Events.UPDATED, this._bookmarkUpdatedCb.bind(this));
@@ -328,7 +339,7 @@ _settingsStoreUpdatedCb: function(ev) {
 	// group, and that definitely can have an impact on group membership.
 	// So it's incorrect to say "group membership has not changed"
 	if(this.isSearchActive() || ev.detail.key == "customGroups" || ev.detail.key == "pinnedGroups") {
-		this._queryAndRenderJob.run(this._queryAndRenderDelay);
+		this._queryAndRenderJob.run(this._queryAndRenderDelay);		
 		return;
 	}
 	// Not a search case, just normalize the search badges (configuration changes
@@ -514,7 +525,7 @@ _bookmarkUpdatedCb: function(ev) {
 	// to only update the info from the _bookmarksFinder, and merge it with the
 	// existing tabs. Maybe one day we'll have time for that optimization, for
 	// now we just pretend the search query has changed...
-	this._updateSearchResults();
+	this._updateSearchResultsJob.run(this._updateSearchResultsDelay);
 },
 
 _historyUpdatedCb: function(ev) {
@@ -529,18 +540,18 @@ _historyUpdatedCb: function(ev) {
 	// to only update the info from the _historyFinder, and merge it with the
 	// existing tabs. Maybe one day we'll have time for that optimization, for
 	// now we just pretend the search query has changed...
-	this._updateSearchResults();
+	this._updateSearchResultsJob.run(this._updateSearchResultsDelay);
 },
 
 _TabsTabViewer_render: function() {
 	this._containerViewer = Classes.ContainerViewer.create(this._emptyContainerString);
 	this._queryAndRenderTabs().then(
 		function() {
-			perfProf.mark("attachContStart");
+			perfProf.mark("attachContainerStart");
 			//this._containerViewer.attachToElement(this.getBodyElement());
 			this.append(this._containerViewer);
-			perfProf.mark("attachContEnd");
-			perfProf.measure("Attach tiles cont.", "attachContStart", "attachContEnd");
+			perfProf.mark("attachContainerEnd");
+			perfProf.measure("Attach tiles cont.", "attachContainerStart", "attachContainerEnd");
 		}.bind(this)
 	);
 },

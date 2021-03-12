@@ -2,7 +2,7 @@ TODO 1.2
 
 - BUG: chrome.bookmarks.getRecent() doesn't return folders...
 
-- Add debouncing to BookmarksManager._loadBookmarks()
+- Add rate-limiting to BookmarksManager._loadBookmarks()
 
 - Enable/disable BookmarkManager based on configuration
 

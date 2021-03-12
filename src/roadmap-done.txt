@@ -338,7 +338,7 @@ DONE 1.0
 
 - Centered correctly the caret of the dropdown-toggle
 
-- Debounce re-render (updated RecurringJob and renamed ScheduledJob)
+- Rate-limit re-render (updated RecurringJob and renamed ScheduledJob)
   * Update tile immediately if full re-rendering is delayed
 
 - Clean up tile logic to re-render only what's necessary when the corresponding
@@ -562,7 +562,7 @@ DONE 1.0
 
 - Removed the logic that tried to avoid unnecessary re-query/re-render cycles, as it was
   too brittle due to the issues with the lack of info in the Chrome tab events
-  * Now full refreshes occur for every event, with a little 200ms debouncing, and
+  * Now full refreshes occur for every event, with a little 200ms rate-limit, and
     we should be done with things not updating in search mode
 
 - Remove "https://" from URL displayed in tiles (but only "https://", leave any
