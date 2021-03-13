@@ -1,3 +1,14 @@
+21.03.12 (pre v1.2): bookmarksManager initialization performance timing (with 456 bookmarks and 32 folders):
+// - With getTree() (in use)
+//   * chrome.bookmarks.getTree():		171.8ms		148.1ms		100.0ms		103.6ms		 95.9ms
+//   * treeToList() + sort():			 13.7ms		  1.3ms		  2.9ms		  2.0ms		  1.2ms
+//   * setting up:						 80.3ms		 24.0ms		 46.2ms		 28.0ms		 26.9ms
+// - With getRecent() (not in use)
+//   * chrome.bookmarks.getRecent():	 99.7ms		167.1ms		124.2ms		115.3ms		116.5ms
+//   * treeToList() + sort():			  N/A		  N/A		  N/A		  N/A		  N/A
+//   * setting up:						 34.9ms		 26.2ms		 36.5ms		 36.3ms		 32.9ms
+
+
 Search performance on 21.03.10 (pre v.1.2)
 
 - Search: measure performance

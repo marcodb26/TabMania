@@ -2,7 +2,8 @@
 //
 // Some issues with the chrome.bookmarks APIs as of 21.03.12:
 // - chrome.bookmarks.getRecent() doesn't include folders (why not? But regardless, it
-//   would be good if this was clearly stated in the documentation)
+//   would be good if this was clearly stated in the documentation). Ok, we'll need to
+//   use chrome.bookmarks.getTree() instead.
 // - chrome.bookmarks.search() should accept a search string or an object of
 //   { query:, url:, title: }, but if you opt for the object, only the key "query"
 //   seems to have any effect (if you add the others, you get "undefined"). Not a
@@ -30,7 +31,7 @@ Classes.BookmarksManager = Classes.Base.subclass({
 	// the popup in the worst case... 500 already seems like a lot of scrolling
 	// down the search results.
 	_maxBookmarkNodesInSearch: 500,
-	_maxBookmarkNodesTracked: 2000,
+	_maxBookmarkNodesTracked: 5000,
 
 	// Note that _bookmarksDict contains everything, while _bookmarks excludes folders
 	_bookmarksDict: null,
@@ -43,7 +44,8 @@ Classes.BookmarksManager = Classes.Base.subclass({
 	// Delay before a full bookmarks reload happens. Use this to rate-limit reloads if
 	// there are too many chrome.bookmarks events. This is especially important if the
 	// user uses Chrome's Bookmark Manager to move multi-selected bookmarks, because
-	// the action triggers one event per bookmark in the selection.
+	// the action triggers one event per bookmark in the selection (per the documentation,
+	// if instead you call chrome.bookmarks.removeTree() you'll get a single notification).
 	_loadBookmarksDelay: 500, //2000,
 
 	_stats: null,
@@ -61,6 +63,12 @@ _init: function() {
 		find: 0,
 		bookmarks: 0,
 		folders: 0,
+		// How many bookmarks+folders we had to drop because they exceeded this._maxBookmarkNodesTracked
+		bookmarksOverCap: 0,
+
+		// Folder path building
+		asyncPathQueries: 0,
+		syncPathQueries: 0,
 
 		// Counting events received
 		onCreated: 0,
@@ -78,19 +86,28 @@ _init: function() {
 
 	this._loadBookmarks(false).then(
 		function() {
-			perfProf.measure("Loading bookmarks (chrome.bookmarks.getRecent())", "bookmarksLoadStart", "bookmarksLoadEnd");
-			perfProf.measure("Setting up bookmarks", "bookmarksSetupStart", "bookmarksSetupEnd");
+			try {
+				perfProf.measure("chrome.bookmarks.getTree()", "bookmarksLoadStart", "bookmarksLoadEnd");
+			} catch(e) {}
+			try {
+				perfProf.measure("Bookmarks treeToList", "bookmarksTreeToListStart", "bookmarksTreeToListEnd");
+			} catch(e) {}
+			try {
+				perfProf.measure("Setting up bookmarks", "bookmarksSetupStart", "bookmarksSetupEnd");
+			} catch(e) {}
+
 			this._initListeners();
 		}.bind(this)
 	);
 },
 
-// Return -1 if a < b, 0 if a == b and 1 if b < a
+// Returns -1 if a > b, 0 if a == b and 1 if b > a.
+// Causes sort from newer to older (bigger number is newer).
 _compareDateAdded: function(a, b) {
-	if(a.dateAdded < b.dateAdded) {
+	if(a.dateAdded > b.dateAdded) {
 		return -1;
 	}
-	if(a.dateAdded > b.dateAdded) {
+	if(a.dateAdded < b.dateAdded) {
 		return 1;
 	}
 	return 0;
@@ -164,15 +181,13 @@ _loadBookmarkTreeNode: function(node) {
 	// bookmarks share the same "dateAdded" (probably from an import/sync?).
 	if(this._bookmarks.length != 0) {
 		let lastNode = this._bookmarks[this._bookmarks.length - 1];
-		this._assert(this._compareDateAdded(lastNode, node) >= 0, logHead + "incoming data not sorted", lastNode, node);
+		this._assert(this._compareDateAdded(lastNode, node) <= 0, logHead + "incoming data not sorted", lastNode, node);
 	}
 
 	this._appendOrReplaceNode(node, bmAlreadyTracked, this._bookmarks, "bookmark");
 },
 
 _loadBookmarkTreeNodeList: function(nodes) {
-	perfProf.mark("bookmarksLoadEnd");
-
 	const logHead = "BookmarksManager::_loadBookmarkTreeNodeList(): ";
 	this._log(logHead + "received: ", nodes);
 
@@ -182,19 +197,48 @@ _loadBookmarkTreeNodeList: function(nodes) {
 
 	this._stats.folders = 0;
 	this._stats.bookmarks = 0;
+	this._stats.bookmarksOverCap = 0;
 
 	perfProf.mark("bookmarksSetupStart");
 
-	for(let i = 0; i < nodes.length; i++) {
+	// "i < this._maxBookmarkNodesTracked" is used to cap the maximum number of
+	// bookmarks+folders used by TabMania. Given the "nodes" list is sorted by
+	// "dateAdded" (most recently added first), the capping filters out the oldest
+	// bookmarks and folders in the list.
+	for(let i = 0; i < nodes.length && i < this._maxBookmarkNodesTracked; i++) {
 		this._loadBookmarkTreeNode(nodes[i]);
+	}
+
+	if(nodes.length > this._maxBookmarkNodesTracked) {
+		this._stats.bookmarksOverCap = nodes.length - this._maxBookmarkNodesTracked;
 	}
 	perfProf.mark("bookmarksSetupEnd");
 },
 
+// The old _loadBookmark() is based on chrome.bookmarks.getRecent().
+// It has the advantage that it natively accepts this._maxBookmarkNodesTracked and
+// it will only return a maximum of the nodes you asked.
+// On the other hand, it has the disadvantage that it returns only bookmarks, no folders.
+// We use folders to populate bookmark paths in menu dropdowns, and having to load each
+// folder one by one while exploring paths one parentId at a time makes the rendering of
+// the dropdown menus much slower (idle waiting for next event cycles, but still slower)
+//
+// The new _loadBookmark() is based on chrome.bookmarks.getTree().
+// It has the advantage that it returns both bookmarks and folders, but it has the
+// disadvantage that the amount of nodes returned can't be natively capped to
+// this._maxBookmarkNodesTracked, so we'll always need to get all the bookmarks, then
+// cap them ourselves to this._maxBookmarkNodesTracked. Right now this doesn't seem to
+// be a very big deal, since _treeToList() + sort() happen very quickly. Our testing
+// environment doesn't have a lot of bookmarks and folders (only 456 bookmarks and 32
+// folders), but it takes only 2ms for those, so extrapolating linearly, we're talking
+// about 200ms for the creation of the full list that will be capped by _loadBookmarkTreeNodeList(),
+// to process 100 times more bookmarks. We don't know if it's common to have 45,600
+// bookmarks, but it sounds like a very large improbable number.
+//
 // "sendEvent" is an optional flag that controls whether or not this function should
 // notify listeners once the processing of the (re)loaded bookmarks is completed.
 // Defaults to "true".
-_loadBookmarks: function(sendEvent) {
+OLD_loadBookmarks: function(sendEvent) {
 	sendEvent = optionalWithDefault(sendEvent, true);
 
 	const logHead = "BookmarksManager::_loadBookmarks(" + sendEvent + "): ";
@@ -204,7 +248,84 @@ _loadBookmarks: function(sendEvent) {
 	this._stats.load++;
 	this._bookmarksLoadingPromise = chromeUtils.wrap(chrome.bookmarks.getRecent, logHead, this._maxBookmarkNodesTracked).then(
 		function(nodes) { // onFulfill
+			perfProf.mark("bookmarksLoadEnd");
 			try {
+				this._loadBookmarkTreeNodeList(nodes);
+			} catch(e) {
+				this._err(logHead, e);
+			}
+			this._bookmarksLoadingPromise = null;
+			if(sendEvent) {
+				this._eventManager.notifyListeners(Classes.EventManager.Events.UPDATED, { });
+			}
+		}.bind(this),
+		function(e) { // onReject
+			this._err(logHead, "rejected", e);
+			this._bookmarksLoadingPromise = null;
+		}.bind(this)
+	);
+
+	return this._bookmarksLoadingPromise;
+},
+
+_treeToList: function(rootNode) {
+	let rootNodeId = "none";
+	let children = null;
+
+	if(Array.isArray(rootNode)) {
+		// Case of the outermost call to _treeToList() from _loadBookmarks()
+		children = rootNode;
+	} else {
+		rootNodeId = rootNode.id;
+		children = rootNode.children;
+	}
+
+//	const logHead = "BookmarksManager::_treeToList(" + rootNodeId + "): ";
+//	this._log(logHead + "processing", rootNode);
+
+	if(children == null || children.length == 0) {
+		return [];
+	}
+
+	let subNodes = Array(children.length);
+	for(let i = 0; i < children.length; i++) {
+		subNodes[i] = this._treeToList(children[i]);
+	}
+
+	// Flatten the array of arrays into concat() arguments (one argument per inner array)
+	return children.concat.apply(children, subNodes);
+},
+
+// "sendEvent" is an optional flag that controls whether or not this function should
+// notify listeners once the processing of the (re)loaded bookmarks is completed.
+// Defaults to "true".
+//
+// Timing (with 456 bookmarks and 32 folders, measured on 21.03.12):
+// - With getTree()
+//   * chrome.bookmarks.getTree():		171.8ms		148.1ms		100.0ms		103.6ms		 95.9ms
+//   * treeToList() + sort():			 13.7ms		  1.3ms		  2.9ms		  2.0ms		  1.2ms
+//   * setting up:						 80.3ms		 24.0ms		 46.2ms		 28.0ms		 26.9ms
+// - With getRecent()
+//   * chrome.bookmarks.getRecent():	 99.7ms		167.1ms		124.2ms		115.3ms		116.5ms
+//   * treeToList() + sort():			  N/A		  N/A		  N/A		  N/A		  N/A
+//   * setting up:						 34.9ms		 26.2ms		 36.5ms		 36.3ms		 32.9ms
+_loadBookmarks: function(sendEvent) {
+	sendEvent = optionalWithDefault(sendEvent, true);
+
+	const logHead = "BookmarksManager::_loadBookmarks(" + sendEvent + "): ";
+	perfProf.mark("bookmarksLoadStart");
+
+	this._log(logHead + "loading bookmarks");
+	this._stats.load++;
+	this._bookmarksLoadingPromise = chromeUtils.wrap(chrome.bookmarks.getTree, logHead).then(
+		function(rootNodes) { // onFulfill
+			perfProf.mark("bookmarksLoadEnd");
+			this._log(logHead + "chrome.bookmarks.getTree() returned", rootNodes);
+			try {
+				perfProf.mark("bookmarksTreeToListStart");
+				let nodes = this._treeToList(rootNodes);
+				nodes.sort(this._compareDateAdded.bind(this));
+				perfProf.mark("bookmarksTreeToListEnd");
 				this._loadBookmarkTreeNodeList(nodes);
 			} catch(e) {
 				this._err(logHead, e);
@@ -409,6 +530,7 @@ getBmNode: function(bmNodeId) {
 // cycle at least once when returning to the caller, and that would be a waste.
 getBmPathListAsync: async function(bmNode) {
 	const logHead = "BookmarksManager::getBmPathListAsync(" + bmNode.id + "): ";
+	this._stats.asyncPathQueries++;
 
 	let pathList = [];
 
@@ -457,6 +579,7 @@ getBmPathListAsync: async function(bmNode) {
 // the async version of this function instead: BookmarksManager.getBmPathListAsync()
 getBmPathListSync: function(bmNode) {
 	const logHead = "BookmarksManager::getBmPathListSync(" + bmNode.id + "): ";
+	this._stats.syncPathQueries++;
 
 	let pathList = [];
 

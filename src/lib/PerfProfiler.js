@@ -103,7 +103,7 @@ _getMarksByPrefix: function(measuresTable) {
 // Use console.log() instead of this._log() here, otherwise the output won't
 // be available with the dist vesion of TabMania
 
-_showMeasures: function(measuresTable) {
+showMeasures: function(measuresTable) {
 	console.table(this._getMarksByPrefix(measuresTable), [ "name", "startTime" ] );
 	console.table(this._getMeasures(measuresTable), [ "name", "duration", "startTime" ]);
 },
@@ -121,7 +121,7 @@ showSearch: function() {
 		"render": [ "searchRenderStart", "searchRenderEnd" ],
 	}
 
-	this._showMeasures(toMeasure);
+	this.showMeasures(toMeasure);
 },
 
 showAsyncQueues: function() {
