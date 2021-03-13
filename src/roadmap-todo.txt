@@ -1,12 +1,16 @@
 TODO 1.2
 
-- BUG: chrome.bookmarks.getRecent() doesn't return folders...
+- Update ScheduledJob to not only wait for the timer event, but also for other events
+  the job needs to have satisfied in order to run.
+  * See the comments before BookmarksManager._applySettingsChangeDelay to get an idea of
+    the problem.
+  * The "other events" should be either Promises that are known when the job gets
+    scheduled, or Promises that become known when the job is expected to start running.
+    - Any other call to schedule a new job should find the current job still pending
+	  (technically never started) and rely on that same job instead of scheduling a new one
 
-- Enable/disable BookmarkManager based on configuration
-
-- Search: how does the new multi-token model work with bookmarks and history?
-  * We need a simplified query string (purged of operators?) to pass to BookmarksFinder
-    and HistoryFinder
+- Search: how does the new multi-token model work with history?
+  * Do we need the simplified query string (purged of operators?) to pass to HistoryFinder?
 
 - BUG: lowercase "g" gets cut in tile title
 

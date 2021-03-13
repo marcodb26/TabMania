@@ -75,6 +75,10 @@ DONE 1.2
 
 - Removed "Close" button and "Delete" menu item for bookmarks marked unmodifiable
 
+- BUG: chrome.bookmarks.getRecent() doesn't return folders, switched to chrome.bookmarks.getTree()
+
+- Enable/disable BookmarkManager based on configuration
+
 
 DONE 1.1
 

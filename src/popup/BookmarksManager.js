@@ -20,6 +20,8 @@
 // This class generates events Classes.EventManager.Events.UPDATED, with "detail"
 // set to { target: <this object>, id: <id of the bookmark that changed, or "undefined"> }.
 Classes.BookmarksManager = Classes.Base.subclass({
+	_bookmarksManagerActive: null,
+
 	_bookmarksImportInProgress: null,
 	// If we're loading bookmarks, wait for the promise to fulfill to make further updates.
 	// _bookmarksLoadingPromise doubles as a "_bookmarksLoadingInProgress"
@@ -48,6 +50,24 @@ Classes.BookmarksManager = Classes.Base.subclass({
 	// if instead you call chrome.bookmarks.removeTree() you'll get a single notification).
 	_loadBookmarksDelay: 500, //2000,
 
+	_applySettingsChangeJob: null,
+	// When the user enables inclusion of bookmarks in search results, bookmarksManager
+	// needs to take an expensive action an re-initialize. We want to rate-limit this
+	// expensive action to at most once a second (and we'll enable or disable depending
+	// on what's the configuration at the time the job runs, not at the time the job got
+	// scheduled). We need to coordinate this action with potential active calls to
+	// _loadBookmarks(), so when the job runs, it will possibly still have to wait for
+	// an active _loadBookmarks() to finish. While it waits for that promise, a second
+	// job can get scheduled, because hte current job is considered "running", even though
+	// it's still waiting for another condition. It would be ideal to incorporate the
+	// "wait for another condition" into the ScheduledJob logic, but in the worst-ish case
+	// the second job will be scheduled, and if the first job is not completed by the time
+	// the second job runs, the second job will wait for the _loadBookmarks() of the first
+	// job. The actual worst-worst case is that when the second job runs, the first job is
+	// still waiting for that same previous _loadBookmarks(), because in that case, both
+	// jobs will be queued behind the same promise, then run in parallel.
+	_applySettingsChangeDelay: 1000,
+
 	_stats: null,
 
 _init: function() {
@@ -58,33 +78,27 @@ _init: function() {
 	this._eventManager = Classes.EventManager.create();
 	this._eventManager.attachRegistrationFunctions(this);
 
-	this._stats = {
-		load: 0,
-		find: 0,
-		bookmarks: 0,
-		folders: 0,
-		// How many bookmarks+folders we had to drop because they exceeded this._maxBookmarkNodesTracked
-		bookmarksOverCap: 0,
-
-		// Folder path building
-		asyncPathQueries: 0,
-		syncPathQueries: 0,
-
-		// Counting events received
-		onCreated: 0,
-		// We ignore an "onCreated" event if there's an import in progress
-		onCreatedIgnored: 0,
-		onChanged: 0,
-		onRemoved: 0,
-		onMoved: 0,
-		onImportBegan: 0,
-		onImportEnded: 0,
-	};
+	this.resetStats();
 
 	this._loadBookmarksJob = Classes.ScheduledJob.create(this._loadBookmarks.bind(this));
 	this._loadBookmarksJob.debug();
 
-	this._loadBookmarks(false).then(
+	this._applySettingsChangeJob = Classes.ScheduledJob.create(this._applySettingsChange.bind(this));
+	this._applySettingsChangeJob.debug();
+
+	settingsStore.addEventListener(Classes.EventManager.Events.UPDATED, this._settingsStoreUpdatedCb.bind(this));
+
+	if(settingsStore.getOptionBookmarksInSearch()) {
+		this._initBookmarks(false).then(this._initChromeListeners.bind(this));
+	} else {
+		this._bookmarksManagerActive = false;
+		this._initChromeListeners();
+	}
+},
+
+_initBookmarks: function(sendEvent) {
+	this._bookmarksManagerActive = true;
+	return this._loadBookmarks(sendEvent).then(
 		function() {
 			try {
 				perfProf.measure("chrome.bookmarks.getTree()", "bookmarksLoadStart", "bookmarksLoadEnd");
@@ -95,8 +109,6 @@ _init: function() {
 			try {
 				perfProf.measure("Setting up bookmarks", "bookmarksSetupStart", "bookmarksSetupEnd");
 			} catch(e) {}
-
-			this._initListeners();
 		}.bind(this)
 	);
 },
@@ -187,10 +199,7 @@ _loadBookmarkTreeNode: function(node) {
 	this._appendOrReplaceNode(node, bmAlreadyTracked, this._bookmarks, "bookmark");
 },
 
-_loadBookmarkTreeNodeList: function(nodes) {
-	const logHead = "BookmarksManager::_loadBookmarkTreeNodeList(): ";
-	this._log(logHead + "received: ", nodes);
-
+_resetShadowCopy: function() {
 	this._bookmarksDict = {};
 	this._bookmarks = [];
 	this._folders = [];
@@ -198,6 +207,41 @@ _loadBookmarkTreeNodeList: function(nodes) {
 	this._stats.folders = 0;
 	this._stats.bookmarks = 0;
 	this._stats.bookmarksOverCap = 0;
+	// Don't reset the other stats, they're not supposed to be reset by the callers of
+	// this function. Call BookmarksManager.resetStats() if you want to reset all other
+	// statistics
+},
+
+resetStats: function() {
+	this._stats = {
+		load: 0,
+		find: 0,
+		bookmarks: 0,
+		folders: 0,
+		// How many bookmarks+folders we had to drop because they exceeded this._maxBookmarkNodesTracked
+		bookmarksOverCap: 0,
+
+		// Folder path building
+		asyncPathQueries: 0,
+		syncPathQueries: 0,
+
+		// Counting events received
+		onCreated: 0,
+		// We ignore an "onCreated" event if there's an import in progress
+		onCreatedIgnored: 0,
+		onChanged: 0,
+		onRemoved: 0,
+		onMoved: 0,
+		onImportBegan: 0,
+		onImportEnded: 0,
+	};
+},
+
+_loadBookmarkTreeNodeList: function(nodes) {
+	const logHead = "BookmarksManager::_loadBookmarkTreeNodeList(): ";
+	this._log(logHead + "received: ", nodes);
+
+	this._resetShadowCopy();
 
 	perfProf.mark("bookmarksSetupStart");
 
@@ -215,7 +259,7 @@ _loadBookmarkTreeNodeList: function(nodes) {
 	perfProf.mark("bookmarksSetupEnd");
 },
 
-// The old _loadBookmark() is based on chrome.bookmarks.getRecent().
+// The old _loadBookmarks() is based on chrome.bookmarks.getRecent().
 // It has the advantage that it natively accepts this._maxBookmarkNodesTracked and
 // it will only return a maximum of the nodes you asked.
 // On the other hand, it has the disadvantage that it returns only bookmarks, no folders.
@@ -223,7 +267,7 @@ _loadBookmarkTreeNodeList: function(nodes) {
 // folder one by one while exploring paths one parentId at a time makes the rendering of
 // the dropdown menus much slower (idle waiting for next event cycles, but still slower)
 //
-// The new _loadBookmark() is based on chrome.bookmarks.getTree().
+// The new _loadBookmarks() is based on chrome.bookmarks.getTree().
 // It has the advantage that it returns both bookmarks and folders, but it has the
 // disadvantage that the amount of nodes returned can't be natively capped to
 // this._maxBookmarkNodesTracked, so we'll always need to get all the bookmarks, then
@@ -344,15 +388,15 @@ _loadBookmarks: function(sendEvent) {
 	return this._bookmarksLoadingPromise;
 },
 
-_initListeners: function() {
+_initChromeListeners: function() {
 	// https://developer.chrome.com/docs/extensions/reference/bookmarks/#event-onCreated
 	chrome.bookmarks.onCreated.addListener(this._bookmarkCreatedCb.bind(this));
 	// https://developer.chrome.com/docs/extensions/reference/bookmarks/#event-onChanged
-	chrome.bookmarks.onChanged.addListener(this._delayableEventCb.bind(this, this._applyBookmarkChangeCb.bind(this)));
+	chrome.bookmarks.onChanged.addListener(this._delayableEventCb.bind(this, this._applyBookmarkChangeCb.bind(this), false));
 	// https://developer.chrome.com/docs/extensions/reference/bookmarks/#event-onRemoved
-	chrome.bookmarks.onRemoved.addListener(this._delayableEventCb.bind(this, this._applyBookmarkRemoveCb.bind(this)));
+	chrome.bookmarks.onRemoved.addListener(this._delayableEventCb.bind(this, this._applyBookmarkRemoveCb.bind(this), false));
 	// https://developer.chrome.com/docs/extensions/reference/bookmarks/#event-onMoved
-	chrome.bookmarks.onMoved.addListener(this._delayableEventCb.bind(this, this._applyBookmarkMoveCb.bind(this)));
+	chrome.bookmarks.onMoved.addListener(this._delayableEventCb.bind(this, this._applyBookmarkMoveCb.bind(this), false));
 	// https://developer.chrome.com/docs/extensions/reference/bookmarks/#event-onImportBegan
 	chrome.bookmarks.onImportBegan.addListener(this._bookmarkImportBeganCb.bind(this));
 	// https://developer.chrome.com/docs/extensions/reference/bookmarks/#event-onImportEnded
@@ -362,6 +406,12 @@ _initListeners: function() {
 // We need an event entry point _bookmarkCreatedCb() (instead of using the generic _delayableEventCb())
 // because for bookmark creation we must track "_bookmarksImportInProgress".
 _bookmarkCreatedCb: function(id, bmNode) {
+	const logHead = "BookmarksManager::_bookmarkCreatedCb(" + id + "): ";
+	if(!this.isActive()) {
+		this._log(logHead + "ignoring event while bookmarksManager is not active");
+		return;
+	}
+
 	this._stats.onCreated++;
 
 	if(this._bookmarksImportInProgress) {
@@ -372,18 +422,34 @@ _bookmarkCreatedCb: function(id, bmNode) {
 		return;
 	}
 
-	this._delayableEventCb(this._applyBookmarkCreateCb.bind(this), id, bmNode);
+	this._delayableEventCb(this._applyBookmarkCreateCb.bind(this), false, id, bmNode);
 },
 
-_delayableEventCb: function(eventCb, id, eventInfo) {
-	const logHead = "BookmarksManager::_delayableEventCb(" + id + "): ";
+// "eventCb" is assumed to be a function in this class. If you need to pass it functions from
+// other classes, change the two calls ".apply(this, args)" below to ".apply(null, args)"
+// "runAlways" is intended to bypass the check for whether or not bookmarksManager is active.
+_delayableEventCb: function(eventCb, runAlways, ...args) {
+	// _delayableEventCb is called for Chrome events (args[0] is normally the ID of the
+	// bookmark) and for settingsStore events (args[0] is "ev")
+	const logHead = "BookmarksManager::_delayableEventCb(" + args[0] + "): ";
+	if(!this.isActive() && !runAlways) {
+		this._log(logHead + "ignoring event while bookmarksManager is not active");
+		return;
+	}
 
 	if(this._bookmarksLoadingPromise != null) {
-		this._log(logHead + "loading in progress, delaying event processing", eventInfo);
-		this._bookmarksLoadingPromise.then(eventCb.bind(this, id, eventInfo));
+		// For Chrome events, args[1] is "eventInfo", for settingsStore events it's "undefined"
+		// (assuming out-of-bound index for arrays returns "undefined" instead of triggering
+		// an "out-of-bounds exception".
+		this._log(logHead + "loading in progress, delaying event processing", args[1]);
+		this._bookmarksLoadingPromise.then(
+			function() {
+				eventCb.apply(this, args)
+			}.bind(this)
+		);
 	} else {
 		// If not waiting for a promise, take the action immediately
-		eventCb(id, eventInfo);
+		eventCb.apply(this, args);
 	}
 },
 
@@ -465,11 +531,19 @@ _bookmarkImportBeganCb: function() {
 	const logHead = "BookmarksManager::_bookmarkImportBeganCb(): ";
 	this._log(logHead + "import started");
 
+	// Note that we're not checking "this._isActive()" here, because if we get enabled while
+	// an import is underway, we want to know that it's underway...
+
 	// In theory we could just call a removeListener() for _bookmarkCreatedCb() when
-	// we get out of search mode, but it's not even clear how well supported that
-	// function is, since it's not well documented... see: https://stackoverflow.com/a/13522461/10791475
+	// we get out of search mode, but it's always a pain to manage these removeListener()
+	// functions that expect you to pass as handle the exact function you used when you
+	// called addListener() (we're currently not tracking those "this.<fn>/bind(this)"
+	// function pointers).
 	// Anyway these events should not be very frequent, so no reason to optimize
 	// too much. Using the flag to disable any expensive operation should be sufficient.
+	//
+	// See https://developer.chrome.com/docs/extensions/reference/events/#type-Event for
+	// the definition of removeListener().
 	this._bookmarksImportInProgress = true;
 	this._stats.onImportBegan++;
 	// No other action needs to be taken in this case
@@ -482,10 +556,61 @@ _bookmarkImportEndedCb: function() {
 	this._bookmarksImportInProgress = false;
 	this._stats.onImportEnded++;
 
+	// See _bookmarkImportBeganCb() for why we put this check so late in this function
+	if(!this.isActive()) {
+		this._log(logHead + "ignoring event while bookmarksManager is not active");
+		return;
+	}
 	// Let's do a full refresh of the search results after a bulk import.
 	// We can't include a single "id" in the event in this case, so let's just leave
 	// the property missing.
 	this._loadBookmarksJob.run(this._loadBookmarksDelay);
+},
+
+_settingsStoreUpdatedCb: function(ev) {
+	const logHead = "BookmarksManager::_settingsStoreUpdatedCb(" + ev.detail.key + "): ";
+
+	if(ev.detail.key != "options") {
+		this._log(logHead + "ignoring key");
+		return;
+	}
+
+	this._applySettingsChangeJob.run(this._applySettingsChangeDelay);
+},
+
+_applySettingsChange: function() {
+	// The job has been started, but we now need to make sure there are no active
+	// _loadBookmarks(), otherwise we have to continue to wait for it to finish.
+	// Note that we must set the function argument "runAlways = true" because the
+	// correct isActive() state is set in _applySettingsStoreUpdateCb(), so that
+	// function must always run.
+	this._delayableEventCb(this._applySettingsStoreUpdateCb.bind(this), true, "applySettingsChange");
+},
+
+_applySettingsStoreUpdateCb: function() {
+	const logHead = "BookmarksManager::_applySettingsStoreUpdateCb(): ";
+
+	let bookmarksInSearch = settingsStore.getOptionBookmarksInSearch();
+	if(this.isActive() && !bookmarksInSearch) {
+		this._log(logHead + "property \"bookmarksInSearch\" set to \"false\", stopping bookmarksManager");
+		// Need to disable
+		this._bookmarksManagerActive = false;
+		this._resetShadowCopy();
+		this._eventManager.notifyListeners(Classes.EventManager.Events.UPDATED, { });
+		return;
+	}
+
+	if(!this.isActive() && bookmarksInSearch) {
+		this._log(logHead + "property \"bookmarksInSearch\" set to \"true\", starting bookmarksManager");
+		// Need to enable
+		this._initBookmarks();
+		// No need to dispatch an event, one will be dispatched by _loadBookmarks()
+		// when it's finished loading all the bookmarks in its shadow copy
+		// this._eventManager.notifyListeners(Classes.EventManager.Events.UPDATED, { });
+		return;
+	}
+
+	this._log(logHead + "property \"bookmarksInSearch\" unchanged, nothing to do");
 },
 
 // Returns an unsorted list of bookmark nodes (it's sorted by "dateAdded", not by title)
@@ -606,6 +731,10 @@ getBmPathListSync: function(bmNode) {
 
 getStats: function() {
 	return this._stats;
-}
+},
+
+isActive: function() {
+	return this._bookmarksManagerActive;
+},
 
 }); // Classes.BookmarksManager

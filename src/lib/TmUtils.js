@@ -186,6 +186,10 @@ showSearchParserInfo: function() {
 },
 
 showBookmarksStats: function() {
+	if(!bookmarksManager.isActive()) {
+		console.log("bookmarksManager is not active");
+		return;
+	}
 	console.log("bookmarksManager statistics:", bookmarksManager.getStats());
 },
 
