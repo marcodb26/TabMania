@@ -1,7 +1,19 @@
 TODO 1.2
 
-- Support regex in search
-  * r:"^blah.*blah$"
+- Search: I don't like the difference in behavior between open quote attached to previous
+  token and end quote attached to next token
+  * Per a comment in the tokenize() code:
+	// Note that we play by different rules for the closing quote, so while
+	// a"bc is a single token, "ab"c will be two tokens ab and c
+  * Should we revert back to both open and end quote triggering a split of a new token
+    (either preceding or succeding the open/close quote, respectively)?
+  * Note that currently open/close parenthesis are both token delimiters, why not quotes?
+BUG - Actually not true, a(b)c gets parsed as "b AND ac", BUG, parenthesis don't have
+	  a proper delimiter behavior
+  * We need to create a delimiter() function to define the common behavior of all token
+    delimiters (" ", "\t", "(", ")") and decide which characters are all the delimiters
+	(and make sure they can be escaped to become non-delimiters
+	- And decide if quotes should be part of that behavior too...
 
 - Update ScheduledJob to not only wait for the timer event, but also for other events
   the job needs to have satisfied in order to run.

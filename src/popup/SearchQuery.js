@@ -15,7 +15,7 @@ Classes.SearchTokenizer = Classes.Base.subclass({
 		"ingroup",
 	],
 
-	_escapedCharsList: [ "\"", "\'", "\\", ":", "-"	],
+	_escapedCharsList: [ "\"", "\'", "\\", ":", "-" ],
 
 // "value" is optional
 _init: function(value) {
@@ -72,6 +72,67 @@ _consumeQuotedString: function(queryString, matchingQuoteChar) {
 	return [ queryString, token ];
 },
 
+_consumeRegex: function(queryString) {
+	const logHead = "SearchTokenizer::_consumeRegex(\"" + queryString + "\"): ";
+
+	let token = "";
+
+	while(queryString.length > 0) {
+		let currChar = queryString[0];
+		// Shift one character to the left
+		queryString = queryString.substring(1);
+
+		switch(currChar) {
+			case "\\":
+				let escapedString = "";
+				[ queryString, escapedString ] = this._consumeEscapedCharacter(queryString);
+				token += escapedString;
+				break;
+
+			case " ":
+			case "\t":
+				// Whitespaces mark the end of a regex
+				return [ queryString, token ];
+
+			case "\"":
+			case "\'":
+				if(token.length > 0) {
+					// A quote in the middle of a regex is just part of that regex
+					token += currChar;
+				} else {
+					return this._consumeQuotedString(queryString, currChar);
+				}
+				break;
+
+			default:
+				token += currChar;
+				break;
+		}
+	}
+
+	// We get here if the regex consume the entire queryString, which is fine
+	return [ queryString, token ];
+},
+
+_setRegexToken: function(token) {
+	let regex = null;
+	let regexErr = null;
+
+	let retVal = {
+		type: Classes.SearchTokenizer.type.REGEX,
+	};
+
+	try {
+		// The flag "i" means "ignoreCase"
+		retVal.value = new RegExp(token, "i");
+		retVal.textValue = token;
+	} catch(e) {
+		this._log(logHead + "unable to parse regex", e);
+		retVal.error = e;
+	}
+	return retVal;
+},
+
 _setTextOrBinaryOp: function(token) {
 	switch(token) {
 		case "and":
@@ -111,6 +172,8 @@ tokenize: function(queryString, tokenList, topLevel) {
 					// a quoted string only if the leading quote is preceded by any token
 					// delimiter (space, ":", "-"), which consumes the previous token and
 					// resets token to "".
+					// Note that we play by different rules for the closing quote, so while
+					// a"bc is a single token, "ab"c will be two tokens ab and c
 					token += currChar;
 				} else {
 					[ queryString, token ] = this._consumeQuotedString(queryString, currChar);
@@ -129,6 +192,32 @@ tokenize: function(queryString, tokenList, topLevel) {
 				break;
 
 			case ":":
+				if(token == "r") {
+					// Regex case
+					if(queryString.length == 0 || [ " ", "\t" ].includes(queryString[0])) {
+						// "r:" is at the end of the queryString, or it's followed by a whitespaces
+						// (which is the delimiter of a non-quoted regex): in this case, we treat
+						// "r: as regular text.
+						// The processing of the next character (or of the end of the string) will
+						// deal with it, so nothing to do in this block, except accumulating.
+						token += currChar;
+						break;
+					}
+					[ queryString, token ] = this._consumeRegex(queryString);
+					if(token.length != 0) {
+						// Don't toLowerCase() the token for regex, since things like "\w" and "\W"
+						// mean two different things. We'll need to make the regex case insensitive
+						// in other ways (see _setRegexToken()).
+						tokenList.push(this._setRegexToken(token));
+					} else {
+						// This is different from the first if() above. If the token is "",
+						// the consumed queryString likely was r:"", so we need to drop/ignore.
+					}
+					token = "";
+					break;
+				}
+				// Don't use "break;" here, if "token" was not "r", then ":" is the unary operator and
+				// behaves like "-" below
 			case "-":
 				// First line of the "if" block:
 				// - Look ahead to see if this candidate operator is followed by a space (or
@@ -200,7 +289,7 @@ tokenize: function(queryString, tokenList, topLevel) {
 	}
 
 	if(!topLevel) {
-		// We get here if there's no closing quote
+		// We get here if there's no closing parenthesis
 		this._log(logHead + "no matching closing \")\"");
 		return "";
 	}
@@ -214,6 +303,7 @@ Classes.Base.roDef(Classes.SearchTokenizer.type, "UNARYOP", "unaryOp" );
 Classes.Base.roDef(Classes.SearchTokenizer.type, "SUBTREE", "subtree" );
 Classes.Base.roDef(Classes.SearchTokenizer.type, "TEXT", "text" );
 Classes.Base.roDef(Classes.SearchTokenizer.type, "QUOTEDTEXT", "quotedText" );
+Classes.Base.roDef(Classes.SearchTokenizer.type, "REGEX", "regex" );
 
 // CLASS SearchParser
 //
@@ -476,6 +566,18 @@ rebuildQueryString: function(node, fullRebuild) {
 			} else {
 				return node.value;
 			}
+
+		case Classes.SearchTokenizer.type.REGEX:
+			if(!fullRebuild) {
+				// Skip regex for the simplified case
+				return "";
+			}
+			
+			if(node.error != null) {
+				this._err("regex parse error", node.error);
+				return "r:<error>";
+			}
+			return "r:\"" + this._escapeText(node.textValue) + "\"";
 	}
 },
 
@@ -548,6 +650,7 @@ _countParsedNodes: function(node) {
 
 		case Classes.SearchTokenizer.type.TEXT:
 		case Classes.SearchTokenizer.type.QUOTEDTEXT:
+		case Classes.SearchTokenizer.type.REGEX:
 			this._cntParsedTextNodes++;
 			return;
 	};
@@ -558,14 +661,16 @@ _countParsedNodes: function(node) {
 _parse: function(queryString) {
 	const logHead = "SearchQuery::_parse(\"" + queryString + "\"): ";
 
+	this._cntParsedNodes = 0;
+	this._cntParsedTextNodes = 0;
+	this._parsedQuery = null;
+
 	let tokenList = [];
 	this._tokenizer.tokenize(queryString, tokenList);
 	this._log(logHead + "tokenize() returned", tokenList);
 
 	if(tokenList.length != 0) {
 		this._parsedQuery = this._parser.parse(tokenList);
-		this._cntParsedNodes = 0;
-		this._cntParsedTextNodes = 0;
 		this._countParsedNodes(this._parsedQuery);
 	} else {
 		this._log(logHead + "no tokens, nothing to parse");
@@ -604,6 +709,62 @@ _computeBinaryOp: function(binaryOpNode, leftOperand, rightOperand) {
 	}
 
 	this._err(logHead + "unknown binary operator \"" + binaryOpNode.value + "\":", binaryOpNode);
+	return false;
+},
+
+_evaluateRegexNode: function(tab, regex, modifier) {
+	const logHead = "SearchQuery::_evaluateRegexNode(): ";
+
+	if(modifier == null) {
+		// If there's no modifier, the default behavior is to search title,
+		// url and badges for "text"
+		if(regex.test(tab.tm.lowerCaseTitle)) {
+			return true;
+		}
+
+		if(regex.test(tab.tm.lowerCaseUrl)) {
+			return true;
+		}
+
+		for(let i = 0; i < tab.tm.searchBadges.length; i++) {
+			if(regex.test(tab.tm.searchBadges[i])) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	switch(modifier) {
+		case "site":
+			return regex.test(tab.tm.hostname);
+		case "intitle":
+			return regex.test(tab.tm.lowerCaseTitle);
+		case "inurl":
+			return regex.test(tab.tm.lowerCaseUrl);
+		case "inbadge":
+			for(let i = 0; i < tab.tm.searchBadges.length; i++) {
+				if(regex.test(tab.tm.searchBadges[i])) {
+					//this._log(logHead + "badge found in ", tab.tm.searchBadges[i]);
+					return true;
+				}
+			}
+			return false;
+		case "ingroup":
+			for(let i = 0; i < tab.tm.customGroupBadges.length; i++) {
+				if(regex.test(tab.tm.customGroupBadges[i])) {
+					return true;
+				}
+			}
+			return false;
+		default:
+			// Remember to update SearchTokenizer._validUnaryOpList when you want to
+			// allocate a new modifier, otherwise SearchTokenizer.tokenize() will discard
+			// the unknown operator and it will never show up here.
+			// This check is only for things that have been added to SearchTokenizer._validUnaryOpList
+			// but have not been correspondingly added here.
+			this._err(logHead + "unknown modifier", modifier);
+			break;
+	}
 	return false;
 },
 
@@ -706,6 +867,9 @@ _evaluate: function(tab, queryNode, stats, modifier) {
 		case Classes.SearchTokenizer.type.QUOTEDTEXT:
 			stats.cntEvaluatedText++;
 			return this._evaluateTextNode(tab, queryNode.value, modifier);
+
+		case Classes.SearchTokenizer.type.REGEX:
+			return this._evaluateRegexNode(tab, queryNode.value, modifier);
 
 		// Note that type "subtree" disappears during parsing (in the SearchParser._parseInner() call)
 	};
@@ -811,7 +975,11 @@ update: function(value) {
 	this._parse(value);
 	this._log(logHead + "_parse() returned", this._parsedQuery);
 
-	this._simplifiedSearchQuery = this._parser.rebuildQueryString(this._parsedQuery, false);
+	if(this._parsedQuery != null) {
+		this._simplifiedSearchQuery = this._parser.rebuildQueryString(this._parsedQuery, false);
+	} else {
+		this._simplifiedSearchQuery = "";
+	}
 },
 
 reset: function() {
@@ -875,6 +1043,10 @@ getSimplifiedQuery: function() {
 
 // Returns a rebuild of the text query starting from the parsed nodes
 getParsedQuery: function() {
+	if(this._parsedQuery == null) {
+		return "";
+	}
+
 	return this._parser.rebuildQueryString(this._parsedQuery, true);
 },
 

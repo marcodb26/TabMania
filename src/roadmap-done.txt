@@ -84,6 +84,15 @@ DONE 1.2
 
 - BUG: SearchQuery.rebuildQueryString() was not propagating fullRebuild through its recursion
 
+- BUG: SearchQuery was not resetting parsedQuery if a query that parsed to "null" (no tokens,
+  no parse nodes) was set in the update() call after a non-empty update()
+
+- Support regex in search
+  * r:"^blah.*blah$"
+  * Case insensitive
+  * The quotes are optional, needed only if you need to use whitespaces in the regex
+    - Whitespaces are regex delimiters if you don't use quotes
+
 
 DONE 1.1
 
