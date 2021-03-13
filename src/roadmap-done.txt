@@ -79,6 +79,11 @@ DONE 1.2
 
 - Enable/disable bookmarksManager based on configuration
 
+- BUG: quotes mid-token should be just consumed as part of the token, and not trigger
+  a new token
+
+- BUG: SearchQuery.rebuildQueryString() was not propagating fullRebuild through its recursion
+
 
 DONE 1.1
 

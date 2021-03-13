@@ -1,5 +1,8 @@
 TODO 1.2
 
+- Support regex in search
+  * r:"^blah.*blah$"
+
 - Update ScheduledJob to not only wait for the timer event, but also for other events
   the job needs to have satisfied in order to run.
   * See the comments before BookmarksManager._applySettingsChangeDelay to get an idea of
