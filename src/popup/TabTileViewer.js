@@ -175,11 +175,27 @@ _updateMenu: function() {
 			Classes.AsyncQueue.priority.LOW); 
 },
 
+_favIconLoadErrorCb: function(ev) {
+	const logHead = "TabTileViewer::_favIconLoadErrorCb(): ";
+	this._log(logHead, this._tab, arguments);
+
+	if(!Classes.NormalizedTabs.isCachedFavIconUrl(ev.target.src)) {
+		let altFavIconUrl = Classes.NormalizedTabs.getCachedFavIconUrl(this._tab.url);
+		this._log(logHead, "setting favIcon URL to " + altFavIconUrl);
+
+		ev.target.src = altFavIconUrl;
+	} else {
+		// We need this check to avoid entering an infinite loop of failure / recovery /failure...
+		this._log(logHead + "failure with cached URL, no other action to take");
+	}
+},
+
 _renderBodyInner: function() {
 	const logHead = "TabTileViewer::_renderBodyInner(): ";
 	let visibleBadgesHtml = [];
 	let titleExtraClasses = [];
 	let textMuted = "text-muted";
+	const imgId = this._id + "-favicon";
 	let imgExtraClasses = [];
 
 	switch(this._renderState.audio) {
@@ -263,7 +279,7 @@ _renderBodyInner: function() {
 	let imgHtml = "";
 	if(this._imgUrl != "") {
 		imgHtml = `
-			<span class="pe-1"><img class="tm-favicon-16 ${imgExtraClasses.join(" ")}" src="${this._renderState.imgUrl}"></span>
+			<span class="pe-1"><img id="${imgId}" class="tm-favicon-16 ${imgExtraClasses.join(" ")}" src="${this._renderState.imgUrl}"></span>
 		`;
 	}
 
@@ -288,6 +304,9 @@ _renderBodyInner: function() {
 	`;
 
 	this.setHtml(bodyHtml);
+
+	let favIconElem = this.getElementById(imgId);
+	favIconElem.addEventListener("error", this._favIconLoadErrorCb.bind(this));
 
 	// The _menuViewer is not in the body of the tile, but its destiny is parallel
 	// to that of the body of the tile...

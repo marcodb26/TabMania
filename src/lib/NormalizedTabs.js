@@ -374,6 +374,10 @@ getCachedFavIconUrl: function(url) {
 	return "chrome://favicon/size/16@1x/" + url;
 },
 
+isCachedFavIconUrl: function(favIconUrl) {
+	return favIconUrl.startsWith("chrome://favicon/size/16@1x/");
+},
+
 // Static function
 normalizeBookmarkId : function(id) {
 	return "b" + id;
