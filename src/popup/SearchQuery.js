@@ -15,7 +15,7 @@ Classes.SearchTokenizer = Classes.Base.subclass({
 		"ingroup",
 	],
 
-	_escapedCharsList: [ "\"", "\'", "\\", ":", "-" ],
+	_escapedCharsList: [ "\"", "\'", "\\", ":", "-", " ", "(", ")" ],
 
 // "value" is optional
 _init: function(value) {
