@@ -77,7 +77,7 @@ DONE 1.2
 
 - BUG: chrome.bookmarks.getRecent() doesn't return folders, switched to chrome.bookmarks.getTree()
 
-- Enable/disable BookmarkManager based on configuration
+- Enable/disable bookmarksManager based on configuration
 
 
 DONE 1.1
