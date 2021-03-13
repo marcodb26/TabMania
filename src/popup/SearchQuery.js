@@ -98,13 +98,21 @@ tokenize: function(queryString, tokenList, topLevel) {
 		switch(currChar) {
 			case " ":
 			case "\t":
-			case "\"":
-			case "\'":
 				if(token.length > 0) {
 					tokenList.push(this._setTextOrBinaryOp(token.toLowerCase()));
 					token = "";
 				}
-				if(currChar == "\"" || currChar == "\'") {
+				break;
+
+			case "\"":
+			case "\'":
+				if(token.length > 0) {
+					// A quote in the middle of a token is just part of that token, we recognize
+					// a quoted string only if the leading quote is preceded by any token
+					// delimiter (space, ":", "-"), which consumes the previous token and
+					// resets token to "".
+					token += currChar;
+				} else {
 					[ queryString, token ] = this._consumeQuotedString(queryString, currChar);
 					if(token.length != 0) {
 						// No need to call _setTextOrBinaryOp(), a quoted "and" or "or" is just text
@@ -438,11 +446,11 @@ rebuildQueryString: function(node, fullRebuild) {
 			if(fullRebuild) {
 				retVal.push("(");
 			}
-			retVal.push(this.rebuildQueryString(node.leftOperand));
+			retVal.push(this.rebuildQueryString(node.leftOperand, fullRebuild));
 			if(fullRebuild) {
 				retVal.push(node.value.toUpperCase());
 			}
-			retVal.push(this.rebuildQueryString(node.rightOperand));
+			retVal.push(this.rebuildQueryString(node.rightOperand, fullRebuild));
 			if(fullRebuild) {
 				retVal.push(")");
 			}
@@ -455,20 +463,15 @@ rebuildQueryString: function(node, fullRebuild) {
 					retVal.push(":");
 				}
 			}
-			retVal.push(this.rebuildQueryString(node.operand));
+			retVal.push(this.rebuildQueryString(node.operand, fullRebuild));
 			// No spaces between tokens for unary operators
 			return retVal.join("");
 
 		case Classes.SearchTokenizer.type.TEXT:
-			if(fullRebuild) {
-				return this._escapeText(node.value);
-			} else {
-				return node.value;
-			}
-
 		case Classes.SearchTokenizer.type.QUOTEDTEXT:
+			// Like we always add extra "(" and ")" to clearly delineate precedence,
+			// let's also always add quotes even for unquoted text
 			if(fullRebuild) {
-				// Unfortunately we don't track which type of quotes were used in the original text...
 				return "\"" + this._escapeText(node.value) + "\"";
 			} else {
 				return node.value;
