@@ -6,7 +6,7 @@ page, some only on the popups) to monitor the state of the extension, or make ch
   - For now this only adds the _Extended tabId_ configuration checkbox
   - You might want to reload the popup for the changes to take effect
 
-* Call `tmUtils.showTabInfo(<tabId>)` to get tab and tile information about a tab that's currently
+* Call `tmConsole.showTabInfo(<tabId>)` to get tab and tile information about a tab that's currently
   being displayed in TabMania's popup
   - The <tabId> must be a normalized tab ID (not an extended tab ID, see below) to be able to
     retrieve any class of tiles (open tabs, recently closed tabs, bookmarks, or browsing history
@@ -17,19 +17,19 @@ page, some only on the popups) to monitor the state of the extension, or make ch
   - Remember that most normalized tab IDs are strings (only tab IDs of standard tabs are numbers),
     so enclose the normalized tab ID in quotes
 
-* Call `tmUtils.showSearchParserInfo()` on the popup console to see how the search parser interpreted
+* Call `tmConsole.showSearchParserInfo()` on the popup console to see how the search parser interpreted
   the active query
   - Works only while the TabMania popup is in search mode
 
-* Call `tmUtils.showBookmarksStats()` on the popup console to see counters from bookmarksManager.
+* Call `tmConsole.showBookmarksStats()` on the popup console to see counters from bookmarksManager.
 
 * Performance statistics (only for the popup console)
   - Call `perfProf.showAsyncQueues()` to see the performance of AsyncQueues.
   - Call `perfProf.showStats()` to see some general popup performance statistics.
   - Call `perfProf.showSearch()` to see performance statistics related to the search functionality.
 
-* Call `tmUtils.showStorage()` to get a full view of all chrome.storage variables currently set.
-* Call `tmUtils.clearStorage()` in the background page console to reset all persisted state to default
+* Call `tmConsole.showStorage()` to get a full view of all chrome.storage variables currently set.
+* Call `tmConsole.clearStorage()` in the background page console to reset all persisted state to default
   - Optional permissions might get reset, but Chrome keeps his cache of what was already granted and
     won't request permission to the user again
 
@@ -132,7 +132,7 @@ Very manual until I have some time to focus on automation
   - Make sure the files inside the zip file don't start with a top level "/dist" directory
 
 * Test the created `/dist` files
-  * Call `tmUtils.clearStorage()` before you start testing
+  * Call `tmConsole.clearStorage()` before you start testing
 
 * Update and commit CHANGELOG.md
   - Change title `# [Unreleased]` to `# [X.Y.0] - YYYY-MM-DD`
