@@ -80,13 +80,5 @@ function init() {
 			bgInitPromiseResolveFn();
 		}
 	);
-	
-	// test
-//	let myImage = new Image();
-//	myImage.onerror = function(e) {
-//		console.error("Got here: ", e);
-//	}
-//	myImage.src = "https://example.com/doesntexist";
-//	document.body.appendChild(myImage);
 }
 
