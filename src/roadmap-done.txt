@@ -93,6 +93,9 @@ DONE 1.2
   * The quotes are optional, needed only if you need to use whitespaces in the regex
     - Whitespaces are regex delimiters if you don't use quotes
 
+- When we fail to load a favicon, attempt to use the cached favicon instead
+  * BUG: when websites disappear, icons shown in tiles are broken icons
+
 
 DONE 1.1
 

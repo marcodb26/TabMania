@@ -1,5 +1,27 @@
 TODO 1.2
 
+- Remove duplication between text and regex test
+
+- Check performance difference between regex and includes(), if regex is faster maybe we
+  internally turn everything into regex
+
+- Fix the escaping story: escaping at top level, in quoted string and in unquoted regex
+  are 3 different things, and we should do minimal escaping for each context. E.g. in
+  quoted string you only need to escape the matching quote, not all escapable characters,
+  and you should consider \ escaped only as \\” while any other occurrence of \\ should
+  be considered two \
+
+- BUG: the search text inurl:chrome:// returns everything, why???
+
+- Custom groups: if a site is part of two custom groups, list both badges
+  * Though we still need to pick a "primary" custom group for the left border badge
+
+- Custom groups: support temporarily disable some hostnames in custom groups
+  * Support comments in custom group definitions for that?
+
+- Search: exclude some bookmark folders from search results
+  * Do we need a "folderin:" unary operator to enable that?
+
 - Search: I don't like the difference in behavior between open quote attached to previous
   token and end quote attached to next token
   * Per a comment in the tokenize() code:
@@ -28,8 +50,6 @@ BUG - Actually not true, a(b)c gets parsed as "b AND ac", BUG, parenthesis don't
   * Do we need the simplified query string (purged of operators?) to pass to HistoryFinder?
 
 - BUG: lowercase "g" gets cut in tile title
-
-- BUG: when websites disappear, icons shown in tiles are broken icons
 
 - BUG: Class .tm-dropdown-menu says "min-width: 20em", causing the popup to have
   a horizontal scroller when the popup width is less than 20em
