@@ -99,13 +99,44 @@ _getMarksByPrefix: function(measuresTable) {
 	return p;
 },
 
-// FUNCTIONS FOR CHROME DEV TOOLS CONSOLE
-// Use console.log() instead of this._log() here, otherwise the output won't
-// be available with the dist vesion of TabMania
+clearMarksByPrefix: function(measuresTable) {
+	let allMarks = performance.getEntriesByType("mark");
+	let markPrefixes = [];
+	for(const [ measureName, marks ] of Object.entries(measuresTable)) {
+		markPrefixes.push(marks[0], marks[1]);
+	}
+
+	for(const [ index, entry ] of Object.entries(allMarks)) {
+		for(const [ index, prefix ] of Object.entries(markPrefixes)) {
+			if(entry.name.startsWith(prefix)) {
+				performance.clearMarks(entry.name);
+			}
+		}
+	}
+},
+
+clearMeasures: function(measuresTable) {
+	for(const [ measureName, marks ] of Object.entries(measuresTable)) {
+		performance.clearMeasures(measureName);
+	}
+},
 
 showMeasures: function(measuresTable) {
 	console.table(this._getMarksByPrefix(measuresTable), [ "name", "startTime" ] );
 	console.table(this._getMeasures(measuresTable), [ "name", "duration", "startTime" ]);
+},
+
+// FUNCTIONS FOR CHROME DEV TOOLS CONSOLE
+// Use console.log() instead of this._log() here, otherwise the output won't
+// be available with the dist vesion of TabMania
+
+showAllMarks: function() {
+	console.table(performance.getEntriesByType("mark"), [ "name", "startTime" ]);
+},
+
+showAllEntries: function() {
+	//console.log(performance.getEntries());
+	console.table(performance.getEntries(), [ "entryType", "name", "duration", "startTime" ]);
 },
 
 // This function is for use by developers in the Chrome console, not to be called

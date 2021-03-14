@@ -127,11 +127,11 @@ testConcatPush: function() {
 	}
 	perfProf.mark("testConcatPush_appendEnd");
 
-	if(!this.isEqual(concatResult, pushResult)) {
+	if(!tmUtils.isEqual(concatResult, pushResult)) {
 		this._err("Invalid result, concat() and push() generated different output arrays");
 		return;
 	}
-	if(!this.isEqual(concatResult, appendResult)) {
+	if(!tmUtils.isEqual(concatResult, appendResult)) {
 		this._err("Invalid result, concat() and appendArray() generated different output arrays");
 		return;
 	}
@@ -144,6 +144,9 @@ testConcatPush: function() {
 	};
 
 	perfProf.showMeasures(toMeasure);
+
+	perfProf.clearMarksByPrefix(toMeasure);
+	perfProf.clearMeasures(toMeasure);
 },
 
 }); // Classes.TmConsole
