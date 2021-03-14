@@ -139,6 +139,14 @@ deepClone: function(obj) {
 	return retVal;
 },
 
+// See https://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript
+_regexEscapePatternObj: /[-\/\\^$*+?.()|[\]{}]/g,
+
+regexEscape: function(string) {
+	// See https://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript
+	return string.replace(this._regexEscapePatternObj, '\\$&');
+},
+
 }); // Classes.TmUtils
 
 Classes.Base.roDef(window, "tmUtils", Classes.TmUtils.create());

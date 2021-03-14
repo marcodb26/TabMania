@@ -13,9 +13,6 @@ Classes.CustomGroupsManager = Classes.AsyncBase.subclass({
 
 	_eventManager: null,
 
-	// See https://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript
-	_regexEscapePatternObj: /[-\/\\^$*+?.()|[\]{}]/g,
-
 // We need to override _init() to capture the constructor parameters
 _init: function(storageKeyPrefix) {
 	// Do this initialization before calling the parent's _init(), because
@@ -57,11 +54,6 @@ _onUpdatedCb: function(ev) {
 	this._eventManager.notifyListeners(Classes.EventManager.Events.UPDATED, { key: key });
 },
 
-_regexEscape: function(simpleRegEx) {
-	// See https://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript
-	return simpleRegEx.replace(this._regexEscapePatternObj, '\\$&');
-},
-
 // Each line of the string "matchList" is a simplified-regex (or an empty line)
 _parseRegex: function(matchList) {
 	const logHead = "CustomGroupsManager::_parseRegex(" + matchList + "): ";
@@ -78,7 +70,7 @@ _parseRegex: function(matchList) {
 			let trimmedRegex = regex.trim();
 			if(trimmedRegex != "") {
 				// Skip empty strings
-				trimmedList.push("(" + this._regexEscape(trimmedRegex) + ")");
+				trimmedList.push("(" + tmUtils.regexEscape(trimmedRegex) + ")");
 			}
 		}.bind(this)
 	)
