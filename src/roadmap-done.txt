@@ -96,6 +96,21 @@ DONE 1.2
 - When we fail to load a favicon, attempt to use the cached favicon instead
   * BUG: when websites disappear, icons shown in tiles are broken icons
 
+- Fixed the escaping story: escaping at top level, in quoted string and in unquoted regex
+  are 3 different things, and we should do minimal escaping for each context. E.g. in
+  quoted string you only need to escape the matching quote, not all escapable characters,
+  and you should consider \ escaped only as \\” while any other occurrence of \\ should
+  be considered two \
+
+- Fixed search query delimiter story: now """, "'", "(", " " and "\t" are unified
+  as delimiters (unless you're in a quoted string or unquoted regex string) and
+  cause the previous token to be considered complete
+
+- Fixed error message for invalid regex in search query
+  * Now we show the regex parse error on the console (for /dist users)
+  * Now when we run a query with an unparsable regex, the evaluation of the regex node
+    will always return "false"
+
 
 DONE 1.1
 

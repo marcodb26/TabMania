@@ -1,15 +1,22 @@
 TODO 1.2
 
+- Priority field in custom groups
+
+- Validate optimized search query by running both optimized and not
+
+- Add minimal parentheses to textual version of parsed query by using parent operator precedence
+  (app parentheses only if parent operator has higher precedence), include unwary operators in precedence list
+
+- Move to manifest v3 for tabgroups
+
+- Search query in custom group
+
+- Update custom group by re-running the parser and taking the minimal parentheses version (without optimizations)
+
 - Remove duplication between text and regex test
 
 - Check performance difference between regex and includes(), if regex is faster maybe we
   internally turn everything into regex
-
-- Fix the escaping story: escaping at top level, in quoted string and in unquoted regex
-  are 3 different things, and we should do minimal escaping for each context. E.g. in
-  quoted string you only need to escape the matching quote, not all escapable characters,
-  and you should consider \ escaped only as \\” while any other occurrence of \\ should
-  be considered two \
 
 - BUG: the search text inurl:chrome:// returns everything, why???
 

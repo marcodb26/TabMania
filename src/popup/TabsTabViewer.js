@@ -1035,12 +1035,13 @@ _searchRenderTabs: function(tabs, newSearch) {
 },
 
 getSearchParserInfo: function() {
-	const logHead = "TabsTabViewer::getSearchParserInfo(): ";
 	if(this._searchQuery == null || !this._searchQuery.isInitialized()) {
 		return null;
 	}
 
-	return "Parsed query: " + this._searchQuery.getParsedQuery() + "\n" +
+	return "Parsed query: " + this._searchQuery.getParsedQuery(Classes.SearchParser.rebuildMode.MIN) + "\n" +
+			"Unoptimized parsed query: " + this._searchQuery.getUnoptimizedParsedQuery(Classes.SearchParser.rebuildMode.MIN) + "\n" +
+			"Unoptimized parsed query (verbose): " + this._searchQuery.getUnoptimizedParsedQuery(Classes.SearchParser.rebuildMode.MAX) + "\n" +
 			"Simplified parsed query: " + this._searchQuery.getSimplifiedQuery() + "\n" +
 			this._searchQuery.getStats();
 },

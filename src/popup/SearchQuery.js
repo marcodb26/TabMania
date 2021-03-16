@@ -6,6 +6,11 @@ Classes.SearchParser = Classes.Base.subclass({
 	// debugging messages for the parser can be very verbose
 	_parserDebug: null,
 
+	_binaryOpPrecedenceList: {
+		"and": 2,
+		"or": 1
+	},
+
 // "value" is optional
 _init: function(value) {
 	const logHead = "SearchParser::_init(): ";
@@ -122,13 +127,8 @@ _addImplicitNodes: function(tokenList) {
 	return newTokenList;
 },
 
-_getPrecedence: function(binaryOp) {
-	const opPrecedenceList = {
-		"and": 2,
-		"or": 1
-	};
-
-	return opPrecedenceList[binaryOp];
+getBinaryOpPrecedence: function(binaryOp) {
+	return this._binaryOpPrecedenceList[binaryOp];
 },
 
 _parseSubtree: function(node) {
@@ -156,7 +156,7 @@ _parseInner: function(leftOperand, minPrecedence, tokenList) {
 	this._parserDebug(logHead + "outer lookahead: ", JSON.stringify(lookahead));
 
 	while(lookahead != null && lookahead.type == Classes.SearchTokenizer.type.BINARYOP &&
-			this._getPrecedence(lookahead.value) >= minPrecedence) {
+			this.getBinaryOpPrecedence(lookahead.value) >= minPrecedence) {
 		let op = tokenList.shift(); // same as "lookahead", but now we must update tokenList
 		let rightOperand = tokenList.shift();
 
@@ -167,7 +167,7 @@ _parseInner: function(leftOperand, minPrecedence, tokenList) {
 		this._parserDebug(logHead + "inner lookahead: ", JSON.stringify(lookahead));
 
 		while(lookahead != null && lookahead.type == Classes.SearchTokenizer.type.BINARYOP &&
-				this._getPrecedence(lookahead.value) > this._getPrecedence(op.value)) {
+				this.getBinaryOpPrecedence(lookahead.value) > this.getBinaryOpPrecedence(op.value)) {
 
 			rightOperand = this._parseInner(rightOperand, minPrecedence + 1, tokenList);
 			this._parserDebug(logHead + "innermost right operand: ", JSON.stringify(rightOperand));
@@ -203,17 +203,189 @@ parse: function(tokenList) {
 	return parsedTree;
 },
 
-_escapeText: function(text) {
+
+// QUERY OPTIMIZATION FUNCTIONS
+
+_parseRegex: function(regexText) {
+	let regex = null;
+
+	try {
+		// The flag "i" means "ignoreCase"
+		regex = new RegExp(regexText, "i");
+	} catch(e) {
+		const logHead = "SearchParser::_parseRegex(): ";
+		this._log(logHead + "unable to parse regex for text /" + regexText + "/: ", e);
+		return null;
+	}
+	return regex;
+},
+
+_isRegexParsable: function(node) {
+	switch(node.type) {
+		case Classes.SearchTokenizer.type.REGEX:
+			if(node.error == null) {
+				return true;
+			}
+			return false;
+
+		default:
+			return this._parseRegex(node.value) != null;
+	}
+},
+
+_convertOrToRegex: function(node) {
+	let left = node.leftOperand;
+	let right = node.rightOperand;
+
+	// It doesn't make sense to take this action if the two text nodes can't be
+	// parsed as regex
+	if(!(this._isRegexParsable(left) && this._isRegexParsable(right))) {
+		return null;
+	}
+
+	let newNode = {
+		type: Classes.SearchTokenizer.type.REGEX,
+		sources: [],
+	}
+
+	if(left.type == Classes.SearchTokenizer.type.REGEX) {
+		newNode.sources = newNode.sources.concat(left.sources);
+	} else {
+		newNode.sources.push(left.value);
+	}
+	if(right.type == Classes.SearchTokenizer.type.REGEX) {
+		newNode.sources = newNode.sources.concat(right.sources);
+	} else {
+		newNode.sources.push(right.value);
+	}
+
+	newNode.value = this._parseRegex("(" + newNode.sources.join(")|(") + ")");
+
+	if(newNode.value == null) {
+		// Failed to create the regex, no deal, stay with what we have
+		const logHead = "SearchParser::_convertOrToRegex(): ";
+		this._log(logHead + "unable to parse regex for sources:", newNode.sources);
+		return null;
+	}
+
+	return newNode;
+},
+
+_bothOperandsType: function(node, nodeTypes) {
+	return nodeTypes.includes(node.leftOperand.type) && nodeTypes.includes(node.rightOperand.type);
+},
+
+_orOptimizer: function(node, changed) {
+	if(this._bothOperandsType(node, [ Classes.SearchTokenizer.type.UNARYOP ]) &&
+	  node.leftOperand.value != "-" &&
+	  node.leftOperand.value == node.rightOperand.value) {
+		// Swap the "or" and the unary modifier if the two unary ops are
+		// of the same type and not boolean (we can't take this action for
+		// the operator "-")
+		let newParent = node.leftOperand;
+		node.leftOperand = newParent.operand;
+		node.rightOperand = node.rightOperand.operand;
+		newParent.operand = node;
+
+		changed.changed = true;
+		changed.what.push("swapped 'or' and '" + newParent.value + ":'");
+		return newParent;
+	}
+
+	if(this._bothOperandsType(node, [ Classes.SearchTokenizer.type.TEXT,
+					Classes.SearchTokenizer.type.QUOTEDTEXT, Classes.SearchTokenizer.type.REGEX ])) {
+		let newNode = this._convertOrToRegex(node);
+		if(newNode != null) {
+			changed.changed = true;
+			changed.what.push("Converted 'or' to regex");
+			return newNode;
+		}
+	}
+
+	return node;
+},	  
+
+// Returns "true" if some optimization was applied, "false" if not
+_optimizeInner: function(node, changed) {
+	switch(node.type) {
+		case Classes.SearchTokenizer.type.BINARYOP:
+			node.leftOperand = this._optimizeInner(node.leftOperand, changed);
+			node.rightOperand = this._optimizeInner(node.rightOperand, changed);
+			
+			if(node.value == "or") {
+				return this._orOptimizer(node, changed);
+			}
+			return node;
+
+		case Classes.SearchTokenizer.type.UNARYOP:
+			node.operand = this._optimizeInner(node.operand, changed);
+//			if(node.value != "-") {
+//				return this._optimizeUnaryModifier(node, changed)
+//			}
+			return node;
+
+		case Classes.SearchTokenizer.type.TEXT:
+		case Classes.SearchTokenizer.type.QUOTEDTEXT:
+		case Classes.SearchTokenizer.type.REGEX:
+		default:
+			return node;
+	}
+},
+
+optimize: function(rootNode) {
+	const logHead = "SearchParser::optimize(): ";
+
+	let changed = {
+		changed: true,
+		what: [],
+	};
+
+	while(changed.changed) {
+		changed.changed = false;
+		rootNode = this._optimizeInner(rootNode, changed);
+	}
+
+	this._log(logHead + "what changed:", changed.what);
+	return rootNode;
+},
+
+
+// LOGIC TO REBUILD TEXT QUERY FROM PARSED TREE
+
+_escapeText: function(text, tokenType, quoteChar) {
 	let retVal = "";
+	let escapedCharsList = Classes.SearchTokenizer.getEscapedCharsList(tokenType, quoteChar);
 
 	for(i = 0; i < text.length; i++) {
-		if(Classes.SearchTokenizer._escapedCharsList.includes(text[i])) {
+		if(escapedCharsList.includes(text[i])) {
 			retVal += ( "\\" + text[i] );
 		} else {
 			retVal += text[i];
 		}
 	}
+
+	// Special case, see SearchTokenizer._nextCharIsEscapable(): a "\" at the end of a token
+	// needs to be escaped to make sure it doesn't escape the valid token delimiter that follows
+	if(retVal[retVal.length - 1] == "\\") {
+		retVal += "\\";
+	}
+
 	return retVal;
+},
+
+_hasHigherPrecedence: function(node, parentNode) {
+	if(parentNode == null) {
+		return true;
+	}
+
+	if(parentNode.type != Classes.SearchTokenizer.type.BINARYOP) {
+		return false;
+	}
+
+	// If node and parentNode are of the same type (same precedence), return "false",
+	// as we need to track strictly higher precedente of the inner node to determine
+	// whether or not we need parentheses
+	return this.getBinaryOpPrecedence(node.value) >= this.getBinaryOpPrecedence(parentNode.value);
 },
 
 // When "fullRebuild" is set to "true", this function behaves as a debugging function
@@ -221,20 +393,27 @@ _escapeText: function(text) {
 // When it's set to false, it generates a simplified version of the query string with
 // all operators omitted, to be used with the chrome.history.search() and
 // chrome.bookmarks.search() APIs.
-rebuildQueryString: function(node, fullRebuild) {
+rebuildQueryString: function(node, parentNode, rebuildMode) {
 	let retVal = [];
+
+	let fullRebuild = (rebuildMode != Classes.SearchParser.rebuildMode.SIMPLE);
 
 	switch(node.type) {
 		case Classes.SearchTokenizer.type.BINARYOP:
-			if(fullRebuild) {
+			let needParantheses = false;
+			if(!this._hasHigherPrecedence(node, parentNode) || rebuildMode == Classes.SearchParser.rebuildMode.MAX) {
+				needParantheses = true;
+			}
+
+			if(fullRebuild && needParantheses) {
 				retVal.push("(");
 			}
-			retVal.push(this.rebuildQueryString(node.leftOperand, fullRebuild));
+			retVal.push(this.rebuildQueryString(node.leftOperand, node, rebuildMode));
 			if(fullRebuild) {
 				retVal.push(node.value.toUpperCase());
 			}
-			retVal.push(this.rebuildQueryString(node.rightOperand, fullRebuild));
-			if(fullRebuild) {
+			retVal.push(this.rebuildQueryString(node.rightOperand, node, rebuildMode));
+			if(fullRebuild && needParantheses) {
 				retVal.push(")");
 			}
 			return retVal.join(" ");
@@ -246,7 +425,7 @@ rebuildQueryString: function(node, fullRebuild) {
 					retVal.push(":");
 				}
 			}
-			retVal.push(this.rebuildQueryString(node.operand, fullRebuild));
+			retVal.push(this.rebuildQueryString(node.operand, node, rebuildMode));
 			// No spaces between tokens for unary operators
 			return retVal.join("");
 
@@ -255,7 +434,7 @@ rebuildQueryString: function(node, fullRebuild) {
 			// Like we always add extra "(" and ")" to clearly delineate precedence,
 			// let's also always add quotes even for unquoted text
 			if(fullRebuild) {
-				return "\"" + this._escapeText(node.value) + "\"";
+				return "\"" + this._escapeText(node.value, Classes.SearchTokenizer.type.QUOTEDTEXT, "\"") + "\"";
 			} else {
 				return node.value;
 			}
@@ -265,16 +444,25 @@ rebuildQueryString: function(node, fullRebuild) {
 				// Skip regex for the simplified case
 				return "";
 			}
-			
+
+			let prefix = "r:";
 			if(node.error != null) {
-				this._err("regex parse error", node.error);
-				return "r:<error>";
+				console.error("RegExp parser: " + node.error.name + ": " + node.error.message);
+				prefix = "r<error>:";
 			}
-			return "r:\"" + this._escapeText(node.textValue) + "\"";
+			// Note that we're using Classes.SearchTokenizer.type.QUOTEDTEXT even though
+			// this is a REGEX, below from an escaping perspective, we need to escape a
+			// quoted string
+			return prefix + "\"" + this._escapeText(node.sources[0], Classes.SearchTokenizer.type.QUOTEDTEXT, "\"") + "\"";
 	}
 },
 
 }); // Classes.SearchParser
+
+Classes.Base.roDef(Classes.SearchParser, "rebuildMode", {} );
+Classes.Base.roDef(Classes.SearchParser.rebuildMode, "MIN", "min" );
+Classes.Base.roDef(Classes.SearchParser.rebuildMode, "MAX", "max" );
+Classes.Base.roDef(Classes.SearchParser.rebuildMode, "SIMPLE", "simple" );
 
 
 // CLASS SearchQuery
@@ -291,6 +479,7 @@ Classes.SearchQuery = Classes.Base.subclass({
 	// This will be initialized by the first call to update()
 	_searchQuery: null,
 	_parsedQuery: null,
+	_unoptimizedParsedQuery: null,
 
 	// Statistics about the parser
 	_cntParsedNodes: null,
@@ -356,6 +545,7 @@ _parse: function(queryString) {
 
 	this._cntParsedNodes = 0;
 	this._cntParsedTextNodes = 0;
+	this._unoptimizedParsedQuery = null;
 	this._parsedQuery = null;
 
 	let tokenList = [];
@@ -363,7 +553,8 @@ _parse: function(queryString) {
 	this._log(logHead + "tokenize() returned", tokenList);
 
 	if(tokenList.length != 0) {
-		this._parsedQuery = this._parser.parse(tokenList);
+		this._unoptimizedParsedQuery = this._parser.parse(tokenList);
+		this._parsedQuery = this._parser.optimize(this._unoptimizedParsedQuery);
 		this._countParsedNodes(this._parsedQuery);
 	} else {
 		this._log(logHead + "no tokens, nothing to parse");
@@ -562,7 +753,11 @@ _evaluate: function(tab, queryNode, stats, modifier) {
 			return this._evaluateTextNode(tab, queryNode.value, modifier);
 
 		case Classes.SearchTokenizer.type.REGEX:
-			return this._evaluateRegexNode(tab, queryNode.value, modifier);
+			if(queryNode.error == null) {
+				return this._evaluateRegexNode(tab, queryNode.value, modifier);
+			}
+			// If we failed to parse a regex, let's assume it's evaluation is "false"
+			return false;
 
 		// Note that type "subtree" disappears during parsing (in the SearchParser._parseInner() call)
 	};
@@ -668,8 +863,9 @@ update: function(value) {
 	this._parse(value);
 	this._log(logHead + "_parse() returned", this._parsedQuery);
 
-	if(this._parsedQuery != null) {
-		this._simplifiedSearchQuery = this._parser.rebuildQueryString(this._parsedQuery, false);
+	if(this._unoptimizedParsedQuery != null) {
+		this._simplifiedSearchQuery =
+				this._parser.rebuildQueryString(this._unoptimizedParsedQuery, null, Classes.SearchParser.rebuildMode.SIMPLE);
 	} else {
 		this._simplifiedSearchQuery = "";
 	}
@@ -678,6 +874,7 @@ update: function(value) {
 reset: function() {
 	this._searchQuery = "";
 	this._simplifiedSearchQuery = "";
+	this._unoptimizedParsedQuery = null;
 	this._parsedQuery = null;
 	this._cntParsedNodes = null;
 	this._cntParsedTextNodes = null;
@@ -734,13 +931,23 @@ getSimplifiedQuery: function() {
 	return this._simplifiedSearchQuery;
 },
 
-// Returns a rebuild of the text query starting from the parsed nodes
-getParsedQuery: function() {
+// Returns a rebuild of the text query starting from the unoptimized parsed nodes
+getUnoptimizedParsedQuery: function(rebuildMode) {
+	if(this._unoptimizedParsedQuery == null) {
+		return "";
+	}
+
+	return this._parser.rebuildQueryString(this._unoptimizedParsedQuery, null, rebuildMode);
+},
+
+// Returns a rebuild of the text query starting from the optimized parsed nodes
+getParsedQuery: function(rebuildMode) {
 	if(this._parsedQuery == null) {
 		return "";
 	}
 
-	return this._parser.rebuildQueryString(this._parsedQuery, true);
+	this._log(this._parsedQuery);
+	return this._parser.rebuildQueryString(this._parsedQuery, null, rebuildMode);
 },
 
 getState: function() {
