@@ -104,6 +104,12 @@ deepCopy: function(obj) {
 		return undefined;
 	}
 
+	if(typeof obj == "string") {
+		// repeat() ceates a new string from the original string
+		// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/repeat
+		return obj.repeat(1);
+	}
+
 	if(typeof obj != "object") {
 		// arrays return "object", so we're in scalar-land
 		// Use exact equality, we don't want "undefined" and "false" to be
