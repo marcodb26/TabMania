@@ -37,19 +37,17 @@ showTabInfo: function(tabId) {
 },
 
 showSearchParserInfo: function() {
-	const logHead = "TmConsole::showSearchParserInfo(): ";
-
 	const homeBsTabId = popupViewer.getHomeBsTabId();
 	let allTabsBsTabViewer = popupViewer.getBsTabViewerById(homeBsTabId);
 
 	let searchParserText = allTabsBsTabViewer.getSearchParserInfo();
 
 	if(searchParserText == null) {
-		console.log(logHead + "no active search, nothing to show");
+		console.log("No active search, nothing to show");
 		return;
 	}
 
-	console.log(logHead + searchParserText);
+	console.log(searchParserText);
 },
 
 showBookmarksStats: function() {
