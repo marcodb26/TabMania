@@ -231,7 +231,7 @@ DONE 1.1
 - NormalizedTabs::normalizeTab() needs a class-instance independent version of "this._err()"
   * Defined tmUtils.err() for that purpose
 
-- Promoted deepClone() and isEqual() to tmUtils, and added basic support for Arrays
+- Promoted deepCopy() and isEqual() to tmUtils, and added basic support for Arrays
   * Before they could only be used inside PersistentDict
 
 - Now reusing tiles instead of just recreating them at every refresh

@@ -95,8 +95,8 @@ isEqual: function(objA, objB) {
 
 // Not general purpose, limited support for Arrays (no sparse arrays), no support
 // for functions or symbols
-deepClone: function(obj) {
-	const logHead = "TmUtils::deepClone(): ";
+deepCopy: function(obj) {
+	const logHead = "TmUtils::deepCopy(): ";
 
 	// See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof
 	// "undefined" is of type "undefined", but "null" and Array are of type "object"
@@ -125,7 +125,7 @@ deepClone: function(obj) {
 		// the array one element by one
 		let retVal = Array(obj.length);
 		for(let i = 0; i < obj.length; i++) {
-			retVal[i] = this.deepClone(obj[i]);
+			retVal[i] = this.deepCopy(obj[i]);
 		}
 		return retVal;
 	}
@@ -134,7 +134,7 @@ deepClone: function(obj) {
 
 	let keys = Object.keys(obj);
 	for(let i = 0; i < keys.length; i++) {
-		retVal[keys[i]] = this.deepClone(obj[keys[i]]);
+		retVal[keys[i]] = this.deepCopy(obj[keys[i]]);
 	}
 	return retVal;
 },

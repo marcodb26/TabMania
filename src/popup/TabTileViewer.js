@@ -533,9 +533,9 @@ _createRenderState: function(tab, tabGroup) {
 		renderState.customGroupColor = null;
 	}
 
-	renderState.primaryShortcutBadges = tmUtils.deepClone(tab.tm.primaryShortcutBadges);
-	renderState.secondaryShortcutBadges = tmUtils.deepClone(tab.tm.secondaryShortcutBadges);
-	renderState.visualBadges = tmUtils.deepClone(tab.tm.visualBadges);
+	renderState.primaryShortcutBadges = tmUtils.deepCopy(tab.tm.primaryShortcutBadges);
+	renderState.secondaryShortcutBadges = tmUtils.deepCopy(tab.tm.secondaryShortcutBadges);
+	renderState.visualBadges = tmUtils.deepCopy(tab.tm.visualBadges);
 
 	renderState.pinned = tab.pinned;
 	renderState.status = tab.status;

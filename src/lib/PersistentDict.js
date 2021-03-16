@@ -148,7 +148,7 @@ set: function(key, value) {
 
 	// A "key" in the _dict can be set to another dictionary (e.g., SettingsStore._customGroups),
 	// so the problems described in setAll() and getAll() exist also in set() and get().
-	this._dict[key] = tmUtils.deepClone(value);
+	this._dict[key] = tmUtils.deepCopy(value);
 	return this._persist();
 },
 
@@ -160,7 +160,7 @@ get: function(key) {
 	// Let's assert this for safety, just in case
 	this._assert(this.isInitialized(), logHead + "still waiting for initialization");
 
-	return tmUtils.deepClone(this._dict[key]);
+	return tmUtils.deepCopy(this._dict[key]);
 },
 
 // "ignoreCase" (default "false") is used to check if the "key" exists in
@@ -244,7 +244,7 @@ setAll: function(dict) {
 	// We need to always deep-clone in setAll() and getAll() if we always
 	// want to be able to detect changes with the tmUtils.isEqual() above).
 	// See getAll() for more details.
-	this._dict = tmUtils.deepClone(dict);
+	this._dict = tmUtils.deepCopy(dict);
 	return this._persist();
 },
 
@@ -270,7 +270,7 @@ getAll: function() {
 	// The real issue with the first option is only that we don't have a deep
 	// copy function at our disposal, but that would be the right thing to do,
 	// so we created one.
-	return tmUtils.deepClone(this._dict);
+	return tmUtils.deepCopy(this._dict);
 },
 
 // Override parent class, in case of a Set, we just want to return an array of keys
