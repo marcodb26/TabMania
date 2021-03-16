@@ -111,6 +111,9 @@ DONE 1.2
   * Now when we run a query with an unparsable regex, the evaluation of the regex node
     will always return "false"
 
+- Add minimal parentheses to textual version of parsed query by using parent operator precedence
+  (app parentheses only if parent operator has higher precedence)
+
 
 DONE 1.1
 

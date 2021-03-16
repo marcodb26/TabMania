@@ -203,6 +203,56 @@ parse: function(tokenList) {
 	return parsedTree;
 },
 
+cloneTree: function(node) {
+	// We're not using tmUtils.deepCopy() here because we have to deal with RegExp
+	// objects, which seem to be a bit complicated in Chrome, and don't want to have
+	// to deal with managing them in tmUtils.deepCopy()
+
+	const logHead = "SearchParser::cloneTree(): ";
+
+	let newNode = {
+		type: node.type,
+	};
+
+	switch(node.type) {
+		case Classes.SearchTokenizer.type.BINARYOP:
+			newNode.leftOperand = this.cloneTree(node.leftOperand);
+			newNode.rightOperand = this.cloneTree(node.rightOperand);
+			// repeat() ceates a new string from the original string
+			// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/repeat
+			newNode.value = node.value.repeat(1);
+			break;
+
+		case Classes.SearchTokenizer.type.UNARYOP:
+			newNode.operand = this.cloneTree(node.operand);
+			newNode.value = node.value.repeat(1);
+			break;
+
+		case Classes.SearchTokenizer.type.TEXT:
+		case Classes.SearchTokenizer.type.QUOTEDTEXT:
+			newNode.value = node.value.repeat(1);
+			break;
+
+		case Classes.SearchTokenizer.type.REGEX:
+			newNode.sources = tmUtils.deepCopy(node.sources);
+			if(node.error != null) {
+				// No deep copy in this case, it seems harmless to stick with the
+				// same error object, we never edit error objects
+				newNode.error = node.error;
+			} else {
+				this._assert(node.value != null, logHead + "original node has null regex");
+				newNode.value = this._buildRegexValue(node.sources);
+				// If the original had no error, this should not cause an error...
+				this._assert(newNode.value != null, logHead + "copied node has null regex");
+			}
+
+		default:
+			this._err(logHead + "unknown node type \"" + node.type + "\"");
+	}
+
+	return newNode;
+},
+
 
 // QUERY OPTIMIZATION FUNCTIONS
 
@@ -218,6 +268,10 @@ _parseRegex: function(regexText) {
 		return null;
 	}
 	return regex;
+},
+
+_buildRegexValue: function(sources) {
+	return this._parseRegex("(" + sources.join(")|(") + ")");
 },
 
 _isRegexParsable: function(node) {
@@ -259,7 +313,7 @@ _convertOrToRegex: function(node) {
 		newNode.sources.push(right.value);
 	}
 
-	newNode.value = this._parseRegex("(" + newNode.sources.join(")|(") + ")");
+	newNode.value = this._buildRegexValue(newNode.sources);
 
 	if(newNode.value == null) {
 		// Failed to create the regex, no deal, stay with what we have
@@ -335,6 +389,8 @@ _optimizeInner: function(node, changed) {
 optimize: function(rootNode) {
 	const logHead = "SearchParser::optimize(): ";
 
+	let targetTree = this.cloneTree(rootNode);
+
 	let changed = {
 		changed: true,
 		what: [],
@@ -342,11 +398,11 @@ optimize: function(rootNode) {
 
 	while(changed.changed) {
 		changed.changed = false;
-		rootNode = this._optimizeInner(rootNode, changed);
+		targetTree = this._optimizeInner(targetTree, changed);
 	}
 
 	this._log(logHead + "what changed:", changed.what);
-	return rootNode;
+	return targetTree;
 },
 
 
@@ -453,7 +509,13 @@ rebuildQueryString: function(node, parentNode, rebuildMode) {
 			// Note that we're using Classes.SearchTokenizer.type.QUOTEDTEXT even though
 			// this is a REGEX, below from an escaping perspective, we need to escape a
 			// quoted string
-			return prefix + "\"" + this._escapeText(node.sources[0], Classes.SearchTokenizer.type.QUOTEDTEXT, "\"") + "\"";
+			let rawRegex = "";
+			if(node.sources.length == 1) {
+				rawRegex = node.sources[0];
+			} else {
+				rawRegex = "(" + node.sources.join(")|(") + ")";
+			}
+			return prefix + "\"" + this._escapeText(rawRegex, Classes.SearchTokenizer.type.QUOTEDTEXT, "\"") + "\"";
 	}
 },
 

@@ -1,11 +1,11 @@
 TODO 1.2
 
+- BUG: query string -site:(google.com or cisco.com) or site:amazon.com or site:r:z* does not
+  merge amazon.com and r:z* into a single regex
+
 - Priority field in custom groups
 
 - Validate optimized search query by running both optimized and not
-
-- Add minimal parentheses to textual version of parsed query by using parent operator precedence
-  (app parentheses only if parent operator has higher precedence), include unwary operators in precedence list
 
 - Move to manifest v3 for tabgroups
 
