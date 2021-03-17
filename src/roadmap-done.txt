@@ -114,6 +114,29 @@ DONE 1.2
 - Add minimal parentheses to textual version of parsed query by using parent operator precedence
   (app parentheses only if parent operator has higher precedence)
 
+- Check performance difference between regex and includes(), if regex is faster maybe we
+  internally turn everything into regex
+  Result: yes, let's do it
+
+- Changed search binary operators to support multiple operands
+
+- Added type information to regex sources, prerequisite to then:
+  * Filter duplicates (post escaping) for both text and regex nodes
+  * Filter substrings (keep only the longer/shorter string) only for text nodes
+
+- BUG: merging type TEXT/QUOTEDTEXT into a regex was missing the regex escaping
+
+- Added a few optimization heuristics:
+  * Convert OR operands to regex
+  * Promote unary operators over OR/AND to ease grouping
+  * Remove duplicated text operands or text operands that are substrings/superstrings
+    of other operands (sub/super depending on AND/OR)
+  * Merge chained binary operators as a single operator with multiple operands
+  * Prune redundant unary operators (binary or modifiers)
+  * Sort operands and regex sources to generate more consistent query string rebuilds
+    (planning to need tihs later)
+  * Forced sources to be read-only by using Object.freeze()
+
 
 DONE 1.1
 

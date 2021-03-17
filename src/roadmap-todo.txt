@@ -1,11 +1,39 @@
 TODO 1.2
 
+- Continue testing with search query: site:mail.google.com and ---inurl:site:google.com or site:amazon.com
+  * Again the problem of "-" and unary modifier inversion?
+
 - Optimize -site:"google.com" AND site:"mail.google.com" OR site:"amazon.com"
   to take out the first AND
   * Swap "site:" and "-"?
 
+- Optimization: “(abc or def or ghi) and -ab” should be equivalent to “(def or ghi) and -ab”
+  * Actually "a and -a" should be a static "false" (zero results), while "a or -a" should be a static
+    "true" (give everything)
+	* Removing them instead of replacing them with "true" or "false" would be incorrect
+  * So... “(abc or def or ghi) and -ab” === "FALSE OR (def AND -ab) OR (ghi AND -ab)",
+    then "FALSE OR <other conditions>" == "<other conditions>", but if there are no other
+	conditions, then the results set should be empty, because "FALSE" doesn't match any tab
+
 - BUG: query string -site:(google.com or cisco.com) or site:amazon.com or site:r:z* does not
   merge amazon.com and r:z* into a single regex
+
+- Track custom group configuration history to allow users to go back after they make changes
+  (track it in the background page)
+  * Especially important once we allow users to add a site from a menu, e.g. you had mail.google.com,
+    you add google.com, at that point mail.google.com disappears, how does a user remember what
+	she had before?
+
+- Show regex parse errors the same way we show errors in other input boxes
+  * Disallow any results being displayed until the errors are fixed, so we don’t have to worry
+    about the search box growing bigger vertically and covering tiles
+
+- In dropdown menu, decide whether or not to show the “add site” based on the fact that the search
+  query rebuilt changes or not
+  * This makes rendering of dropdown menu very slow, so do it only on hover, don’t render immediately
+    when tiles are rendered
+
+- In dropdown menu, add support for removing a site from custom group, implemented as “and not site...”
 
 - Priority field in custom groups
 
@@ -19,9 +47,6 @@ TODO 1.2
 
 - Remove duplication between text and regex test
 
-- Check performance difference between regex and includes(), if regex is faster maybe we
-  internally turn everything into regex
-
 - BUG: the search text inurl:chrome:// returns everything, why???
 
 - Custom groups: if a site is part of two custom groups, list both badges
@@ -31,22 +56,10 @@ TODO 1.2
   * Support comments in custom group definitions for that?
 
 - Search: exclude some bookmark folders from search results
-  * Do we need a "folderin:" unary operator to enable that?
+  * Do we need a "folder:" unary operator to enable that?
 
-- Search: I don't like the difference in behavior between open quote attached to previous
-  token and end quote attached to next token
-  * Per a comment in the tokenize() code:
-	// Note that we play by different rules for the closing quote, so while
-	// a"bc is a single token, "ab"c will be two tokens ab and c
-  * Should we revert back to both open and end quote triggering a split of a new token
-    (either preceding or succeding the open/close quote, respectively)?
-  * Note that currently open/close parenthesis are both token delimiters, why not quotes?
-BUG - Actually not true, a(b)c gets parsed as "b AND ac", BUG, parenthesis don't have
-	  a proper delimiter behavior
-  * We need to create a delimiter() function to define the common behavior of all token
-    delimiters (" ", "\t", "(", ")") and decide which characters are all the delimiters
-	(and make sure they can be escaped to become non-delimiters
-	- And decide if quotes should be part of that behavior too...
+- Change "inbadge:" operator to "badge:" (matching the "site:" syntax instead of the
+  "inurl:" syntax
 
 - Update ScheduledJob to not only wait for the timer event, but also for other events
   the job needs to have satisfied in order to run.
