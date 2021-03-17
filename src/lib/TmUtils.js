@@ -28,6 +28,12 @@ _init: function() {
 	// of this class, per our "_" naming convention), to be used by static functions
 	// instead of console.error() (this gives us more control than console.error()).
 	this.err = this._err;
+
+	if(isProd()) {
+		this.freeze = this._freezeProd;
+	} else {
+		this.freeze = this._freezeDev;
+	}
 },
 
 // Initialized in _init() to allow us to present the right line number
@@ -150,8 +156,24 @@ _regexEscapePatternObj: /[-\/\\^$*+?.()|[\]{}]/g,
 
 regexEscape: function(string) {
 	// See https://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript
-	return string.replace(this._regexEscapePatternObj, '\\$&');
+	// The replacement string (last argument) uses the replacement pattern "$&", meaning "insert
+	// the matched substring"
+	// See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace
+	return string.replace(this._regexEscapePatternObj, "\\$&");
 },
+
+_freezeDev: function(obj) {
+	return Object.freeze(obj);
+},
+
+_freezeProd: function(obj) {
+	// No-op in production, though people seem to claim that nowadays there's no
+	// performance penalty with Object.freeze():
+	// https://stackoverflow.com/questions/8435080/any-performance-benefit-to-locking-down-javascript-objects
+	return obj;
+},
+
+freeze: null,
 
 }); // Classes.TmUtils
 
