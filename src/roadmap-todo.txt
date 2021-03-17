@@ -1,5 +1,9 @@
 TODO 1.2
 
+- Optimize -site:"google.com" AND site:"mail.google.com" OR site:"amazon.com"
+  to take out the first AND
+  * Swap "site:" and "-"?
+
 - BUG: query string -site:(google.com or cisco.com) or site:amazon.com or site:r:z* does not
   merge amazon.com and r:z* into a single regex
 

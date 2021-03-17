@@ -11,6 +11,9 @@ Classes.SearchParser = Classes.Base.subclass({
 		"or": 1
 	},
 
+	// Just used for debugging the optimizer
+	_changeHistory: null,
+
 // "value" is optional
 _init: function(value) {
 	const logHead = "SearchParser::_init(): ";
@@ -176,8 +179,7 @@ _parseInner: function(leftOperand, minPrecedence, tokenList) {
 			this._parserDebug(logHead + "innermost lookahead: ", JSON.stringify(lookahead));
 		}
 
-		op.leftOperand = this._parseSubtree(leftOperand);
-		op.rightOperand = this._parseSubtree(rightOperand);
+		op.operands = [ this._parseSubtree(leftOperand), this._parseSubtree(rightOperand) ];
 
 		this._parserDebug(logHead + "op assigned operands: ", JSON.stringify(op));
 		
@@ -216,8 +218,10 @@ cloneTree: function(node) {
 
 	switch(node.type) {
 		case Classes.SearchTokenizer.type.BINARYOP:
-			newNode.leftOperand = this.cloneTree(node.leftOperand);
-			newNode.rightOperand = this.cloneTree(node.rightOperand);
+			newNode.operands = [];
+			for(let i = 0; i < node.operands.length; i++) {
+				newNode.operands.push(this.cloneTree(node.operands[i]));
+			}
 			// repeat() ceates a new string from the original string
 			// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/repeat
 			newNode.value = node.value.repeat(1);
@@ -234,17 +238,19 @@ cloneTree: function(node) {
 			break;
 
 		case Classes.SearchTokenizer.type.REGEX:
-			newNode.sources = tmUtils.deepCopy(node.sources);
+			// No need for a deep copy of sources, since sources are read-only
+			newNode.sources = [].concat(node.sources);
 			if(node.error != null) {
 				// No deep copy in this case, it seems harmless to stick with the
 				// same error object, we never edit error objects
 				newNode.error = node.error;
 			} else {
 				this._assert(node.value != null, logHead + "original node has null regex");
-				newNode.value = this._buildRegexValue(node.sources);
+				newNode.value = this._buildRegexValue(node);
 				// If the original had no error, this should not cause an error...
 				this._assert(newNode.value != null, logHead + "copied node has null regex");
 			}
+			break;
 
 		default:
 			this._err(logHead + "unknown node type \"" + node.type + "\"");
@@ -270,8 +276,8 @@ _parseRegex: function(regexText) {
 	return regex;
 },
 
-_buildRegexValue: function(sources) {
-	return this._parseRegex("(" + sources.join(")|(") + ")");
+_buildRegexValue: function(node) {
+	return this._parseRegex(this._mergeNodeSources(node));
 },
 
 _isRegexParsable: function(node) {
@@ -283,89 +289,456 @@ _isRegexParsable: function(node) {
 			return false;
 
 		default:
-			return this._parseRegex(node.value) != null;
+			return this._parseRegex(tmUtils.regexEscape(node.value)) != null;
 	}
 },
 
-_convertOrToRegex: function(node) {
-	let left = node.leftOperand;
-	let right = node.rightOperand;
+// Returns "null" if the node can't be converted
+_convertNodeToRegexSource: function(node) {
+	const logHead = "SearchParser::_convertNodeToRegexSource(): ";
 
-	// It doesn't make sense to take this action if the two text nodes can't be
-	// parsed as regex
-	if(!(this._isRegexParsable(left) && this._isRegexParsable(right))) {
+	let convertibleTypes = [
+		Classes.SearchTokenizer.type.TEXT,
+		Classes.SearchTokenizer.type.QUOTEDTEXT,
+		Classes.SearchTokenizer.type.REGEX,
+	];
+
+	if(!convertibleTypes.includes(node.type)) {
 		return null;
 	}
 
-	let newNode = {
+	if(!this._isRegexParsable(node)) {
+		return null;
+	}
+
+	let sources = [];
+
+	if(node.type == Classes.SearchTokenizer.type.REGEX) {
+		// This is a shallow copy of the array (each source is shared between original and
+		// copy), so it's faster than tmUtils.deepCopy(), but we can use it only because we
+		// now that a source is read-only once created.
+		sources = sources.concat(node.sources);
+		this._log(logHead + "regex sources: ", sources);
+	} else {
+		sources = [ tmUtils.freeze({ type: node.type, value: tmUtils.regexEscape(node.value) }) ];
+		this._log(logHead + "sources: ", sources);
+	}
+
+	return sources;
+},
+
+_convertOrToRegex: function(node, changed) {
+	let regexNode = {
 		type: Classes.SearchTokenizer.type.REGEX,
 		sources: [],
+	};
+
+	let operandsLeft = [];
+	// "convertedSources" is an array of arrays of sources, since this._convertNodeToRegexSource()
+	// returns an array of sources
+	let convertedSources = [];
+	let countRegex = 0;
+	let countNonRegex = 0;
+
+	for(let i = 0; i < node.operands.length; i++) {
+		let newSources = this._convertNodeToRegexSource(node.operands[i]);
+		if(newSources == null) {
+			operandsLeft.push(node.operands[i]);
+		} else {
+			convertedSources.push(newSources);
+			if(node.operands[i].type == Classes.SearchTokenizer.type.REGEX) {
+				countRegex++;
+			} else {
+				countNonRegex++;
+			}
+		}
 	}
 
-	if(left.type == Classes.SearchTokenizer.type.REGEX) {
-		newNode.sources = newNode.sources.concat(left.sources);
-	} else {
-		newNode.sources.push(left.value);
-	}
-	if(right.type == Classes.SearchTokenizer.type.REGEX) {
-		newNode.sources = newNode.sources.concat(right.sources);
-	} else {
-		newNode.sources.push(right.value);
-	}
-
-	newNode.value = this._buildRegexValue(newNode.sources);
-
-	if(newNode.value == null) {
-		// Failed to create the regex, no deal, stay with what we have
-		const logHead = "SearchParser::_convertOrToRegex(): ";
-		this._log(logHead + "unable to parse regex for sources:", newNode.sources);
+	if(countRegex < 2 && countNonRegex == 0) {
+		// We couldn't convert anything, just return the original node with no changes made.
+		// "countRegex < 2" because if there's one regex converted to one regex, there's
+		// really no progress to speak of.
 		return null;
 	}
 
-	return newNode;
+	regexNode.sources = regexNode.sources.concat.apply(regexNode.sources, convertedSources);
+	regexNode.value = this._buildRegexValue(regexNode);
+
+	if(regexNode.value == null) {
+		// Failed to create the regex, no deal, stay with what we have
+		const logHead = "SearchParser::_convertOrToRegex(): ";
+		this._log(logHead + "unable to parse regex for sources:", regexNode.sources);
+		return null;
+	}
+
+	// Nothing until now can be considered a change...
+	changed.changed = true;
+	// We have a new, functional regexNode, but do we still need an "OR" parent node?
+	if(operandsLeft.length > 0) {
+		// Since we've not been able to convert all the operands, the top "OR" must stay,
+		// and the regex becomes its last operand
+		changed.what.push("kept OR node, consolidated some operands");
+		operandsLeft.push(regexNode);
+		// Never reuse a "node", always create a new one...
+		return {
+			type: Classes.SearchTokenizer.type.BINARYOP,
+			value: node.value,
+			operands: operandsLeft,
+		};
+	}
+
+	// The "OR" node can be completely replaced by the new regexNode
+	changed.what.push("consolidated all operands, OR replaced");
+	return regexNode;
 },
 
-_bothOperandsType: function(node, nodeTypes) {
-	return nodeTypes.includes(node.leftOperand.type) && nodeTypes.includes(node.rightOperand.type);
+// Returns a dictionary of operands, grouped by operator value for unary operators,
+// or grouped together under the "_ungrouped" group for non-unary operators (any
+// other Classes.SearchTokenizer.type)
+_groupByUnaryModifier: function(node) {
+	const logHead = "SearchParser::_groupByUnaryModifier(): ";
+	let groups = {};
+	let ungrouped = [];
+
+	this._log(logHead + "node: ", node);
+
+	for(let i = 0; i < node.operands.length; i++) {
+		let operand = node.operands[i];
+		// The "-" boolean operator cannot be simply extracted out of an OR/AND
+		if(operand.type == Classes.SearchTokenizer.type.UNARYOP && operand.value != "-") {
+			if(groups[operand.value] != null) {
+				groups[operand.value].push(operand);
+			} else {
+				groups[operand.value] = [ operand ];
+			}
+		} else {
+			ungrouped.push(operand);
+		}
+	}
+
+	this._log(logHead + "groups: ", groups);
+	// If we've formed groups with only one operand in it, let's move them back to
+	// the _ungrouped group, there's nothing useful we can do with groups of one.
+	let groupKeys = Object.keys(groups);
+	for(let i = 0; i < groupKeys.length; i++) {
+		let group = groups[groupKeys[i]];
+		if(group.length == 1) {
+			ungrouped.push(group[0]);
+			delete groups[groupKeys[i]];
+		}
+	}
+
+	groups["_ungrouped"] = ungrouped;
+	return groups;
+},
+
+_createUnaryGroupNode: function(group, refBinaryOpNode) {
+	let newBinaryOperand = {
+		type: refBinaryOpNode.type,
+		value: refBinaryOpNode.value,
+		operands: [],
+	};
+
+	for(let i = 0; i < group.length; i++) {
+		// group[i] is the unary operator we're promoting out, so we need to
+		// pass its operands to the new OR/AND operator
+		newBinaryOperand.operands.push(group[i].operand);
+	}
+
+	return {
+		type: group[0].type,
+		value: group[0].value,
+		operand: newBinaryOperand,
+	};
+},
+
+_promoteUnaryModifierOverBinaryOp: function(node, changed) {
+	const logHead = "SearchParser::_promoteUnaryModifierOverBinaryOp(): ";
+
+	// this._groupByUnaryModifier() makes sure to avoid trying this action for
+	// the "-" boolean unary operator. This action can't be taken for boolean
+	// unary operators, only for unary modifiers.
+	let groups = this._groupByUnaryModifier(node);
+	let groupKeys = Object.keys(groups);
+
+	this._log(logHead + "groups: ", groups);
+
+	if(groupKeys.length == 1) {
+		// "groups" contains only the "_ungrouped" group, nothing to do
+		return node;
+	}
+
+	changed.changed = true;
+
+	let groupNodes = [];
+	let ungrouped = null;
+	for(let i = 0; i < groupKeys.length; i++) {
+		if(groupKeys[i] != "_ungrouped") {
+			groupNodes.push(this._createUnaryGroupNode(groups[groupKeys[i]], node));
+		} else {
+			ungrouped = groups[groupKeys[i]];
+		}
+	}
+
+	if(ungrouped.length == 0 && groupNodes.length == 1) {
+		// All operands of the root OR/AND were the same unary modifier, and that modifier
+		// got promoted up
+		changed.what.push("swapped '" + node.value + "' and '" + groupNodes[0].value + ":'");
+		return groupNodes[0];
+	}
+
+	// Either "ungrouped" is not empty, or there are more than one groupNodes, in both
+	// cases we still need a root OR/AND
+	changed.what.push("partial swap of '" + node.value + "' and unary groups");
+	return {
+		type: node.type,
+		value: node.value,
+		operands: [].concat(groupNodes, ungrouped),
+	};
 },
 
 _orOptimizer: function(node, changed) {
-	if(this._bothOperandsType(node, [ Classes.SearchTokenizer.type.UNARYOP ]) &&
-	  node.leftOperand.value != "-" &&
-	  node.leftOperand.value == node.rightOperand.value) {
-		// Swap the "or" and the unary modifier if the two unary ops are
-		// of the same type and not boolean (we can't take this action for
-		// the operator "-")
-		let newParent = node.leftOperand;
-		node.leftOperand = newParent.operand;
-		node.rightOperand = node.rightOperand.operand;
-		newParent.operand = node;
-
-		changed.changed = true;
-		changed.what.push("swapped 'or' and '" + newParent.value + ":'");
-		return newParent;
-	}
-
-	if(this._bothOperandsType(node, [ Classes.SearchTokenizer.type.TEXT,
-					Classes.SearchTokenizer.type.QUOTEDTEXT, Classes.SearchTokenizer.type.REGEX ])) {
-		let newNode = this._convertOrToRegex(node);
-		if(newNode != null) {
-			changed.changed = true;
-			changed.what.push("Converted 'or' to regex");
-			return newNode;
-		}
+	newNode = this._convertOrToRegex(node, changed);
+	if(newNode != null) {
+		return newNode;
 	}
 
 	return node;
 },	  
 
+_mergeBinaryOperands: function(node, changed) {
+	let inclusionTypes = [
+		Classes.SearchTokenizer.type.TEXT,
+		Classes.SearchTokenizer.type.QUOTEDTEXT,
+	];
+	let equalityTypes = [
+	// "inclusionTypes" is checked first, and it checks for equality too, so
+	// no need to include those types here too
+		//Classes.SearchTokenizer.type.TEXT,
+		//Classes.SearchTokenizer.type.QUOTEDTEXT,
+		Classes.SearchTokenizer.type.REGEX,
+	];
+
+	// Copy the original operands array
+	let operandsKept = [].concat(node.operands);
+	let somethingDropped = false;
+
+	function innerLoop(refOperand, refOperandIdx) {
+		for(let j = refOperandIdx + 1; j < operandsKept.length; j++) {
+			let cmpOperand = operandsKept[j];
+			if(cmpOperand == null) {
+				continue;
+			}
+			if(inclusionTypes.includes(cmpOperand.type)) {
+				// Check if cmpOperand includes operand or viceversa
+				if(node.value == "and") {
+					if(cmpOperand.value.includes(refOperand.value)) {
+						// For "and", we need to keep the longest match and can drop
+						// the shorter included match.
+						// "cmpOperand" (j) is longer, drop "refOperand" (i).
+						operandsKept[refOperandIdx] = null;
+						somethingDropped = true;
+						// The reference operand has been dropped, no reason to continue
+						// with the inner loop for "operand"
+						return;
+					}
+					// Now the viceversa
+					if(refOperand.value.includes(cmpOperand.value)) {
+						// "refOperand" (i) is longer, drop "cmpOperand" (j).
+						operandsKept[j] = null;
+						somethingDropped = true;
+						continue;
+					}
+				}
+				if(node.value == "or") {
+					if(cmpOperand.value.includes(refOperand.value)) {
+						// For "or", we need to keep the shorter match and can drop
+						// the longer including match.
+						// "cmpOperand" (j) is longer, drop "cmpOperand" (i).
+						operandsKept[j] = null;
+						somethingDropped = true;
+						continue;
+					}
+					// Now the viceversa
+					if(refOperand.value.includes(cmpOperand.value)) {
+						// "refOperand" (i) is longer, drop "refOperand" (j).
+						operandsKept[refOperandIdx] = null;
+						somethingDropped = true;
+						// The reference operand has been dropped, no reason to continue
+						// with the inner loop for "operand"
+						return;
+					}
+				}
+			}
+			// If we get here, inclusion didn't drop either refOperand or cmpOperand
+			if(equalityTypes.includes(cmpOperand.type)) {
+				// Note that here we have more
+				if(cmpOperand.value == refOperand.value) {
+					// Drop cmpOperand (we could drop either one...)
+					operandsKept[j] = null;
+					somethingDropped = true;
+				}
+			}
+		}
+	}
+
+	for(let i = 0; i < operandsKept.length; i++) {
+		let operand = operandsKept[i];
+		if(operand == null) {
+			continue;
+		}
+		if(!inclusionTypes.includes(operand.type)) {
+			continue;
+		}
+		// Lookahead to see if some other operand matches, and start pruning
+		// operandsKept by changing some array elements to "null"
+		innerLoop(operand, i);
+	}
+
+	if(!somethingDropped) {
+		// Nothing happened
+		return node;
+	}
+
+	// Something has changed
+	changed.changed = true;
+	let newNode = {
+		type: node.type,
+		value: node.value,
+		operands: [],
+	}
+	for(let i = 0; i < operandsKept.length; i++) {
+		if(operandsKept[i] == null) {
+			changed.what.push("dropped redundant operand " + i + " for '" + node.value + "'");
+		} else {
+			newNode.operands.push(operandsKept[i]);
+		}
+	}
+
+	if(newNode.operands.length == 1) {
+		// A binary operator needs to have at least two operands. If there's only one
+		// operand left, let's also dropped the operator.
+			changed.what.push("single operand left, dropped redundant operator '" + node.value + "'");
+		return newNode.operands[0];
+	}
+
+	return newNode;
+},
+
+_mergeBinaryOperators: function(node, changed) {
+	switch(node.type) {
+		case Classes.SearchTokenizer.type.BINARYOP:
+			for(let i = 0; i < node.operands.length; i++) {
+				node.operands[i] = this._mergeBinaryOperators(node.operands[i], changed);
+			}
+			// Only this case needs more work later, all other cases return immediately
+			break;
+
+		case Classes.SearchTokenizer.type.UNARYOP:
+			node.operand = this._mergeBinaryOperators(node.operand, changed);
+			return node;
+
+		default:
+			return node;
+	}
+
+	// If we get here, the current node is a binary operator
+	let newOperands = [];
+	for(let i = 0; i < node.operands.length; i++) {
+		if(node.operands[i].type == node.type && node.operands[i].value == node.value) {
+			// Merge up...
+			changed.changed = true;
+			changed.what.push("merged parent and child '" + node.value + "'");
+			newOperands = newOperands.concat(node.operands[i].operands);
+		} else {
+			// If we merge, we need to lose node.operands[i], if we don't, we need to keep it
+			newOperands.push(node.operands[i]);
+		}
+	}
+
+	return {
+		type: node.type,
+		value: node.value,
+		operands: newOperands,
+	};
+},
+
+_mergeUnaryOperators: function(node, changed) {
+	switch(node.type) {
+		case Classes.SearchTokenizer.type.BINARYOP:
+			for(let i = 0; i < node.operands.length; i++) {
+				node.operands[i] = this._mergeUnaryOperators(node.operands[i], changed);
+			}
+			return node;
+
+		case Classes.SearchTokenizer.type.UNARYOP:
+			node.operand = this._mergeUnaryOperators(node.operand, changed);
+			// Only this case needs more work later, all other cases return immediately
+			break;
+
+		default:
+			return node;
+	}
+
+	// If we get here, the current node is a unary operator. 
+	if(node.operand.type != node.type) {
+		// First off, if the inner node is not a unary operator, nothing to merge
+		return node;
+	}
+
+	// As usual, "-" behaves differently from the other unay operators: "-" can only
+	// be merged with another "-" (actually not "merged", two negations must be turned
+	// into a no-op), while unary modifiers use the "inner wins" rule.
+	if(node.value == "-") {
+		if(node.operand.value != "-") {
+			// No action to take
+			return node;
+		}
+		// Both this node and its operand are a "-", they both need to disappear in order to
+		// turn this into a no-op. There might be more "-" down the chain, but we only consume
+		// two at a time...
+		changed.changed = true;
+		changed.what.push("eliminated a consecutive pair of '-'");
+		return node.operand.operand;
+	}
+
+	// Unary modifier case. We already know node.operand is also a unary modifier, let's just
+	// make sure it's not a "-".
+	if(node.operand.value == "-") {
+		// No action to take
+		return node;
+	}
+
+	// Chain of two unary modifiers, drop the parent. There might be more, but we only drop
+	// one at a time
+	changed.changed = true;
+	changed.what.push("eliminated a '" + node.value + ":', since it was followed by a '" + node.operand.value + ":'");
+	return node.operand;
+},
+
 // Returns "true" if some optimization was applied, "false" if not
 _optimizeInner: function(node, changed) {
 	switch(node.type) {
 		case Classes.SearchTokenizer.type.BINARYOP:
-			node.leftOperand = this._optimizeInner(node.leftOperand, changed);
-			node.rightOperand = this._optimizeInner(node.rightOperand, changed);
-			
+			for(let i = 0; i < node.operands.length; i++) {
+				node.operands[i] = this._optimizeInner(node.operands[i], changed);
+			}
+
+			node = this._promoteUnaryModifierOverBinaryOp(node, changed);
+			if(node.type != Classes.SearchTokenizer.type.BINARYOP) {
+				// These actions can change the type of the current node being processed,
+				// and when that happens, the current switch/case block can't continue
+				// to proceed. We return the new node to the caller, and expect that
+				// there's going to be a future iteration to run through the other
+				// optimization functions below.
+				return node;
+			}
+
+			node = this._mergeBinaryOperands(node, changed);
+			if(node.type != Classes.SearchTokenizer.type.BINARYOP) {
+				return node;
+			}
+
 			if(node.value == "or") {
 				return this._orOptimizer(node, changed);
 			}
@@ -373,9 +746,6 @@ _optimizeInner: function(node, changed) {
 
 		case Classes.SearchTokenizer.type.UNARYOP:
 			node.operand = this._optimizeInner(node.operand, changed);
-//			if(node.value != "-") {
-//				return this._optimizeUnaryModifier(node, changed)
-//			}
 			return node;
 
 		case Classes.SearchTokenizer.type.TEXT:
@@ -383,6 +753,59 @@ _optimizeInner: function(node, changed) {
 		case Classes.SearchTokenizer.type.REGEX:
 		default:
 			return node;
+	}
+},
+
+_sortOptimized: function(node) {
+	function typeSort(a, b) {
+		if(a.type == b.type) {
+			return 0;
+		}
+
+		let aType = a.type;
+		let bType = b.type;
+
+		if(aType == Classes.SearchTokenizer.type.QUOTEDTEXT) {
+			aType = Classes.SearchTokenizer.type.TEXT;
+		}
+		if(bType == Classes.SearchTokenizer.type.QUOTEDTEXT) {
+			bType = Classes.SearchTokenizer.type.TEXT;
+		}
+		return (aType < bType) ? -1 : 1;
+	}
+
+	function operandSort(a, b) {
+		let typeSorted = typeSort(a, b);
+		if(typeSorted != 0) {
+			return typeSorted;
+		}
+
+		return a.value.localeCompare(b.value);
+	}
+
+	function sourcesSort(a, b) {
+		return a.value.localeCompare(b.value);
+	}
+
+	switch(node.type) {
+		case Classes.SearchTokenizer.type.BINARYOP:
+			for(let i = 0; i < node.operands.length; i++) {
+				this._sortOptimized(node.operands[i]);
+			}
+			node.operands.sort(operandSort);
+			break;
+
+		case Classes.SearchTokenizer.type.UNARYOP:
+			this._sortOptimized(node.operand);
+			break;
+
+		case Classes.SearchTokenizer.type.REGEX:
+			node.sources.sort(sourcesSort);
+
+		case Classes.SearchTokenizer.type.TEXT:
+		case Classes.SearchTokenizer.type.QUOTEDTEXT:
+		default:
+			break;
 	}
 },
 
@@ -398,8 +821,13 @@ optimize: function(rootNode) {
 
 	while(changed.changed) {
 		changed.changed = false;
+		targetTree = this._mergeBinaryOperators(targetTree, changed);
+		targetTree = this._mergeUnaryOperators(targetTree, changed);
 		targetTree = this._optimizeInner(targetTree, changed);
+		this._sortOptimized(targetTree);
 	}
+
+	this._changeHistory = changed.what;
 
 	this._log(logHead + "what changed:", changed.what);
 	return targetTree;
@@ -444,6 +872,19 @@ _hasHigherPrecedence: function(node, parentNode) {
 	return this.getBinaryOpPrecedence(node.value) >= this.getBinaryOpPrecedence(parentNode.value);
 },
 
+_mergeNodeSources: function(node) {
+	if(node.sources.length == 1) {
+		return node.sources[0].value;
+	}
+
+	let values = [];
+	for(let i = 0; i < node.sources.length; i++) {
+		values.push(node.sources[i].value);
+	}
+
+	return "(" + values.join(")|(") + ")";
+},
+
 // When "fullRebuild" is set to "true", this function behaves as a debugging function
 // to validate what the parser has done.
 // When it's set to false, it generates a simplified version of the query string with
@@ -464,11 +905,18 @@ rebuildQueryString: function(node, parentNode, rebuildMode) {
 			if(fullRebuild && needParantheses) {
 				retVal.push("(");
 			}
-			retVal.push(this.rebuildQueryString(node.leftOperand, node, rebuildMode));
-			if(fullRebuild) {
-				retVal.push(node.value.toUpperCase());
+
+			let innerRebuild = [];
+			for(let i = 0; i < node.operands.length; i++) {
+				innerRebuild.push(this.rebuildQueryString(node.operands[i], node, rebuildMode));
 			}
-			retVal.push(this.rebuildQueryString(node.rightOperand, node, rebuildMode));
+
+			if(fullRebuild) {
+				retVal.push(innerRebuild.join(" " + node.value.toUpperCase() + " "));
+			} else {
+				retVal = retVal.concat(innerRebuild);
+			}
+
 			if(fullRebuild && needParantheses) {
 				retVal.push(")");
 			}
@@ -509,12 +957,7 @@ rebuildQueryString: function(node, parentNode, rebuildMode) {
 			// Note that we're using Classes.SearchTokenizer.type.QUOTEDTEXT even though
 			// this is a REGEX, below from an escaping perspective, we need to escape a
 			// quoted string
-			let rawRegex = "";
-			if(node.sources.length == 1) {
-				rawRegex = node.sources[0];
-			} else {
-				rawRegex = "(" + node.sources.join(")|(") + ")";
-			}
+			let rawRegex = this._mergeNodeSources(node);
 			return prefix + "\"" + this._escapeText(rawRegex, Classes.SearchTokenizer.type.QUOTEDTEXT, "\"") + "\"";
 	}
 },
@@ -584,8 +1027,9 @@ _countParsedNodes: function(node) {
 	
 	switch(node.type) {
 		case Classes.SearchTokenizer.type.BINARYOP:
-			this._countParsedNodes(node.leftOperand);
-			this._countParsedNodes(node.rightOperand);
+			for(let i = 0; i < node.operands.length; i++) {
+				this._countParsedNodes(node.operands[i]);
+			}
 			return;
 
 		case Classes.SearchTokenizer.type.UNARYOP:
@@ -623,39 +1067,28 @@ _parse: function(queryString) {
 	}
 },
 
-// "rightOperand" can be set to "null" to inquire on whether or not "leftOperand" alone
-// is sufficient for a conclusive result.
-// The function returns "null" if the partial inputs provided are insufficient to reach
-// a conclusive decision.
-_computeBinaryOp: function(binaryOpNode, leftOperand, rightOperand) {
-	let logHead = "SearchQuery::_computeBinaryOp(" + binaryOpNode.value + ", " + leftOperand + ", " + rightOperand + "): ";
-	switch(binaryOpNode.value) {
-		case "and":
-			if(rightOperand === null) {
-				if(!leftOperand) {
-					// If "leftOperand" is "false", it doesn't matter the value of "rightOperand",
-					// the result will be "false" anyway
-					return false;
-				} else {
-					return null;
-				}
+_evaluateBinaryNode: function(tab, node, stats, modifier) {
+	// "fullResult" needs to be initialized to "true" for "and" and to "false" for "or"
+	let fullResult = (node.value == "and");
+
+	for(let i = 0; i < node.operands.length; i++) {
+		let result = this._evaluate(tab, node.operands[i], stats, modifier);
+		if(node.value == "and") {
+			fullResult = fullResult && result;
+			if(fullResult === false) {
+				// No need to continue evaluating, the fullResult will remain false from now on
+				return fullResult;
 			}
-			return leftOperand && rightOperand;
-		case "or":
-			if(rightOperand === null) {
-				if(leftOperand) {
-					// If "leftOperand" is "true", it doesn't matter the value of "rightOperand",
-					// the result will be "true" anyway
-					return true;
-				} else {
-					return null;
-				}
+		} else {
+			fullResult = fullResult || result;
+			if(fullResult === true) {
+				// No need to continue evaluating, the fullResult will remain true from now on
+				return fullResult;
 			}
-			return leftOperand || rightOperand;
+		}
 	}
 
-	this._err(logHead + "unknown binary operator \"" + binaryOpNode.value + "\":", binaryOpNode);
-	return false;
+	return fullResult;
 },
 
 _evaluateRegexNode: function(tab, regex, modifier) {
@@ -784,18 +1217,7 @@ _evaluate: function(tab, queryNode, stats, modifier) {
 
 	switch(queryNode.type) {
 		case Classes.SearchTokenizer.type.BINARYOP:
-			let leftResult = this._evaluate(tab, queryNode.leftOperand, stats);
-
-			// Sometimes you don't need to evaluate both operands to reach a conclusive
-			// result. Evaluating only one operand can save significant processing time.
-			let partialResult = this._computeBinaryOp(queryNode, leftResult, null);
-			if(partialResult !== null) {
-				return partialResult;
-			}
-
-			let rightResult = this._evaluate(tab, queryNode.rightOperand, stats);
-
-			return this._computeBinaryOp(queryNode, leftResult, rightResult);
+			return this._evaluateBinaryNode(tab, queryNode, stats, modifier);
 
 		case Classes.SearchTokenizer.type.UNARYOP:
 			// "-" is a boolean unary operator, while "<modif>:" are unary "behavior modifiers"
@@ -816,6 +1238,7 @@ _evaluate: function(tab, queryNode, stats, modifier) {
 
 		case Classes.SearchTokenizer.type.REGEX:
 			if(queryNode.error == null) {
+				stats.cntEvaluatedText++;
 				return this._evaluateRegexNode(tab, queryNode.value, modifier);
 			}
 			// If we failed to parse a regex, let's assume it's evaluation is "false"
@@ -1008,7 +1431,7 @@ getParsedQuery: function(rebuildMode) {
 		return "";
 	}
 
-	this._log(this._parsedQuery);
+	this._log(this._parsedQuery, this._parser._changeHistory);
 	return this._parser.rebuildQueryString(this._parsedQuery, null, rebuildMode);
 },
 

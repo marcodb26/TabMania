@@ -172,7 +172,7 @@ _setRegexToken: function(token) {
 
 	let retVal = {
 		type: Classes.SearchTokenizer.type.REGEX,
-		sources: [ token ],
+		sources: [ tmUtils.freeze({ type: Classes.SearchTokenizer.type.REGEX, value: token }) ],
 	};
 
 	try {
