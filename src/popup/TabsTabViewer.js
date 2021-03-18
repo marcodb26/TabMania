@@ -1039,11 +1039,17 @@ getSearchParserInfo: function() {
 		return null;
 	}
 
-	return "Parsed query: " + this._searchQuery.getParsedQuery(Classes.SearchParser.rebuildMode.MIN) + "\n" +
+	let unoptimizedStats = "";
+	if(!isProd()) {
+		unoptimizedStats = "\nUnoptimized stats:\n" + this._searchQuery.getUnoptimizedStats();
+	}
+
+	return "Optimized parsed query: " + this._searchQuery.getParsedQuery(Classes.SearchParser.rebuildMode.MIN) + "\n" +
 			"Unoptimized parsed query: " + this._searchQuery.getUnoptimizedParsedQuery(Classes.SearchParser.rebuildMode.MIN) + "\n" +
 			"Unoptimized parsed query (verbose): " + this._searchQuery.getUnoptimizedParsedQuery(Classes.SearchParser.rebuildMode.MAX) + "\n" +
 			"Simplified parsed query: " + this._searchQuery.getSimplifiedQuery() + "\n" +
-			this._searchQuery.getStats();
+			"Optimizer info: " + JSON.stringify(this._searchQuery.getOptimizerInfo(), null, 2) + "\n" +
+			"Optimized stats:\n" + this._searchQuery.getOptimizedStats() + unoptimizedStats;
 },
 
 }); // Classes.TabsTabViewer

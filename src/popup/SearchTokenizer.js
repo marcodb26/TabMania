@@ -405,3 +405,5 @@ Classes.Base.roDef(Classes.SearchTokenizer.type, "SUBTREE", "subtree" );
 Classes.Base.roDef(Classes.SearchTokenizer.type, "TEXT", "text" );
 Classes.Base.roDef(Classes.SearchTokenizer.type, "QUOTEDTEXT", "quotedText" );
 Classes.Base.roDef(Classes.SearchTokenizer.type, "REGEX", "regex" );
+// "TRUTH" is not used by SearchTokenizer, but it's needed by SearchOptimizer
+Classes.Base.roDef(Classes.SearchTokenizer.type, "TRUTH", "truth" );
