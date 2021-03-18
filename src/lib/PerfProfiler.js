@@ -16,7 +16,7 @@ measure: function(name, startMark, endMark) {
 	try {
 		performance.measure(...arguments);
 	} catch(e) {
-		this._err(e);
+		this._log("Measure failed for", name, [ startMark, endMark ], e);
 	}
 },
 
