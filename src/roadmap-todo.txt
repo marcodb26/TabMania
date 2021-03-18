@@ -1,32 +1,32 @@
 TODO 1.2
 
+- Show regex parse errors the same way we show errors in other input boxes
+  * Disallow any results being displayed until the errors are fixed, so we don’t have to worry
+    about the search box growing bigger vertically and covering tiles
+
+- Search: exclude some bookmark folders from search results
+  * Do we need a "folder:" unary operator to enable that?
+    - But we should not include folders among the properties we always search, we
+	  should search folders only if the user calls explicitly "folder:" in the search
+
+- Change "inbadge:" operator to "badge:" (matching the "site:" syntax instead of the
+  "inurl:" syntax
+
 - Continue testing with search query: site:mail.google.com and ---inurl:site:google.com or site:amazon.com
-  * Again the problem of "-" and unary modifier inversion?
 
-- Optimize -site:"google.com" AND site:"mail.google.com" OR site:"amazon.com"
-  to take out the first AND
-  * Swap "site:" and "-"?
+- Optimization: “(abc or def or ghi) and -ab” should be equivalent to
+  * “(abc or def or ghi) and -ab” ==> "FALSE OR (def AND -ab) OR (ghi AND -ab)" ==>
+    "(def AND -ab) OR (ghi AND -ab)" ==> "(def OR ghi) AND -ab"
 
-- Optimization: “(abc or def or ghi) and -ab” should be equivalent to “(def or ghi) and -ab”
-  * Actually "a and -a" should be a static "false" (zero results), while "a or -a" should be a static
-    "true" (give everything)
-	* Removing them instead of replacing them with "true" or "false" would be incorrect
-  * So... “(abc or def or ghi) and -ab” === "FALSE OR (def AND -ab) OR (ghi AND -ab)",
-    then "FALSE OR <other conditions>" == "<other conditions>", but if there are no other
-	conditions, then the results set should be empty, because "FALSE" doesn't match any tab
-
-- BUG: query string -site:(google.com or cisco.com) or site:amazon.com or site:r:z* does not
-  merge amazon.com and r:z* into a single regex
+- Replace AND with positive lookahead in regex?
+  * https://stackoverflow.com/questions/3041320/regex-and-operator
+  * A bit dangerous without knowing the performance impact of positive lookahead...
 
 - Track custom group configuration history to allow users to go back after they make changes
   (track it in the background page)
   * Especially important once we allow users to add a site from a menu, e.g. you had mail.google.com,
     you add google.com, at that point mail.google.com disappears, how does a user remember what
 	she had before?
-
-- Show regex parse errors the same way we show errors in other input boxes
-  * Disallow any results being displayed until the errors are fixed, so we don’t have to worry
-    about the search box growing bigger vertically and covering tiles
 
 - In dropdown menu, decide whether or not to show the “add site” based on the fact that the search
   query rebuilt changes or not
@@ -37,29 +37,23 @@ TODO 1.2
 
 - Priority field in custom groups
 
-- Validate optimized search query by running both optimized and not
-
 - Move to manifest v3 for tabgroups
 
 - Search query in custom group
 
 - Update custom group by re-running the parser and taking the minimal parentheses version (without optimizations)
 
-- Remove duplication between text and regex test
+- Remove duplication in search evaluation functions between text and regex test
 
-- BUG: the search text inurl:chrome:// returns everything, why???
+- BUG: the search text inurl:chrome:// does not turn "chrome://" into a regex, why?
+  * This is nitpicking, but I though we would always convert OR strings (even standalone)
+    into regex, so why not simple strings without an OR operator?
 
 - Custom groups: if a site is part of two custom groups, list both badges
   * Though we still need to pick a "primary" custom group for the left border badge
 
 - Custom groups: support temporarily disable some hostnames in custom groups
   * Support comments in custom group definitions for that?
-
-- Search: exclude some bookmark folders from search results
-  * Do we need a "folder:" unary operator to enable that?
-
-- Change "inbadge:" operator to "badge:" (matching the "site:" syntax instead of the
-  "inurl:" syntax
 
 - Update ScheduledJob to not only wait for the timer event, but also for other events
   the job needs to have satisfied in order to run.

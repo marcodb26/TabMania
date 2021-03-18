@@ -137,6 +137,40 @@ DONE 1.2
     (planning to need tihs later)
   * Forced sources to be read-only by using Object.freeze()
 
+- Split optimizer logic out of SearchParer and into its own class SearchOptimizer
+
+- Added negated operands to _mergeBinaryOperands(): two negated operands can be merged,
+  but we can also do interesting things with pairs of one negated and one non negated,
+  like the next item:
+
+- Added optimizations to track simple tautology/contradiction cases, and corresponding
+  new node type "TRUTH" to let them propagate in the parse tree
+  * E.g. the query   a -a   will now generate a parsed tree with one <FALSE> TRUTH node,
+    and the query   a OR -a   will now generate a <TRUE> TRUTH node
+  * As AND/OR operands, TRUTH nodes either disappear, or cause the AND/OR to disappear
+    - "<FALSE> OR <other conditions>" === "<other conditions>"
+	- "<TRUE> OR <other conditions>" === "<TRUE>"
+
+- Added limit to number of optimizer iterations, to avoid potential infinite loops
+
+- Added heuristic to promote unary modifier over unary boolean (let the "-" go as
+  low as possible in the parsed tree)
+  * E.g. in a query like
+        -site:"google.com" AND site:"mail.google.com" OR site:"amazon.com"
+    we could take out the first AND if the "-" was after "site:", not before
+
+- Added logic in dev to run both optimized and unoptimized search to validate the optimized
+  search is really equivalent to the unoptimized search
+  * Also added some stats for the unoptimized search to compare the optimized/unoptimized
+    evaluation performance
+
+- BUG: query string -site:(google.com or cisco.com) or site:amazon.com or site:r:z* does not
+  merge amazon.com and r:z* into a single regex
+  * It's now working, not sure exactly which additional heuristic started making it work
+
+- BUG: the search text inurl:chrome:// returns everything, why???
+  * It's now working, not sure exactly which additional heuristic started making it work
+
 
 DONE 1.1
 
