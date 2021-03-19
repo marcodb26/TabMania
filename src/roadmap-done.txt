@@ -198,6 +198,10 @@ DONE 1.2
 
 - BUG: _dropWhatForTruth() was ignoring negation
 
+- Improved normalization of tab titles
+  * Now only alphanumeric characters (a-z0-9) at the beginning of a title string count
+    as title start for sort
+
 
 DONE 1.1
 

@@ -102,6 +102,8 @@ getProtocolHostname: function(url) {
 	}
 },
 
+// Find any non alphanumeric character at the beginning of the string, or "www.".
+_titleNormalizationPattern: /^(([^a-z0-9]+)|(www\.))/i,
 // Static function
 //
 // To normalize, move everything to upper case, then drop "www." at the beginning
@@ -110,15 +112,7 @@ getProtocolHostname: function(url) {
 // do that in a locale dependent way... but not now.
 // "lowerCaseTitle" in input is assumed to already be lower case.
 normalizeLowerCaseTitle: function(lowerCaseTitle) {
-	// We could use lowerCaseTitle.replace() here, but it seems silly to use regex logic when
-	// you just want to drop a fixed size substring occurring at the beginning of the string.
-	// It should be less expensive to do surgery on the string knowing the constraints
-	// (but we should validate this).
-	if(lowerCaseTitle.startsWith("www.")) {
-		return lowerCaseTitle.substring(4);
-	}
-
-	return lowerCaseTitle;
+	return lowerCaseTitle.replace(Classes.NormalizedTabs._titleNormalizationPattern, "");
 },
 
 // Static function
