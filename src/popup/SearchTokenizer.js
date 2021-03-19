@@ -15,6 +15,7 @@ Classes.SearchTokenizer = Classes.Base.subclass({
 		"inurl",
 		"badge",
 		"group",
+		"folder",
 	],
 
 	// List here all the token delimiters that need to be escaped. This list

@@ -410,7 +410,7 @@ _init: function(bm) {
 	this._initMenuItems();
 },
 
-_renderSubtitleHtml: function(pathList) {
+_renderSubtitleHtml: function(folder) {
 	let createdText = (new Date(this._bm.dateAdded)).toString();
 
 	let typeHtml = "Bookmark";
@@ -418,11 +418,8 @@ _renderSubtitleHtml: function(pathList) {
 		typeHtml = `Read-only bookmark (reason: "${this._safeText(this._bm.unmodifiable)}")`;
 	}
 
-	// bookmarksManager.getBmPathListSync()() returns an array that starts with an empty
-	// string (the root element of the bookmarks tree has no title), and that's
-	// perfect to have .join("/") add a leading "/".
 	return `
-	${typeHtml} at <i>${pathList.join("/")}</i><br>Created on ${createdText}
+	${typeHtml} at <i>${folder}</i><br>Created on ${createdText}
 	`;
 },
 
@@ -448,17 +445,17 @@ _renderTitle: function() {
 _updateTitleMenuItem: function() {
 	this._titleElem.innerHTML = `<b>${this._safeText(this._bm.title)}</b>`;
 
-	let pathList = bookmarksManager.getBmPathListSync(this._bm);
-	if(pathList != null) {
-		this._subtitleElem.innerHTML = this._renderSubtitleHtml(pathList);
+	let folder = bookmarksManager.getBmFolderSync(this._bm);
+	if(folder != null) {
+		this._subtitleElem.innerHTML = this._renderSubtitleHtml(folder);
 		return;
 	}
 
 	// If we get here, the sync version of getBmPathList didn't have all the data
 	// to provide the full folder set, we need to rely on the async version instead
-	bookmarksManager.getBmPathListAsync(this._bm).then(
-		function(pathList) {
-			this._subtitleElem.innerHTML = this._renderSubtitleHtml(pathList);
+	bookmarksManager.getBmFolderAsync(this._bm).then(
+		function(folder) {
+			this._subtitleElem.innerHTML = this._renderSubtitleHtml(folder);
 		}.bind(this)
 	);
 },

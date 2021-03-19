@@ -536,6 +536,9 @@ normalizeTab: function(tab, objType) {
 		lowerCaseTitle: lowerCaseTitle,
 		normTitle: thisObj.normalizeLowerCaseTitle(lowerCaseTitle),
 		cachedFavIcon: cachedFavIcon,
+		// "folder" is non empty only for bookmarks, but to make the search
+		// logic easier, we want to make it non-null for all tabs
+		folder: "",
 		// Bookmarks have extended IDs too
 		extId: thisObj.formatExtendedId(tab, objType),
 
@@ -584,6 +587,14 @@ normalizeTab: function(tab, objType) {
 			thisObj.updateSearchBadges(tab);
 			break;
 		case Classes.NormalizedTabs.type.BOOKMARK:
+			let folder = bookmarksManager.getBmFolderSync(tab);
+			if(folder != null) {
+				// Best effort, we only try the sync version, we don't want to wait for
+				// the async version to fill this out
+				tab.tm.folder = folder.toLowerCase();
+			} else {
+				tmUtils.log(logHead + "folder not available for", tab);
+			}
 			thisObj.updateBookmarkBadges(tab);
 			break;
 		case Classes.NormalizedTabs.type.HISTORY:

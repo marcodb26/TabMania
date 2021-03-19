@@ -24,10 +24,12 @@ _init: function() {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.Base._init.call(this);
 
+	this.debug();
 	// Expose an "err()" function (_err() should never be called directly from outside
 	// of this class, per our "_" naming convention), to be used by static functions
 	// instead of console.error() (this gives us more control than console.error()).
 	this.err = this._err;
+	this.log = this._log;
 
 	if(isProd()) {
 		this.freeze = this._freezeProd;
@@ -38,6 +40,7 @@ _init: function() {
 
 // Initialized in _init() to allow us to present the right line number
 err: null,
+log: null,
 
 // This is not a general purpose version of objects equality comparison, no support
 // for functions or symbols. Support for Arrays assumes the array is not sparse

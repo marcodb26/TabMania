@@ -125,6 +125,19 @@ _compareDateAdded: function(a, b) {
 	return 0;
 },
 
+// Move folders to the beginning of the list, then sort by dateAdded (newer to older)
+_compareFolderThenDateAdded: function(a, b) {
+	
+	if(a.url == null && b.url != null) {
+		return -1;
+	}
+	if(b.url == null && a.url != null) {
+		return 1;
+	}
+
+	return this._compareDateAdded(a, b);
+},
+
 // "replace" is a flag indicating if the action is append or replace.
 // "debugName" is only needed to provide more context for log messages.
 _appendOrReplaceNode: function(nodeToAdd, replace, targetList, debugName) {
@@ -183,18 +196,6 @@ _loadBookmarkTreeNode: function(node) {
 
 	this._stats.bookmarks++;
 	Classes.NormalizedTabs.normalizeTab(node, Classes.NormalizedTabs.type.BOOKMARK);
-
-	// We're assuming chrome.bookmarks.getRecent() returns the data sorted by "dateAdded",
-	// and that's the sorting order we want to have too, because if we need to honor
-	// "this._maxBookmarkNodesInSearch", we want to return the most recently added bookmarks
-	// in the results set.
-	// Let's just confirm that sorting assumption is true, rather than forcing a re-sort.
-	// UPDATE: experimentally we found the data is sorted from newer to older, and some
-	// bookmarks share the same "dateAdded" (probably from an import/sync?).
-	if(this._bookmarks.length != 0) {
-		let lastNode = this._bookmarks[this._bookmarks.length - 1];
-		this._assert(this._compareDateAdded(lastNode, node) <= 0, logHead + "incoming data not sorted", lastNode, node);
-	}
 
 	this._appendOrReplaceNode(node, bmAlreadyTracked, this._bookmarks, "bookmark");
 },
@@ -368,7 +369,12 @@ _loadBookmarks: function(sendEvent) {
 			try {
 				perfProf.mark("bookmarksTreeToListStart");
 				let nodes = this._treeToList(rootNodes);
-				nodes.sort(this._compareDateAdded.bind(this));
+				// We need to move the folders to the beginning of the list so they can
+				// get processed first, otherwise NormalizedTabs can't assign a folder to
+				// the bookmarks when their folders have not been processed yet. By choosing
+				// this logic we'll still be unable to assign folders to folders, but that
+				// should not be a big problem.
+				nodes.sort(this._compareFolderThenDateAdded.bind(this));
 				perfProf.mark("bookmarksTreeToListEnd");
 				this._loadBookmarkTreeNodeList(nodes);
 			} catch(e) {
@@ -727,6 +733,27 @@ getBmPathListSync: function(bmNode) {
 	pathList.reverse();
 //	this._log(logHead + "full pathList = ", pathList);
 	return pathList;
+},
+
+getBmFolderSync: function(bmNode) {
+	let pathList = bookmarksManager.getBmPathListSync(bmNode);
+	if(pathList == null) {
+		return null;
+	}
+
+	// bookmarksManager.getBmPathListSync()() returns an array that starts with an empty
+	// string (the root element of the bookmarks tree has no title), and that's
+	// perfect to have .join("/") add a leading "/".
+	return pathList.join("/");
+},
+
+getBmFolderAsync: async function(bmNode) {
+	let pathList = await bookmarksManager.getBmPathListAsync(bmNode);
+
+	// bookmarksManager.getBmPathListSync()() returns an array that starts with an empty
+	// string (the root element of the bookmarks tree has no title), and that's
+	// perfect to have .join("/") add a leading "/".
+	return pathList.join("/");
 },
 
 getStats: function() {

@@ -179,6 +179,8 @@ _evaluateRegexNode: function(tab, regex, modifier) {
 				}
 			}
 			return false;
+		case "folder":
+			return regex.test(tab.tm.folder);
 		default:
 			// Remember to update SearchTokenizer._validUnaryOpList when you want to
 			// allocate a new modifier, otherwise SearchTokenizer.tokenize() will discard
@@ -241,6 +243,8 @@ _evaluateTextNode: function(tab, text, modifier) {
 				}
 			}
 			return false;
+		case "folder":
+			return tab.tm.folder.includes(text);
 		default:
 			// Remember to update SearchTokenizer._validUnaryOpList when you want to
 			// allocate a new modifier, otherwise SearchTokenizer.tokenize() will discard
