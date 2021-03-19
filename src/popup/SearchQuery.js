@@ -53,7 +53,6 @@ isInitialized: function() {
 _countParsedNodes: function(node, stats) {
 	const logHead = "SearchQuery::_countParsedNodes(): ";
 
-	this._log(logHead + "incrementing count to track node", node);
 	stats.parsedNodes++;
 	
 	switch(node.type) {
