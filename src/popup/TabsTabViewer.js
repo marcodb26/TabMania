@@ -898,7 +898,9 @@ _searchBoxProcessData: function(value) {
 	// If value.length == 0, this function doesn't get called...
 	this._assert(value.length != 0);
 
+	perfProf.mark("parseQueryStart");
 	this._searchQuery.update(value);
+	perfProf.mark("parseQueryEnd");
 
 	// Redraw the tab list.
 	// We used to call "this._queryAndRenderTabs()" here, but there's no need

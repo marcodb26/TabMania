@@ -143,6 +143,7 @@ showAllEntries: function() {
 // in TabMania's runtime
 showSearch: function() {
 	let toMeasure = {
+		"parse query": [ "parseQueryStart", "parseQueryEnd" ],
 		"full search": [ "searchStart", "searchEnd" ],
 		"chrome.history.search()": [ "historySearchStart", "historySearchEnd" ],
 		"history reduce": [ "historyReduceStart", "historyReduceEnd" ],
