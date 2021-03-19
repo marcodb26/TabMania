@@ -349,12 +349,12 @@ _mergeNodeSources: function(node) {
 	return "(" + values.join(")|(") + ")";
 },
 
-// When "fullRebuild" is set to "true", this function behaves as a debugging function
-// to validate what the parser has done.
-// When it's set to false, it generates a simplified version of the query string with
-// all operators omitted, to be used with the chrome.history.search() and
-// chrome.bookmarks.search() APIs.
+// When "rebuildMode" is set to Classes.SearchParser.rebuildMode.SIMPLE, this
+// function generates a simplified version of the query string with all operators
+// omitted, to be used with the chrome.history.search() API.
 rebuildQueryString: function(node, parentNode, rebuildMode) {
+	rebuildMode = optionalWithDefault(rebuildMode, Classes.SearchParser.rebuildMode.MIN);
+
 	let retVal = [];
 
 	let fullRebuild = (rebuildMode != Classes.SearchParser.rebuildMode.SIMPLE);
