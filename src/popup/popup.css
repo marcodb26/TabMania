@@ -46,6 +46,42 @@
 	padding-right: 0.5rem;
 }
 
+/* See https://stackoverflow.com/questions/20804016/editing-input-type-search-pseudo-element-button-x */
+.tm-searchbox::-webkit-search-cancel-button {
+	/* Leave room for the overlay with the search results count.
+	   "4rem" still looks ok when the overlay shows "999+"
+	*/
+	margin-left: 4rem;
+}
+
+.tm-searchbox-msg {
+	/* Relative positioning with z-index needed to push this message bar over the
+	   rest of the tiles container body
+	*/
+	position: relative;
+	z-index: 2;
+
+	padding: 0.1em 0.5em;
+	margin: 0.25em 0.5em;
+
+	font-size: 0.875em;
+	/* From Bootstrap's .form-text */
+	color: #6c757d;
+
+	background-color: white;
+	border: 1px solid grey;
+	border-radius: 0.25em;
+	box-shadow: 0 0 10px grey;
+}
+
+.tm-searchbox-count {
+	right: 2rem;
+}
+
+.tm-searchbox-icon {
+	left: 0.5rem;
+}
+
 /* Alignment for Font Awesome icons, taken from Font Awesome class "svg-inline--fa" */
 .tm-fa-magnifier-align {
 	width: 1em;
@@ -102,22 +138,6 @@
 	width: 0.875em;
     height: 0.875em;
     vertical-align: -.1em;
-}
-
-/* See https://stackoverflow.com/questions/20804016/editing-input-type-search-pseudo-element-button-x */
-.tm-searchbox::-webkit-search-cancel-button {
-	/* Leave room for the overlay with the search results count.
-	   "4rem" still looks ok when the overlay shows "999+"
-	*/
-	margin-left: 4rem;
-}
-
-.tm-searchbox-count {
-	right: 2rem;
-}
-
-.tm-searchbox-icon {
-	left: 0.5rem;
 }
 
 .tm-tile-small {

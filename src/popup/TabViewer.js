@@ -139,6 +139,8 @@ _removeBlinkCb: function() {
 Classes.SearchableTabViewer = Classes.TabViewer.subclass({
 
 	_searchBoxElem: null,
+	_searchBoxContainerElem: null,
+	_searchBoxErrorElem: null,
 	_searchBoxCountElem: null,
 
 	// Boolean tracking if we're in search mode or not
@@ -193,7 +195,9 @@ _SearchableTabViewer_initBodyElem: function() {
 	// need to use something else
 	const bodyId = this._id + "-body-inner";
 	const searchBoxId = this._id + "-searchbox";
+	const searchBoxContainerId = this._id + "-searchbox-container";
 	const searchBoxCountId = this._id + "-searchbox-count";
+	const searchBoxErrorId = this._id + "-searchbox-error";
 
 	// The search box is hidden by default, and becomes visible when the user presses
 	// a keystroke.
@@ -207,20 +211,22 @@ _SearchableTabViewer_initBodyElem: function() {
 
 	// Note that the element with bodyId takes "overflow: auto" to avoid the parent gets it instead
 	const bodyHtml = `
-		<div class="m-1 tm-stacked-below tm-hide">
+		<div id="${searchBoxContainerId}" class="m-1 tm-stacked-below tm-hide">
 			<input type="search" id="${searchBoxId}" incremental class="form-control tm-searchbox" placeholder="Type to start searching">
 			<div class="tm-overlay tm-vertical-center tm-searchbox-icon">${icons.searchBox}</div>
 			<div class="tm-overlay tm-vertical-center tm-searchbox-count">
 				<span id="${searchBoxCountId}" class="tm-shaded badge tm-number-badge bg-secondary"></span>
 			</div>
 		</div>
-
+		<div id="${searchBoxErrorId}" class="tm-searchbox-msg tm-hide"></div>
 		<div class="tm-fit-bottom" id="${bodyId}" style="overflow: auto;">
 		</div>
 	`;
 
 	this.setHtml(bodyHtml);
 	this._searchBoxElem = this.getElementById(searchBoxId);
+	this._searchBoxContainerElem = this.getElementById(searchBoxContainerId);
+	this._searchBoxErrorElem = this.getElementById(searchBoxErrorId);
 	this._searchBoxCountElem = this.getElementById(searchBoxCountId);
 
 	// "input" and "search" events are relatively equivalent with the "incremental" attribute
@@ -273,7 +279,7 @@ _bsTabDeactivatedCb: function(ev) {
 // _activateSearchBox().
 _SearchableTabViewer_searchBoxInactiveInner: function() {
 	const logHead = "SearchableTabViewer::_SearchableTabViewer_searchBoxInactiveInner(): ";
-	this._searchBoxElem.parentElement.classList.add("tm-hide");
+	this._searchBoxContainerElem.classList.add("tm-hide");
 	this._bodyElem.classList.remove("tm-fit-after-search");
 	this._searchActive = false;
 
@@ -300,7 +306,7 @@ _activateSearchBox: function(active) {
 		// When the searchbox appears, the "position:absolute;" (class .tm-fit-bottom)
 		// body needs to be shifted down to make sure it doesn't end up under the
 		// searchbox, that's what class .tm-fit-after-search is for.
-		this._searchBoxElem.parentElement.classList.remove("tm-hide");
+		this._searchBoxContainerElem.classList.remove("tm-hide");
 		this._bodyElem.classList.add("tm-fit-after-search");
 		this._searchActive = true;
 		this._searchBoxElem.focus();
@@ -452,6 +458,37 @@ setSearchQuery: function(searchQuery) {
 	this._searchBoxElem.value = searchQuery;
 	this._searchBoxProcessData(searchQuery);
 },
+
+// If "msgHtml" is omitted or is "", this function makes the message box disappear,
+// and "isInvalid" is ignored (gets unset).
+setMessage: function(msgHtml, isInvalid) {
+	msgHtml = optionalWithDefault(msgHtml, "");
+	isInvalid = optionalWithDefault(isInvalid, false);
+
+	if(isInvalid) {
+		this._searchBoxElem.classList.add("is-invalid");
+	}
+
+	if(msgHtml != "") {
+		this._searchBoxErrorElem.classList.remove("tm-hide");
+		this._searchBoxErrorElem.innerHTML = msgHtml;
+	} else {
+		// Reset everything
+		this._searchBoxErrorElem.classList.add("tm-hide");
+		this._searchBoxElem.classList.remove("is-invalid");
+		this._searchBoxErrorElem.classList.textContent = "";
+	}
+},
+
+//	return delay(3000).then(
+//		function() {
+//			// Clean up
+//			this._searchBoxElem.classList.remove("is-invalid");
+//			this._searchBoxErrorElem.classList.remove("tm-invalid-feedback");
+//			this._searchBoxErrorElem.textContent = "";
+//		}.bind(this)
+//	);
+//},
 
 // You should not need to register explicitly for the "search" event, the
 // overriding _searchBoxProcessData() should be sufficient.
