@@ -59,10 +59,10 @@ _convertNodeToRegexSource: function(node) {
 		// copy), so it's faster than tmUtils.deepCopy(), but we can use it only because we
 		// now that a source is read-only once created.
 		sources = sources.concat(node.sources);
-		this._log(logHead + "regex sources: ", sources);
+		this._parserDebug(logHead + "regex sources: ", sources);
 	} else {
 		sources = [ tmUtils.freeze({ type: node.type, value: tmUtils.regexEscape(node.value) }) ];
-		this._log(logHead + "sources: ", sources);
+		this._parserDebug(logHead + "sources: ", sources);
 	}
 
 	return sources;
@@ -139,7 +139,7 @@ _groupByUnaryModifier: function(node) {
 	let groups = {};
 	let ungrouped = [];
 
-	this._log(logHead + "node: ", node);
+	this._parserDebug(logHead + "node: ", node);
 
 	for(let i = 0; i < node.operands.length; i++) {
 		let operand = node.operands[i];
@@ -155,7 +155,7 @@ _groupByUnaryModifier: function(node) {
 		}
 	}
 
-	this._log(logHead + "groups: ", groups);
+	this._parserDebug(logHead + "groups: ", groups);
 	// If we've formed groups with only one operand in it, let's move them back to
 	// the _ungrouped group, there's nothing useful we can do with groups of one.
 	let groupKeys = Object.keys(groups);
@@ -229,7 +229,7 @@ _promoteUnaryModifierOverBinaryOp: function(node, changed) {
 	let groups = this._groupByUnaryModifier(node);
 	let groupKeys = Object.keys(groups);
 
-	this._log(logHead + "groups: ", groups);
+	this._parserDebug(logHead + "groups: ", groups);
 
 	if(groupKeys.length == 1) {
 		// "groups" contains only the "_ungrouped" group, nothing to do
@@ -286,17 +286,35 @@ _createOperandInfo: function(operand, operandIdx, operandDropped) {
 		dropped: operandDropped,
 	}
 
-	if(operand.type == Classes.SearchTokenizer.type.UNARYOP && operand.value == "-") {
+	// Skip through the unary modifiers, then track unary negation separately, to maximize
+	// chance of getting to a text/regex leaf for comparison
+	while(opdInfo.opd.type == Classes.SearchTokenizer.type.UNARYOP && opdInfo.opd.value != "-") {
+		// Skipped through all the unary modifiers, until the innermost unary modifier
+		// is set as "opdInfo.pOpd" (parent opd)
+		opdInfo.pOpd = opdInfo.opd;
+		opdInfo.val = opdInfo.opd.operand.value;		
+		opdInfo.opd = opdInfo.opd.operand;
+	}
+
+	if(opdInfo.opd.type == Classes.SearchTokenizer.type.UNARYOP && opdInfo.opd.value == "-") {
 		opdInfo.neg = true;
-		// "pOpd" means "parent opd"
-		opdInfo.pOpd = operand;
-		opdInfo.opd = operand.operand;
-		opdInfo.val = operand.operand.value
+		// Don't set the pOpd in this case, we know there's a "-" because of opdInfo.neg,
+		// and we need to track a potential unary modifier with opdInfo.pOpd
+		//opdInfo.pOpd = opdInfo.opd;
+		opdInfo.val = opdInfo.opd.operand.value
+		opdInfo.opd = opdInfo.opd.operand;
 	}
 	return opdInfo;
 },
 
+// This function assumes "longer" is strictly longer than "shorter", and doesn't
+// account for the possibility that "longer" might be identical to "shorter", you
+// need to exclude that case outside of this function
 _dropWhatForIncludes: function(longer, shorter, longerName, shorterName, operator) {
+	const logHead = "SearchOptimizer::_dropWhatForIncludes() ";
+	// See commment at top of function
+	this._assert(longer.val != shorter.val, logHead + "don't call this function for identical values", longer, shorter);
+
 	if(!longer.dropped && !shorter.dropped) {
 		// If we've already dropped one of these operands, there's no reason to try
 		// to drop them again, so skip these two checks
@@ -327,21 +345,7 @@ _dropWhatForIncludes: function(longer, shorter, longerName, shorterName, operato
 	}
 
 	// If we get here, only longer is negated, or only shorter is negated.
-	// In the cases below, inclusion and equality can't be considered equivalent.
-	// Since this function was called after checking inclusion, we still need to
-	// check equality.
-	if(longer.val == shorter.val) {
-		if(operator == "and") {
-			// "aa AND NOT aa" is a contradiction
-			return "false";
-		}
-		if(operator == "or") {
-			// "aa OR NOT aa" is a tautology
-			return "true";
-		}
-	}
-
-	// If we get here, equality has already been taken off the table, one is strictly
+	// Since equality has already been taken off the table, one is strictly
 	// longer than the other.
 	if((operator == "and" && longer.neg) ||
 		(operator == "or" && shorter.neg)) {
@@ -365,9 +369,8 @@ _dropWhatForIncludes: function(longer, shorter, longerName, shorterName, operato
 
 _dropWhatForEquality: function(ref, cmp, operator) {
 	if((!ref.neg && !cmp.neg) || (ref.neg && cmp.neg)) {
-		// We could pick either one, but removing "cmp" should make this loop
-		// a bit more efficient
-		return "cmp";
+		// We could pick either one
+		return "either";
 	}
 
 	// Only one of ref and cmp is negated
@@ -382,24 +385,49 @@ _dropWhatForEquality: function(ref, cmp, operator) {
 },
 
 _dropWhatForTruth: function(opdInfo, opdInfoName, operator) {
+	const logHead = "SearchOptimizer::_dropWhatForTruth(): ";
+
+	let truthVal = opdInfo.val;
+	let negated = "";
+	if(opdInfo.neg)	{
+		truthVal = truthVal == "true" ? "false" : "true";
+		negated = "(negated)"
+	}
+
 	if(opdInfo.opd.type == Classes.SearchTokenizer.type.TRUTH) {
 		// Ooops, the operand is a tautology/contradiction (probably from an inner node
 		// turned into tautology/contradiction).
-		if((operator == "and" && opdInfo.val == "false") ||
-			(operator == "or" && opdInfo.val == "true")) {
-			return opdInfo.val;
+		if((operator == "and" && truthVal == "false") ||
+			(operator == "or" && truthVal == "true")) {
+			// Since this._parser.rebuildQueryString() is expensive, we don't want it to
+			// get called unnecessarily in production (when this._log() is an emptyFn()),
+			// so we use the short-circuiting properties of "||" (the second operand doesn't
+			// get executed if the first operand is "true"
+			this._parserDebug(logHead + "returning '" + truthVal + "' for operator '" + operator +
+						"' and", isProd() || this._parser.rebuildQueryString(opdInfo.opd), negated);
+			return truthVal;
 		}
+		this._parserDebug(logHead + "returning '" + opdInfoName + "' for operator '" + operator +
+						"' and", isProd() || this._parser.rebuildQueryString(opdInfo.opd), negated);
 		return opdInfoName;
 	}
 	return null;
 },
 
-_dropWhat: function(refOpdInfo, cmpOpdInfo, node) {
-	let truthFound = this._dropWhatForTruth(refOpdInfo, "ref", node.value);
+_dropWhat: function(refOpdInfo, cmpOpdInfo, operator) {
+	// If both operators are under unary modifiers (that's the only case opdInfo.pOpd != null),
+	// but the two unary modifiers are not the same, these two operands are incompatible
+	// for the checks we're aboud to perform
+	if(refOpdInfo.pOpd != null && cmpOpdInfo.pOpd != null &&
+		refOpdInfo.pOpd.value != cmpOpdInfo.pOpd.value) {
+		return "none";
+	}
+
+	let truthFound = this._dropWhatForTruth(refOpdInfo, "ref", operator);
 	if(truthFound != null) {
 		return truthFound;
 	}
-	truthFound = this._dropWhatForTruth(cmpOpdInfo, "cmp", node.value);
+	truthFound = this._dropWhatForTruth(cmpOpdInfo, "cmp", operator);
 	if(truthFound != null) {
 		return truthFound;
 	}
@@ -420,12 +448,21 @@ _dropWhat: function(refOpdInfo, cmpOpdInfo, node) {
 
 	if(inclusionTypes.includes(refOpdInfo.opd.type) &&
 		inclusionTypes.includes(cmpOpdInfo.opd.type)) {
+		// We need to check for equality first, because equality is the only case in
+		// which we can return "either", and "either" is more general, the _dropWhatForIncludes()
+		// function would select the longer or shorter even when they're equal. less generic.
+		// Returning the more generic is more important, because only the caller knows if
+		// one of the two has a modifier and the other doesn't.
+		if(refOpdInfo.val == cmpOpdInfo.val) {
+			return this._dropWhatForEquality(refOpdInfo, cmpOpdInfo, operator);
+		}
+
 		if(cmpOpdInfo.val.includes(refOpdInfo.val)) {
-			return this._dropWhatForIncludes(cmpOpdInfo, refOpdInfo, "cmp", "ref", node.value);
+			return this._dropWhatForIncludes(cmpOpdInfo, refOpdInfo, "cmp", "ref", operator);
 		}
 
 		if(refOpdInfo.val.includes(cmpOpdInfo.val)) {
-			return this._dropWhatForIncludes(refOpdInfo, cmpOpdInfo, "ref", "cmp", node.value);
+			return this._dropWhatForIncludes(refOpdInfo, cmpOpdInfo, "ref", "cmp", operator);
 		}
 		// If we get here, there was no inclusion from either side. Since inclusion includes
 		// also equality checks, nothing left to do
@@ -435,7 +472,7 @@ _dropWhat: function(refOpdInfo, cmpOpdInfo, node) {
 	if(equalityTypes.includes(refOpdInfo.opd.type) &&
 		equalityTypes.includes(cmpOpdInfo.opd.type)) {
 		if(refOpdInfo.val == cmpOpdInfo.val) {
-			return this._dropWhatForEquality(refOpdInfo, cmpOpdInfo, node.value);
+			return this._dropWhatForEquality(refOpdInfo, cmpOpdInfo, operator);
 		}
 
 		return "none";
@@ -443,6 +480,92 @@ _dropWhat: function(refOpdInfo, cmpOpdInfo, node) {
 
 	// We get here if ref and cmp had mispatched types (e.g. one is a TEXT, the other a REGEX)
 	return "none"
+},
+
+// _dropWhat() doesn't take into account unary modifiers as "pOpd" of the operands
+// (except for the basic case of two different unary modifiers), so this function needs
+// to make adjustments to the results of _dropWhat() to take the unary modifiers into account.
+// The cases not covered by _dropWhat() are: one operand has a unary modifier, the other
+// doesn't, or both have it and it's the same, or both don't have it (both have it but
+// they're different is managed by _dropWhat())
+_adjustDropWhat: function(dropWhat, refOpdInfo, cmpOpdInfo, operator) {
+	if((refOpdInfo.pOpd == null && cmpOpdInfo.pOpd == null) ||
+		(refOpdInfo.pOpd != null && cmpOpdInfo.pOpd != null)) {
+		// If both operands have the same unary modifier, or both operands don't have
+		// unary modifiers at all, the result from _dropWhat() is valid. The "either"
+		// case is really either, so let's pick one...
+		if(dropWhat == "either") {
+			return "cmp";
+		}
+		return dropWhat;
+	}
+
+	// If we get here, only one of the two operands has a unary modifier.
+	// The operand without modifier has a wider scope, while the operand with
+	// a unary modifier has a narrower scope (the operand without the unary
+	// modifier also matches the tab properties managed by all unary modifier,
+	// but a specific unary modifier only matches its own tab property).
+	// For "and" it's only legal to drop the operand with wider scope, while for
+	// "or" it's only legal to drop the operand with narrower scope.
+	switch(dropWhat) {
+		case "none":
+			return "none";
+
+		case "either":
+			// This is where "either" is not really "either", you must drop the
+			// operand with the narrower scope (with the unary modifier)
+			if(refOpdInfo.pOpd != null) {
+				if(operator == "and") {
+					return "cmp";
+				}
+				return "ref";
+			}
+			if(operator == "and") {
+				return "ref";
+			}
+			return "cmp";
+
+		case "ref":
+			if((refOpdInfo.pOpd != null && operator == "or") ||
+				(cmpOpdInfo.pOpd != null && operator == "and")) {
+				return dropWhat;
+			}
+			return "none";
+		case "cmp":
+			if((cmpOpdInfo.pOpd != null && operator == "or") ||
+				(refOpdInfo.pOpd != null && operator == "and")) {
+				return dropWhat;
+			}
+			return "none";
+
+		case "true":
+			// Tautologies happen only with the "OR" operator, and if a tautology exists
+			// for the "naked" operands, it remains true when one operand has no unary
+			// modifier and the other has a unary modifier. To see the reasons, imagine
+			// your operand with no unary modifier as expanded to an "OR" of all
+			// unary modifiers:
+			// "google.com" === "site:google.com or inurl:google.com or intitle:google.com or ..."
+			// When you see it like that, then "google.com or site:-google.com" means
+			// "site:google.com or site:-google.com or inurl:google.com or ..."
+			// and clearly the first two operands create a tautology.
+			return dropWhat;
+
+		case "false":
+			// Contradictions happen only with the "AND" operator.
+			// When only one of the two operands has a unary modifier, the "dropWhat"
+			// value of a contradiction is invalid. It's only valid if both have the
+			// same unary modifier, or if both don't have a unary modifier.
+			// To see that, make the same transformation as in the previous case:
+			// "google.com" === "site:google.com or inurl:google.com or intitle:google.com or ...",
+			// so "google.com and site:-google.com" means:
+			// "(site:google.com or inurl:google.com or intitle:google.com or ...) and site:-google.com",
+			// which can be turned (using "(a OR b) AND c" == "(a AND c) OR (b AND c)"):
+			// "(site:google.com and site:-google.com) or (inurl:google.com and site:-google.com) ...",
+			// and while "(site:google.com and site:-google.com)" is a contradiction (FALSE), putting
+			// "FALSE" in an "OR" simply drops it, turning our statement to:
+			// "(inurl:google.com and site:-google.com) or (intitle:google.com and site:-google.com) or ..."
+			return "none";
+	}
 },
 
 _mergeBinaryOperands: function(node, changed) {
@@ -465,15 +588,23 @@ _mergeBinaryOperands: function(node, changed) {
 		for(let j = refOpdInfo.idx + 1; j < node.operands.length; j++) {
 			let cmpOpdInfo = this._createOperandInfo(node.operands[j], j, operandsKept[j] == null);
 
-			let dropWhat = this._dropWhat(refOpdInfo, cmpOpdInfo, node);
+			let dropWhat = this._dropWhat(refOpdInfo, cmpOpdInfo, node.value);
+			this._parserDebug(logHead + "_dropWhat() returned '" + dropWhat + "' for ||| ref:",
+						isProd() || this._parser.rebuildQueryString(node.operands[refOpdInfo.idx]), "||| cmp:",
+						isProd() || this._parser.rebuildQueryString(node.operands[j]));
+			// Filter "either" out
+			dropWhat = this._adjustDropWhat(dropWhat, refOpdInfo, cmpOpdInfo, node.value);
 			switch(dropWhat) {
 				case "ref":
 					operandsKept[refOpdInfo.idx] = null;
 					refOpdInfo.dropped = true;
 					somethingDropped = true;
-					// The reference operand has been dropped, no reason to continue
-					// with the inner loop for "operand"
-					return;
+					// Even though the reference operand has been dropped, we still want
+					// to continue with this loop to find out if there might be a
+					// tautology/contradiction to be found with one of the following
+					// operands, because that would cause the entire operator to be
+					// dropped, not just this operand.
+					continue;
 				case "cmp":
 					operandsKept[j] = null;
 					// No need to set cmpOpdInfo.dropped = true, we're about to move
@@ -492,6 +623,9 @@ _mergeBinaryOperands: function(node, changed) {
 					// a nuclear option, because the entire "and" becomes a contradiction...
 					this._assert(node.value == "and", logHead + "unexpected operator");
 					return "false";
+				default:
+					this._err(logHead + "unknown dropWhat = \"" + dropWhat + "\"");
+					continue;
 			}
 		}
 	}.bind(this);
@@ -524,7 +658,8 @@ _mergeBinaryOperands: function(node, changed) {
 	}
 	for(let i = 0; i < operandsKept.length; i++) {
 		if(operandsKept[i] == null) {
-			this._setChanged(changed, "dropped redundant operand " + i + " for '" + node.value + "'");
+			this._setChanged(changed, "dropped redundant operand " + i + " (" +
+							this._parser.rebuildQueryString(node.operands[i]) + ") for '" + node.value + "'");
 		} else {
 			newNode.operands.push(operandsKept[i]);
 		}
@@ -592,6 +727,22 @@ _mergeUnaryOperators: function(node, changed) {
 
 		default:
 			return node;
+	}
+
+	if(node.operand.type == Classes.SearchTokenizer.type.TRUTH) {
+		// Tautologies and contradictions eat unary modifiers for breakfast, while negation
+		// unary needs to be applied to them
+		if(node.value != "-") {
+			this._setChanged(changed, "eliminated unary modifier '" + node.value +
+							":' as it's followed by <" + node.operand.value.toUpperCase() + ">");
+			return node.operand;
+		} else {
+			this._setChanged(changed, "applied unary '-' to <" + node.operand.value.toUpperCase() + ">");
+			return {
+				type: Classes.SearchTokenizer.type.TRUTH,
+				value: (node.operand.value == "true") ? "false" : "true",
+			}
+		}
 	}
 
 	// If we get here, the current node is a unary operator. 
@@ -696,7 +847,24 @@ _sortOptimized: function(node) {
 			return typeSorted;
 		}
 
-		return a.value.localeCompare(b.value);
+		// "value" is "null" for regex that failed to compile
+		if(a.value != null && b.value != null) {
+			return a.value.localeCompare(b.value);
+		}
+
+		// Put all the failed regex at the beginning of all other regex (at this point
+		// we're sorting only within the same type (REGEX)
+		if(a.value != null) {
+			// b.value must be "null"
+			return 1;
+		}
+
+		if(b.value != null) {
+			// a.value must be "null"
+			return -1;
+		}
+		// Both a.value and b.value are null
+		return 0;
 	}
 
 	function sourcesSort(a, b) {
@@ -759,7 +927,6 @@ optimize: function(rootNode) {
 
 	this._changeHistory = changed.what;
 
-	this._log(logHead + "what changed:", changed.what);
 	return targetTree;
 },
 
