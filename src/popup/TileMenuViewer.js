@@ -451,7 +451,7 @@ _updateTitleMenuItem: function() {
 		return;
 	}
 
-	let folder = bookmarksManager.getBmFolderSync(this._bm);
+	folder = bookmarksManager.getBmFolderSync(this._bm);
 	if(folder != null) {
 		this._subtitleElem.innerHTML = this._renderSubtitleHtml(folder);
 		return;
