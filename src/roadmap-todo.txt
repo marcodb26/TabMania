@@ -1,16 +1,6 @@
 TODO 1.2
 
-- Show regex parse errors the same way we show errors in other input boxes
-  * Disallow any results being displayed until the errors are fixed, so we don’t have to worry
-    about the search box growing bigger vertically and covering tiles
-
-- Search: exclude some bookmark folders from search results
-  * Do we need a "folder:" unary operator to enable that?
-    - But we should not include folders among the properties we always search, we
-	  should search folders only if the user calls explicitly "folder:" in the search
-
-- Change "inbadge:" operator to "badge:" (matching the "site:" syntax instead of the
-  "inurl:" syntax
+- BUG: dropdown menu for bookmarks disappeared???
 
 - Continue testing with search query: site:mail.google.com and ---inurl:site:google.com or site:amazon.com
 
@@ -222,6 +212,10 @@ TODO 1.2
 	- Would https://developer.mozilla.org/en-US/docs/Web/API/Element/contextmenu_event work?
 
 - Auto-select-all in searchbox when user clicks the mouse there to edit
+
+- BUG: If searchbox has too much text and ends with a whitespace, when you move the
+  cursor to the end of the string (after the last whitespace), the cursor disappears
+  * No way to play with margins because of the "::after" element for the "x"
 
 - BUG: after suspending and searching "suspended", some tiles lost their dropdown menu
   * Probably some race condition discarding AsyncQueue before it finished rendering the menu

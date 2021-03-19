@@ -52,7 +52,7 @@ DONE 1.2
   * 5ms to filter if you search for only "a" and get 675 results
 
 - Added debug function tmUtils.showSearchParserInfo() to monitor how SearchQuery is interpreting
-  the user input in the serch, and to show some search statistics
+  the user input in the search, and to show some search statistics
 
 - Added a simplified query string (purged of operators) to pass to BookmarksFinder
   and HistoryFinder
@@ -170,6 +170,33 @@ DONE 1.2
 
 - BUG: the search text inurl:chrome:// returns everything, why???
   * It's now working, not sure exactly which additional heuristic started making it work
+
+- Added setMessage() in home BsTab to open a small overlay window to report messages to
+  users
+
+- Reporting regex compile errors to the user via the home BsTab's setMessage() call
+
+- Change "inbadge:" operator to "badge:" and "ingroup:" operator to "group:" (matching
+  the "site:" syntax instead of the "inurl:" syntax)
+
+- Added folder information to all bookmarks (added by NormalizedTabs)
+  * To have the folder information available on time for this, decided to now sort all
+    bookmarks from chrome.bookmarks.getTree() so that folders are on top
+	- Before they were just sorted by dateAdded, now dateAdded is secondary to folder/bookmark
+
+- Added new "folder:" unary modifier to search by folder
+  * As a side effect, now search terms without unary modifiers get filtered against
+  "folder" too
+
+- _dropWhat() is now skipping though unary modifiers/boolean to work directly on possible
+  leaf nodes under them
+  * Support dropping of redundant nodes under unary modifiers compared against nodes
+    without unary modifiers
+	- E.g. "google.com or site:-google.com" is now correctly identified as a tautology
+
+- Removing all unary modifiers and processing unary booleans for tautologies/contradictions
+
+- BUG: _dropWhatForTruth() was ignoring negation
 
 
 DONE 1.1
