@@ -445,6 +445,12 @@ _renderTitle: function() {
 _updateTitleMenuItem: function() {
 	this._titleElem.innerHTML = `<b>${this._safeText(this._bm.title)}</b>`;
 
+	let folder = this._bm.tm.folder;
+	if(folder != "") {
+		this._subtitleElem.innerHTML = this._renderSubtitleHtml(folder);
+		return;
+	}
+
 	let folder = bookmarksManager.getBmFolderSync(this._bm);
 	if(folder != null) {
 		this._subtitleElem.innerHTML = this._renderSubtitleHtml(folder);
