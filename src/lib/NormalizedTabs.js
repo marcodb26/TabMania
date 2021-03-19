@@ -539,6 +539,7 @@ normalizeTab: function(tab, objType) {
 		// "folder" is non empty only for bookmarks, but to make the search
 		// logic easier, we want to make it non-null for all tabs
 		folder: "",
+		lowerCaseFolder: "",
 		// Bookmarks have extended IDs too
 		extId: thisObj.formatExtendedId(tab, objType),
 
@@ -591,7 +592,8 @@ normalizeTab: function(tab, objType) {
 			if(folder != null) {
 				// Best effort, we only try the sync version, we don't want to wait for
 				// the async version to fill this out
-				tab.tm.folder = folder.toLowerCase();
+				tab.tm.folder = folder;
+				tab.tm.lowerCaseFolder = folder.toLowerCase();
 			} else {
 				tmUtils.log(logHead + "folder not available for", tab);
 			}
