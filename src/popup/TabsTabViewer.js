@@ -843,6 +843,8 @@ _TabsTabViewer_searchBoxInactiveInner: function() {
 	this._currentSearchResults = null;
 	this._searchQuery = null;
 	this._renderTabs = this._standardRenderTabs;
+	// Reset any message that might have been displaying...
+	this.setMessage();
 },
 
 // Override this function from Classes.SearchableTabViewer
@@ -893,6 +895,15 @@ _updateSearchResults: function(newSearch) {
 	perfProf.mark("searchEnd");
 },
 
+_reportSearchParseErrors: function(errors) {
+	let htmlMsgs = [];
+	for(let i = 0; i < errors.length; i++) {
+		htmlMsgs.push(`<p class="m-0">${this._safeText(errors[i])}</p>`);		
+	}
+
+	this.setMessage(htmlMsgs.join("\n"), true);
+},
+
 // Override this function from Classes.SearchableTabViewer
 _searchBoxProcessData: function(value) {
 	// If value.length == 0, this function doesn't get called...
@@ -901,6 +912,14 @@ _searchBoxProcessData: function(value) {
 	perfProf.mark("parseQueryStart");
 	this._searchQuery.update(value);
 	perfProf.mark("parseQueryEnd");
+
+	let errors = this._searchQuery.getErrors();
+	if(errors == null) {
+		// Reset any message that might have potentially been displayed before
+		this.setMessage();
+	} else {
+		this._reportSearchParseErrors(errors);
+	}
 
 	// Redraw the tab list.
 	// We used to call "this._queryAndRenderTabs()" here, but there's no need

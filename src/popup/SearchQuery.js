@@ -540,4 +540,20 @@ getOptimizerInfo: function() {
 	return optInfo;
 },
 
+getErrors: function() {
+	errors = this._tokenizer.getErrors();
+
+	if(errors == null || errors.length == 0) {
+		return null;
+	}
+
+	let retVal = [];
+
+	for(let i = 0; i < errors.length; i++) {
+		retVal.push(tmUtils.splitCamelCase(errors[i].name) + ": " + tmUtils.toLowerCaseInitial(errors[i].message));
+	}
+
+	return retVal;
+},
+
 }); // Classes.SearchQuery

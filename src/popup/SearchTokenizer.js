@@ -24,6 +24,8 @@ Classes.SearchTokenizer = Classes.Base.subclass({
 	// handled by _consumeEscapedCharacter().
 	_escapedCharsList: [ "\"", "\'", ":", " ", "\t", "(", ")" ],
 
+	_errors: null,
+
 // "value" is optional
 _init: function(value) {
 	const logHead = "SearchTokenizer::_init(): ";
@@ -188,6 +190,7 @@ _setRegexToken: function(token) {
 		// by expandind the error message on the console, at least it won't be vomited
 		// right on the console).
 		console.error("RegExp parser: " + e.name + ": " + e.message);
+		this._errors.push(e);
 		retVal.error = e;
 	}
 	return retVal;
@@ -251,6 +254,8 @@ _genTokenByType: function(token, tokenType) {
 tokenize: function(queryString, tokenList, topLevel) {
 	topLevel = optionalWithDefault(topLevel, true);
 	const logHead = "SearchTokenizer::tokenize(\"" + queryString + "\", topLevel: " + topLevel + "): ";
+
+	this._errors = [];
 
 	let token = "";
 	
@@ -394,6 +399,10 @@ getEscapedCharsList: function(tokenType, quoteChar) {
 			const logHead = "SearchTokenizer::getEscapedCharsList(): ";
 			this._err(logHead + "invalid or unknown tokenType \"" + tokenType + "\"");
 	}
+},
+
+getErrors: function() {
+	return this._errors;
 },
 
 }); // Classes.SearchTokenizer

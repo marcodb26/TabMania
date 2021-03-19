@@ -175,6 +175,35 @@ _freezeProd: function(obj) {
 
 freeze: null,
 
+// Not really a "split" in the sense that it doesn't return an array, it returns a new string
+// with the concatenation of the split. All words are lowercase except the first letter of the
+// first word.
+splitCamelCase: function(str) {
+	// Adjusted from https://stackoverflow.com/a/54112355/10791475
+	let splits = str.split(/([A-Z][a-z]+)/);
+	let lowerCaseSplits = []; 
+	for(let i = 0; i < splits.length; i++) {
+		if(splits[i] != "") {
+			lowerCaseSplits.push(splits[i].toLowerCase());
+		}
+	}
+	if(lowerCaseSplits.length == 0) {
+		return "";
+	}
+
+	lowerCaseSplits[0] = this.toUpperCaseInitial(lowerCaseSplits[0]);
+
+	return lowerCaseSplits.join(" ");
+},
+
+toLowerCaseInitial: function(str) {
+	return str.charAt(0).toLowerCase() + str.substring(1);
+},
+
+toUpperCaseInitial: function(str) {
+	return str.charAt(0).toUpperCase() + str.substring(1);
+},
+
 }); // Classes.TmUtils
 
 Classes.Base.roDef(window, "tmUtils", Classes.TmUtils.create());
