@@ -164,7 +164,7 @@ _evaluateRegexNode: function(tab, regex, modifier) {
 			return regex.test(tab.tm.lowerCaseTitle);
 		case "inurl":
 			return regex.test(tab.tm.lowerCaseUrl);
-		case "inbadge":
+		case "badge":
 			for(let i = 0; i < tab.tm.searchBadges.length; i++) {
 				if(regex.test(tab.tm.searchBadges[i])) {
 					//this._log(logHead + "badge found in ", tab.tm.searchBadges[i]);
@@ -172,7 +172,7 @@ _evaluateRegexNode: function(tab, regex, modifier) {
 				}
 			}
 			return false;
-		case "ingroup":
+		case "group":
 			for(let i = 0; i < tab.tm.customGroupBadges.length; i++) {
 				if(regex.test(tab.tm.customGroupBadges[i])) {
 					return true;
@@ -226,7 +226,7 @@ _evaluateTextNode: function(tab, text, modifier) {
 			return tab.tm.lowerCaseTitle.includes(text);
 		case "inurl":
 			return tab.tm.lowerCaseUrl.includes(text);
-		case "inbadge":
+		case "badge":
 			for(let i = 0; i < tab.tm.searchBadges.length; i++) {
 				if(tab.tm.searchBadges[i].includes(text)) {
 					//this._log(logHead + "badge found in ", tab.tm.searchBadges[i]);
@@ -234,7 +234,7 @@ _evaluateTextNode: function(tab, text, modifier) {
 				}
 			}
 			return false;
-		case "ingroup":
+		case "group":
 			for(let i = 0; i < tab.tm.customGroupBadges.length; i++) {
 				if(tab.tm.customGroupBadges[i].includes(text)) {
 					return true;

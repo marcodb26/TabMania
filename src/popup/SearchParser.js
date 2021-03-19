@@ -69,7 +69,7 @@ _updateUnaryOps: function(tokenList) {
 		newTokenList.push(node);
 
 		// Process a unary operator and consume its operand. Consider that a unary operator
-		// could be followed by another unary operator (e.g "inbadge:-active" to indicate take
+		// could be followed by another unary operator (e.g "badge:-active" to indicate take
 		// all tabs that are not active), or the maybe less useful "--active" to double negate
 		// active (and pick active).
 		while(node.type == Classes.SearchTokenizer.type.UNARYOP && i < tokenList.length) {

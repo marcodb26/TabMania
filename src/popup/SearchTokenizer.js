@@ -13,8 +13,8 @@ Classes.SearchTokenizer = Classes.Base.subclass({
 		"site",   // Check only the hostname of the URL
 		"intitle",
 		"inurl",
-		"inbadge",
-		"ingroup",
+		"badge",
+		"group",
 	],
 
 	// List here all the token delimiters that need to be escaped. This list

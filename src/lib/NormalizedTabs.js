@@ -555,7 +555,7 @@ normalizeTab: function(tab, objType) {
 		// after the tiles are rendered.
 		searchBadges: [],
 		// We track custom group names both in searchBadges and customGroupBadges.
-		// The duplication is required to support the "ingroup:" unaryOp modifier
+		// The duplication is required to support the "group:" unaryOp modifier
 		// in search (see SearchQuery._evaluateTextNode()).
 		customGroupBadges: [],
 
