@@ -374,6 +374,9 @@ _loadBookmarks: function(sendEvent) {
 				// the bookmarks when their folders have not been processed yet. By choosing
 				// this logic we'll still be unable to assign folders to folders, but that
 				// should not be a big problem.
+				// An added advantage of this choice is that by front-loading all folders,
+				// we never risk to lose folders behind bookmarks when we reach the maximum
+				// cut-over point of _maxBookmarkNodesTracked.
 				nodes.sort(this._compareFolderThenDateAdded.bind(this));
 				perfProf.mark("bookmarksTreeToListEnd");
 				this._loadBookmarkTreeNodeList(nodes);
