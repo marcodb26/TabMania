@@ -23,8 +23,7 @@ showStorage: function() {
 },
 
 showTabInfo: function(tabId) {
-	const homeBsTabId = popupViewer.getHomeBsTabId();
-	let allTabsBsTabViewer = popupViewer.getBsTabViewerById(homeBsTabId);
+	let allTabsBsTabViewer = popupViewer.getHomeBsTab();
 
 	let [ tabInfo, tileInfo ] = allTabsBsTabViewer.getTabInfo(tabId);
 
@@ -37,8 +36,7 @@ showTabInfo: function(tabId) {
 },
 
 showSearchParserInfo: function() {
-	const homeBsTabId = popupViewer.getHomeBsTabId();
-	let allTabsBsTabViewer = popupViewer.getBsTabViewerById(homeBsTabId);
+	let allTabsBsTabViewer = popupViewer.getHomeBsTab();
 
 	let searchParserText = allTabsBsTabViewer.getSearchParserInfo();
 

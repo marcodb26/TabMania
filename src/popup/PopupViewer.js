@@ -186,12 +186,17 @@ getHomeBsTabId: function() {
 	return this._id + "-home";
 },
 
+getHomeBsTab: function() {
+	let homeBsTabId = this.getHomeBsTabId();
+	return this.getBsTabViewerById(homeBsTabId);
+},
+
 // This function returns "true" only if the home tab is visible, besides being
 // in search mode. If the settings tab is visible, this function returns false
 // regardless of the SearchableTabViewer.isSearchActive() response.
 isSearchActive: function() {
 	let homeBsTabId = this.getHomeBsTabId();
-	if(this.getBsTabViewerById(homeBsTabId).isSearchActive() && this.getActiveBsTabId() == homeBsTabId) {
+	if(this.getHomeBsTab().isSearchActive() && this.getActiveBsTabId() == homeBsTabId) {
 		return true;
 	}
 	return false;		
@@ -202,8 +207,7 @@ getSearchQuery: function() {
 		return null;
 	}
 
-	let homeBsTabId = this.getHomeBsTabId();
-	return this.getBsTabViewerById(homeBsTabId).getSearchQuery();
+	return this.getHomeBsTab().getSearchQuery();
 },
 
 }); // Classes.PopupViewer

@@ -109,8 +109,7 @@ _backgroundCommandCb: function(ev) {
 
 	this._log(logHead + "starting search", ev.detail);
 
-	const homeBsTabId = popupViewer.getHomeBsTabId();
-	let allTabsBsTabViewer = popupViewer.getBsTabViewerById(homeBsTabId);
+	let allTabsBsTabViewer = popupViewer.getHomeBsTab();
 	allTabsBsTabViewer.activate();
 	allTabsBsTabViewer.setSearchQuery(ev.detail.data);
 },
