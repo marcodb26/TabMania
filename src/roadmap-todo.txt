@@ -1,73 +1,28 @@
 TODO 1.2
 
-- BUG: dropdown menu for bookmarks disappeared???
+- CHROME BUG: When we receive chrome.tabs.onUpdated, we should only trust the "changeInfo",
+  not the "tab" argument (last argument)
+  * When a page is (re)loaded, we get a "status: complete" event, then we get a "title: xyz"
+    event, but in the second event the "status" is back to "loading"
 
-- Continue testing with search query: site:mail.google.com and ---inurl:site:google.com or site:amazon.com
+- BUG: when closing a tab from a pinned bookmark, the pinned bookmark shows up
+  instead of the tab, but its dropdown menu remains hidden
 
-- Optimization: “(abc or def or ghi) and -ab” should be equivalent to
-  * “(abc or def or ghi) and -ab” ==> "FALSE OR (def AND -ab) OR (ghi AND -ab)" ==>
-    "(def AND -ab) OR (ghi AND -ab)" ==> "(def OR ghi) AND -ab"
+- BUG: when opening a tab from a pinned bookmark, the opened tab shows "loading"
+  forever (until a future event causes a re-render)
+  * Not sure how this happens, we do a couple of re-renders during the loading of
+    the tab, but somehow they report status "loading", even after an event that
+	says status "complete"
+  * Note that this might be unrelated from pinned bookmarks, it's just very visible
+    with pinned bookmarks
 
-- Replace AND with positive lookahead in regex?
-  * https://stackoverflow.com/questions/3041320/regex-and-operator
-  * A bit dangerous without knowing the performance impact of positive lookahead...
-
-- Track custom group configuration history to allow users to go back after they make changes
-  (track it in the background page)
-  * Especially important once we allow users to add a site from a menu, e.g. you had mail.google.com,
-    you add google.com, at that point mail.google.com disappears, how does a user remember what
-	she had before?
-
-- In dropdown menu, decide whether or not to show the “add site” based on the fact that the search
-  query rebuilt changes or not
-  * This makes rendering of dropdown menu very slow, so do it only on hover, don’t render immediately
-    when tiles are rendered
-
-- In dropdown menu, add support for removing a site from custom group, implemented as “and not site...”
-
-- Priority field in custom groups
-
-- Move to manifest v3 for tabgroups
-
-- Search query in custom group
-
-- Update custom group by re-running the parser and taking the minimal parentheses version (without optimizations)
-
-- Remove duplication in search evaluation functions between text and regex test
-
-- BUG: the search text inurl:chrome:// does not turn "chrome://" into a regex, why?
-  * This is nitpicking, but I though we would always convert OR strings (even standalone)
-    into regex, so why not simple strings without an OR operator?
-
-- Custom groups: if a site is part of two custom groups, list both badges
-  * Though we still need to pick a "primary" custom group for the left border badge
-
-- Custom groups: support temporarily disable some hostnames in custom groups
-  * Support comments in custom group definitions for that?
-
-- Update ScheduledJob to not only wait for the timer event, but also for other events
-  the job needs to have satisfied in order to run.
-  * See the comments before BookmarksManager._applySettingsChangeDelay to get an idea of
-    the problem.
-  * The "other events" should be either Promises that are known when the job gets
-    scheduled, or Promises that become known when the job is expected to start running.
-    - Any other call to schedule a new job should find the current job still pending
-	  (technically never started) and rely on that same job instead of scheduling a new one
-
-- Search: how does the new multi-token model work with history?
-  * Do we need the simplified query string (purged of operators?) to pass to HistoryFinder?
-
-- BUG: lowercase "g" gets cut in tile title
-
-- BUG: Class .tm-dropdown-menu says "min-width: 20em", causing the popup to have
-  a horizontal scroller when the popup width is less than 20em
-  - We need to replace that with a more dynamic setting
-  - It's also exacerbated by the fact that the menu doesn't close when you
-    remove the hover, so the scrollbar stays even though the menu is not visible
-	* Maybe we just want to fix this and live with a menu that's too big just
-	  when you open it?
-	  - There's no point in making a menu too narrow, ideally it should show up
-	    outside of the popup window...
+- When loading a pinned bookmark, the tab starts with "title" set to the URL being
+  loaded, causing the tile to move to a different location
+  * Should we force the title of the tab to be the same as the title of the bookmark
+    for the first few seconds after the tab exists?
+	- We can do that easily in TabsTabViewer._extendTabsWithPinnedBookmarks()
+	- This "delay -> then" might also be a way to workaround the "loading" status
+	  stuck issue...
 
 - Support pinning bookmarks
   * If a pinned bookmark is open, show only the open tab, not the bookmark
@@ -76,78 +31,26 @@ TODO 1.2
     - But don't use the bookmark bar as storage to know which tabs are pinned...
 	- What happens when a tab gets unpinned? Remove it from hte bookmark bar or leave it alone?
 
+- Add a readable label to ScheduleJob jobs, the current "handleId = 27" is completely
+  useless...
+
+- Toggle window open/minimized when clicking a tab tile
+
 - Add logic to let "www.google.com" be recognized as a valid URL, even though new URL()
   won't consider it valid
   * Make it behave like the browser's omnibar...
 
-- Figure out a way to open the TabMania popup if it's closed when the user uses
-  the "Search tabs with TabMania" context menu item
+- Render contents of dropdown menus only when they hover visible
+  * Or even when the user clicks the hovered button?
+  * Or when she hovers on the dropdown button itself (but before clicking)
 
-- Add a global shortcut to bring the undocked TabMania popup to the front or open
-  it if it's closed
-  * This is already possible with the standard "invoke popup" shortcut, but that shortcut
-    is restricted to work only in "Chrome" scope, and we want to have an alternative for
-	global scope when the popup is undocked
+- BUG: dropdown menu for bookmarks disappeared???
 
-- BUG: when you click a menu or a close button, the searchbox loses focus and doesn't
-  recover it even after the menu/close click is over
-  * Probably related:
-	- BUG: in search mode, when the searchbox is not in focus, CTRL+A should select the full
-	  text of the searchbox, but instead it selects everything on the entire page
+- Continue testing with search query: site:mail.google.com and ---inurl:site:google.com or site:amazon.com
 
-- The bstabs show an ugly URL at the bottom of the undocked window, we should
-  get rid of it
-
-- Sorting tiles, add secondary criteria
-  * If two tabs have the same title, sort by url
-  * Same URL, sort by index in window (to match their appearance on chrome)
-  * Any other sorting criteria besides "title" and "url"?
-
-- Instead of setting an arbitrary "3em" for the min-height of tiles, we should add some
-  code to measure the height of a populated tile right after startup, then use that exact
-  value for the empty tile body from that point on
-  * Tiles might measure different amounts for different users, but once a session has
-    started, the tabs should not change size for the duration of that session
-
-- Add tab count badge to "Home" bstab
-  * Maybe only when it's undocked? It's redundant when docked
-
-- Add in settings total count of tabs and bookmarks
-  * Don’t exclude folders when counting bookmarks, too expensive
-  * Use pulseBadge class while recalculating values
-  * Calculate values only when user on settings tab (otherwise just mark them as dirty and wait for settings tab to be in focus before you recalculate)
-
-- Group tabs with same title and same URL to show as a single collapsed tile with a count
-  * Support expansion (persisted)
-  * Include corresponding bookmarks in group (match only by URL for bookmarks, since they might have a title out of sync)
-  * This should be done for all modes (standard and search), maybe in different stages, because otherwise search can never use the flat rendering
-
-- Expand/collapse all groups (popup menu item)
-
-- Group/ungroup all groups (popup menu items)
-  * In search, allow also to "group by source" (tabs, rcTabs, bmNodes, hItems)
-  * Group by window
-
-- Organize groups by host name inside top level groups (second level)
-  * With group/ungroup option for each top level group
-
-- TabsTabViewer needs a more precise caching mechanism for tile viewers
-  * Right now we discard any tile that's not used in the current rendering iteration
-  * This means that if you search and find 1,000 bookmarks, then get out of search, the
-    tiles of those bookmarks will be discarded, and not available the next time you
-	search again
-  * A proper cache would let those bookmark tiles expire after a certain amount of time
-    instead of dropping them immediately
-
-- Try again to prioritize tile rendering based on being visible on the screen
-
-- If a tile is inside a group accordion, and the accordion is closed, put the tile in
-  the low priority queue for rendering
-
-- Add spinner to unrendered tile body to let users know it's coming...
-
-- Context menu (on page) and dropdown menu (on tab) to add hostname to a custom group
-
+- Change rendering of custom group configuration by showing one hostname per input box,
+  and support "-" to indicate exclusion
+  * Then implement search by running a search query in custom group
 - Improve displaying of hostnames in custom groups configuration
   * Instead of a text area, list each hostname as their own input box, with options to
     delete or disable
@@ -157,6 +60,49 @@ TODO 1.2
 	  * Or should we support real comments, in which case we might need a special prefix
 	    for lines that are disabled
 
+- Search: how does the new multi-token model work with history?
+  * Do we need the simplified query string (purged of operators?) to pass to HistoryFinder?
+
+- BUG: when you click a menu or a close button, the searchbox loses focus and doesn't
+  recover it even after the menu/close click is over
+  * Probably related:
+	- BUG: in search mode, when the searchbox is not in focus, CTRL+A should select the full
+	  text of the searchbox, but instead it selects everything on the entire page
+
+- Auto-select-all in searchbox when user clicks the mouse there to edit
+
+- Search: do we need a unary op modifier to select class of tiles? (bookmark, history, recently
+  closed, standard tiles)
+  * We could use hidden search badges for that...
+  * No, we don't need this, badge:bookmark or badge:closed should be enough (we don't have
+    a badge for history because you can't search by class for history)
+
+
+PREP FOR NEXT RELEASE
+
+- Remove all injection code in preparation for release (again)
+
+- Disable Base._assert() for production code
+
+
+PUNTED TO NEXT RELEASE
+
+- Do we need to support search as a textarea instead of an input box?
+
+- BUG: If searchbox has too much text and ends with a whitespace, when you move the
+  cursor to the end of the string (after the last whitespace), the cursor disappears
+  * No way to play with margins because of the "::after" element for the "x"
+
+- BUG: after suspending and searching "suspended", some tiles lost their dropdown menu
+  * Probably some race condition discarding AsyncQueue before it finished rendering the menu
+
+- BUG: while testing production, "Open in least tabbed window" chose a window with
+  more tabs than the one where the parent tab was
+  * Need to check what happens if calling "Open in least tabbed window" while on
+    the least tab window (with a lot less tabs than the next tabbed window)
+  * Also, the bug happened when clicking on a link for a tab that had just been
+    moved to the least tabbed window
+
 - Decouple shortcut keypress from shortcut menu item
   * The shortcut configuration should allow remapping of existing known keypresses to
     specific shortcut configurations, and leave ohter shortcuts without a keypress
@@ -164,7 +110,7 @@ TODO 1.2
 
 - Add more shortcut keypresses (SC6-SC10?)
 
-- BUG: Pineed custom groups don't show the color on their left border when they're empty
+- BUG: Pinned custom groups don't show the color on their left border when they're empty
 
 - BUG: there could be multiple concurrent calls to ContextMenu._onShortcutUpdatedCb() if
   users make multiple changes quickly (or when calling testSettings() from popup.js with
@@ -211,44 +157,148 @@ TODO 1.2
 	  right click happens?
 	- Would https://developer.mozilla.org/en-US/docs/Web/API/Element/contextmenu_event work?
 
-- Auto-select-all in searchbox when user clicks the mouse there to edit
+- Group tabs with same title and same URL to show as a single collapsed tile with a count
+  * Support expansion (persisted)
+  * Include corresponding bookmarks in group (match only by URL for bookmarks, since they might have a title out of sync)
+  * This should be done for all modes (standard and search), maybe in different stages, because otherwise search can never use the flat rendering
 
-- BUG: If searchbox has too much text and ends with a whitespace, when you move the
-  cursor to the end of the string (after the last whitespace), the cursor disappears
-  * No way to play with margins because of the "::after" element for the "x"
+- Expand/collapse all groups (popup menu item)
 
-- BUG: after suspending and searching "suspended", some tiles lost their dropdown menu
-  * Probably some race condition discarding AsyncQueue before it finished rendering the menu
+- Group/ungroup all groups (popup menu items)
+  * In search, allow also to "group by source" (tabs, rcTabs, bmNodes, hItems)
+  * Group by window
 
-- BUG: while testing production, "Open in least tabbed window" chose a window with
-  more tabs than the one where the parent tab was
-  * Need to check what happens if calling "Open in least tabbed window" while on
-    the least tab window (with a lot less tabs than the next tabbed window)
-  * Also, the bug happened when clicking on a link for a tab that had just been
-    moved to the least tabbed window
+- Organize groups by host name inside top level groups (second level)
+  * With group/ungroup option for each top level group
 
-- Search: do we need a unary op modifier to select class of tiles? (bookmark, history, recently
-  closed, standard tiles)
-  * We could use hidden search badges for that...
+- TabsTabViewer needs a more precise caching mechanism for tile viewers
+  * Right now we discard any tile that's not used in the current rendering iteration
+  * This means that if you search and find 1,000 bookmarks, then get out of search, the
+    tiles of those bookmarks will be discarded, and not available the next time you
+	search again
+  * A proper cache would let those bookmark tiles expire after a certain amount of time
+    instead of dropping them immediately
 
-- Do we need to support search as a textarea instead of an input box?
+- Try again to prioritize tile rendering based on being visible on the screen
 
+- If a tile is inside a group accordion, and the accordion is closed, put the tile in
+  the low priority queue for rendering
 
-PREP FOR NEXT RELEASE
+- Add spinner to unrendered tile body to let users know it's coming...
 
-- Remove all injection code in preparation for release (again)
+- BUG: lowercase "g" gets cut in tile title
 
-- Disable Base._assert() for production code
+- The bstabs show an ugly URL at the bottom of the undocked window, we should
+  get rid of it
 
+- Sorting tiles, add secondary criteria
+  * If two tabs have the same title, sort by url
+  * Same URL, sort by index in window (to match their appearance on chrome)
+  * Any other sorting criteria besides "title" and "url"?
 
-PUNTED TO NEXT RELEASE
+- Instead of setting an arbitrary "3em" for the min-height of tiles, we should add some
+  code to measure the height of a populated tile right after startup, then use that exact
+  value for the empty tile body from that point on
+  * Tiles might measure different amounts for different users, but once a session has
+    started, the tabs should not change size for the duration of that session
+
+- Add tab count badge to "Home" bstab
+  * Maybe only when it's undocked? It's redundant when docked
+
+- Add in settings total count of tabs and bookmarks
+  * Don’t exclude folders when counting bookmarks, too expensive
+  * Use pulseBadge class while recalculating values
+  * Calculate values only when user on settings tab (otherwise just mark them as dirty and wait for settings tab to be in focus before you recalculate)
+
+- Search optimization: rebalance the sorting order of operands at each operator level
+  based on how often they're the deciding factor for past tabs
+  * If an operand wins/loses a tab, +1 his count of successes, and propagate/accumulate the count
+    up to all its chain of operators
+	- For each level where count changed, compare operand count with previous operand count,
+	  the biggest count should always be on the left of the list of operands (evaluated first)
+	  * We probably don't need to re-sort the entire tree, we could just take a single step
+	    per tab evaluation, and eventually we should get to the most successful nodes on the
+		left of their operand list
+  * This rebalancing is especially useful because every time there is a change we need to
+    reevaluate everything, but only a small subset of things have changed, so it's likely the
+	parse tree is still balanced for the minimum number of nodes evaluated when the next
+	full tabs evaluation happens
+
+- Optimization: “(abc or def or ghi) and -ab” should be equivalent to
+  * “(abc or def or ghi) and -ab” ==> "FALSE OR (def AND -ab) OR (ghi AND -ab)" ==>
+    "(def AND -ab) OR (ghi AND -ab)" ==> "(def OR ghi) AND -ab"
+
+- Replace AND with positive lookahead in regex?
+  * https://stackoverflow.com/questions/3041320/regex-and-operator
+  * A bit dangerous without knowing the performance impact of positive lookahead...
+
+- BUG: the search text inurl:chrome:// does not turn "chrome://" into a regex, why?
+  * This is nitpicking, but I though we would always convert OR strings (even standalone)
+    into regex, so why not simple strings without an OR operator?
+
+- Update custom group by re-running the parser and taking the minimal parentheses version (without optimizations)
+
+- Remove duplication in search evaluation functions between text and regex test
+
+- Custom groups: if a site is part of two custom groups, list both badges
+  * Though we still need to pick a "primary" custom group for the left border badge
+
+- Custom groups: support temporarily disable some hostnames in custom groups
+  * Support comments in custom group definitions for that?
+
+- Track custom group configuration history to allow users to go back after they make changes
+  (track it in the background page)
+  * Especially important once we allow users to add a site from a menu, e.g. you had mail.google.com,
+    you add google.com, at that point mail.google.com disappears, how does a user remember what
+	she had before?
+
+- Context menu (on page) and dropdown menu (on tab) to add hostname to a custom group
+
+- In dropdown menu, decide whether or not to show the “add site to custom group” based on the fact that
+  the search query rebuilt changes or not
+  * This makes rendering of dropdown menu very slow, so do it only on hover, don’t render immediately
+    when tiles are rendered
+
+- In dropdown menu, add support for removing a site from custom group, implemented as “and not site...”
+
+- Priority field in custom groups
+
+- Move to manifest v3 for tabgroups
 
 - Multi-select of tiles to take actions on selection
   * We'd need to stop updating the tiles list during selection
 
+- BUG: Class .tm-dropdown-menu says "min-width: 20em", causing the popup to have
+  a horizontal scroller when the popup width is less than 20em
+  - We need to replace that with a more dynamic setting
+  - It's also exacerbated by the fact that the menu doesn't close when you
+    remove the hover, so the scrollbar stays even though the menu is not visible
+	* Maybe we just want to fix this and live with a menu that's too big just
+	  when you open it?
+	  - There's no point in making a menu too narrow, ideally it should show up
+	    outside of the popup window...
+
+- Figure out a way to open the TabMania popup if it's closed when the user uses
+  the "Search tabs with TabMania" context menu item
+
+- Add a global shortcut to bring the undocked TabMania popup to the front or open
+  it if it's closed
+  * This is already possible with the standard "invoke popup" shortcut, but that shortcut
+    is restricted to work only in "Chrome" scope, and we want to have an alternative for
+	global scope when the popup is undocked
+
 - Manage incognito tabs (same view, different BS-tab, hide, etc)
 
 - Add action menu to containers
+
+- Update ScheduledJob to not only wait for the timer event, but also for other events
+  the job needs to have satisfied in order to run.
+  * See the comments before BookmarksManager._applySettingsChangeDelay to get an idea of
+    the problem.
+  * The "other events" should be either Promises that are known when the job gets
+    scheduled, or Promises that become known when the job is expected to start running.
+    - Any other call to schedule a new job should find the current job still pending
+	  (technically never started) and rely on that same job instead of scheduling a new one
 
 - Make bstabs disappear when they get too small and they would want to go on two lines
   * Can't use ".d-none .d-sm-block" as described in https://getbootstrap.com/docs/5.0/utilities/display/
