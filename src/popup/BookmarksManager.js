@@ -18,7 +18,14 @@
 //   bookmarks via Chrome's Bookmark Manager, see _applyBookmarkMoveCb() below.
 //
 // This class generates events Classes.EventManager.Events.UPDATED, with "detail"
-// set to { target: <this object>, id: <id of the bookmark that changed, or "undefined"> }.
+// set to:
+// {
+//   target: <this object>,
+//   id: <id of the bookmark that changed, or "undefined">
+//   pinned: { added: <bookmark ID list of new nodes pinned>, deleted: <bookmark ID list of nodes unpinned> }
+// }.
+// "pinned" will only be present for explicit pinning actions, but the list of pinned
+// bookmarks will change also as a result of the other generic events.
 Classes.BookmarksManager = Classes.Base.subclass({
 	_bookmarksManagerActive: null,
 
@@ -37,10 +44,22 @@ Classes.BookmarksManager = Classes.Base.subclass({
 
 	// Note that _bookmarksDict contains everything, while _bookmarks excludes folders
 	_bookmarksDict: null,
+	// _bookmarks is an array of bookmarks, structured like the tabsList returned by
+	// chrome.tabs.query(), so that the SearchQuery can be applied to it as well
 	_bookmarks: null,
 	// The bookmarksManager runtime doesn't really need "_folders", but we need it to
 	// debug the folders logic
 	_folders: null,
+
+	// _pinnedBookmarks is an array tracking which bookmarks are currently pinned.
+	_pinnedBookmarks: null,
+	// _pinnedBookmarkIds is an array tracking which bookmarks are currently pinned.
+	// We need this structure because without it would not be easy to figure out
+	// which bookmarks have been unpinned in settingsStore. Having to do this search
+	// every time users unpin a tab is expensive, but it requires less code changes,
+	// and in the assumption people won't have thousands of pinned bookmarks, this
+	// inefficiency should be ok.
+	_pinnedBookmarkIds: null,
 
 	_loadBookmarksJob: null,
 	// Delay before a full bookmarks reload happens. Use this to rate-limit reloads if
@@ -50,7 +69,7 @@ Classes.BookmarksManager = Classes.Base.subclass({
 	// if instead you call chrome.bookmarks.removeTree() you'll get a single notification).
 	_loadBookmarksDelay: 500, //2000,
 
-	_applySettingsChangeJob: null,
+	_applyOptionsChangeJob: null,
 	// When the user enables inclusion of bookmarks in search results, bookmarksManager
 	// needs to take an expensive action an re-initialize. We want to rate-limit this
 	// expensive action to at most once a second (and we'll enable or disable depending
@@ -66,7 +85,7 @@ Classes.BookmarksManager = Classes.Base.subclass({
 	// job. The actual worst-worst case is that when the second job runs, the first job is
 	// still waiting for that same previous _loadBookmarks(), because in that case, both
 	// jobs will be queued behind the same promise, then run in parallel.
-	_applySettingsChangeDelay: 1000,
+	_applyOptionsChangeDelay: 1000,
 
 	_stats: null,
 
@@ -83,10 +102,12 @@ _init: function() {
 	this._loadBookmarksJob = Classes.ScheduledJob.create(this._loadBookmarks.bind(this));
 	this._loadBookmarksJob.debug();
 
-	this._applySettingsChangeJob = Classes.ScheduledJob.create(this._applySettingsChange.bind(this));
-	this._applySettingsChangeJob.debug();
+	this._applyOptionsChangeJob = Classes.ScheduledJob.create(this._applyOptionsChange.bind(this));
+	this._applyOptionsChangeJob.debug();
 
-	settingsStore.addEventListener(Classes.EventManager.Events.UPDATED, this._settingsStoreUpdatedCb.bind(this));
+	settingsStore.getAllOptions().addEventListener(Classes.EventManager.Events.UPDATED, this._optionsUpdatedCb.bind(this));
+	settingsStore.getPinnedBookmarks().addEventListener(Classes.EventManager.Events.UPDATED,
+								this._delayableEventCb.bind(this, this._applyPinnedUpdateCb.bind(this), false));
 
 	if(settingsStore.getOptionBookmarksInSearch()) {
 		this._initBookmarks(false).then(this._initChromeListeners.bind(this));
@@ -138,6 +159,19 @@ _compareFolderThenDateAdded: function(a, b) {
 	return this._compareDateAdded(a, b);
 },
 
+// This function assumes there's a single copy of "bmNodeToRemove" in this._pinnedBookmarks
+_removePinnedBookmark: function(bmNodeToRemove) {
+	const logHead = "BookmarksManager::_removePinnedBookmark(" + bmNodeToRemove.bookmarkId + "): ";
+	let idx = this._pinnedBookmarks.findIndex(node => node.id === bmNodeToRemove.id);
+	if(idx == -1) {
+		this._err(logHead + "node should exist, but not found", bmNodeToRemove);
+		return;
+	}
+
+	this._log(logHead + "removing node", bmNodeToRemove);
+	this._pinnedBookmarks.splice(idx, 1);
+},
+
 // "replace" is a flag indicating if the action is append or replace.
 // "debugName" is only needed to provide more context for log messages.
 _appendOrReplaceNode: function(nodeToAdd, replace, targetList, debugName) {
@@ -150,7 +184,7 @@ _appendOrReplaceNode: function(nodeToAdd, replace, targetList, debugName) {
 
 	let idx = targetList.findIndex(node => node.id === nodeToAdd.id);
 	if(idx == -1) {
-		this._err(logHead + "node should aready exist, but not found", debugName, nodeToAdd);
+		this._err(logHead + "node should exist, but not found", debugName, nodeToAdd);
 		targetList.push(nodeToAdd);
 	} else {
 		this._log(logHead + "replacing existing", debugName, nodeToAdd);
@@ -187,26 +221,43 @@ _loadBookmarkTreeNode: function(node) {
 		
 //		this._err(logHead + "added folder", node);
 //		this._log.trace(logHead, node, stackTrace());
-		this._stats.folders++;
 		this._appendOrReplaceNode(node, bmAlreadyTracked, this._folders, "folder");
 		return;
 	}
 
 	// The following actions are only for non-folders.
 
-	this._stats.bookmarks++;
+	// Check for pinned bookmarks before the "node.id" gets modified by normalizeTab().
+	node.pinned = settingsStore.isBookmarkPinned(node.id);
+	if(!bmAlreadyTracked && node.pinned) {
+		// If a bookmark is already tracked, its pinned state is already accurate in _pinnedBookmarkIds,
+		// but it will not be accurate in "node", because the new "node" is replacing the old node.
+		// If we didn't make this check, we'd run the risk of having duplicates in _pinnedBookmarkIds.
+		this._pinnedBookmarkIds.push(node.id);
+	}
+
 	Classes.NormalizedTabs.normalizeTab(node, Classes.NormalizedTabs.type.BOOKMARK);
 
 	this._appendOrReplaceNode(node, bmAlreadyTracked, this._bookmarks, "bookmark");
+	if(node.pinned) {
+		// If a node is already tracked and we're pushing a replacement, the replacement
+		// doesn't decide on its own whether or not it's pinned, so we can simply rely on
+		// settingsStore.isBookmarkPinned(node.id) to understand if a pinned node needs
+		// to be replaced
+		this._appendOrReplaceNode(node, bmAlreadyTracked, this._pinnedBookmarks, "pinnedBookmark");
+	}
 },
 
 _resetShadowCopy: function() {
 	this._bookmarksDict = {};
 	this._bookmarks = [];
 	this._folders = [];
+	this._pinnedBookmarks = [];
+	this._pinnedBookmarkIds = [];
 
 	this._stats.folders = 0;
 	this._stats.bookmarks = 0;
+	this._stats.pinnedBookmarks = 0;
 	this._stats.bookmarksOverCap = 0;
 	// Don't reset the other stats, they're not supposed to be reset by the callers of
 	// this function. Call BookmarksManager.resetStats() if you want to reset all other
@@ -217,8 +268,9 @@ resetStats: function() {
 	this._stats = {
 		load: 0,
 		find: 0,
-		bookmarks: 0,
 		folders: 0,
+		bookmarks: 0,
+		pinnedBookmarks: 0,
 		// How many bookmarks+folders we had to drop because they exceeded this._maxBookmarkNodesTracked
 		bookmarksOverCap: 0,
 
@@ -495,6 +547,12 @@ _applyBookmarkRemoveCb: function(id, removeInfo) {
 
 	this._log(logHead + "processing", removeInfo);
 
+	// Per the comment below, this action on settingsStore doesn't really help when a full
+	// subtree is deleted, but we have other ways to keep the pinned bookmarks from growing
+	// forever, we clear the stale ones when you add a new pinned bookmark.
+	if(settingsStore.isBookmarkPinned(id)) {
+		settingsStore.unpinBookmark(id);
+	}
 	// A remove event is tricky business, since per the documentation, you get a single
 	// event for the top element being deleted, and if it's a folder, you don't get any
 	// event for the rest of the subtree... probably less trouble to just reload the
@@ -576,28 +634,28 @@ _bookmarkImportEndedCb: function() {
 	this._loadBookmarksJob.run(this._loadBookmarksDelay);
 },
 
-_settingsStoreUpdatedCb: function(ev) {
-	const logHead = "BookmarksManager::_settingsStoreUpdatedCb(" + ev.detail.key + "): ";
+_optionsUpdatedCb: function(ev) {
+//	const logHead = "BookmarksManager::_optionsUpdatedCb(" + ev.detail.key + "): ";
+//
+//	if(ev.detail.key != "options") {
+//		this._log(logHead + "ignoring key");
+//		return;
+//	}
 
-	if(ev.detail.key != "options") {
-		this._log(logHead + "ignoring key");
-		return;
-	}
-
-	this._applySettingsChangeJob.run(this._applySettingsChangeDelay);
+	this._applyOptionsChangeJob.run(this._applyOptionsChangeDelay);
 },
 
-_applySettingsChange: function() {
+_applyOptionsChange: function() {
 	// The job has been started, but we now need to make sure there are no active
 	// _loadBookmarks(), otherwise we have to continue to wait for it to finish.
 	// Note that we must set the function argument "runAlways = true" because the
-	// correct isActive() state is set in _applySettingsStoreUpdateCb(), so that
+	// correct isActive() state is set in _applyOptionsUpdateCb(), so that
 	// function must always run.
-	this._delayableEventCb(this._applySettingsStoreUpdateCb.bind(this), true, "applySettingsChange");
+	this._delayableEventCb(this._applyOptionsUpdateCb.bind(this), true, "applyOptionsChange");
 },
 
-_applySettingsStoreUpdateCb: function() {
-	const logHead = "BookmarksManager::_applySettingsStoreUpdateCb(): ";
+_applyOptionsUpdateCb: function() {
+	const logHead = "BookmarksManager::_applyOptionsUpdateCb(): ";
 
 	let bookmarksInSearch = settingsStore.getOptionBookmarksInSearch();
 	if(this.isActive() && !bookmarksInSearch) {
@@ -620,6 +678,75 @@ _applySettingsStoreUpdateCb: function() {
 	}
 
 	this._log(logHead + "property \"bookmarksInSearch\" unchanged, nothing to do");
+},
+
+_applyPinnedUpdateCb: function() {
+	const logHead = "BookmarksManager::_applyPinnedUpdateCb(): ";
+
+	let pinnedBmIdList = settingsStore.getPinnedBookmarks().getAll();
+	let found = [];
+
+	// Loop to discard stale pinned bookamrs from settingsStore, and to add new
+	// pinned bookmarks to this._pinnedBookmarks. We also need to set the "pinned"
+	// property on the corresponding nodes.
+	for(let i = 0; i < pinnedBmIdList.length; i++) {
+		let bm = this._bookmarksDict[pinnedBmIdList[i]];
+		if(bm == null) {
+			this._log(logHead + "discarding pinned bookmark ID " + pinnedBmIdList[i]);
+			// Assuming the number of stale pinned bookmarks is small (that is, not a lot
+			// of pinned bookmarks have been deleted via Chrome while the TabMania popup
+			// was not running), calling settingsStore.unpinBookmark() individually should
+			// not be a huge performance drain
+			settingsStore.unpinBookmark(pinnedBmIdList[i]);
+		} else {
+			found.push(pinnedBmIdList[i]);
+			if(!bm.pinned) {
+				bm.pinned = true;
+				// If "bm" was not pinned, it was not in this._pinnedBookmarks, no need
+				// to worry about duplicating it there
+				this._pinnedBookmarks.push(bm);
+				// this._pinnedBookmarkIds will be updated at the end of the two loops
+				this._log(logHead + "pinning bookmark ID " + pinnedBmIdList[i], bm);
+			}
+		}
+	}
+
+	// this._pinnedBookmarkIds has remained untouched since the beginning of this
+	// function, so we can safely use it to build a diff of what's happened.
+	// We'll use "deleted" to unpin nodes in bookmarkManager, but we'll use
+	// both "added" and "deleted" for the event generated to our listeners,
+	// so both need to be accurate, and to be accurate, this._pinnedBookmarkIds
+	// must remain unchanged in this function until this point.
+	let [ added, deleted ] = tmUtils.arrayDiff(this._pinnedBookmarkIds, found);
+
+	// Loop to remove from this._pinnedBookmarks any bookmark that is no longer pinned.
+	// That's what's in the "deleted" array. We also need to unset the "pinned" property
+	// on the corresponding nodes.
+	for(let i = 0; i < deleted.length; i++) {
+		let bm = this._bookmarksDict[deleted[i]];
+		if(bm == null) {
+			this._err(logHead + "unexpected, bookmark ID " + deleted[i] + " not found");
+		} else {
+			if(bm.pinned) {
+				bm.pinned = false;
+				this._removePinnedBookmark(bm);
+				// this._pinnedBookmarkIds will be updated at the end of the two loops
+				this._log(logHead + "unpinning bookmark ID " + deleted[i], bm);
+			} else {
+				// The reason this is unexpected is because this._pinnedBookmarkIds thinks
+				// it's pinned, while the bookmark node itself thinks it isn't, which is
+				// an inconsistency that should not happen.
+				// If this inconsistency exists, probably this._pinnedBookmarks is also
+				// inconsistent, let's try to fix it by removing it from there too...
+				this._err(logHead + "unexpected, bookmark ID " + deleted[i] + " already unpinned", bm);
+				this._removePinnedBookmark(bm);
+			}
+		}
+	}
+
+	this._pinnedBookmarkIds = found;
+	
+	this._eventManager.notifyListeners(Classes.EventManager.Events.UPDATED, { pinned : { added: added, deleted: deleted } });
 },
 
 // Returns an unsorted list of bookmark nodes (it's sorted by "dateAdded", not by title)
@@ -759,7 +886,17 @@ getBmFolderAsync: async function(bmNode) {
 	return pathList.join("/");
 },
 
+getPinnedBookmarks: function() {
+	if(!this.isActive()) {
+		return [];
+	}
+	return this._pinnedBookmarks;
+},
+
 getStats: function() {
+	this._stats.folders = this._folders.length;
+	this._stats.bookmarks = this._bookmarks.length;
+	this._stats.pinnedBookmarks = this._pinnedBookmarks.length;
 	return this._stats;
 },
 

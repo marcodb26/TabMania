@@ -154,6 +154,64 @@ deepCopy: function(obj) {
 	return retVal;
 },
 
+// This function only works for arrays of basic types, not arrays of complex objects.
+// Note that this function modifies "a" and "b" (it sorts them). If you don't
+// want your original arrays to be modified, please set "inPlace = false" (default "true").
+// Returns two arrays [ added, deleted ], which represents the steps you need to take
+// on "a" to make it become like "b".
+arrayDiff: function(a, b, inPlace) {
+	inPlace = optionalWithDefault(inPlace, true);
+
+	if(!inPlace) {
+		// No need to call this.deepCopy(), we need to sort the array, we don't touch
+		// the elements of the array
+		a = [].concat(a);
+		b = [].concat(b);
+	}
+
+	a.sort();
+	b.sort();
+
+	let added = [];
+	let deleted = [];
+
+	// I've seen while() loops being much slower than for() loops, but maybe this
+	// while-like for() syntax is too much... :-)
+	let aIdx = 0;
+	let bIdx = 0;
+	for(; aIdx < a.length && bIdx < b.length;) {
+		if(a[aIdx] == b[bIdx]) {
+			// They're the same
+			aIdx++;
+			bIdx++;
+		} else {
+			if(a[aIdx] < b[bIdx]) {
+				// a[aIdx] is smaller than b[bIdx], means "a" contains something that's not in "b"
+				deleted.push(a[aIdx]);
+				aIdx++;
+			} else {
+				// b[bIdx] is smaller than a[aIdx], means "b" contains something that's not in "a"
+				added.push(b[bIdx]);
+				bIdx++;
+			}
+		}
+	}
+
+	// If we get here, at least one of "a" or "b" has been fully scanned, but
+	// not necessarily both...
+	for(; aIdx < a.length; aIdx++) {
+		// If we still need to finish scanning "a", these must all be things not in "b"
+		deleted.push(a[aIdx]);
+	}
+
+	for(; bIdx < b.length; bIdx++) {
+		// If we still need to finish scanning "b", these must all be things not in "a"
+		added.push(b[bIdx]);
+	}
+
+	return [ added, deleted ];
+},
+
 // See https://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript
 _regexEscapePatternObj: /[-\/\\^$*+?.()|[\]{}]/g,
 
@@ -205,6 +263,13 @@ toLowerCaseInitial: function(str) {
 
 toUpperCaseInitial: function(str) {
 	return str.charAt(0).toUpperCase() + str.substring(1);
+},
+
+isTabPinned: function(tab) {
+	// A tab can be pinned explicitly, or it can inherit it's pinning from
+	// other sources. "pinInherited", when not undefined, describes the reason
+	// why the tab inherited pinning.
+	return tab.pinned || tab.pinInherited != null;
 },
 
 }); // Classes.TmUtils

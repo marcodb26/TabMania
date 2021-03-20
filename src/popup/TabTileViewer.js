@@ -233,6 +233,10 @@ _renderBodyInner: function() {
 	// The pinned thumbtack is always the rightmost badge/icon
 	if(this._renderState.pinned) {
 		visibleBadgesHtml.push(icons.thumbtack());
+	} else {
+		if(this._renderState.pinInherited) {
+			visibleBadgesHtml.push(icons.thumbtack("tm-fa-thumbtack-tile", "text-secondary"));
+		}
 	}
 
 	if(this._renderState.incognito) {
@@ -538,6 +542,7 @@ _createRenderState: function(tab, tabGroup) {
 	renderState.visualBadges = tmUtils.deepCopy(tab.tm.visualBadges);
 
 	renderState.pinned = tab.pinned;
+	renderState.pinInherited = (tab.pinInherited != null);
 	renderState.status = tab.status;
 
 	return renderState;
@@ -588,6 +593,10 @@ update: function(tab, tabGroup, queuePriority) {
 	let pastRenderState = this._renderState;
 	this._renderState = this._createRenderState(tab, this._tabGroup);
 
+// The log below is useful when testing chrome.tabs events updates
+//	if(this._tab.id > 1952) {
+//		this._log(logHead + "rendering state:", this._renderState);
+//	}
 	if(!this._renderBodyCompleted) {
 		// The render could be incomplete because it never happened, or because it was
 		// scheduled to happen, but the AsyncQueue got discarded before it could be done

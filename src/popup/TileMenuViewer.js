@@ -167,6 +167,7 @@ Classes.TileTabMenuViewer = Classes.MenuViewer.subclass({
 	// Track here all the menu item viewers
 	_titleMenuItem: null,
 	_pinMenuItem: null,
+	_unpinByBookmarkMenuItem: null,
 	_muteMenuItem: null,
 	_highlightMenuItem: null,
 	_playMenuItem: null,
@@ -229,6 +230,13 @@ _initMenuItems: function() {
 								this._actionPinToggleCb.bind(this));
 	this.append(this._pinMenuItem);
 
+	this._unpinByBookmarkMenuItem = Classes.MenuItemViewer.create("Unpin bookmark",
+									this._actionUnpinByBookmarkCb.bind(this));
+	if(this._tab.pinInherited == null) {
+		this._unpinByBookmarkMenuItem.hide();
+	}
+	this.append(this._unpinByBookmarkMenuItem);
+
 	this._muteMenuItem = Classes.MenuItemViewer.create(this._tab.mutedInfo.muted ? "Unmute" : "Mute",
 								this._actionMuteToggleCb.bind(this));
 	this.append(this._muteMenuItem);
@@ -247,9 +255,6 @@ _initMenuItems: function() {
 
 	this._suspendMenuItem = Classes.MenuItemViewer.create("Suspend (discard from memory)",
 								this._actionSuspendCb.bind(this));
-//	if(!settingsStore.getOptionAdvancedMenu()) {
-//		this._suspendMenuItem.hide();
-//	}
 	this.append(this._suspendMenuItem);
 
 	this._closeMenuItem = Classes.MenuItemViewer.create("Close", this._actionCloseCb.bind(this));
@@ -261,6 +266,13 @@ _initMenuItems: function() {
 _updateMenuItems: function() {
 	this._titleMenuItem.setHtml("<b>" + this._safeText(this._tab.title) + "</b>");
 	this._pinMenuItem.setText(this._tab.pinned ? "Unpin" : "Pin");
+
+	if(this._tab.pinInherited != null) {
+		this._unpinByBookmarkMenuItem.show();
+	} else {
+		this._unpinByBookmarkMenuItem.hide();
+	}
+
 	this._muteMenuItem.setText(this._tab.mutedInfo.muted ? "Unmute" : "Mute");
 	this._highlightMenuItem.setText(this._tab.highlighted ? "Remove highlight" : "Highlight");
 	// Nothing to update for _suspendMenuItem and _closeMenuItem
@@ -279,6 +291,12 @@ _actionPinToggleCb: function(ev) {
 			this._log(logHead + "completed");
 		}.bind(this)
 	);
+},
+
+_actionUnpinByBookmarkCb: function(ev) {
+	const logHead = "TileTabMenuViewer::_actionUnpinByBookmarkCb(" + this._tab.id + "): ";
+	settingsStore.unpinBookmark(this._tab.pinInherited.id);
+	this._log(logHead + "completed");
 },
 
 _actionMuteToggleCb: function(ev) {
@@ -395,7 +413,7 @@ Classes.TileBookmarkMenuViewer = Classes.MenuViewer.subclass({
 	_subtitleElem: null,
 
 	_openBookmarkManagerMenuItem: null,
-//	_pinMenuItem: null,
+	_pinMenuItem: null,
 	_deleteMenuItem: null,
 
 _init: function(bm) {
@@ -475,10 +493,9 @@ _initMenuItems: function() {
 		this.append(this._openBookmarkManagerMenuItem);
 	}
 
-//	// Placeholder for later
-//	this._pinMenuItem = Classes.MenuItemViewer.create(this._bm.pinned ? "Unpin" : "Pin",
-//								this._actionPinToggleCb.bind(this));
-//	this.append(this._pinMenuItem);
+	this._pinMenuItem = Classes.MenuItemViewer.create(this._bm.pinned ? "Unpin" : "Pin",
+								this._actionPinToggleCb.bind(this));
+	this.append(this._pinMenuItem);
 
 	// Can't delete an unmodifiable bookmark
 	if(this._bm.unmodifiable == null) {
@@ -489,7 +506,7 @@ _initMenuItems: function() {
 
 _updateMenuItems: function() {
 	this._updateTitleMenuItem();
-//	this._pinMenuItem.setText(this._bm.pinned ? "Unpin" : "Pin");
+	this._pinMenuItem.setText(this._bm.pinned ? "Unpin" : "Pin");
 	// Nothing to update for _deleteMenuItem
 },
 
@@ -505,14 +522,15 @@ _actionBookmarkManagerCb: function(ev) {
 _actionPinToggleCb: function(ev) {
 	const logHead = "TileBookmarkMenuViewer::_actionPinToggleCb(" + this._bm.id + "): ";
 
-	// PLACEHOLDER - TBD
-
-//	chromeUtils.wrap(chrome.tabs.update, logHead,
-//					this._bm.id, { pinned: !this._bm.pinned } ).then(
-//		function() {
-//			this._log(logHead + "completed");
-//		}.bind(this)
-//	);
+	if(this._bm.pinned) {
+		this._log(logHead + "unpinning");
+		// Note that we need to use the "bookmarkId" field, not the "id" field, to
+		// call settingsStore.pinBookmark()
+		settingsStore.unpinBookmark(this._bm.bookmarkId);
+	} else {
+		this._log(logHead + "pinning");
+		settingsStore.pinBookmark(this._bm.bookmarkId);
+	}
 },
 
 _actionDeleteCb: function(ev) {

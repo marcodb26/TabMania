@@ -98,7 +98,7 @@ _tabGroupEntryToObj: function(groupName, data, pinned) {
 
 _tabsHasPinnedTab: function(tabs) {
 	for(let i = 0; i < tabs.length; i++) {
-		if(tabs[i].pinned) {
+		if(tmUtils.isTabPinned(tabs[i])) {
 			return true;
 		}
 	}

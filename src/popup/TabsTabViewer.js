@@ -351,7 +351,7 @@ _settingsStoreUpdatedCb: function(ev) {
 _setTabProp: function(prop, tabId) {
 	const logHead = "TabsTabViewer::_setTabProp(" + tabId + "): ";
 	if(!(tabId in this._tilesByTabId)) {
-		this._log(logHead + "skipping processing, no tile for this tab");
+		this._log(logHead + "skipping immediate processing, no tile for this tab");
 		return;
 	}
 
@@ -439,7 +439,11 @@ _tabUpdatedCb: function(cbType, tabId, activeChangeRemoveInfo, tab) {
 
 					// First we want to normalize the updated tab (so there are no problems
 					// rendering it in the tile), and replace it in the list, so that search can
-					// find it with the right attributes
+					// find it with the right attributes.
+					// The normalization includes two steps:
+					// - First we extend the tab with pinned bookmark info, if needed
+					// - Then we run the standard NormalizedTabs logic
+					this._extendTabsWithPinnedBookmarks([ tab ], false);
 					this._normTabs.updateTab(tab);
 					// Then update the shortcuts info, if needed
 					settingsStore.getShortcutsManager().updateTabs(this._normTabs.getTabs());
@@ -448,7 +452,7 @@ _tabUpdatedCb: function(cbType, tabId, activeChangeRemoveInfo, tab) {
 					// TabTileViewer.update().
 					this._tilesByTabId[tabId].update(tab);
 				} else {
-					this._log(logHead + "skipping processing, no tile for this tab");
+					this._log(logHead + "skipping immediate processing, no tile for this tab");
 				}
 			}
 			this._queryAndRenderJob.run(this._queryAndRenderDelay);
@@ -514,18 +518,10 @@ _tabUpdatedCb: function(cbType, tabId, activeChangeRemoveInfo, tab) {
 },
 
 _bookmarkUpdatedCb: function(ev) {
-	// In theory we could just call a removeEventListener() when we get out of search
-	// mode, but this code seems harmless enough
-	if(!this.isSearchActive()) {
-		// All the bookmark events can be ignored when not in search mode
-		return;
-	}
-	
-	// The tabs have not changed, but it would be a bit more (code) trouble to try
-	// to only update the info from the _bookmarksFinder, and merge it with the
-	// existing tabs. Maybe one day we'll have time for that optimization, for
-	// now we just pretend the search query has changed...
-	this._updateSearchResultsJob.run(this._updateSearchResultsDelay);
+	// Most bookmarksManager updates are needed only during searches, but if there
+	// is at least one pinned bookmark, all bookmark updates need to monitored
+	// also during non-search tile rendering...
+	this._queryAndRenderJob.run(this._queryAndRenderDelay);
 },
 
 _historyUpdatedCb: function(ev) {
@@ -565,6 +561,93 @@ _tabsAsyncQuery: function() {
 	throw(new Error("must subclass"));
 },
 
+// Add pinned bookmarks to "tabs", but only if a corresponding tab is not present.
+// For pinned bookmarks mapped to one or more tabs (by URL match), we hide the
+// bookmark and show only the tab(s).
+//
+// "addBookmarks" is a flag that controls whether the pinned bookmarks should be
+// appended to "tabs" or not. If not, the caller is only requesting the function
+// to update "tabs" with info taken from the pinned bookmarks. As of right now,
+// the two cases when "addBookmarks" can be "false" are when this.isSearchActive()
+// is true and when we're calling this function from the Chrome.tabs "onUpdate"
+// event handler.
+_extendTabsWithPinnedBookmarks: function(tabs, addBookmarks) {
+	const logHead = "TabsTabViewer::_extendTabsWithPinnedBookmarks(" + addBookmarks + "): ";
+
+	let pinnedBookmarks = bookmarksManager.getPinnedBookmarks();
+
+	if(pinnedBookmarks.length == 0) {
+		this._log(logHead + "no pinned bookmarks");
+		return;
+	}
+
+	this._log(logHead + "processing pinned bookmarks", pinnedBookmarks);
+
+	let bmNodesAdded = [];
+
+	// Note that we need to go through this loop in both standard and search mode,
+	// because in both cases we want to show the "inherited pin" on the regular tab.
+	// On the other hand, in search mode we never want to add the bookmark to the
+	// "tabs", otherwise the bookmark will show up twice (once through here, then
+	// through the standard search mechanism of bookmarksManager.find().
+	for(let i = 0; i < pinnedBookmarks.length; i++) {
+		let bmNode = pinnedBookmarks[i];
+		let tabIdx = tabs.findIndex((tab) => (tab.url == bmNode.url) || (tab.pendingUrl == bmNode.url));
+		if(tabIdx != -1) {
+			let tab = tabs[tabIdx];
+			// Unfortunately we can't add "pinInherited" to tabs[tabIdx].tm, because
+			// ".tm" has yet to be assigned by NormalizedTabs, but we can't wait to
+			// call this function after the call to NormalizedTabs (it would break
+			// at least staging if we added pinned bookmarks later).
+			// It's ok to add "pinInherited" at the top level within "tabs[tabIdx]".
+			tab.pinInherited = {
+				type: "bookmark",
+				id: bmNode.bookmarkId,
+			};
+			// We found a matching tab, skip the bookmark.
+			if(addBookmarks) {
+				// No need to print a message in search mode, in search mode we always
+				// skip all the bmNodes
+				this._log(logHead + "found tab, skipping bookmark", tab, bmNode);
+			}
+			// A little trick here. When a tab loads, initially its title its set to
+			// its URL. Unfortunately that means that from a tile perspective, the tile
+			// of the tab will be sorted to a different location when the user clicks
+			// on the pinned bookmark to activate the tab. So it looks like the tile
+			// disappears for a while, then it comes back, and that is visually ugly.
+			// This little trick forces the "title" of a tab to be the same as the title
+			// of the pinned bookmark while the tab is loading and its title has not been
+			// settled yet. Once the title of the tab settles, we stop overwriting it with
+			// the title of the pinned bookmark. Note that there's no guarantee the tile
+			// will stick in place once you load the tab from the pinned bookmark, because
+			// the title of the pinned bookmark could have been edited by the user, or the
+			// title of the website could have changed since the time the bookmark was saved.
+			//
+			// Note the choice of "tab.url.includes(tab.title)" instead of "tab.url == tab.title",
+			// because when the tab is loading, if the URL is "https://www.google.com/", the
+			// title gets set to "https://www.google.com" without the trailing "/", just
+			// to make life a little more interesting...
+			// Note also that we tried to restrict this logic to 'tab.status == "loading"',
+			// but as it turns out when "tab.status" switches to "complete" the title is
+			// still bogus for a while...
+			if(tab.title == "" || tab.url.includes(tab.title) || tab.title == tab.pendingUrl) {
+				tab.title = bmNode.title;
+			}
+
+			continue;
+		}
+		if(addBookmarks) {
+			// No matching tab and not in search mode, add the bookmark
+			tabs.push(bmNode);
+			bmNodesAdded.push(bmNode);
+		}
+	}
+
+	if(addBookmarks) {
+		this._log(logHead + "pinned bookmarks added:", bmNodesAdded);
+	}
+},
+
 _logCachedTilesStats: function(logHead) {
 	if(this._cachedTilesByTabId == null) {
 		this._log(logHead + "no cache, no stats");
@@ -598,6 +681,10 @@ _queryAndRenderTabs: function() {
 	return this._tabsAsyncQuery().then(
 		function(tabs) {
 			perfProf.mark("queryEnd");
+
+			this._extendTabsWithPinnedBookmarks(tabs, !this.isSearchActive());
+			perfProf.mark("pinnedBookmarksEnd");
+
 			if(window.tmStaging !== undefined) {
 				// This code path should only be entered when staging TabMania to take
 				// screenshots for publishing on the Chrome Web Store. Let's generate
@@ -652,6 +739,7 @@ _queryAndRenderTabs: function() {
 				perfProf.mark("renderEnd");
 				
 				perfProf.measure("Query", "queryStart", "queryEnd");
+				perfProf.measure("Pinned bookmarks", "queryEnd", "pinnedBookmarksEnd");
 				perfProf.measure("Shortcuts", "shortcutsStart", "renderStart");
 				perfProf.measure("Rendering", "renderStart", "renderEnd");
 

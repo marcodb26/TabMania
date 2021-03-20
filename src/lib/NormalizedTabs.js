@@ -41,11 +41,11 @@ compareTabsFn: function(a, b) {
 	// By construction, a group is pinned if the group is explicitly pinned or if
 	// at least one of its tabs is pinned. So not all tabs in a group have to be
 	// pinned, but pinned tabs should always show first. See _tabGroupsToArrays()
-	if(a.pinned && !b.pinned) {
+	if(tmUtils.isTabPinned(a) && !tmUtils.isTabPinned(b)) {
 		return -1;
 	}
 
-	if(b.pinned && !a.pinned) {
+	if(tmUtils.isTabPinned(b) && !tmUtils.isTabPinned(a)) {
 		return 1;
 	}
 
@@ -314,7 +314,7 @@ updateSearchBadges: function(tab) {
 		}
 	}
 
-	if(tab.pinned) {
+	if(tmUtils.isTabPinned(tab)) {
 		this._addNormalizedVisualBadge(tab, "pinned", false);
 	}
 
@@ -461,7 +461,25 @@ _initRecentlyClosedAsTab: function(tab) {
 //
 // "tab" can be either a tab object or a bookmark node object, determined by "objType".
 // "objType" is one of Classes.NormalizedTabs.type, default to Classes.NormalizedTabs.type.TAB
+//
+// For historical reasons, standard tabs can call normalizeTab() on tabs that have already been
+// normalized once before (see TabsTabViewer._queryAndRenderTabs()). It's not clear to me whether
+// that's really necessary, or a separate function "update badges for shortcuts"() would be
+// sufficient instead. Anyway the problem is that we definitely CANNOT call this function more
+// than once for any other "objType", if nothing else because this function changes the "id" field,
+// and changing the id field using an id that's already been changed is not going to work. Plus,
+// there might be other things that break, who knows.
+// Ideally we'd want to fix the issue with standard tabs and always claim this function is
+// "once only" for all "objType", but for lack of time, let's just differentiate by "objType"
+// for now and apply separate rules to standard tabs and other classes of nodes.
 normalizeTab: function(tab, objType) {
+	// If the "tab" already has its objType, then it's already initialized and
+	// we must not call this function for it, except for standard tabs (see comment
+	// just above).
+	if(tab.tm != null && tab.tm.type != null && tab.tm.type != Classes.NormalizedTabs.type.TAB) {
+		return;
+	}
+
 	objType = optionalWithDefault(objType, Classes.NormalizedTabs.type.TAB);
 
 	const logHead = "NormalizedTabs::normalizeTab(): ";

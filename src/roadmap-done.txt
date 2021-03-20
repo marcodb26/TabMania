@@ -202,6 +202,12 @@ DONE 1.2
   * Now only alphanumeric characters (a-z0-9) at the beginning of a title string count
     as title start for sort
 
+- Support pinning bookmarks
+  * If a pinned bookmark is open, show only the open tab, not the bookmark
+  * If the corresponding tab is not pinned, the tab shows the thumbtack icon in gray,
+    to indicate the pinning is inherited from the pinned bookmark
+  * Users can unpin a pinned bookmark from the corresponding open tab
+
 
 DONE 1.1
 

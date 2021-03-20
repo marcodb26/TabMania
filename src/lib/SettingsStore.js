@@ -221,6 +221,11 @@ Classes.SettingsStore = Classes.AsyncBase.subclass({
 	// _pinnedGroups can include labels from custom groupNames or from hostnames
 	_pinnedGroups: null,
 
+	// _pinnedBookmarks includes bookmark IDs. If a bookmark gets deleted, bookmarkManager
+	// should cleanup the stale bookmark IDs the next time the popup runs.
+	// Use the original bookmark ID, not the modified ID with "b" in front.
+	_pinnedBookmarks: null,
+
 	_shortcutsManager: null,
 
 	_eventManager: null,
@@ -259,6 +264,10 @@ _asyncInit: function() {
 	this._pinnedGroups = Classes.PersistentSet.createAs(this._storageKeyPrefix + "pinnedGroups", chrome.storage.sync);
 	promiseArray.push(this._pinnedGroups.getInitPromise());
 	this._pinnedGroups.addEventListener(Classes.EventManager.Events.UPDATED, this._onUpdatedCb.bind(this));
+
+	this._pinnedBookmarks = Classes.PersistentSet.createAs(this._storageKeyPrefix + "pinnedBookmarks", chrome.storage.sync);
+	promiseArray.push(this._pinnedBookmarks.getInitPromise());
+	this._pinnedBookmarks.addEventListener(Classes.EventManager.Events.UPDATED, this._onUpdatedCb.bind(this));
 
 	this._shortcutsManager = Classes.ShortcutsManager.create(this._storageKeyPrefix);
 	promiseArray.push(this._shortcutsManager.getInitPromise());
@@ -397,6 +406,24 @@ pinGroup: function(groupName) {
 
 unpinGroup: function(groupName) {
 	return this._pinnedGroups.del(groupName);
+},
+
+getPinnedBookmarks: function() {
+	this._assert(this.isInitialized());
+	return this._pinnedBookmarks;
+},
+
+// Use the original bookmark ID, not the modified ID with "b" in front
+isBookmarkPinned: function(bmId) {
+	return this._pinnedBookmarks.has(bmId);
+},
+
+pinBookmark: function(bmId) {
+	return this._pinnedBookmarks.add(bmId);
+},
+
+unpinBookmark: function(bmId) {
+	return this._pinnedBookmarks.del(bmId);
 },
 
 getCustomGroupsManager: function() {

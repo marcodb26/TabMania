@@ -526,6 +526,10 @@ _updatedCb: function(ev) {
 
 	this._log(logHead + "processing change", ev.detail);
 
+	// We can't use tmUtils.arrayDiff() because we need a specialized comparison function
+	// below (newNames[nn].localeCompare(oldNames[on])), which can't be configured when
+	// running tmUtils.arrayDiff()
+
 	// We need to do a diff of the names we know vs. the names in settingsStore
 	let newNames = settingsStore.getCustomGroupsManager().getCustomGroupNames().sort();
 	let oldNames = Object.keys(this._customGroupsByName).sort();

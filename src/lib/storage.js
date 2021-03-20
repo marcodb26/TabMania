@@ -6,6 +6,7 @@
 // Properties stored in chrome.storage.sync by this extension:
 //
 // pinnedGroups: the set of pinned groups
+// pinnedBookmarks: the set of pinned bookmarks
 // options: a dictionary of options
 // customGroups: the definition of the custom groups
 // shortcut0[1-5]: the definition of the behavior for the 5 custom

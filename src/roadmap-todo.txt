@@ -24,13 +24,6 @@ TODO 1.2
 	- This "delay -> then" might also be a way to workaround the "loading" status
 	  stuck issue...
 
-- Support pinning bookmarks
-  * If a pinned bookmark is open, show only the open tab, not the bookmark
-  * We should force an opened tab to get automatically pinned, if its bookmark is pinned? Or just query for the match every time?
-  * Do we want an option to let pinned bookmark land automatically in the "bookmark bar"?
-    - But don't use the bookmark bar as storage to know which tabs are pinned...
-	- What happens when a tab gets unpinned? Remove it from hte bookmark bar or leave it alone?
-
 - Add a readable label to ScheduleJob jobs, the current "handleId = 27" is completely
   useless...
 
