@@ -4,13 +4,17 @@
 
 Classes.ScheduledJob = Classes.Base.subclass({
 	_handle: null,
+	_jobName: null,
 	_recurInterval: null,
 
 // The argument "jobFn" is optional, use it only if you don't plan to subclass and
 // override the _job() method
-_init: function(jobFn) {
+// "jobName" is optional, for debugging purposes only.
+_init: function(jobFn, jobName) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.Base._init.call(this);
+
+	this._jobName = optionalWithDefault(jobName, "");
 
 	// We won't call _job() directly, we need to give an opportunity for subclasses to
 	// "rename" the _job() function (Classes.Poller renames it to _poll()).
@@ -61,7 +65,7 @@ run: function(delay) {
 	}
 
 	if(this._handle != null) {
-		this._log(logHead + "already scheduled, handleId = " + this._handle);
+		this._log(logHead + "already scheduled, job name = \"" + this._jobName + "\", handleId = " + this._handle);
 		// To be more accurate (and more aligned to the "delay = 0" behavior), here
 		// we should adjust the delay of the next invocation to the smaller between
 		// "delay", and the amunt of time left from the scheduled invocation.
@@ -85,7 +89,7 @@ start: function(interval, runOnceNow) {
 	const logHead = "ScheduledJob::start(" + interval + "): ";
 
 	if(this._handle != null) {
-		this._err(logHead + "already scheduled, handleId = " + this._handle);
+		this._err(logHead + "already scheduled, job name = \"" + this._jobName + "\", handleId = " + this._handle);
 		return;
 	}
 
@@ -104,7 +108,7 @@ start: function(interval, runOnceNow) {
 stop: function() {
 	const logHead = "ScheduledJob::stop(): ";
 	if(this._handle == null) {
-		this._log(logHead + "not scheduled");
+		this._log(logHead + "not scheduled, job name = \"" + this._jobName + "\", handleId = " + this._handle);
 		return;
 	}
 
@@ -124,7 +128,7 @@ stop: function() {
 skip: function() {
 	const logHead = "ScheduledJob::skip(): ";
 	if(this._handle == null) {
-		this._log(logHead + "not scheduled");
+		this._log(logHead + "not scheduled, job name = \"" + this._jobName + "\", handleId = " + this._handle);
 		return;
 	}
 

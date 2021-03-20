@@ -208,6 +208,9 @@ DONE 1.2
     to indicate the pinning is inherited from the pinned bookmark
   * Users can unpin a pinned bookmark from the corresponding open tab
 
+- Add a readable label to ScheduleJob jobs, the current "handleId = 27" is completely
+  useless...
+
 
 DONE 1.1
 
