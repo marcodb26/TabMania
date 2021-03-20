@@ -69,9 +69,10 @@ append: function(value) {
 },
 
 // Scan the array, and remove all occurrences of a specific value.
-// This function uses Array.indexOf() and can only test for equality. If you need
-// a more complex test, you should use Array.findIndex() instead.
-removeValueOLD: function(value, matchFn) {
+// This function uses Array.indexOf() and can only test for equality of simple types.
+// If you need a more complex test (e.g. for objects), you should use Array.findIndex()
+// instead.
+removeValueOLD: function(value) {
 	var nextIndex = 0;
 
 	// Continue searching from where you left off. Since we delete one element
@@ -84,8 +85,6 @@ removeValueOLD: function(value, matchFn) {
 },
 
 // Scan the array, and remove all occurrences of a specific value.
-// This function uses Array.indexOf() and can only test for equality. If you need
-// a more complex test, you should use Array.findIndex() instead.
 removeValue: function(value, matchFn) {
 	matchFn = optionalWithDefault(matchFn, function(a, b) { return a == b })
 
