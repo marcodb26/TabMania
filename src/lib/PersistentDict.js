@@ -138,7 +138,7 @@ set: function(key, value) {
 
 	// We first need to check if the value has changed, because if a listener to our
 	// _eventManager decides to set the value back here after listening to our own
-	// vent, we might end up in an infinite loop, and we definitely dont want that...
+	// event, we might end up in an infinite loop, and we definitely don't want that...
 	if(tmUtils.isEqual(this._dict[key], value)) {
 		// No change
 		this._log(logHead + "the key has not changed, ignoring call");
@@ -310,6 +310,23 @@ add: function(key) {
 // Override parent class, in case of a Set, we just want to return an array of keys
 getAll: function() {
 	return this.getAllKeys();
+},
+
+setAll: function(keys) {
+	let logHead = "PersistentSet::setAll(): ";
+
+	// Internally, PersistentDict.setAll() checks if the dictionary has changed. It's
+	// a bit expensive to have to create the whole "dict" just to let PersistentDict.setAll()
+	// find it's not changed, but it's better than having to check twice (once here, once
+	// inside PersistentDict.setAll() if there are changes.
+	// Also, tmUtils.isEqual() can validate two dictionaries are same even if the keys are
+	// out of order, but can't do the same for arrays out of order, so let's just make this
+	// check there...
+	let dict = {};
+	for(let i = 0; i < keys.length; i++) {
+		dict[keys[i]] = null;
+	}
+	return Classes.PersistentDict.setAll.call(this, dict);
 },
 
 }); // Classes.PersistentSet
