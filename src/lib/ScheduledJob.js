@@ -49,7 +49,8 @@ _init: function(jobFn, jobName) {
 // If you have a recurring job started with start(), run(0) will still run the job once
 // now, and restart the regular recurrence automatically.
 run: function(delay) {
-	const logHead = "ScheduledJob::run(delay = " + delay + ", now = " + Date.now() + "): ";
+	const logHead = "ScheduledJob::run(delay = " + delay + ", now: " + Date.now() +
+				", job name: \"" + this._jobName + "\", handleId: " + this._handle + "): ";
 
 	// Note that this code is not going to run as intended if the _jobFn() includes
 	// asynchronous elements. In a more robust implementation we'd want the _jobFn()
@@ -65,7 +66,7 @@ run: function(delay) {
 	}
 
 	if(this._handle != null) {
-		this._log(logHead + "already scheduled, job name = \"" + this._jobName + "\", handleId = " + this._handle);
+		this._log(logHead + "already scheduled");
 		// To be more accurate (and more aligned to the "delay = 0" behavior), here
 		// we should adjust the delay of the next invocation to the smaller between
 		// "delay", and the amunt of time left from the scheduled invocation.
@@ -86,32 +87,34 @@ run: function(delay) {
 // wants the job recurrence to start now, or after the first interval has elapsed.
 start: function(interval, runOnceNow) {
 	runOnceNow = optionalWithDefault(runOnceNow, true);
-	const logHead = "ScheduledJob::start(" + interval + "): ";
+	const logHead = "ScheduledJob::start(" + interval + ", job name: \"" + this._jobName + "\", handleId: " + this._handle + "): ";
 
-	if(this._handle != null) {
-		this._err(logHead + "already scheduled, job name = \"" + this._jobName + "\", handleId = " + this._handle);
+	if(this.isRunning()) {
+		this._log(logHead + "already scheduled");
 		return;
 	}
 
-	this._log(logHead + "starting");
+	// The next two variables should be set "atomically", so don't put any unknown
+	// code (that is, _jobFn()) in between, just in case...
+	this._recurInterval = interval;
+	this._handle = this._safeSetInterval(this._jobFn.bind(this), interval);
+
+	this._log(logHead + "started");
 
 	if(runOnceNow) {
 		// Run the job once now, then start the interval-based execution
 		this._jobFn();
 	}
-	// The next two variables should be set "atomically", so don't put any unknown
-	// code (that is, _jobFn()) in between, just in case...
-	this._recurInterval = interval;
-	this._handle = this._safeSetInterval(this._jobFn.bind(this), interval);
 },
 
 stop: function() {
-	const logHead = "ScheduledJob::stop(): ";
-	if(this._handle == null) {
-		this._log(logHead + "not scheduled, job name = \"" + this._jobName + "\", handleId = " + this._handle);
+	const logHead = "ScheduledJob::stop(job name: \"" + this._jobName + "\", handleId: " + this._handle + "): ";
+	if(!this.isRunning()) {
+		this._log(logHead + "not scheduled");
 		return;
 	}
 
+	this._log(logHead + "stopping");
 	if(this._recurInterval == null) {
 		clearInterval(this._handle);
 		this._recurInterval = null;
@@ -126,11 +129,13 @@ stop: function() {
 // caller of skip() might accelerate a run() compared to what was scheduled,
 // then restart business as usual.
 skip: function() {
-	const logHead = "ScheduledJob::skip(): ";
+	const logHead = "ScheduledJob::skip(job name: \"" + this._jobName + "\", handleId: " + this._handle + "): ";
 	if(this._handle == null) {
-		this._log(logHead + "not scheduled, job name = \"" + this._jobName + "\", handleId = " + this._handle);
+		this._log(logHead + "not scheduled");
 		return;
 	}
+
+	this._log(logHead + "skipping");
 
 	let savedRecurInterval = this._recurInterval;
 	this.stop();
