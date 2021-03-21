@@ -356,8 +356,18 @@ _activateSearchCb: function(ev) {
 	}
 
 	if(this._searchActive) {
-		// We're already in search mode, we only need to monitor for "Enter".
-		// _searchBoxInputListenerCb() is responsible to get out of search mode.
+		// We're already in search mode, we only need to:
+		// 1. Make sure that the _searchBoxElem always gets the focus for any keypress
+		//    inside the BsTab
+		// 2. Monitor for "Enter".
+		//    * _searchBoxInputListenerCb() is responsible to get out of search mode.
+
+		// Make sure _searchBoxElem has focus
+		if(document.activeElement !== this._searchBoxElem) {
+			this._searchBoxElem.focus();
+		}
+
+		// Manage "Enter"
 		if(ev.key == "Enter") {
 			this._respondToEnterKey(this._searchBoxElem.value);
 		}

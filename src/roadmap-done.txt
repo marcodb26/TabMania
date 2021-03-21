@@ -238,6 +238,12 @@ DONE 1.2
   * Generic issue happening when an AsyncQueue was getting discarded before processing
     the initial menu constructor
 
+- BUG: when you click a menu or a close button, the searchbox loses focus and doesn't
+  recover it even after the menu/close click is over
+  * Probably related:
+	- BUG: in search mode, when the searchbox is not in focus, CTRL+A should select the full
+	  text of the searchbox, but instead it selects everything on the entire page
+
 
 DONE 1.1
 
