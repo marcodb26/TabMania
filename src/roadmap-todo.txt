@@ -1,5 +1,29 @@
 TODO 1.2
 
+- BUG: when you click a menu or a close button, the searchbox loses focus and doesn't
+  recover it even after the menu/close click is over
+  * Probably related:
+	- BUG: in search mode, when the searchbox is not in focus, CTRL+A should select the full
+	  text of the searchbox, but instead it selects everything on the entire page
+
+- Auto-select-all in searchbox when user clicks the mouse there to edit
+
+- Search: do we need a unary op modifier to select class of tiles? (bookmark, history, recently
+  closed, standard tiles)
+  * We could use hidden search badges for that...
+  * No, we don't need this, badge:bookmark or badge:closed should be enough (we don't have
+    a badge for history because you can't search by class for history)
+
+
+PREP FOR NEXT RELEASE
+
+- Remove all injection code in preparation for release (again)
+
+- Disable Base._assert() for production code
+
+
+PUNTED TO NEXT RELEASE
+
 - Improve performance of this._normTabs.getTabByTabId()
   * We should add a side dictionary structure to get tabId
     - We should not always have to do linear searches...
@@ -30,30 +54,6 @@ TODO 1.2
 
 - Search: how does the new multi-token model work with history?
   * Do we need the simplified query string (purged of operators?) to pass to HistoryFinder?
-
-- BUG: when you click a menu or a close button, the searchbox loses focus and doesn't
-  recover it even after the menu/close click is over
-  * Probably related:
-	- BUG: in search mode, when the searchbox is not in focus, CTRL+A should select the full
-	  text of the searchbox, but instead it selects everything on the entire page
-
-- Auto-select-all in searchbox when user clicks the mouse there to edit
-
-- Search: do we need a unary op modifier to select class of tiles? (bookmark, history, recently
-  closed, standard tiles)
-  * We could use hidden search badges for that...
-  * No, we don't need this, badge:bookmark or badge:closed should be enough (we don't have
-    a badge for history because you can't search by class for history)
-
-
-PREP FOR NEXT RELEASE
-
-- Remove all injection code in preparation for release (again)
-
-- Disable Base._assert() for production code
-
-
-PUNTED TO NEXT RELEASE
 
 - Do we need to support search as a textarea instead of an input box?
 
