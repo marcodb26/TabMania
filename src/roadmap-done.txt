@@ -232,6 +232,12 @@ DONE 1.2
         0.5s was enough, during a reload of Yahoo Mail 5s was not enough
         - But in both cases, you'd see a transition to "complete", then back to "loading"
 
+- BUG: when closing a tab from a pinned bookmark, the pinned bookmark shows up
+  instead of the tab, but its dropdown menu remains hidden (hovering doesn't show
+  the dropdown toggle)
+  * Generic issue happening when an AsyncQueue was getting discarded before processing
+    the initial menu constructor
+
 
 DONE 1.1
 

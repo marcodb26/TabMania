@@ -3,10 +3,6 @@ TODO 1.2
 - Improve performance of this._normTabs.getTabByTabId()
   * We should add a side dictionary structure to get tabId
     - We should not always have to do linear searches...
- 
-- BUG: when closing a tab from a pinned bookmark, the pinned bookmark shows up
-  instead of the tab, but its dropdown menu remains hidden (hovering doesn't show
-  the dropdown toggle)
 
 - Toggle window open/minimized when clicking a tab tile
 
@@ -17,8 +13,6 @@ TODO 1.2
 - Render contents of dropdown menus only when they hover visible
   * Or even when the user clicks the hovered button?
   * Or when she hovers on the dropdown button itself (but before clicking)
-
-- BUG: dropdown menu for bookmarks disappeared???
 
 - Continue testing with search query: site:mail.google.com and ---inurl:site:google.com or site:amazon.com
 
@@ -66,9 +60,6 @@ PUNTED TO NEXT RELEASE
 - BUG: If searchbox has too much text and ends with a whitespace, when you move the
   cursor to the end of the string (after the last whitespace), the cursor disappears
   * No way to play with margins because of the "::after" element for the "x"
-
-- BUG: after suspending and searching "suspended", some tiles lost their dropdown menu
-  * Probably some race condition discarding AsyncQueue before it finished rendering the menu
 
 - BUG: while testing production, "Open in least tabbed window" chose a window with
   more tabs than the one where the parent tab was

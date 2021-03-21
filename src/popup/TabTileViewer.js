@@ -159,8 +159,8 @@ _renderMenu: function() {
 		return;
 	}
 
-	this._asyncQueue.enqueue(this._renderMenuInner.bind(this),
-			"TabTileViewer::_renderMenu(tile " + this._id + ")",
+	const logHead = "TabTileViewer::_renderMenu(tile " + this._id + "): ";
+	this._asyncQueue.enqueue(this._renderMenuInner.bind(this), logHead,
 			// Use low priority queue for the menu, as it's not immediately visible
 			Classes.AsyncQueue.priority.LOW); 
 },
@@ -173,6 +173,16 @@ _updateMenu: function() {
 			"TabTileViewer::_updateMenu(tile " + this._id + ")",
 			// Use low priority queue for the menu, as it's not immediately visible
 			Classes.AsyncQueue.priority.LOW); 
+},
+
+_processMenuViewer: function() {
+	if(this._menuViewer == null) {
+		// The menu doesn't exist, create it
+		this._renderMenu();
+	} else {
+		// The menu already exists, update it
+		this._updateMenu();
+	}
 },
 
 _favIconLoadErrorCb: function(ev) {
@@ -314,13 +324,7 @@ _renderBodyInner: function() {
 
 	// The _menuViewer is not in the body of the tile, but its destiny is parallel
 	// to that of the body of the tile...
-	if(this._menuViewer == null) {
-		// The menu doesn't exist, create it
-		this._renderMenu();
-	} else {
-		// The menu already exists, update it
-		this._updateMenu();
-	}
+	this._processMenuViewer();
 },
 
 // Returns a Promise that can be then() with a function(metaTags), where
@@ -597,6 +601,7 @@ update: function(tab, tabGroup, queuePriority) {
 //	if(this._tab.id > 1952) {
 //		this._log(logHead + "rendering state:", this._renderState);
 //	}
+
 	if(!this._renderBodyCompleted) {
 		// The render could be incomplete because it never happened, or because it was
 		// scheduled to happen, but the AsyncQueue got discarded before it could be done
@@ -629,7 +634,7 @@ update: function(tab, tabGroup, queuePriority) {
 	// won't get here if it's "false")
 	this._assert(pastRenderState != null);
 	if(tmUtils.isEqual(pastRenderState, this._renderState)) {
-		this._updateMenu();
+		this._processMenuViewer();
 		// Returning "false" here tells the caller only about the state of the tile
 		// being unchanged, not about the state of the menu being unchanged.
 		return false;
