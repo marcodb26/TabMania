@@ -156,6 +156,11 @@ Classes.TabsTabViewer = Classes.SearchableTabViewer.subclass({
 
 	_searchQuery: null,
 
+	// This is a recurring job. We start it when we do a full refresh, and we stop it when
+	// we get to zero tabs in status "loading"
+	_issue01WorkaroundJob: null,
+	_issue01WorkaroundInterval: 5000,
+
 	_queryAndRenderJob: null,
 	// Delay before a full re-render happens. Use this to avoid causing too many re-renders
 	// if there are too many events.
@@ -186,8 +191,9 @@ Classes.TabsTabViewer = Classes.SearchableTabViewer.subclass({
 	// Object containing all current known tabs
 	_normTabs: null,
 
-	_bookmarksFinder: null,
 	_historyFinder: null,
+
+	_stats: null,
 
 _init: function(tabLabelHtml) {
 	// Overriding the parent class' _init(), but calling that original function first
@@ -199,14 +205,17 @@ _init: function(tabLabelHtml) {
 	this._assert(this._expandedGroups != null,
 				logHead + "subclasses must define _expandedGroups");
 
-	this._queryAndRenderJob = Classes.ScheduledJob.create(this._queryAndRenderTabs.bind(this));
+	this._resetStats();
+
+	this._issue01WorkaroundJob = Classes.ScheduledJob.create(this._issue01Workaround.bind(this), "issue01Workaround");
+	this._issue01WorkaroundJob.debug();
+
+	this._queryAndRenderJob = Classes.ScheduledJob.create(this._queryAndRenderTabs.bind(this), "queryAndRender");
 	this._queryAndRenderJob.debug();
 
-	this._updateSearchResultsJob = Classes.ScheduledJob.create(this._updateSearchResults.bind(this));
+	this._updateSearchResultsJob = Classes.ScheduledJob.create(this._updateSearchResults.bind(this), "updateSearchResults");
 	this._updateSearchResultsJob.debug();
 
-	this._bookmarksFinder = Classes.BookmarksFinder.create();
-//	this._bookmarksFinder.addEventListener(Classes.EventManager.Events.UPDATED, this._bookmarkUpdatedCb.bind(this));
 	bookmarksManager.addEventListener(Classes.EventManager.Events.UPDATED, this._bookmarkUpdatedCb.bind(this));
 
 	this._historyFinder = Classes.HistoryFinder.create();
@@ -221,6 +230,12 @@ _init: function(tabLabelHtml) {
 	this._registerChromeCallbacks();
 
 	settingsStore.addEventListener(Classes.EventManager.Events.UPDATED, this._settingsStoreUpdatedCb.bind(this));
+},
+
+_resetStats: function() {
+	this._stats = {
+		issue01Hit: 0,
+	};
 },
 
 // These Chrome callbacks are very incomplete, and the only reasonable action to take
@@ -373,6 +388,108 @@ _setTabProp: function(prop, tabId) {
 	this._tilesByTabId[tabId].update(tab);
 },
 
+// Sometimes opening a new tab or reloading a tab causes the tab to stay in "loading"
+// status until some other event in the future triggers a full refresh.
+// During pinned bookmark testing we saw this sequence pretty consistently:
+// - UPDATE1: changeInfo: status = complete (and indeed the tab data shows that)
+// - UPDATE2: changeInfo: title = xyz (but the tab data show status = "loading",
+//   though status is not listed in changeInfo)
+// - chrome.tabs.get() triggered by UPDATE2: if done too soon after UPDATE2,
+//   the query says that status = "loading", while if you wait a little longer,
+//   it says that status = "complete"
+//   * Not clear what's the right amount of time we should wait, for some websites
+//     0.5s was enough, during a reload of Yahoo Mail 5s was not enough
+//     - But in both cases, you'd see a transition to "complete", then back to "loading"
+// The timing and sequencing is not fixed, most of the time the "complete" event
+// arrived before the "title" event, sometimes (not very often, and only when adding
+// code and chaing the timing of the sequence) we've seen them arrive in reverse order,
+// making "loading" go away appropriately.
+//
+// Decided to implement an ugly workaround: whenever we start a new full refresh cycle
+// we start a monitoring job running the function below. NormalizedTabs tracks which
+// tabs are in status "loading" when they get normalized, then this function calls
+// chrome.tabs.get() on each one of the loading tabs, and if at least one of them has
+// changed status, it triggers a full refresh again. We don't try to update the tab
+// and tile directly from this function, because who knows what has changed overall,
+// the function just monitors status. Note that the function is not guaranteed to be
+// catching only the bad case we're working around: in some cases it might just see
+// a status change before we had time to process the event that carried that information.
+// So don't take this._stats.issue01Hit too literally...
+_issue01Workaround: function() {
+	const logHead = "TabsTabViewer::_issue01Workaround(): ";
+
+	if(this._normTabs == null) {
+		this._log(logHead + "no _normTabs");
+		return;
+	}
+
+	let tabsLoading = this._normTabs.getTabsLoading();
+	let tabIdList = Object.keys(tabsLoading);
+
+	if(tabIdList.length == 0) {
+		this._log(logHead + "no tabs in \"loading\" status, nothing to do, stopping job");
+		this._issue01WorkaroundJob.stop();
+		return;
+	}
+
+	this._log(logHead + "checking " + tabIdList.length + " tabs in \"loading\" status", tabsLoading);
+
+	let tabPromises = new Array(tabIdList.length);
+	for(let i = 0; i < tabIdList.length; i++) {
+		// Note that we need to turn "tabIdList[i]" (a string) into an integer
+		tabPromises[i] = chromeUtils.wrap(chrome.tabs.get, logHead, +tabIdList[i]);
+	}
+
+	Promise.all(tabPromises).then(
+		function(tabs) {
+			this._log(logHead + "got these results:", tabs);
+			for(let i = 0; i < tabs.length; i++) {
+				let tab = tabs[i];
+				if(tab == null) {
+					this._log(logHead + "at least one tab disappeared, refreshing all", tab);
+					this._stats.issue01Hit++;
+					this._queryAndRenderJob.run(this._queryAndRenderDelay);
+					return;
+				}
+				if(tab.status != "loading") {
+					this._log(logHead + "at least one tab has changed status, refreshing all", tab);
+					this._stats.issue01Hit++;
+					this._queryAndRenderJob.run(this._queryAndRenderDelay);
+					return;
+				}
+				this._log(logHead + "all tabs are still in \"loading\" status");
+			}
+		}.bind(this)
+	);
+},
+
+_immediateTabUpdate: function(tabId, tab) {
+	const logHead = "TabsTabViewer::_immediateTabUpdate(" + tabId + "): ";
+
+	if(tabId in this._tilesByTabId) {
+		// Note that only "Classes.TabsTabViewer.CbType.UPDATED" includes "tab".
+		// All other types don't.
+		// Anyway TabTileViewer.update() is protected against "tab == null".
+
+		// First we want to normalize the updated tab (so there are no problems
+		// rendering it in the tile), and replace it in the list, so that search can
+		// find it with the right attributes.
+		// The normalization includes two steps:
+		// - First we extend the tab with pinned bookmark info, if needed
+		// - Then we run the standard NormalizedTabs logic
+		this._extendTabsWithPinnedBookmarks([ tab ], false);
+		this._normTabs.updateTab(tab);
+		// Then update the shortcuts info, if needed
+		settingsStore.getShortcutsManager().updateTabs(this._normTabs.getTabs());
+		// Then we update the tile with the normalized info in place.
+		// See also _setTabProp() for other considerations about calling
+		// TabTileViewer.update().
+		this._tilesByTabId[tabId].update(tab);
+	} else {
+		this._log(logHead + "skipping immediate processing, no tile for this tab");
+	}
+},
+
 _tabUpdatedCb: function(cbType, tabId, activeChangeRemoveInfo, tab) {
 	const logHead = "TabsTabViewer::_tabUpdatedCb(" + cbType + ", " + tabId + "): ";
 
@@ -432,28 +549,7 @@ _tabUpdatedCb: function(cbType, tabId, activeChangeRemoveInfo, tab) {
 			// and just wait for the follwing update to arrive (that's a case where we
 			// won't have the tile in place when the update arrives).
 			if(this._queryAndRenderDelay != null && this._queryAndRenderDelay != 0) {
-				if(tabId in this._tilesByTabId) {
-					// Note that only "Classes.TabsTabViewer.CbType.UPDATED" includes "tab".
-					// All other types don't.
-					// Anyway TabTileViewer.update() is protected against "tab == null".
-
-					// First we want to normalize the updated tab (so there are no problems
-					// rendering it in the tile), and replace it in the list, so that search can
-					// find it with the right attributes.
-					// The normalization includes two steps:
-					// - First we extend the tab with pinned bookmark info, if needed
-					// - Then we run the standard NormalizedTabs logic
-					this._extendTabsWithPinnedBookmarks([ tab ], false);
-					this._normTabs.updateTab(tab);
-					// Then update the shortcuts info, if needed
-					settingsStore.getShortcutsManager().updateTabs(this._normTabs.getTabs());
-					// Then we update the tile with the normalized info in place.
-					// See also _setTabProp() for other considerations about calling
-					// TabTileViewer.update().
-					this._tilesByTabId[tabId].update(tab);
-				} else {
-					this._log(logHead + "skipping immediate processing, no tile for this tab");
-				}
+				this._immediateTabUpdate(tabId, tab);
 			}
 			this._queryAndRenderJob.run(this._queryAndRenderDelay);
 			break;
@@ -699,6 +795,7 @@ _queryAndRenderTabs: function() {
 			this._log(logHead + "tabs received, processing");
 			this._prepareForNewCycle();
 
+			this._issue01WorkaroundJob.start(this._issue01WorkaroundInterval, false);
 			try {
 				// Normalize the incoming tabs. Note that the normalization
 				// and sorting happens in place in "tabs", so after create()
@@ -1117,7 +1214,6 @@ _searchRenderTabs: function(tabs, newSearch) {
 		// don't support search, but there's only a maximum of 25 of them, so we can just
 		// scoop them all up and pretend they were always together with the standard tabs
 		this._historyFinder._getRecentlyClosedTabs(),
-//		this._bookmarksFinder.find(this._searchQuery),
 		bookmarksManager.find(this._searchQuery),
 		this._historyFinder.find(this._searchQuery),
 	]).then(

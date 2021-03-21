@@ -15,10 +15,15 @@ Classes.NormalizedTabs = Classes.Base.subclass({
 
 	_tabs: null,
 
+	// "_tabsLoading" is a dictionary of all tabs in status "loading", keyed by tab ID
+	_tabsLoading: null,
+
 _init: function(tabs) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.Base._init.call(this);
 	this._tabs = optionalWithDefault(tabs, []);
+	this._tabsLoading = {};
+
 	this.debug();
 
 	this.normalizeAll();
@@ -623,15 +628,19 @@ normalizeTab: function(tab, objType) {
 // Call this function if you need a full refresh of all search/shortcut badges due
 // to a configuration change
 normalizeAll: function() {
+	const logHead = "NormalizedTabs::normalizeAll(): ";
 	perfProf.mark("normalizeStart");
-	this._tabs.forEach(
-		// Don't just pass "this.normalizeTab.bind(this)", because forEach adds extra
-		// arguments after the "tab" argument, and they conflict with the "objType"
-		// of normalizeTab.
-		function(tab) {
-			this.normalizeTab(tab);
-		}.bind(this)
-	);
+
+	this._tabsLoading = {};
+
+	for(let i = 0; i < this._tabs.length; i++) {
+		let tab = this._tabs[i];
+		this.normalizeTab(tab);
+		if(tab.status == "loading") {
+			this._log(logHead + "found tab in loading status", tab);
+			this._tabsLoading[tab.id] = tab;
+		}
+	}
 	perfProf.mark("normalizeEnd");
 	perfProf.measure("Normalize", "normalizeStart", "normalizeEnd");
 },
@@ -677,7 +686,17 @@ getTabByTabIndex: function(tabIdx) {
 // if you already know it because you called getTabIndexByTabId() before,
 // and avoid another linear search again in this function.
 updateTab: function(newTab, tabIdx) {
+	const logHead = "NormalizedTabs:: updatetab(): ";
 	this.normalizeTab(newTab);
+
+	if(newTab.status == "loading") {
+		this._log(logHead + "found tab in loading status", newTab);
+		this._tabsLoading[newTab.id] = newTab;
+	} else {
+		if(newTab.id in this._tabsLoading) {
+			delete this._tabsLoading[newTab.id];
+		}
+	}
 
 	tabIdx = optionalWithDefault(tabIdx, this.getTabIndexByTabId(newTab.id));
 
@@ -688,6 +707,11 @@ updateTab: function(newTab, tabIdx) {
 		// Replace current entry with new info
 		this._tabs[tabIdx] = newTab;
 	}
+},
+
+// Returns a dictionary of tabs with status == "loading", keyed by tab ID
+getTabsLoading: function() {
+	return this._tabsLoading;
 },
 
 }); // Classes.NormalizedTabs

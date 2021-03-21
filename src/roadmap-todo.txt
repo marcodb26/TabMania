@@ -1,48 +1,12 @@
 TODO 1.2
 
-- BUG: when opening a tab from a pinned bookmark, the opened tab shows "loading"
-  forever (until a future event causes a re-render)
-  * Not sure how this happens, we do a couple of re-renders during the loading of
-    the tab, but somehow they report status "loading", even after an event that
-	says status "complete"
-  * Note that this might be unrelated from pinned bookmarks, it's just very visible
-    with pinned bookmarks
-  * UPDATE: after some further testing, this seems to be a timing issue: if you delay
-    the full re-render by 500ms instead of our current 200ms, the problem seems to
-	go away
-	- It looks like chrome.tabs.query() needs a bit of time to get updated, but it's
-	  a strange sequence:
-	  * UPDATE1: changeInfo: status = complete (and indeed the tab data shows that)
-	  * UPDATE2: changeInfo: title = xyz (but the tab data show status = "loading",
-	    though status is not listed in changeInfo)
-	  * chrome.tabs.query() triggered by UPDATE2: if it happens too quickly, the query
-	    says that status = "loading", while if you wait a little longer, it says that
-		status = "complete"
-		- The problem might also be that UPDATE1 and UPDATE2 are too close to one another,
-		  so if the ScheduledJob for UPDATE1 is still pending when UPDATE2 is received,
-		  chrome.tabs.query() might get called right after UPDATE2, not 200ms later...
-		  So, 200ms might be enough, but we might not be getting to 200ms after UPDATE2.
-		  Regardless, UPDATE2 shuld not change status like that
-
-- CHROME BUG: When we receive chrome.tabs.onUpdated, we should only trust the "changeInfo",
-  not the "tab" argument (last argument)
-  * When a page is (re)loaded, we get a "status: complete" event, then we get a "title: xyz"
-    event, but in the second event the "status" is back to "loading"
-
+- Improve performance of this._normTabs.getTabByTabId()
+  * We should add a side dictionary structure to get tabId
+    - We should not always have to do linear searches...
+ 
 - BUG: when closing a tab from a pinned bookmark, the pinned bookmark shows up
   instead of the tab, but its dropdown menu remains hidden (hovering doesn't show
   the dropdown toggle)
-
-- When loading a pinned bookmark, the tab starts with "title" set to the URL being
-  loaded, causing the tile to move to a different location
-  * Should we force the title of the tab to be the same as the title of the bookmark
-    for the first few seconds after the tab exists?
-	- We can do that easily in TabsTabViewer._extendTabsWithPinnedBookmarks()
-	- This "delay -> then" might also be a way to workaround the "loading" status
-	  stuck issue...
-
-- Add a readable label to ScheduleJob jobs, the current "handleId = 27" is completely
-  useless...
 
 - Toggle window open/minimized when clicking a tab tile
 

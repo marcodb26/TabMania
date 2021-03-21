@@ -207,9 +207,30 @@ DONE 1.2
   * If the corresponding tab is not pinned, the tab shows the thumbtack icon in gray,
     to indicate the pinning is inherited from the pinned bookmark
   * Users can unpin a pinned bookmark from the corresponding open tab
+  * While loading a tab associated to a pinned bookmark, we overwrite the placeholder
+    title added by Chrome (uses the URL as title) while waiting for the tab to load,
+	and set the title to the title of the bookmark we know
+	- This makes the tile tansition smoothly from the bookmark to the tab, without
+	  the tile dancing around the TabMania popup too much (if we let the title change
+	  temporarily to the title of the URL, the sorting of the tile would change, and
+	  therefore the tile would move elsewhere)
 
 - Add a readable label to ScheduleJob jobs, the current "handleId = 27" is completely
   useless...
+
+- Implemented workaround to address the following Chrome bug:
+  * Sometimes opening a new tab or reloading a tab causes the tab to stay in "loading"
+    status until some other event in the future triggers a full refresh.
+    During pinned bookmark testing we saw this sequence pretty consistently:
+    - UPDATE1: changeInfo: status = complete (and indeed the tab data shows that)
+    - UPDATE2: changeInfo: title = xyz (but the tab data show status = "loading",
+      though status is not listed in changeInfo)
+    - chrome.tabs.get() triggered by UPDATE2: if done too soon after UPDATE2,
+      the query says that status = "loading", while if you wait a little longer,
+      it says that status = "complete"
+      * Not clear what's the right amount of time we should wait, for some websites
+        0.5s was enough, during a reload of Yahoo Mail 5s was not enough
+        - But in both cases, you'd see a transition to "complete", then back to "loading"
 
 
 DONE 1.1
