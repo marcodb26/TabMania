@@ -2,12 +2,6 @@ TODO 1.2
 
 - Auto-select-all in searchbox when user clicks the mouse there to edit
 
-- Search: do we need a unary op modifier to select class of tiles? (bookmark, history, recently
-  closed, standard tiles)
-  * We could use hidden search badges for that...
-  * No, we don't need this, badge:bookmark or badge:closed should be enough (we don't have
-    a badge for history because you can't search by class for history)
-
 
 PREP FOR NEXT RELEASE
 
