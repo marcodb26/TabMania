@@ -347,6 +347,10 @@ updateBookmarkBadges: function(tab) {
 		this._addNormalizedVisualBadge(tab, tab.tm.customGroupName, false);
 	}
 
+	if(tmUtils.isTabPinned(tab)) {
+		this._addNormalizedVisualBadge(tab, "pinned", false);
+	}
+
 	// We always want this to appear last, if the user configured it to be visible
 	this._addNormalizedVisualBadge(tab, tab.tm.extId, settingsStore.getOptionShowTabId());
 },

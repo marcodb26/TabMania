@@ -247,6 +247,9 @@ DONE 1.2
 - BUG: pinned bookmarks show up twice in search result at the beginning of a search
   * Then the duplicate disappears as soon as the first full refresh is done while in search mode
 
+- BUG: pinned bookmarks can't be found with search query "badge:pinned"
+  * Forgot to add the "pinned" search badge for pinned bookmarks
+
 
 DONE 1.1
 
