@@ -477,7 +477,7 @@ _immediateTabUpdate: function(tabId, tab) {
 		// The normalization includes two steps:
 		// - First we extend the tab with pinned bookmark info, if needed
 		// - Then we run the standard NormalizedTabs logic
-		this._extendTabsWithPinnedBookmarks([ tab ], false);
+		this._processPinnedBookmarks([ tab ], false);
 		this._normTabs.updateTab(tab);
 		// Then update the shortcuts info, if needed
 		settingsStore.getShortcutsManager().updateTabs(this._normTabs.getTabs());
@@ -657,29 +657,35 @@ _tabsAsyncQuery: function() {
 	throw(new Error("must subclass"));
 },
 
-// Add pinned bookmarks to "tabs", but only if a corresponding tab is not present.
-// For pinned bookmarks mapped to one or more tabs (by URL match), we hide the
-// bookmark and show only the tab(s).
+// Add pinInheritance information to tabs that are mapped to pinned bookmarks,
+// and possibly clean up the title of the tab when necessary (see inside the
+// function for details).
+// Optionally (controlled by "returnBookmarks"), also return pinned bookmarks,
+// filtering out those that have a corresponding tab present. For pinned bookmarks
+// mapped to one or more tabs (by URL match), we hide the bookmark and show only
+// the tab(s).
 //
-// "addBookmarks" is a flag that controls whether the pinned bookmarks should be
-// appended to "tabs" or not. If not, the caller is only requesting the function
-// to update "tabs" with info taken from the pinned bookmarks. As of right now,
-// the two cases when "addBookmarks" can be "false" are when this.isSearchActive()
-// is true and when we're calling this function from the Chrome.tabs "onUpdate"
-// event handler.
-_extendTabsWithPinnedBookmarks: function(tabs, addBookmarks) {
-	const logHead = "TabsTabViewer::_extendTabsWithPinnedBookmarks(" + addBookmarks + "): ";
+// As of right now, the two cases when "returnBookmarks" can be "false" are when
+// this.isSearchActive() is true and when we're calling this function from the
+// Chrome.tabs "onUpdate" event handler.
+//
+// Note that "returnBookmarks" is not an optional parameter, but if you set it
+// to false, the function always returns an empty array.
+//
+// "returnBookmarks" might be a very silly optimization, it only saves a bunch
+// of push() calls...
+_processPinnedBookmarks: function(tabs, returnBookmarks) {
+	const logHead = "TabsTabViewer::_processPinnedBookmarks(" + returnBookmarks + "): ";
 
 	let pinnedBookmarks = bookmarksManager.getPinnedBookmarks();
+	let filteredPinnedBookmarks = [];
 
 	if(pinnedBookmarks.length == 0) {
 		this._log(logHead + "no pinned bookmarks");
-		return;
+		return [];
 	}
 
 	this._log(logHead + "processing pinned bookmarks", pinnedBookmarks);
-
-	let bmNodesAdded = [];
 
 	// Note that we need to go through this loop in both standard and search mode,
 	// because in both cases we want to show the "inherited pin" on the regular tab.
@@ -701,7 +707,7 @@ _extendTabsWithPinnedBookmarks: function(tabs, addBookmarks) {
 				id: bmNode.bookmarkId,
 			};
 			// We found a matching tab, skip the bookmark.
-			if(addBookmarks) {
+			if(returnBookmarks) {
 				// No need to print a message in search mode, in search mode we always
 				// skip all the bmNodes
 				this._log(logHead + "found tab, skipping bookmark", tab, bmNode);
@@ -732,16 +738,16 @@ _extendTabsWithPinnedBookmarks: function(tabs, addBookmarks) {
 
 			continue;
 		}
-		if(addBookmarks) {
+		if(returnBookmarks) {
 			// No matching tab and not in search mode, add the bookmark
-			tabs.push(bmNode);
-			bmNodesAdded.push(bmNode);
+			filteredPinnedBookmarks.push(bmNode);
 		}
 	}
 
-	if(addBookmarks) {
-		this._log(logHead + "pinned bookmarks added:", bmNodesAdded);
+	if(returnBookmarks) {
+		this._log(logHead + "pinned bookmarks added:", filteredPinnedBookmarks);
 	}
+	return filteredPinnedBookmarks;
 },
 
 _logCachedTilesStats: function(logHead) {
@@ -778,7 +784,7 @@ _queryAndRenderTabs: function() {
 		function(tabs) {
 			perfProf.mark("queryEnd");
 
-			this._extendTabsWithPinnedBookmarks(tabs, !this.isSearchActive());
+			let pinnedBookmarks = this._processPinnedBookmarks(tabs, !this.isSearchActive());
 			perfProf.mark("pinnedBookmarksEnd");
 
 			if(window.tmStaging !== undefined) {
@@ -801,6 +807,9 @@ _queryAndRenderTabs: function() {
 				// and sorting happens in place in "tabs", so after create()
 				// we can just ignore the "normTabs" object... but to be
 				// good future-proof citizens, let's call the right interface...
+				//
+				// "pinnedBookmarks" are already fully normalized by bookmarksManager,
+				// no reason for them to be normalized again.
 				this._normTabs = Classes.NormalizedTabs.create(tabs);
 
 				perfProf.mark("shortcutsStart");
@@ -832,7 +841,15 @@ _queryAndRenderTabs: function() {
 				this._normTabs.normalizeAll();
 
 				perfProf.mark("renderStart");
-				this._renderTabs(this._normTabs.getTabs());
+				// Never merge "pinnedBookmarks within the tabs managed by this._normTabs,
+				// because if you do, when search starts the pinned bookmarks might show
+				// up twice. "pinnedBookmarks" are an empty array in search mode, but when
+				// starting a search we blindly take whatever is in ths._normTabs from when
+				// we were in standard mode (because we assume that starting a search doesn't
+				// change the tabs, so no need to trigger another full query). By concatenating
+				// the "pinnedBookmarks" only when calling _renderTabs() we're safe from
+				// that potential problem.
+				this._renderTabs(this._normTabs.getTabs().concat(pinnedBookmarks));
 				perfProf.mark("renderEnd");
 				
 				perfProf.measure("Query", "queryStart", "queryEnd");

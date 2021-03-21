@@ -244,6 +244,9 @@ DONE 1.2
 	- BUG: in search mode, when the searchbox is not in focus, CTRL+A should select the full
 	  text of the searchbox, but instead it selects everything on the entire page
 
+- BUG: pinned bookmarks show up twice in search result at the beginning of a search
+  * Then the duplicate disappears as soon as the first full refresh is done while in search mode
+
 
 DONE 1.1
 
