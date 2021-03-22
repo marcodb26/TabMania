@@ -5,39 +5,84 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 # [Unreleased]
 ## Added
 - Added `tmUtils.showTabInfo(<tabId>)` for debugging from the Chrome dev tools console
-
-- Added support for "Search tabs with TabMania" as context menu and shortcuts option
-  * Use keyword "tabmania" (case insensitive) in the _Hostname or URL_ field of a shortcut
-    to enable this functionality in a shortcut
+- Added support for "Search tabs with TabMania" as "selection" context menu and shortcuts option
+  * For the "selection" context menu, select text to see the menu
+  * For the shortcut, use keyword "tabmania" (case insensitive) in the _Hostname or URL_ field
+    of a shortcut to enable this functionality with text from the clipboard
 	- All other fields of the shortcut definition are ignored
-
-- Added debug function tmUtils.showSearchParserInfo() to monitor how SearchQuery is interpreting
-  the user input in the serch, and to show some search statistics
-
-## Changed
-- Replaced search mode parser, the new parser is trying to match the syntax used by
-  google search (case insensitive)
+- Added search parser matching the syntax used by google search (case insensitive)
   * Support for `AND` and `OR` binary operators
     - `AND` has precedence over `OR`
   * Multiple tokens separated by spaces are considered having implicit `AND` in between
   * Support for unary operators
     - Boolean unary operator `-` to indicate exclusion/negation
-	  * Replaces the `!` we used before
-	- Unary search modifiers `site:` (search only hostname), `intitle:`, `inurl:`, `inbadge:`,
-      `ingroup:` (searches only custom group labels assigned to a tab)
+	- Unary search modifiers `site:` (search only hostname), `intitle:`, `inurl:`, `badge:`,
+      `group:` (searches only custom group labels assigned to a tab), and `folder:`
 	- The text affected by the unary operators must be attached to the unary operators,
 	  no whitespaces allowed
 	- Unary operators can be concatenated/nested, only the innermost search modifier takes
 	  effect, while one or more `-` always work regardless of other modifiers
+  * Support for regular expressions as tokens prefixed with `r:`
   * Use quotes (single or double) to indicate exact match (or to escape all operators `"AND"`,
     `"OR"`, etc.)
   * Use `\` to escape quotes, `-` and `:` (and of course to escape `\` too) (not sure if Google
     does this)
-  * The v.1.1 operator `^` (for "starts with") is not supported anymore
-- Removed _Close_ button and _Delete_ menu item for bookmarks marked unmodifiable
+  * The new search performs basic optimizations for search evaluation
+    - Identification and pruning of some tautologies and contradictions
+    - Use of C-style "short-circuiting behavior" during evaluation (only evaluate what's
+	  strictly needed)
+	- Merge all `OR` operands to a regex
+  for binary operators (if the left operand is enough to determine truth value, don't
+  evaluate the right operand)
+- Added new [document describing the new search capabilities](docs/README-search.md) in details
+- Added new overlay text area to display messages in the popup
+  * Appears at the top of the _Home_ tab, only when there's a message to display
+  * Initially only used to report syntax errors in regular expressions from the search box
+- Added debug function `tmUtils.showSearchParserInfo()` to monitor how SearchQuery is interpreting
+  the user input in the serch, and to show some search statistics
+- Added new BookmarksManager class to replace BookmarksFinder
+  * `chrome.bookmarks.search()` was inadequate to support our new search needs
+- Added support for bookmarks pinning
+  * Pinned bookmarks appear in standard mode (regular bookmarks appear only in search mode)
+  * If there's a tab open matching a pinned bookmark, show only the open tab, not the bookmark
+	- If the tab is not itself pinned, the tab shows the thumbtack icon in gray,
+      to indicate the pinning is inherited from the pinned bookmark
+    - Users can unpin a pinned bookmark from the corresponding open tab
+- Added support for bookmarks marked unmodifiable
+  * Removed _Close_ button and _Delete_ menu item for bookmarks marked unmodifiable
+- Now showing _dateAdded_ for bookmarks in dropdown details
+- Added to bookmarks the hidden search badge `bookmark`
+- Tab title normalization taking special actions for open tabs representing pages of
+  _Chrome Bookmark manager_ (e.g. `chrome://bookmarks/?id=686`)
+  * Added the folder path to the title of the tile
+    - The original page title only says _Bookmarks_ (not very informative if you have more than
+	  one such pages opened in different folders)
+
+## Changed
+- Updated uglify-js to v.3.13.0
+- The v.1.1 search operators `^` (for "starts with") and `!` are not supported anymore
+  * Replaced by the new search syntax
+- Improved performance of `TileBookmarkMenuViewer._updateTitleMenuItem()` by providing a sync
+  version of the folder path building logic leveraging the bookmark shadow data in the
+  new `bookmarksManager` object
+- Improved sorting of tab titles
+  * Now only alphanumeric characters (a-z0-9) at the beginning of a title string count
+    as title start for sort
 
 ## Fixed
 - Trimming input value for shortcuts hostname/URL, to guarantee correct processing
+- When we fail to load a favicon, attempt to use the cached favicon instead
+  * If there's no cached favicon, Chrome will return its default globe favicon,
+    so we'll never see again the "broken images" image in place of the favicon
+- Sometimes tabs were showing the `loading` badge for a long time after a tab had finished
+  (re)loading. Discovered this is due to a Chrome bug (see roadmap-done.txt for details)
+  * Implemented workaround polling tabs showing syptoms of the issue
+- Fixed issue with the use of `AsyncQueue` in the tiles code, which was causing the dropdown
+  toggle button to not show up for some tab tiles
+- Forced focus on searchbox whenever a keypress is done while the _Home_ tab is visible and
+  search active
+  * Supports updating search after having clicked on a tile (dropdown toggle, close button
+    or tile body)
 
 
 # [1.1.0] - 2021-03-07

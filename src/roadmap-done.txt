@@ -44,11 +44,11 @@ DONE 1.2
 - Search: replace raw strings (token types) with proper enumerations (cleanup)
 
 - Search: measure performance
-  * 24ms to filter 211 standard tabs (and ~500 bookmarks), with search query "a b c d e f g"
+  * 24ms to filter 211 standard tabs and ~500 bookmarks, with search query "a b c d e f g"
     (entered via CTRL+V so it executes all in one go)
 	- Generating 257 results
 	- "a b c d e f g" should be a relatively expensive query because the implicit "AND" means
-	  each property of each tile needs to be checked 7 times (one per letter, no shortcuts)
+	  each property of each tile needs to be checked 7 times (one per letter, no optimizations)
   * 5ms to filter if you search for only "a" and get 675 results
 
 - Added debug function tmUtils.showSearchParserInfo() to monitor how SearchQuery is interpreting
@@ -72,7 +72,7 @@ DONE 1.2
   * It should always be a folder
   * List the folder name in the title?
 
-- Add rate-limiting to BookmarksManager._loadBookmarks()
+- Add rate-limiting to the frequency of the calls to BookmarksManager._loadBookmarks()
 
 - Removed "Close" button and "Delete" menu item for bookmarks marked unmodifiable
 
@@ -136,9 +136,9 @@ DONE 1.2
   * Prune redundant unary operators (binary or modifiers)
   * Sort operands and regex sources to generate more consistent query string rebuilds
     (planning to need tihs later)
-  * Forced sources to be read-only by using Object.freeze()
+  * Force sources to be read-only by using Object.freeze()
 
-- Split optimizer logic out of SearchParer and into its own class SearchOptimizer
+- Split optimizer logic out of SearchParser and into its own class SearchOptimizer
 
 - Added negated operands to _mergeBinaryOperands(): two negated operands can be merged,
   but we can also do interesting things with pairs of one negated and one non negated,
@@ -211,7 +211,7 @@ DONE 1.2
   * While loading a tab associated to a pinned bookmark, we overwrite the placeholder
     title added by Chrome (uses the URL as title) while waiting for the tab to load,
 	and set the title to the title of the bookmark we know
-	- This makes the tile tansition smoothly from the bookmark to the tab, without
+	- This makes the tile transition smoothly from the bookmark to the tab, without
 	  the tile dancing around the TabMania popup too much (if we let the title change
 	  temporarily to the title of the URL, the sorting of the tile would change, and
 	  therefore the tile would move elsewhere)
