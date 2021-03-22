@@ -24,7 +24,7 @@ describes two keywords, a first regular expression keyword `a.b`, and a second s
 while `r:"a.b c"` describes a single regular expression keyword `a.b c`.
 
 ## Unary operators
-TabMania search offers the exclusion operator `-` and a number of unary modifiers to focus the target
+TabMania search offers the exclusion operator `-` and a number of unary modifiers to narrow the target
 of your keywords. The exclusion operator `-` simply allows you to exclude search results based on specific
 keywords. If you search for `a AND -b`, you're looking for all tabs that have `a` and don't have `b`.
 
@@ -102,9 +102,9 @@ is typed as `r:ab\\\` (the first backslash doesn't require escaping in TabMania)
 
 ## Syntactic guesses
 TabMania tries to avoid being picky about what you type, and will make simple guesses when the search string
-is not completely syntactically perfect. So for example if your search is `"abc`, TabMania will add a closing
-quote for you and not make a fuss. This can lead to unexpected results, since `"abc def` will be treated as
-a single keyword `"abc def"`, but maybe you intended `"abc" def`.
+is not syntactically perfect. So for example if your search is `"abc`, TabMania will add a closing quote for
+you and not make a fuss. This can lead to unexpected results, since `"abc def` will be treated as a single
+keyword `"abc def"`, but maybe you intended `"abc" def`.
 
 ## Examples
 Putting all of this together, here are a few examples of interesting queries.
@@ -114,7 +114,7 @@ Putting all of this together, here are a few examples of interesting queries.
 - `abc site:(google.com -mail.google.com)`: search for `abc` on all tabs and bookmarks with hostname including
 `google.com` but excluding `mail.google.com`.
 
-- `abc "and"`: search for the keywords `abc` and `and` (`and` is an operator, so you need to quote it to
-  treat it as a keyword).
+- `abc "and"`: search for the keywords `abc` and `and` (`and` is an operator, so you need to enclose it in
+  quotes for it to be treated as a keyword).
 
 - `badge:(audible -muted)`: search for all tabs that are currently emitting sounds.
