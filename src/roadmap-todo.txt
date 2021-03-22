@@ -1,8 +1,5 @@
 TODO 1.2
 
-- Default pinned bookmarks to not-show up if they're a prefix of a tab's URL
-  * After 1.2 we'll worry about creating an option for full match vs. prefix
-
 
 PREP FOR NEXT RELEASE
 

@@ -254,6 +254,9 @@ DONE 1.2
 - BUG: "group:shopping and badge:bookmark" returns zero results, though if you search for
   just "badge:bookmark" you'll see results in group "shopping"
 
+- Default pinned bookmarks to not-show up if they're a prefix of a tab's URL
+  * After 1.2 we'll worry about creating an option for full match vs. prefix
+
 
 DONE 1.1
 

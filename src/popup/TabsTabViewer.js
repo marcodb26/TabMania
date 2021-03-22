@@ -694,7 +694,18 @@ _processPinnedBookmarks: function(tabs, returnBookmarks) {
 	// through the standard search mechanism of bookmarksManager.find().
 	for(let i = 0; i < pinnedBookmarks.length; i++) {
 		let bmNode = pinnedBookmarks[i];
-		let tabIdx = tabs.findIndex((tab) => (tab.url == bmNode.url) || (tab.pendingUrl == bmNode.url));
+		let tabIdx = tabs.findIndex(
+			function(tab) {
+				if(tab.url != null && tab.url != "") {
+					// If there's a "tab.url", don't even try "tab.pendingUrl"
+					return tab.url.startsWith(bmNode.url);
+				}
+				if(tab.pendingUrl != null && tab.pendingUrl != "") {
+					return tab.pendingUrl.startsWith(bmNode.url);
+				}
+				return false;
+			}
+		);
 		if(tabIdx != -1) {
 			let tab = tabs[tabIdx];
 			// Unfortunately we can't add "pinInherited" to tabs[tabIdx].tm, because
