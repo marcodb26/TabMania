@@ -109,6 +109,7 @@ _backgroundCommandCb: function(ev) {
 
 	this._log(logHead + "starting search", ev.detail);
 
+	this.focus();
 	let allTabsBsTabViewer = popupViewer.getHomeBsTab();
 	allTabsBsTabViewer.activate();
 	allTabsBsTabViewer.setSearchQuery(ev.detail.data);
@@ -213,6 +214,16 @@ getOwnTabId: function() {
 	}
 
 	return this._ownTabId;
+},
+
+// Bring to foreground the window of the undocked popup
+focus: function() {
+	// This function is only applicable to the undocked popup, and getOwnTabId() takes
+	// care of checking for that
+	let tabId = this.getOwnTabId();
+	if(tabId >= 0) {		
+		chromeUtils.focusWindow(tabId);
+	}
 },
 
 }); // Classes.PopupDocker

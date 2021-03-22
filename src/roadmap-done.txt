@@ -257,6 +257,9 @@ DONE 1.2
 - Default pinned bookmarks to not-show up if they're a prefix of a tab's URL
   * After 1.2 we'll worry about creating an option for full match vs. prefix
 
+- Bring undocked popup to foreground when the "selection" context menu to launch a tab search
+  in TabMania is used
+
 
 DONE 1.1
 
