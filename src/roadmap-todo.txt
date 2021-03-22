@@ -12,6 +12,9 @@ PREP FOR NEXT RELEASE
 
 PUNTED TO NEXT RELEASE
 
+- BUG: "group:shopping and badge:bookmark" returns zero results, though if you search for
+  just "badge:bookmark" you'll see results in group "shopping"
+
 - Improve performance of this._normTabs.getTabByTabId()
   * We should add a side dictionary structure to get tabId
     - We should not always have to do linear searches...

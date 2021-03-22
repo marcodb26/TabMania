@@ -71,7 +71,7 @@ group name.
 
 ## Search
 Start typing to enter search mode. The search string is case insensitive. It will match against
-title, URL and search keywords attached to browser tab tiles.
+title, URL and badges attached to browser tab tiles or bookmarks.
 Search results are sorted alphabetically by title, and they auto-update as browser tabs change:
 a tab that's in the search results might go away if its state changes in such a way that it doesn't
 match the search anymore (e.g. if you load a new URL).
@@ -80,28 +80,21 @@ Once you've typed enough characters to easily find what you were looking for, yo
 browser tab tile to bring the tab to the foreground. Alternatively, you can press Enter to open the
 first tab in the list of results.
 
-Search keywords are a combination of the badges you can find on the tile, plus hidden badges added
+Badges are a combination of visible badges you can see on the tab tile, plus hidden badges added
 for search convenience.
 The hidden badges include `audible`, `muted`, `highlighted`, `incognito`, `pinned`, `suspended`,
 `unloaded` and `loaded`. For _recently closed tabs_ (see __Searching beyond open tabs__ below),
-the extra search badge `closed` is also available.
+the extra search badge `closed` is also available. For _bookmarks_ (see  __Searching beyond open
+tabs__ below), the extra search badge `bookmark` is also available.
 
 __Example__: a tab is playing sounds and you want to mute it; type "audible" to get a list of tabs that
 are currently playing sounds, and mute it by clicking the "mute" menu action in the tile.
 
-### Search modifiers
-A couple of search modifiers are available to change the standard search behavior ("match anywhere").
-They must be specified at the very beginning of the search string:
-* `!` (exclamation mark) inverts the search to match all browser tab tiles _not_ matching the search string
-  - This modifier only works with open tabs or _Recently closed_ tabs, not with _Bookmarks_ or _Browsing
-    history_ items (see __Searching beyond open tabs__ below)
-* `^` (caret) matches title, URL or search keywords starting with the search string
-* `!^` combines the two
+Each keyword you type in the searchbox gets searched through the tabs information, and TabMania includes
+in the results only tabs that match all the keywords. If you're a power user, TabMania includes a number
+of operators to influence the way search happens. You can read all the details at
+[Advanced topics: search](docs/README-search.md).
 
-__Example__: if your search string is _loaded_, you'll match both the `loaded` search keyword, as well
-as the `unloaded` search keyword (since "loaded" is contained in `unloaded`). This will likely generate
-a list of search results including all the browser tabs you have (unless some are `loading`). If you only
-want to find the `loaded` tabs, type _^loaded_, and the `unloaded` tabs won't be included.
 
 ### Searching beyond open tabs
 TabMania allows to include _Bookmarks_, _Recently closed_ tabs and _Browsing history_ items in your
