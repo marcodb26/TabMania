@@ -2,7 +2,7 @@
 
 Search in TabMania filters tabs, recently closed items, bookmarks and history items based on keywords
 you specify in the search box on the TabMania popup's _Home_ tab. The keywords are matched against
-a site's title, URL and hidden badges.
+a site's title, URL and badges.
 
 Search in TabMania uses a syntax similar to the syntax of Google search. Individual keywords can be
 combined with `AND` and `OR` operators to indicate whether all keywords must match (`AND` semantics)
@@ -17,8 +17,9 @@ Keywords are searched as-is, but if you need more control over search results, y
 keyword as a regular expression by prefixing the keyword with `r:`. This means that `a.b` represents
 a keyword composed of the sequence of 3 characters `a`, `.`, and `b`, while `r:a.b` represents a
 regular expression describing `a`, followed by a single occurrence of any character, followed by `b`.
-The prefix `r:` captures any character until the first whitespace, or can be followed by a quoted string,
-in which case whitespaces can be made part of the regular expression as well. As an example, `r:a.b c`
+The prefix `r:` captures any character until the first whitespace. Alternatively, if the first character
+after `r:` is a single or double quote, the regular expression can be delimited as a quoted string
+(in which case whitespaces can be made part of the regular expression as well). As an example, `r:a.b c`
 describes two keywords, a first regular expression keyword `a.b`, and a second standard keyword `c`,
 while `r:"a.b c"` describes a single regular expression keyword `a.b c`.
 
