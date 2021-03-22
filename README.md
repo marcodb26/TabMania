@@ -1,54 +1,56 @@
 # TabMania
 
-TabMania organizes all your browser tabs across all your windows. TabMania makes windows disappear,
-so you can focus on just your tabs, wherever they might be on your system. Find a lost tab; group
-tabs in ways that are meaningful to you, not by window; use keyboard shortcuts to navigate back to
-a previous tab from anywhere in the system; attach specific tabs to keyboard shortcuts so they're
-always one keypress away from view, regardless of how many tabs in how many windows you might have
-open.
+TabMania organizes all your browser tabs across all your windows, and offers an integrated search
+experience across tabs, bookmarks and browsing history. TabMania makes windows disappear, so you can
+focus on just your tabs, wherever they might be on your system, or even if they're still just
+bookmarks. Find a lost tab; group tabs in ways that are meaningful to you, not by window; pin
+your most important bookmarks so if the tab is not already open, you can open it in no time; use
+keyboard shortcuts to navigate back to a previous tab from anywhere in the system; attach specific
+tabs to keyboard shortcuts so they're always one keypress away from view, regardless of how many
+tabs in how many windows you might have open.
 
 ## Home view
 The home view is where most of the action is. The home view is where all your browser tabs are listed
-alphabetically by title. Browser tabs loaded with URLs from the same location (hostname) will be
-automatically grouped together. You can change this default grouping behavior by configuring _custom groups_
+alphabetically by title. Browser tabs loaded with URLs from the same location (hostname) are automatically
+grouped together. You can change this default grouping behavior by configuring _custom groups_
 (see _Custom groups_ below for more details).
 
-Pinned tabs and groups are listed first, before all other unpinned tabs (see __Pinned tabs and groups__
-below for more details).
+Pinned tabs, bookmarks and groups are listed first, before all other unpinned tabs (see __Pinned tabs,
+bookmarks and groups__ below for more details).
 The tab of the home view blinks red every time there's a change in the list of tiles for your browser
 tabs (new tab, new URL, new title, settings change impacting tiles grouping, etc.).
 
 ## Understanding browser tab tiles
-TabMania lists Chrome tabs as tiles within the _Home_ (ehm...) tab of the extension. Each tile includes
+TabMania lists Chrome tabs as tiles within the _Home_ view of the extension. Each tile includes
 a few visible bits of information about the state of a browser tab:
 * The first line of the tile includes the title of the page associated with the browser tab,
   and its favicon, if the page has one.
-* The second line of the tile includes the URL of the page associated to the browser tab, and
+* The second line of the tile includes the URL of the page associated with the browser tab, and
   some icons and badges providing some more info about the browser tab
 * If the URL starts with `https://`, TabMania omits the obvious to leave a tad more room to see
   the URL. Note that only `https://` is omitted, any other protocol will be displayed (including `http://`).
-* Browser tabs with an active audio source show an `audible` (search keyword) icon.
-* Muted tabs show a `muted` (search keyword) icon. The icon is in black if the browser tab has an
+* Browser tabs with an active audio source show an `audible` (search badge) icon.
+* Muted tabs show a `muted` (search badge) icon. The icon is in black if the browser tab has an
   actively muted audio source, that is, if it would become `audible` if unmuted. Muted tabs without
   an active audio source show the `muted` icon in grey. You can mute a tab using the menu action _Mute_.
-* The `active` (search keyword) badge indicates the browser tab is the tab currently visible in its window
-* A `pinned` (search keyword) tab displays a thumbtack icon. You can pin a browser tab using the
-  menu action _Pin_ (see __Pinned tabs and groups__ below for more details).
-* If you grant TabMania access to your incognito tabs, `incognito` (search keyword) tabs will show
+* The `active` (search badge) badge indicates the browser tab is the tab currently visible in its window
+* A `pinned` (search badge) tab displays a thumbtack icon. You can pin a browser tab using the
+  menu action _Pin_ (see __Pinned tabs, bookmarks and groups__ below for more details).
+* If you grant TabMania access to your incognito tabs, `incognito` (search badge) tabs will show
   alongside other tabs. Incognito tabs are easily identifiable for their reversed color scheme (dark
   background)
-* The `SC1`, `SC2`, `SC3`, `SC4` and `SC5` (search keywords) badges indicate that a browser tab is
-  associated to a custom keyboard shortcut. If the badge is in black, the keyboard shortcut targets
+* The `SC1`, `SC2`, `SC3`, `SC4` and `SC5` (search badges) badges indicate that a browser tab is
+  associated with a custom keyboard shortcut. If the badge is in black, the keyboard shortcut targets
   that browser tab, while if the badge is in grey, the browser tab is a backup target for the keyboard
   shortcut (see __Keyboard shortcuts__ below for more details)
 * If you hover your pointer over a browser tab tile, the menu dropdown button and the close button
   appear. You can use the close button to close the tab without bringing it to the foreground.
 * If a tile displays in black&white and its title is italicized, then the browser tab is in state
-  `unloaded` (search keyword). The tab exists, but Chrome has not fully loaded it yet. Note that
-  you can also explicitly unload a browser tab by using the menu action _Suspend_;
-  you can search for all tabs you've suspended this way with the search keyword `suspended`.
-* A browser tab displays the `loading` (search keyword) badge while it's loading a page, then the badge
-  disappears, indicating the tab is fully `loaded` (search keyword)
+  `unloaded` (search badge). The tab exists, but Chrome has not fully loaded it yet. Note that
+  you can also explicitly unload a browser tab by using the menu action _Suspend_, and
+  you can search for all tabs you've suspended this way by searching for the search badge `suspended`.
+* A browser tab displays the `loading` (search badge) badge while it's loading a page, then the badge
+  disappears, indicating the tab is fully `loaded` (search badge)
 
 ## Custom groups
 Custom groups are a convenient way to keep related tabs grouped together. In the _Custom groups setting_
@@ -56,22 +58,18 @@ under the _Settings_ tab you can associate a list of hostnames (or substrings of
 group, and TabMania will display all matching tabs grouped together. Use this functionality to
 automatically group all your favorite news site, or all the websites you visit for work, so they
 always show up together. You can assign a color to a custom group, and that allows members of the
-custom group to stand out during searches (see __Custom groups and search__ below). Custom groups
-can be explicitly pinned, giving you a convenient alternative to having to pin each individual
-tab in the group (for more details, see __Pinned tabs and groups__ below).
+custom group to stand out, useful especially during searches. Each custom group name is attached as a
+search badge of each group member, for search convenience.
+Custom groups can be explicitly pinned, giving you a convenient alternative to having to pin each individual
+tab in the group (for more details, see __Pinned tabs, bookmarks and groups__ below).
 
-You can optionally assign a fivicon to a custom group, but if you don't specify one, TabMania will pick
+You can optionally assign a favicon to a custom group, but if you don't specify one, TabMania will pick
 one from the member tabs listed inside.
 
-### Custom groups and search
-In a search, a tile for a tab belonging to a custom group will show a hint of the group's configured
-color on its left border, and the custom group name will be displayed as a badge in the configured
-color. Since the custom group name is a badge on each member tab's tile, you can also search by custom
-group name.
-
 ## Search
-Start typing to enter search mode. The search string is case insensitive. It will match against
-title, URL and badges attached to browser tab tiles or bookmarks.
+Start typing to enter search mode. Search mode allows you to search for _open_ tabs, _recently closed_ tabs,
+_bookmarks_ and _browsing history_ items. The search string is case insensitive, and it will be matched against
+title, URL and search badges attached to tabs, bookmarks or history items.
 Search results are sorted alphabetically by title, and they auto-update as browser tabs change:
 a tab that's in the search results might go away if its state changes in such a way that it doesn't
 match the search anymore (e.g. if you load a new URL).
@@ -80,7 +78,7 @@ Once you've typed enough characters to easily find what you were looking for, yo
 browser tab tile to bring the tab to the foreground. Alternatively, you can press Enter to open the
 first tab in the list of results.
 
-Badges are a combination of visible badges you can see on the tab tile, plus hidden badges added
+Search badges are a combination of visible badges you can see on the tab tile, plus hidden badges added
 for search convenience.
 The hidden badges include `audible`, `muted`, `highlighted`, `incognito`, `pinned`, `suspended`,
 `unloaded` and `loaded`. For _recently closed tabs_ (see __Searching beyond open tabs__ below),
@@ -95,45 +93,53 @@ in the results only tabs that match all the keywords. If you're a power user, Ta
 of operators to influence the way search happens. You can read all the details at
 [Advanced topics: search](docs/README-search.md).
 
-
 ### Searching beyond open tabs
-TabMania allows to include _Bookmarks_, _Recently closed_ tabs and _Browsing history_ items in your
-search. Go to the _Settings_ page, and under _General settings_ choose which you want included and
-which excluded. Do it at any time, even mid-search to filter in or out extra pages. TabMania restricts
-_Bookmarks_ and _Browsing history_ to a maximum of 500 items each during a search. _Recently closed_
+TabMania supports searching among _bookmarks_, _recently closed_ tabs and _browsing history_ items.
+Go to the _Settings_ page, and under _General settings_ choose which class you want included and
+which excluded. Do it at any time, even mid-search, to filter in or out extra pages. TabMania restricts
+_bookmarks_ and _browsing history_ to a maximum of 500 items each during a search. _Recently closed_
 tabs are capped by Chrome at a maximum of 25 top level items (either closed tabs or closed windows).
 
 Since all these classes represent pages that are not currently loaded, TabMania's convention is
 to show their tiles in black&white, similar to `unloaded` and `suspended` tabs.
 The tiles for each one of these classes of objects adds a little icon right before the page title, so you
-can easily identify which class they belong to. _Bookmarks_ and _Browsing history_ tiles also have their
-own dropdown menus, with specific actions you can take on them (for example, _Browsing history_ tiles
+can easily identify which class they belong to. _Bookmarks_ and _browsing history_ tiles also have their
+own dropdown menus, with specific actions you can take on them (for example, _browsing history_ tiles
 will tell you how many times you've visited that page in the past, and when was the last time you've
 seen it). _Recently closed_ tabs on the other hand don't offer any action besides restoring the tab.
 
-Clicking on a _Recently closed_ tab will simply restore the tab, exactly like the corresponding action
-on the Chrome menu. Chrome removes tabs from the _Recently closed_ list once they're restored.
-When clicking on _Bookmarks_ or _Browsing history_ items, TabMania will instead first try to locate an
+Clicking on a _recently closed_ tab will simply restore the tab, exactly like the corresponding action
+on the Chrome menu. Chrome removes tabs from the _recently closed_ list once they're restored.
+When clicking on _bookmarks_ or _browsing history_ items, TabMania will instead first try to locate an
 open tab matching the same URL. If it finds one, it simply activates that tab and bring its window into
 focus, as if you had clicked the tile of that open tab. If TabMania can't find an open tab matching
-the URL of the _Bookmarks_ or _Browsing history_ item, it will open the corresponding URL in a new tab,
+the URL of the _bookmarks_ or _browsing history_ item, it will open the corresponding URL in a new tab,
 either recycling an unused new tab you already have open, or opening a fresh new tab in the least
 tabbed window.
 
-Clicking the _Close_ button of _Bookmarks_ and _Browsing history_ items deletes the items from the
-_Bookmarks_ or _Browsing history_ (no undo).
+Clicking the _Close_ button of _bookmarks_ and _browsing history_ items deletes the items from the
+_bookmarks_ or _browsing history_ (no undo).
 
-`Recently closed` tabs support search by hidden badges, and add the `closed` hidden badge to identify
-them. _Bookmarks_ and _Browsing history_ items don't support any hidden badges, and can only be matched
-on title and URL.
+_Recently closed_ tabs and _bookmarks_ support search by search badges, and offer the additional
+`closed` search badge (_recently closed_ tabs) and `bookmark` (_bookmarks_) to identify them.
+_Browsing history_ items don't support search badges, and can only be matched on title and URL.
 
-## Pinned tabs and groups
-You can pin tabs (either via the Chrome tab menu or the extension tile menu action), and you can pin
-custom groups. Pinned tabs and custom groups are listed on top, before all other tabs and custom
-groups. A group (hostname-based or custom) will be considered pinned if it's explicitly pinned, or
-if it includes at least one pinned tab. If it's explicitly pinned, its thumbtack icon will be black,
-while if it's inheriting pinning from one of its contained tiles, its thumbtack icon will be grey.
-Normally custom groups don't show up in the list if they're empty, but pinned custom groups will
+## Pinned tabs, bookmarks and groups
+You can pin tabs (either via the Chrome tab menu or the TabMania tile menu action), you can pin
+bookmarks (via the TabMania tile menu action), and you can pin custom groups (through the _Custom
+groups_ configuration). Bookmarks normally show up only in search mode, but pinned bookmarks are
+shown in standard view if there's no open tab matching their URL.
+Pinned tiles are always listed on top, before all other tiles.
+
+### Pinning inheritance
+Open tabs and groups can be explicitly pinned, or can inherit pinning from other objects. Bookmarks
+never inherit pinning, and can only be explicitly pinned.
+Specifically, an unpinned open tab inherits pinning from a pinned bookmark with a matching URL,
+while a group (either hostname-based or custom) inherits pinning if at least one of its members
+is a pinned tab or bookmark. 
+Objects that are explicitly pinned show their thumbtuck icon in black, while objects that inherit
+pinning show their thumbtuck icon in grey.
+Normally custom groups don't show up in standard view if they're empty, but pinned custom groups will
 be included even if empty. An empty custom group can be easily identified by the fact that it doesn't
 have a counting badge on top of its icon.
 
