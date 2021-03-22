@@ -251,6 +251,9 @@ DONE 1.2
 - BUG: pinned bookmarks can't be found with search query "badge:pinned"
   * Forgot to add the "pinned" search badge for pinned bookmarks
 
+- BUG: "group:shopping and badge:bookmark" returns zero results, though if you search for
+  just "badge:bookmark" you'll see results in group "shopping"
+
 
 DONE 1.1
 

@@ -345,6 +345,7 @@ updateBookmarkBadges: function(tab) {
 		// the TileViewer has special logic to render this badge in the color
 		// of the custom group, based on tab.tm.customGroupName
 		this._addNormalizedVisualBadge(tab, tab.tm.customGroupName, false);
+		tab.tm.customGroupBadges.push(tab.tm.customGroupName.toLowerCase());
 	}
 
 	if(tmUtils.isTabPinned(tab)) {
@@ -365,6 +366,7 @@ updateHistoryBadges: function(tab) {
 		// the TileViewer has special logic to render this badge in the color
 		// of the custom group, based on tab.tm.customGroupName
 		this._addNormalizedVisualBadge(tab, tab.tm.customGroupName, false);
+		tab.tm.customGroupBadges.push(tab.tm.customGroupName.toLowerCase());
 	}
 
 	// We always want this to appear last, if the user configured it to be visible
