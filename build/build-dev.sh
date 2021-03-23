@@ -64,7 +64,7 @@ createJsonList() {
 
 declare TMPJSON="src/templates/popup-sources-dev-nocomments.json"
 ( createJsonList "${TMPJSON}" )
-"${NPMBIN}/ejs" src/templates/popup.ejs -f "${TMPJSON}" -o src/popup/popup-new.html
+"${NPMBIN}/ejs" src/templates/popup.ejs -f "${TMPJSON}" -o src/popup/popup.html
 rm "${TMPJSON}"
 
 
