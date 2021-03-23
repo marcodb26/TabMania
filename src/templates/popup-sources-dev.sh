@@ -21,7 +21,6 @@ declare POPUP_SOURCES=(
 			"SearchParser.js"
 			"SearchOptimizer.js"
 			"SearchQuery.js"
-			"BookmarksFinder.js"
 			"BookmarksManager.js"
 			"HistoryFinder.js"
 			"PopupDocker.js"
