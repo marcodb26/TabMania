@@ -3,6 +3,7 @@
 declare POPUP_SOURCES=(						
 			"../lib/Base.js"			
 			"../lib/TmUtils.js"
+			"../lib/TmConsole.js"
 			"../lib/PersistentDict.js"
 			"../lib/utils.js"
 			"../lib/PerfProfiler.js"
@@ -16,7 +17,12 @@ declare POPUP_SOURCES=(
 			"../lib/LocalStore.js"
 		# Don't include staging/staging.js unless you'r taking screenshots of TabMania for publishing
 		#	"../staging/TmStaging.js"																	
+			"SearchTokenizer.js"
+			"SearchParser.js"
+			"SearchOptimizer.js"
+			"SearchQuery.js"
 			"BookmarksFinder.js"
+			"BookmarksManager.js"
 			"HistoryFinder.js"
 			"PopupDocker.js"
 			"PopupMsgServer.js"
@@ -36,4 +42,3 @@ declare POPUP_SOURCES=(
 			"NewTabAction.js"
 			"popup.js"
 )
-
