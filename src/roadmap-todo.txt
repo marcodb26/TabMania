@@ -10,6 +10,8 @@ PREP FOR NEXT RELEASE
 
 PUNTED TO NEXT RELEASE
 
+- Update NPM
+
 - Re-merge the normalizeTab() for tabs and bookmarks
   * We've seen too many search bugs due to discrepancies in the treatment of bookmarks vs. tabs
 
