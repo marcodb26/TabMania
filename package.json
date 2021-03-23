@@ -7,8 +7,9 @@
     "build-dev": "build/build-dev.sh",
     "dist": "build/build-dist.sh",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "//": "Unfortunately there's no hok for 'npm update': https://github.com/npm/npm/issues/12237 ",
-    "postinstall": "build/build-dev.sh"
+    "//": "Unfortunately there's no hook for 'npm update': https://github.com/npm/npm/issues/12237 ",
+    "postinstall": "build/build-dev.sh",
+	"popup": "( MORE_SOURCES=`grep -Po \"\\[.*\\]\" src/templates/popup-sources-dev.json` ; echo \"${MORE_SOURCES}\" ; read)"
   },
   "repository": {
     "type": "git",
@@ -30,6 +31,7 @@
   "homepage": "https://github.com/marcodb26/TabMania#readme",
   "devDependencies": {
     "csso-cli": "^3.0.0",
+    "ejs": "^3.1.6",
     "strip-json-comments-cli": "^1.0.1",
     "uglify-js": "^3.12.8"
   },
