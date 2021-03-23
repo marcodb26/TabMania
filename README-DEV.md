@@ -230,3 +230,6 @@ Very manual until I have some time to focus on automation
 - Installed strip-json-comments-cli v.1.0.1
   > `npm install strip-json-comments-cli --save-dev`
   * It added 49 packages (???)
+
+- Installed ejs v.3.1.6 (HTML templating)
+  > `npm install ejs --save-dev`
