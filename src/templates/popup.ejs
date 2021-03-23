@@ -1,0 +1,62 @@
+<%# This is a comment in EJS, see https://ejs.co/
+
+We're using EJS for two reasons:
+1. We need to supply a different set of Javascript scripts for dev and production
+2. We need a way to strip comments out of the popup.html
+
+There are many ways to achieve (2), but since we needed (1), why not get both from the
+same tool...
+
+This is not an auto-generated file, but please leave that HTML comment there...
+%>
+<!-- AUTO-GENERATED FILE, DO NOT EDIT, see src/templates/popup.ejs for details -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+
+	<%# Required meta tags (for Bootstrap) %>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<%# Bootstrap CSS %>
+	<link href="bootstrap.min.css" rel="stylesheet">
+
+	<%# https://cdnjs.com/libraries/font-awesome %>
+<%#	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" rel="stylesheet"> %>
+
+	<%# Put our CSS *after* the Bootstrap CSS, to make sure we get priority for any rules overlap
+		 See: https://stackoverflow.com/questions/15670631/does-the-order-of-classes-listed-on-an-item-affect-the-css
+	%>
+	<link href="popup.css" rel="stylesheet">
+
+	<% for(let i = 0; i < sources.length; i++) { %>
+	<script src="<%- sources[i]%>"></script> 
+	<% } %>
+
+	<%# A title and favicon are needed for the undocked version of the popup %>
+	<title>TabMania</title>
+	<link rel="icon" href="../images/icon-16.png" type="image/png">
+  </head>
+
+  <%# The "height" is needed for the docked popup, and will be ignored by the undocked popup.
+       We're now setting width/height for docked in the popupDocker initialization.
+  <body style="width: 400px; height: 542px">
+  %>
+
+  <body>
+
+	<%# Note that the maximum width of an extension's popup is 800px, but we just need half of that.
+		See https://stackoverflow.com/questions/8983165/how-can-i-expand-the-popup-window-of-my-chrome-extension#:~:text=Chrome%20extension%20popups%20can%20have,and%20maximum%20width%20of%20800px.
+	%>
+
+	<div id="popup-tabs-div">
+	</div>
+	<%# Optional JavaScript for Bootstrap %>
+	<script src="bootstrap.bundle.min.js"></script>
+
+<%# Never add this back, it's slowing down performance significantly, see notes in /docs %>
+<%#	<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/js/all.min.js"></script> %>
+
+  </body>
+</html>

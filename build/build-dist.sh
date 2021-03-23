@@ -11,8 +11,7 @@ declare -r NPMBIN=`npm bin`
 
 # Prepare the dist folder. This includes the follwing steps
 # - Copy `/src/manifest.json` to `/dist/manifest.json` (and remove comments)
-# - Copy `/src/popup/popup.html` to `/dist/popup.html` (we leave the comments removals as a
-#   manual step later)
+# - Create prod version of popup.html
 # - Pull in the bootstrap files
 # - Minify `src/popup/popup.css` to `dist/popup.css`
 # - Run uglifyJs to generate `dist/background.js` and `dist/popup.js`
@@ -20,28 +19,32 @@ declare -r NPMBIN=`npm bin`
 
 declare -r SRC="src"
 declare -r TGT="dist"
+declare -r TEMPLATES="${SRC}/templates"
 
 # We need to prepend "lib/prod.js" for both background.js and popup.js to deactivate logs
 # and enable the isProd() function (see lib/Base.js) to return "true"
 declare COMMON_PROD_SOURCES=("lib/prod.js")
 
-# List source files in REL_BG_SOURCES relative to src/ (the same way they're listed in src/manifest.json)
+
+# List source files in BG_SOURCES relative to src/ (the same way they're listed in src/manifest.json)
 declare BG_SOURCES=("lib/Base.js" "lib/TmUtils.js" "lib/PersistentDict.js" "lib/utils.js" "lib/PerfProfiler.js"	\
 					"lib/AsyncQueue.js" "lib/chromeUtils.js" "lib/NormalizedTabs.js" "lib/ShortcutsManager.js"	\
 					"lib/SettingsStore.js" "lib/LocalStore.js" "lib/ScheduledJob.js" "lib/PopupDockerBase.js"	\
 					"PopupDockerBg.js" "TabsManager.js" "KeyboardShortcuts.js" "ContextMenu.js" "messaging.js"	\
 					"background.js")
 
-# List source files in REL_POPUP_SOURCES relative to src/popup/ (the same way they're listed in
-# src/popup/popup.html)
-declare POPUP_SOURCES=("../lib/Base.js" "../lib/TmUtils.js" "../lib/PersistentDict.js" "../lib/utils.js"		\
-					"../lib/PerfProfiler.js" "../lib/AsyncQueue.js" "../lib/chromeUtils.js"						\
-					"../lib/NormalizedTabs.js" "../lib/ShortcutsManager.js" "../lib/SettingsStore.js"			\
-					"../lib/ScheduledJob.js" "../lib/PopupDockerBase.js" "../lib/LocalStore.js"					\
-					"BookmarksFinder.js" "HistoryFinder.js" "PopupDocker.js" "PopupMsgServer.js" "icons.js"		\
-					"Viewer.js" "TabViewer.js" "GroupsBuilder.js" "ContainerViewer.js" "SettingsItemViewer.js"	\
-					"SettingsCustomGroupViewer.js" "SettingsTabViewer.js" "PopupViewer.js" "TabsTabViewer.js"	\
-					"TabTileViewer.js" "TileMenuViewer.js" "PopupMenuViewer.js" "NewTabAction.js" "popup.js")
+# List source files in POPUP_SOURCES relative to src/popup/ (the same way they're listed in
+# the auto-generated src/popup/popup.html)
+source src/templates/popup-sources-dev.sh
+#declare POPUP_SOURCES=("../lib/Base.js" "../lib/TmUtils.js" "../lib/PersistentDict.js" "../lib/utils.js"		\
+#					"../lib/PerfProfiler.js" "../lib/AsyncQueue.js" "../lib/chromeUtils.js"						\
+#					"../lib/NormalizedTabs.js" "../lib/ShortcutsManager.js" "../lib/SettingsStore.js"			\
+#					"../lib/ScheduledJob.js" "../lib/PopupDockerBase.js" "../lib/LocalStore.js"					\
+#					"BookmarksFinder.js" "HistoryFinder.js" "PopupDocker.js" "PopupMsgServer.js" "icons.js"		\
+#					"Viewer.js" "TabViewer.js" "GroupsBuilder.js" "ContainerViewer.js" "SettingsItemViewer.js"	\
+#					"SettingsCustomGroupViewer.js" "SettingsTabViewer.js" "PopupViewer.js" "TabsTabViewer.js"	\
+#					"TabTileViewer.js" "TileMenuViewer.js" "PopupMenuViewer.js" "NewTabAction.js" "popup.js")
+
 
 mkdir -p "${TGT}"
 mkdir -p "${TGT}/images"
@@ -51,7 +54,11 @@ mkdir -p "${TGT}/images"
 # use a different tool for this.
 "${NPMBIN}/strip-json-comments" --no-whitespace "${SRC}/manifest.json" > "${TGT}/manifest.json" 
 
-cp "${SRC}/popup/popup.html" "${TGT}/popup.html"
+# Create dist/popup.html
+declare TMPJSON="${TGT}/popup-sources-prod-nocomments.json"
+"${NPMBIN}/strip-json-comments" "${TEMPLATES}/popup-sources-prod.json" > "${TMPJSON}"
+"${NPMBIN}/ejs" "${TEMPLATES}/popup.ejs" -f "${TMPJSON}" -o "${TGT}/popup.html"
+rm "${TMPJSON}"
 
 # Copy only the png files, not any other files that might be in the src/images folder
 cp "${SRC}"/images/*.png "${TGT}/images"
