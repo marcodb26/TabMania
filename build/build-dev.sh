@@ -3,7 +3,7 @@ set -x
 
 # Setup the dev environment. This includes the follwing steps
 # - Pull in the bootstrap files
-# - Create the "popup/popup.html" from templates/popup.ejs
+# - Create the "popup/popup.html" from templates/popup.html.ejs
 # - Package the injection scripts as single files in src/content-gen/
 
 # For tools installed locally via NPM, you need to use specify the full path of
@@ -64,7 +64,7 @@ createJsonList() {
 
 declare TMPJSON="src/templates/popup-sources-dev-nocomments.json"
 ( createJsonList "${TMPJSON}" )
-"${NPMBIN}/ejs" src/templates/popup.ejs -f "${TMPJSON}" -o src/popup/popup.html
+"${NPMBIN}/ejs" src/templates/popup.html.ejs -f "${TMPJSON}" -o src/popup/popup.html
 rm "${TMPJSON}"
 
 

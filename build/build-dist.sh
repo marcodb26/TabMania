@@ -57,7 +57,7 @@ mkdir -p "${TGT}/images"
 # Create dist/popup.html
 declare TMPJSON="${TGT}/popup-sources-prod-nocomments.json"
 "${NPMBIN}/strip-json-comments" "${TEMPLATES}/popup-sources-prod.json" > "${TMPJSON}"
-"${NPMBIN}/ejs" "${TEMPLATES}/popup.ejs" -f "${TMPJSON}" -o "${TGT}/popup.html"
+"${NPMBIN}/ejs" "${TEMPLATES}/popup.html.ejs" -f "${TMPJSON}" -o "${TGT}/popup.html"
 rm "${TMPJSON}"
 
 # Copy only the png files, not any other files that might be in the src/images folder
