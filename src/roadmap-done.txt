@@ -260,6 +260,12 @@ DONE 1.2
 - Bring undocked popup to foreground when the "selection" context menu to launch a tab search
   in TabMania is used
 
+- Basic /dist build automation
+  * manifest.json and popup.html now are auto-generated from EJS templates
+    - Both for DEV ("npm run build-dev") and for dist ("npm run dist")
+  * Source files and version are now tracked in src/templates/sources-env.sh
+  * Zip /dist to past-releases/vX.Y
+
 
 DONE 1.1
 
