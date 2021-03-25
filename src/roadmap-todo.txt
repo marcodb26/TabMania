@@ -12,6 +12,8 @@ PUNTED TO NEXT RELEASE
 
 - Update NPM
 
+- Remove "strip-json-comments-cli" if we're not using it anymore
+
 - Re-merge the normalizeTab() for tabs and bookmarks
   * We've seen too many search bugs due to discrepancies in the treatment of bookmarks vs. tabs
 

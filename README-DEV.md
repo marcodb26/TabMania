@@ -91,35 +91,16 @@ APIs limit injection to a single file, so the source files in `src/content-src` 
 before they can be used in the popup. Run `npm run build-dev` to create `src/content-gen` before
 you point Chrome to `src/` for `manifest.json`, or any time you edit a file in `src/content-src`.
 
+# Adding Javascript source files `manifest.json` and `popup.html`
+`src/manifest.json` and `src/popup/popup.html` are auto-generated files from `src/templates/manifest.json.ejs`
+and `src/templates/popup.html.ejs` respectively. If you need to add or change Javascript source files,
+the "single source of truth" is `src/templates/sources-env.sh`. Edit that file, then apply the changes
+by running `npm run build-dev` from the top folder of the project.
+
 # Release process
-Very manual until I have some time to focus on automation
-
-* Make sure BG_SOURCES in build/build-dist.sh includes all the files listed in manifest.json
-  background.scripts
-  - Copy the list from manifest.json background.scripts, but make sure to remove the commas
-    between files
-
-* Make sure POPUP_SOURCES in build/build-dist.sh includes all scripts listed in popup.html
-  - Exactly as listed (and in the same order) in popup.html, all relative to the src/popup folder
-
 * Delete /dist
 
 * Run `npm run dist`
-
-* With `/dist/manifest.json`
-  * Replace all background.scripts with just `background.js`
-  * Rename `default_popup` from `popup/popup.html` to `popup.html`
-  * Remove all the empty lines
-  * Ideally take the following two steps by commenting out these permissions in the source manifest.json:
-    * Remove permissions `tabGroups` (until they become available in the stable channel)
-    * Remove permissions `*://*/*` (only needed for the script injection testing)
-
-* With `/dist/popup.html`
-  * Remove all local `<script>` tags (including all "inject" tags) from `<head>`, leaving only `popup.js`
-    - Also leave the script for `bootstrap.bundle.min.js` in the body
-  * Remove "../" from the HREF of the favicon, from `<link rel="icon" href="../images/icon-16.png" [...]`
-    to `<link rel="icon" href="images/icon-16.png" [...]`
-  * Remove all comments
 
 * Create `/dist/content`
   * Or not, wait until we actually need it...
