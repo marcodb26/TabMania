@@ -217,10 +217,6 @@ by running `npm run build-dev` from the top folder of the project.
   * Really liked the documentation of cssnano (https://cssnano.co/docs/getting-started), but
     decided to go with csso because it seemed to be more "independent" of other modules
 
-- Installed strip-json-comments-cli v.1.0.1
-  > `npm install strip-json-comments-cli --save-dev`
-  * It added 49 packages (???)
-
 - Installed ejs v.3.1.6 (HTML templating)
   > `npm install ejs --save-dev`
 
