@@ -266,6 +266,9 @@ DONE 1.2
   * Source files and version are now tracked in src/templates/sources-env.sh
   * Zip /dist to past-releases/vX.Y
 
+- BUG: if moving back from search to standard mode while search is still loading, very rarely
+  search can show an exception on the console
+
 
 DONE 1.1
 

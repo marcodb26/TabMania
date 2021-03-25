@@ -1246,6 +1246,14 @@ _searchRenderTabs: function(tabs, newSearch) {
 		this._historyFinder.find(this._searchQuery),
 	]).then(
 		function([ rcTabs, bmNodes, hItems ]) {
+			if(!this.isSearchActive()) {
+				// While waiting for the Promise.all(), the user can close the search and go
+				// back to standard mode. If that happens, the call to this._activateSearchBox(false)
+				// sets this._searchQuery to "null", so this function will eventually fail if
+				// we let it continue. Let's just get out...
+				this._log(logHead + "got out of search mode, discarding results");
+				return;
+			}
 			// We need to this._containerViewer.clear() in all cases, but we're trying to
 			// keep this clear() call as close as possible to the time of the new rendering.
 			// If there's too much processing to do between clear() and render, users will
