@@ -6,9 +6,6 @@ TODO 1.3
 
 - Remove "auto-generated" comment from dist version of manifest.json (DEV version ok)
 
-- Update NPM
-
-- Remove "strip-json-comments-cli" if we're not using it anymore
 
 
 PREP FOR NEXT RELEASE

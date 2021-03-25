@@ -31,7 +31,6 @@
   "devDependencies": {
     "csso-cli": "^3.0.0",
     "ejs": "^3.1.6",
-    "strip-json-comments-cli": "^1.0.1",
     "uglify-js": "^3.12.8"
   },
   "dependencies": {
