@@ -41,7 +41,7 @@
 			"description": "Go forward to the next active tab",
 			"global": false
 		},
-		"02los":  { // "los" == "launch or search"
+		"02los":  {
 			"suggested_key": {
 				"default": "Ctrl + Shift + Down"
 			},
