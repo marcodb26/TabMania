@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Added
 
 ## Changed
+- Updated Bootstrap to v.5.0.0-beta3
+- Updated uglify-js to v.3.13.2
 
 ## Fixed
 
