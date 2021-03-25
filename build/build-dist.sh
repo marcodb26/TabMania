@@ -10,8 +10,8 @@ declare -r NPMBIN=`npm bin`
 
 
 # Prepare the dist folder. This includes the follwing steps
-# - Copy `/src/manifest.json` to `/dist/manifest.json` (and remove comments)
-# - Create prod version of popup.html
+# - Create prod version of `dist/manifest.json`
+# - Create prod version of `dist/popup.html`
 # - Pull in the bootstrap files
 # - Minify `src/popup/popup.css` to `dist/popup.css`
 # - Run uglifyJs to generate `dist/background.js` and `dist/popup.js`
@@ -26,34 +26,19 @@ declare -r TEMPLATES="${SRC}/templates"
 declare COMMON_PROD_SOURCES=("lib/prod.js")
 
 
-# List source files in BG_SOURCES relative to src/ (the same way they're listed in src/manifest.json)
-declare BG_SOURCES=("lib/Base.js" "lib/TmUtils.js" "lib/PersistentDict.js" "lib/utils.js" "lib/PerfProfiler.js"	\
-					"lib/AsyncQueue.js" "lib/chromeUtils.js" "lib/NormalizedTabs.js" "lib/ShortcutsManager.js"	\
-					"lib/SettingsStore.js" "lib/LocalStore.js" "lib/ScheduledJob.js" "lib/PopupDockerBase.js"	\
-					"PopupDockerBg.js" "TabsManager.js" "KeyboardShortcuts.js" "ContextMenu.js" "messaging.js"	\
-					"background.js")
-
-# List source files in POPUP_SOURCES relative to src/popup/ (the same way they're listed in
-# the auto-generated src/popup/popup.html)
-source src/templates/sources-env.sh
-#declare POPUP_SOURCES=("../lib/Base.js" "../lib/TmUtils.js" "../lib/PersistentDict.js" "../lib/utils.js"		\
-#					"../lib/PerfProfiler.js" "../lib/AsyncQueue.js" "../lib/chromeUtils.js"						\
-#					"../lib/NormalizedTabs.js" "../lib/ShortcutsManager.js" "../lib/SettingsStore.js"			\
-#					"../lib/ScheduledJob.js" "../lib/PopupDockerBase.js" "../lib/LocalStore.js"					\
-#					"BookmarksFinder.js" "HistoryFinder.js" "PopupDocker.js" "PopupMsgServer.js" "icons.js"		\
-#					"Viewer.js" "TabViewer.js" "GroupsBuilder.js" "ContainerViewer.js" "SettingsItemViewer.js"	\
-#					"SettingsCustomGroupViewer.js" "SettingsTabViewer.js" "PopupViewer.js" "TabsTabViewer.js"	\
-#					"TabTileViewer.js" "TileMenuViewer.js" "PopupMenuViewer.js" "NewTabAction.js" "popup.js")
-
-
 mkdir -p "${TGT}"
 mkdir -p "${TGT}/images"
 
 
 # Create the JSON file we'll need to run against our templates to build manifest.json
 # and popup.html
+
+# ${TEMPLATES}/sources-env.sh includes the definition of UNPACKED_POPUP_SOURCES and UNPACKED_BACKGROUND_SOURCES,
+# which we use below in the uglifyJs section.
+# It also includes the function createJsonFile(), needed to create the JSON file used to generate
+# manifest.json and popup.html from their respective templates.
 declare PROD_BUILD=""
-source src/templates/sources-env.sh
+source "${TEMPLATES}/sources-env.sh"
 
 declare TMPJSON="${TGT}/sources-prod.json"
 (createJsonFile) > "${TMPJSON}"
@@ -170,11 +155,11 @@ runUglifyJs() {
 # The syntax "<array>[@]/#/<prefix>" prefixes all elements of the array (<array>[@]) with
 # the specified prefix (the last "/" below is part of the prefix).
 # Similarly, to add a suffix you need to replace "#" with "%".
-( runUglifyJs dist/background.js "${COMMON_PROD_SOURCES[@]/#/${SRC}/}" "${BG_SOURCES[@]/#/${SRC}/}" )
+( runUglifyJs dist/background.js "${COMMON_PROD_SOURCES[@]/#/${SRC}/}" "${UNPACKED_BACKGROUND_SOURCES[@]/#/${SRC}/}" )
 
-# Note that BG_SOURCES and POPUP_SOURCES are relative to two different starting paths,
-# while obviously COMMON_PROD_SOURCES is the same for both
-( runUglifyJs dist/popup.js "${COMMON_PROD_SOURCES[@]/#/${SRC}/}" "${POPUP_SOURCES[@]/#/${SRC}/popup/}" )
+# Note that UNPACKED_BACKGROUND_SOURCES and UNPACKED_POPUP_SOURCES are relative to two different
+# starting paths, while obviously COMMON_PROD_SOURCES is the same for both
+( runUglifyJs dist/popup.js "${COMMON_PROD_SOURCES[@]/#/${SRC}/}" "${UNPACKED_POPUP_SOURCES[@]/#/${SRC}/popup/}" )
 
 
 # Pause the terminal before closing

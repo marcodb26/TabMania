@@ -20,11 +20,16 @@ Note the use of the closing tag with the leading "-", indicating "trim-mode ('ne
 		"bookmarks",
 		"contextMenus",
 		"tabs",
-		"tabGroups", <%# https://developer.chrome.com/docs/extensions/reference/tabGroups/ %>
 		"sessions", <%# https://developer.chrome.com/docs/extensions/reference/sessions/ %>
 		"storage",
 		"clipboardRead", <%# See: https://stackoverflow.com/questions/22702446/how-to-get-clipboard-data-in-chrome-extension %>
-		"*://*/*",    <%# Needed to allow script injection in tabs (see chromeUtils.inject()) %>
+
+		<%# For now, "tabGroups" and URL permissions are only tracked in DEV environment, we've
+		  # not written any production code for them yet.
+		  # URL permissions ("*://*/*") will be needed when we'll add logic for script injection.
+		%>
+		<%- isProd ? "" : "\"tabGroups\",\n" %> <%# https://developer.chrome.com/docs/extensions/reference/tabGroups/ -%>
+		<%- isProd ? "" : "\"*://*/*\",\n" %> <%# Needed to allow script injection in tabs (see chromeUtils.inject()) -%>
 
 		<%# We need to add permission "chrome://favicon/" to gain access to the favIcon cache, needed to have
 		  # an icon for the tiles displaying bokmarks. Some people say you also need to have "content_security_policy"
@@ -112,7 +117,7 @@ Note the use of the closing tag with the leading "-", indicating "trim-mode ('ne
 	},
 
 	"browser_action": {
-		"default_popup": "popup/popup.html",
+		"default_popup": "<%- isProd ? "popup.html" : "popup/popup.html" %>",
 
 		<%# Note that the icon could disappear from the extension toolbar if it's not pinned.
 		  # To pin it, see here: https://imgur.com/IOT6RJg (from https://support.google.com/chrome/thread/55345301?hl=en )

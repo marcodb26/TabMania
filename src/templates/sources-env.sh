@@ -1,9 +1,9 @@
 # This file sets a bunch of variables, and some of them are controlled by "PROD_BUILD"
 # being set when this file is sourced
 
-# List source files in DEV_POPUP_SOURCES relative to src/popup/ (the same way you want them listed in
-# the auto-generated src/popup/popup.html)
-declare DEV_POPUP_SOURCES=(						
+# List source files in UNPACKED_POPUP_SOURCES relative to src/popup/ (the same way you want them listed in
+# the auto-generated src/popup/popup.html for DEV)
+declare UNPACKED_POPUP_SOURCES=(						
 	"../lib/Base.js" "../lib/TmUtils.js" "../lib/TmConsole.js" "../lib/PersistentDict.js"
 	"../lib/utils.js" "../lib/PerfProfiler.js" "../lib/AsyncQueue.js" "../lib/chromeUtils.js"
 	"../lib/NormalizedTabs.js" "../lib/ShortcutsManager.js" "../lib/SettingsStore.js"
@@ -17,13 +17,13 @@ declare DEV_POPUP_SOURCES=(
 	"PopupMenuViewer.js" "NewTabAction.js" "popup.js"
 )
 
-declare PROD_POPUP_SOURCES=(
+declare PACKED_POPUP_SOURCES=(
 	"popup.js"
 )
 
 # List source files in DEV_BACKGROUND_SOURCES relative to src/ (the same way you want them listed in
 # the auto-generated src/manifest.json)
-declare DEV_BACKGROUND_SOURCES=(
+declare UNPACKED_BACKGROUND_SOURCES=(
 	"lib/Base.js" "lib/TmUtils.js" "lib/PersistentDict.js" "lib/utils.js" "lib/PerfProfiler.js"
 	"lib/AsyncQueue.js"	"lib/chromeUtils.js" "lib/NormalizedTabs.js" "lib/ShortcutsManager.js"
 	"lib/SettingsStore.js" "lib/LocalStore.js" "lib/ScheduledJob.js" "lib/PopupDockerBase.js"
@@ -31,7 +31,7 @@ declare DEV_BACKGROUND_SOURCES=(
 	"background.js"
 )
 
-declare PROD_BACKGROUND_SOURCES=(
+declare PACKED_BACKGROUND_SOURCES=(
 	"background.js"
 )
 
@@ -41,14 +41,18 @@ if [ -z ${PROD_BUILD+x} ]; then
 	# "-n" is a "nameref" variable (an alias to the original variable. We could have just
 	# copied the array again instead of trying to be fancy, but since it works...
 	# See https://unix.stackexchange.com/questions/390757/referencing-bash-array-variables-from-another-array
-	declare -n POPUP_SOURCES=DEV_POPUP_SOURCES
-	declare -n BACKGROUND_SOURCES=DEV_BACKGROUND_SOURCES
+	declare -n POPUP_SOURCES=UNPACKED_POPUP_SOURCES
+	declare -n BACKGROUND_SOURCES=UNPACKED_BACKGROUND_SOURCES
 else
-	declare -n POPUP_SOURCES=PROD_POPUP_SOURCES
-	declare -n BACKGROUND_SOURCES=PROD_BACKGROUND_SOURCES
+	declare -n POPUP_SOURCES=PACKED_POPUP_SOURCES
+	declare -n BACKGROUND_SOURCES=PACKED_BACKGROUND_SOURCES
 fi
 
 
+# Functions to generate JSON syntax from the source files listed above
+
+# Call createJsonFile() to generate the full JSON body. createOneJsonList() should be
+# intended as a "private" function within this file, don't call it in other scripts.
 createOneJsonList() {
 	declare SOURCES_COPY=("$@")
 	# Take the last file out of the list, since the last file can't be followed by ","
@@ -78,7 +82,7 @@ createOneJsonList() {
 	fi
 }
 
-# "$1" is the output file where we want JSON to be dumped
+# Call createJsonFile() to generate the full JSON body
 createJsonFile() {
 	if [ -z ${PROD_BUILD+x} ]; then
 		declare IS_PROD_JSON="\"isProd\": false"
@@ -91,5 +95,4 @@ createJsonFile() {
 		"\"bgSources\": [ $(createOneJsonList "${BACKGROUND_SOURCES[@]}") ], \n" \
 		"${IS_PROD_JSON} \n" \
 	"}"
-#	"} " > "$1"
 }

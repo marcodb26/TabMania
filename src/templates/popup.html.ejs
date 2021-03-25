@@ -50,6 +50,16 @@ Note the use of the closing tag with the leading "-", indicating "trim-mode ('ne
 		<script src="<%- popupSources[i]%>"></script>
 		<%_ } -%>
 
+		<%_ if(!isProd) { -%>
+			<%# We don't really need to load these here, but this is the easiest way to
+			  # let the parser run and do syntax checking, otherwise chrome.executeScript()
+			  # will just leave a "Failed to load file: "inject-getMeta.js"" error -->
+			%>
+		<script src="../content-gen/inject-getMeta.js"></script>
+		<script src="../content-gen/inject-togglePlay.js"></script>
+		<%_ } -%>
+
+
 		<%_ %><%# A title and favicon are needed for the undocked version of the popup -%>
 		<title>TabMania</title>
 		<link rel="icon" href="<%- isProd ? "images/icon-16.png" : "../images/icon-16.png" %>" type="image/png">
