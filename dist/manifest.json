@@ -1,6 +1,7 @@
+// AUTO-GENERATED FILE, DO NOT EDIT, see src/templates/manifest.ejs for details
 {
 	"name": "TabMania",
-	"version": "1.1",
+	"version": "1.2",
 	"description": "A simple tab manager enabling some essential keyboard shortcuts",
 	"permissions": [
 		"bookmarks",
@@ -9,23 +10,29 @@
 		"sessions", 
 		"storage",
 		"clipboardRead", 
+
+		
+		 		 
+		
 		"chrome://favicon/"
 	],
 	 "optional_permissions": [
 		"history" 
 	],
 	"background": {
-		"scripts": [
-			"background.js"
-		],
+		"scripts": [ "background.js" ],
 		"persistent": true
 	},
+
+	
 	"commands": {
+		
 		"00back": {
 			"suggested_key": {
 				"default": "Ctrl + Shift + Left"
 			},
 			"description": "Go back to the last active tab",
+			
 			"global": false
 		},
 		"01fwd": {
@@ -35,7 +42,7 @@
 			"description": "Go forward to the next active tab",
 			"global": false
 		},
-		"02los":  { 
+		"02los":  { // "los" == "launch or search"
 			"suggested_key": {
 				"default": "Ctrl + Shift + Down"
 			},
@@ -71,8 +78,11 @@
 			"global": true
 		}
 	},
+
 	"browser_action": {
 		"default_popup": "popup.html",
+
+		
 		"default_icon": {
 			"16": "images/icon-16.png",
 			"32": "images/icon-32.png",
@@ -86,5 +96,7 @@
 		"48": "images/icon-48.png",
 		"128": "images/icon-128.png"
 	},
+
+	
 	"manifest_version": 2
 }
