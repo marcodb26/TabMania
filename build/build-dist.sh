@@ -47,10 +47,6 @@ declare TMPJSON="${TGT}/sources-prod.json"
 # Create dist/manifest.json
 "${NPMBIN}/ejs" "${TEMPLATES}/manifest.json.ejs" -f "${TMPJSON}" -o "${TGT}/manifest.json"
 
-## Strip comments from manifest.json. Since uglifyJs doesn't support JSON, we need to
-## use a different tool for this.
-#"${NPMBIN}/strip-json-comments" --no-whitespace "${SRC}/manifest.json" > "${TGT}/manifest.json" 
-
 
 # Create dist/popup.html
 "${NPMBIN}/ejs" "${TEMPLATES}/popup.html.ejs" -f "${TMPJSON}" -o "${TGT}/popup.html"

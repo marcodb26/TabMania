@@ -166,6 +166,8 @@ by running `npm run build-dev` from the top folder of the project.
 * Commit these changes with message `First commit for vX.Y`, where X.Y is the same version as the new
   version you've just edited in the `manifest.json`, `package.json` and `CHANGELOG.md` files
 
+* Run `npm run build-dev` to pick the version changes into the dev environment (manifest.json)
+
 * Find out if any NPM packages need updates using `npm outdated`
   - Then update them with `npm update` and update `CHANGELOG.md` accordingly
   - List current versions in the __Environment__ sectoin below
@@ -173,7 +175,7 @@ by running `npm run build-dev` from the top folder of the project.
 # Environment
 - Google developer console: https://chrome.google.com/webstore/devconsole
 
-- Upgraded GIT to v.2.30.1.windows.1
+- Upgraded GIT to v.2.31.1.windows.1 (was v.2.30.1.windows.1)
   * To upgrade:
     > `git update-git-for-windows`
   * Repo at: https://github.com/marcodb26/TabMania.git
@@ -182,7 +184,7 @@ by running `npm run build-dev` from the top folder of the project.
   * To see commits history
 	- https://github.com/marcodb26/TabMania/commits
 
-- Upgraded NPM to v.7.5.4
+- Upgraded NPM to v.7.7.5
   * To upgrade:
     - Run PowerShell as Administrator
       > `Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force`
@@ -203,10 +205,12 @@ by running `npm run build-dev` from the top folder of the project.
 
 - Installed Bootstrap
   > `npm install bootstrap@5.0.0-beta1`
+  * To update use `npm update bootstrap`
   * Call `npm run build-dev` when upgrading bootstrap again
 
-- Installed uglify-js v.3.13.0 (was v.3.12.8)
+- Installed uglify-js v.3.13.2 (was v.3.13.0)
   > `npm install uglify-js --save-dev`
+  > `npm update uglify-js --save-dev`
 
 - Installed csso-cli v.3.0.0 (https://www.npmjs.com/package/csso-cli)
   > `npm install csso-cli --save-dev`
