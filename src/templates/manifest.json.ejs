@@ -1,15 +1,15 @@
 <%# This is a comment in EJS, see https://ejs.co/
-
-We're using EJS for two reasons:
-1. We need to supply a different set of Javascript scripts for dev and production
-2. We need a way to strip comments out of the manifest.json
-
-There are many ways to achieve (2), but since we needed (1), why not get both from the
-same tool...
-
-This is not an auto-generated file, but please leave that HTML comment there...
-
-Note the use of the closing tag with the leading "-", indicating "trim-mode ('newline slurp')"
+  # 
+  # We're using EJS for two reasons:
+  # 1. We need to supply a different set of Javascript scripts for dev and production
+  # 2. We need a way to strip comments out of the manifest.json
+  # 
+  # There are many ways to achieve (2), but since we needed (1), why not get both from the
+  # same tool...
+  # 
+  # This is not an auto-generated file, but please leave that HTML comment there...
+  # 
+  # Note the use of the closing tag with the leading "-", indicating "trim-mode ('newline slurp')"
 -%>
 <%# While releasing 1.2, discovered that the Chrome Web Store is not as premissive as
   # Google Chrome itself when it comes to parsing JSON: CWS doesn't accept comments in
@@ -20,7 +20,7 @@ Note the use of the closing tag with the leading "-", indicating "trim-mode ('ne
 {
 	"name": "TabMania",
 	"version": "<%- version %>",
-	"description": "A simple tab manager enabling some essential keyboard shortcuts",
+	"description": "A simple tab manager with search across tabs, bookmarks and browsing history",
 	"permissions": [
 		"bookmarks",
 		"contextMenus",
