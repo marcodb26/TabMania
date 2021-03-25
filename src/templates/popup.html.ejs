@@ -8,55 +8,68 @@ There are many ways to achieve (2), but since we needed (1), why not get both fr
 same tool...
 
 This is not an auto-generated file, but please leave that HTML comment there...
-%>
+
+Note the use of the closing tag with the leading "-", indicating "trim-mode ('newline slurp')"
+-%>
 <!-- AUTO-GENERATED FILE, DO NOT EDIT, see src/templates/popup.html.ejs for details -->
 
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+	<head>
+		<%_ %><%# The EJS slurping logic is a bit broken... you can close the ejs-tag prefixing with
+		  # "-", but if you do, it'll take out the "\n", but leave there all the whitespaces before
+		  # the beginning of the ejs-tag, which accumulate all in front of the next line, making each
+		  # line look completely badly formatted.
+		  # You can use "whitespace slurping", but that seems to work only with "scriptlet tags" (so,
+		  # with Javascript code), not with comment tags. So you could prepend the comment line with
+		  # an empty "whitespace slurping scriptlet tag" (like this comment is), but then the beginning
+		  # of each comment becomes very verbose...
+		  # Or you could force all comments to start at the beginning of the line, with no whitespaces
+		  # before them, but that's unnatural when looking at the template code.
+		  #
+		  # Looking through old EJS feature requests, they seem to recommend running a prettifier after
+		  # EJS to make things look well formatted, and maybe that's what we should be doing here too...
+		-%>
 
-	<%# Required meta tags (for Bootstrap) %>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
+		<%_ %><%# Required meta tags (for Bootstrap) -%>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
 
-	<%# Bootstrap CSS %>
-	<link href="bootstrap.min.css" rel="stylesheet">
+		<%_ %><%# Bootstrap CSS -%>
+		<link href="bootstrap.min.css" rel="stylesheet">
 
-	<%# https://cdnjs.com/libraries/font-awesome %>
-<%#	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" rel="stylesheet"> %>
+		<%_ %><%# https://cdnjs.com/libraries/font-awesome
+		  #	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" rel="stylesheet">
+		  #
+		  # Put our CSS *after* the Bootstrap CSS, to make sure we get priority for any rules overlap
+		  # See: https://stackoverflow.com/questions/15670631/does-the-order-of-classes-listed-on-an-item-affect-the-css
+		-%>
+		<link href="popup.css" rel="stylesheet">
 
-	<%# Put our CSS *after* the Bootstrap CSS, to make sure we get priority for any rules overlap
-		 See: https://stackoverflow.com/questions/15670631/does-the-order-of-classes-listed-on-an-item-affect-the-css
-	%>
-	<link href="popup.css" rel="stylesheet">
+		<%_ for(let i = 0; i < popupSources.length; i++) { -%>
+		<script src="<%- popupSources[i]%>"></script>
+		<%_ } -%>
 
-	<% for(let i = 0; i < sources.length; i++) { %>
-	<script src="<%- sources[i]%>"></script> 
-	<% } %>
+		<%_ %><%# A title and favicon are needed for the undocked version of the popup -%>
+		<title>TabMania</title>
+		<link rel="icon" href="<%- isProd ? "images/icon-16.png" : "../images/icon-16.png" %>" type="image/png">
+	</head>
 
-	<%# A title and favicon are needed for the undocked version of the popup %>
-	<title>TabMania</title>
-	<link rel="icon" href="../images/icon-16.png" type="image/png">
-  </head>
+	<%_ %><%# The "height" is needed for the docked popup, and will be ignored by the undocked popup.
+	   We're now setting width/height for docked in the popupDocker initialization.
+	<body style="width: 400px; height: 542px">
+	-%>
+	<body>
 
-  <%# The "height" is needed for the docked popup, and will be ignored by the undocked popup.
-       We're now setting width/height for docked in the popupDocker initialization.
-  <body style="width: 400px; height: 542px">
-  %>
+		<%_ %><%# Note that the maximum width of an extension's popup is 800px, but we just need half of that.
+		  # See https://stackoverflow.com/questions/8983165/how-can-i-expand-the-popup-window-of-my-chrome-extension#:~:text=Chrome%20extension%20popups%20can%20have,and%20maximum%20width%20of%20800px.
+		-%>
+		<div id="popup-tabs-div"></div>
+		<%_ %><%# Optional JavaScript for Bootstrap -%>
+		<script src="bootstrap.bundle.min.js"></script>
 
-  <body>
-
-	<%# Note that the maximum width of an extension's popup is 800px, but we just need half of that.
-		See https://stackoverflow.com/questions/8983165/how-can-i-expand-the-popup-window-of-my-chrome-extension#:~:text=Chrome%20extension%20popups%20can%20have,and%20maximum%20width%20of%20800px.
-	%>
-
-	<div id="popup-tabs-div">
-	</div>
-	<%# Optional JavaScript for Bootstrap %>
-	<script src="bootstrap.bundle.min.js"></script>
-
-<%# Never add this back, it's slowing down performance significantly, see notes in /docs %>
-<%#	<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/js/all.min.js"></script> %>
-
-  </body>
+		<%_ %><%# Never add this back, it's slowing down performance significantly, see notes in /docs
+		  #	<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/js/all.min.js"></script>
+		-%>
+	</body>
 </html>

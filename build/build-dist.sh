@@ -35,7 +35,7 @@ declare BG_SOURCES=("lib/Base.js" "lib/TmUtils.js" "lib/PersistentDict.js" "lib/
 
 # List source files in POPUP_SOURCES relative to src/popup/ (the same way they're listed in
 # the auto-generated src/popup/popup.html)
-source src/templates/popup-sources-dev.sh
+source src/templates/sources-env.sh
 #declare POPUP_SOURCES=("../lib/Base.js" "../lib/TmUtils.js" "../lib/PersistentDict.js" "../lib/utils.js"		\
 #					"../lib/PerfProfiler.js" "../lib/AsyncQueue.js" "../lib/chromeUtils.js"						\
 #					"../lib/NormalizedTabs.js" "../lib/ShortcutsManager.js" "../lib/SettingsStore.js"			\
@@ -50,15 +50,31 @@ mkdir -p "${TGT}"
 mkdir -p "${TGT}/images"
 
 
-# Strip comments from manifest.json. Since uglifyJs doesn't support JSON, we need to
-# use a different tool for this.
-"${NPMBIN}/strip-json-comments" --no-whitespace "${SRC}/manifest.json" > "${TGT}/manifest.json" 
+# Create the JSON file we'll need to run against our templates to build manifest.json
+# and popup.html
+declare PROD_BUILD=""
+source src/templates/sources-env.sh
+
+declare TMPJSON="${TGT}/sources-prod.json"
+(createJsonFile) > "${TMPJSON}"
+
+
+# Create dist/manifest.json
+"${NPMBIN}/ejs" "${TEMPLATES}/manifest.json.ejs" -f "${TMPJSON}" -o "${TGT}/manifest.json"
+
+## Strip comments from manifest.json. Since uglifyJs doesn't support JSON, we need to
+## use a different tool for this.
+#"${NPMBIN}/strip-json-comments" --no-whitespace "${SRC}/manifest.json" > "${TGT}/manifest.json" 
+
 
 # Create dist/popup.html
-declare TMPJSON="${TGT}/popup-sources-prod-nocomments.json"
-"${NPMBIN}/strip-json-comments" "${TEMPLATES}/popup-sources-prod.json" > "${TMPJSON}"
 "${NPMBIN}/ejs" "${TEMPLATES}/popup.html.ejs" -f "${TMPJSON}" -o "${TGT}/popup.html"
+
+
+# Since we're done with both manifest.json and popup.html, we can now safely delete the JSON
+# file we used to create them
 rm "${TMPJSON}"
+
 
 # Copy only the png files, not any other files that might be in the src/images folder
 cp "${SRC}"/images/*.png "${TGT}/images"

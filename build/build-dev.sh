@@ -33,42 +33,28 @@ head -n -1 node_modules/bootstrap/dist/css/bootstrap.min.css > src/popup/bootstr
 head -n -1 node_modules/bootstrap/dist/js/bootstrap.bundle.min.js > src/popup/bootstrap.bundle.min.js
 
 
-# Creation of popup/popup.html
+# Create the JSON file we'll need to run against our templates to build manifest.json
+# and popup.html
+source src/templates/sources-env.sh
 
-# "$1" is the output file where we want JSON to be dumped
-createJsonList() {
-	source src/templates/popup-sources-dev.sh
+declare TMPJSON="src/templates/sources-dev.json"
+(createJsonFile) > "${TMPJSON}"
 
-	# Take the last file out of the list, since the last file can't be followed by ","
-	# to be syntactically correct JSON
-	declare LASTFILE="${POPUP_SOURCES[-1]}"
-	unset POPUP_SOURCES[-1]
 
-	# Very hard to get quotes to stick around filenames with just "echo" and array prefix/suffix
-	# function (like $ARRAY[@]/#/<prefix> or $ARRAY[@]/%/<suffix>). Lucklily "printf" works around
-	# all issues and lets you format the output the way you want, including with quotes...
-	#
-	# The format we need is:
-	#
-	# {
-	#    "sources": [
-	#         "file1.js",
-	#         "file2.js",
-	#         ...
-	#         "fileN.js"
-	#    ]
-	# }
+# Create manifest.json
+"${NPMBIN}/ejs" src/templates/manifest.json.ejs -f "${TMPJSON}" -o src/manifest.json
 
-	echo "{ \"sources\": [ " $( printf "\"%s\", " "${POPUP_SOURCES[@]}" ) "\"${LASTFILE}\" ] } " > "$1"
-}
 
-declare TMPJSON="src/templates/popup-sources-dev-nocomments.json"
-( createJsonList "${TMPJSON}" )
+# Create of popup/popup.html
 "${NPMBIN}/ejs" src/templates/popup.html.ejs -f "${TMPJSON}" -o src/popup/popup.html
+
+
+# Since we're done with both manifest.json and popup.html, we can now safely delete the JSON
+# file we used to create them
 rm "${TMPJSON}"
 
 
-# Packaging of injection scripts
+# Package injection scripts
 
 declare -r SRC="src/content-src"
 declare -r TGT="src/content-gen"

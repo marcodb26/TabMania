@@ -1,0 +1,95 @@
+# This file sets a bunch of variables, and some of them are controlled by "PROD_BUILD"
+# being set when this file is sourced
+
+# List source files in DEV_POPUP_SOURCES relative to src/popup/ (the same way you want them listed in
+# the auto-generated src/popup/popup.html)
+declare DEV_POPUP_SOURCES=(						
+	"../lib/Base.js" "../lib/TmUtils.js" "../lib/TmConsole.js" "../lib/PersistentDict.js"
+	"../lib/utils.js" "../lib/PerfProfiler.js" "../lib/AsyncQueue.js" "../lib/chromeUtils.js"
+	"../lib/NormalizedTabs.js" "../lib/ShortcutsManager.js" "../lib/SettingsStore.js"
+	"../lib/ScheduledJob.js" "../lib/PopupDockerBase.js" "../lib/LocalStore.js"
+	# Don't include staging/staging.js unless you'r taking screenshots of TabMania for publishing
+	#	"../staging/TmStaging.js"																	
+	"SearchTokenizer.js" "SearchParser.js" "SearchOptimizer.js" "SearchQuery.js" "BookmarksManager.js"
+	"HistoryFinder.js" "PopupDocker.js" "PopupMsgServer.js" "icons.js" "Viewer.js" "TabViewer.js"
+	"GroupsBuilder.js" "ContainerViewer.js" "SettingsItemViewer.js" "SettingsCustomGroupViewer.js"
+	"SettingsTabViewer.js" "PopupViewer.js" "TabsTabViewer.js" "TabTileViewer.js" "TileMenuViewer.js"
+	"PopupMenuViewer.js" "NewTabAction.js" "popup.js"
+)
+
+declare PROD_POPUP_SOURCES=(
+	"popup.js"
+)
+
+# List source files in DEV_BACKGROUND_SOURCES relative to src/ (the same way you want them listed in
+# the auto-generated src/manifest.json)
+declare DEV_BACKGROUND_SOURCES=(
+	"lib/Base.js" "lib/TmUtils.js" "lib/PersistentDict.js" "lib/utils.js" "lib/PerfProfiler.js"
+	"lib/AsyncQueue.js"	"lib/chromeUtils.js" "lib/NormalizedTabs.js" "lib/ShortcutsManager.js"
+	"lib/SettingsStore.js" "lib/LocalStore.js" "lib/ScheduledJob.js" "lib/PopupDockerBase.js"
+	"PopupDockerBg.js" "TabsManager.js" "KeyboardShortcuts.js" "ContextMenu.js" "messaging.js"
+	"background.js"
+)
+
+declare PROD_BACKGROUND_SOURCES=(
+	"background.js"
+)
+
+# We're checking if the variable PROD_BUILD is set.
+# See https://stackoverflow.com/questions/3601515/how-to-check-if-a-variable-is-set-in-bash
+if [ -z ${PROD_BUILD+x} ]; then
+	# "-n" is a "nameref" variable (an alias to the original variable. We could have just
+	# copied the array again instead of trying to be fancy, but since it works...
+	# See https://unix.stackexchange.com/questions/390757/referencing-bash-array-variables-from-another-array
+	declare -n POPUP_SOURCES=DEV_POPUP_SOURCES
+	declare -n BACKGROUND_SOURCES=DEV_BACKGROUND_SOURCES
+else
+	declare -n POPUP_SOURCES=PROD_POPUP_SOURCES
+	declare -n BACKGROUND_SOURCES=PROD_BACKGROUND_SOURCES
+fi
+
+
+createOneJsonList() {
+	declare SOURCES_COPY=("$@")
+	# Take the last file out of the list, since the last file can't be followed by ","
+	# to be syntactically correct JSON
+	declare SOURCES_LASTFILE="${SOURCES_COPY[-1]}"
+	unset SOURCES_COPY[-1]
+
+	# If SOURCES_COPY has zero elements, just return SOURCES_LASTFILE
+	if [ ${#SOURCES_COPY[@]} -eq 0 ]; then
+		echo "\"${SOURCES_LASTFILE}\""
+	else
+		# Very hard to get quotes to stick around filenames with just "echo" and array prefix/suffix
+		# function (like $ARRAY[@]/#/<prefix> or $ARRAY[@]/%/<suffix>). Luckily "printf" works around
+		# all issues and lets you format the output the way you want, including with quotes...
+		#
+		# The format we need is:
+		#
+		# {
+		#    "sources": [
+		#         "file1.js",
+		#         "file2.js",
+		#         ...
+		#         "fileN.js"
+		#    ]
+		# }
+		echo "$(printf "\"%s\", " "${SOURCES_COPY[@]}")" "\"${SOURCES_LASTFILE}\""
+	fi
+}
+
+# "$1" is the output file where we want JSON to be dumped
+createJsonFile() {
+	if [ -z ${PROD_BUILD+x} ]; then
+		declare IS_PROD_JSON="\"isProd\": false"
+	else
+		declare IS_PROD_JSON="\"isProd\": true"
+	fi
+
+	echo -e "{\n" \
+		"\"popupSources\": [ $(createOneJsonList "${POPUP_SOURCES[@]}") ], \n" \
+		"\"bgSources\": [ $(createOneJsonList "${BACKGROUND_SOURCES[@]}") ], \n" \
+		"${IS_PROD_JSON} \n" \
+	"}"
+#	"} " > "$1"
+}
