@@ -629,3 +629,15 @@ PUNTED TO NEXT RELEASE
 	  * The only side effect is that the background might have to do this at all
 	    times, even when no popup is open, but it already has to do that, in order
 		to manage correctly the custom shortcuts
+
+- Support contextual identities
+  * Currently only implemented in Firefox
+    * Chrome has "profiles", but they don't seem to be the same thing
+  * See https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Work_with_contextual_identities
+
+- Support Chrome Profiles
+  * https://developer.chrome.com/docs/extensions/reference/identity/#method-getProfileUserInfo
+  * Not sure if there's much to do with this API...
+  * An extension is installed within the context of a profile, so it doesn't have access to
+    data from other profiles
+	- Every profile needs to re-install the extension if they want it
