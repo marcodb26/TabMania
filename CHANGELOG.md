@@ -2,7 +2,7 @@
 The format of this Changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-# [Unreleased]
+# [1.2.0] - 2021-03-25
 ## Added
 - Added `tmUtils.showTabInfo(<tabId>)` for debugging from the Chrome dev tools console
 - Added support for "Search tabs with TabMania" as "selection" context menu and shortcuts option
