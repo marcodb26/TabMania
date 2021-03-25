@@ -163,7 +163,7 @@ runUglifyJs() {
 
 
 # Create ZIP file and place it in past-releases/vX.Y/
-mkdir "past-releases/v${VERSION}"
+mkdir -p "past-releases/v${VERSION}"
 # Per the 7Zip documentation, prefixing the sources with "./" causes the path
 # to be omitted from the generated ZIP file. See https://sevenzip.osdn.jp/chm/cmdline/commands/add.htm
 7z.exe a "past-releases/v${VERSION}/TabMania v${VERSION}.zip" ./dist/*
