@@ -11,7 +11,12 @@ This is not an auto-generated file, but please leave that HTML comment there...
 
 Note the use of the closing tag with the leading "-", indicating "trim-mode ('newline slurp')"
 -%>
-// AUTO-GENERATED FILE, DO NOT EDIT, see src/templates/manifest.ejs for details
+<%# While releasing 1.2, discovered that the Chrome Web Store is not as premissive as
+  # Google Chrome itself when it comes to parsing JSON: CWS doesn't accept comments in
+  # the JSON file, so we need to restrict this "auto-generated" warning only to the
+  # dev version of manifest.json
+-%>
+<%- isProd ? "" : "// AUTO-GENERATED FILE, DO NOT EDIT, see src/templates/manifest.json.ejs for details\n" -%>
 {
 	"name": "TabMania",
 	"version": "<%- version %>",
@@ -74,7 +79,7 @@ Note the use of the closing tag with the leading "-", indicating "trim-mode ('ne
 			"description": "Go forward to the next active tab",
 			"global": false
 		},
-		"02los":  { // "los" == "launch or search"
+		"02los":  { <%# "los" == "launch or search" %>
 			"suggested_key": {
 				"default": "Ctrl + Shift + Down"
 			},

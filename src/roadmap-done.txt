@@ -11,6 +11,9 @@ DONE 1.3
 - Removed "strip-json-comments-cli" as we're no longer using it
   * Used command `npm uninstall -D strip-json-comments-cli`
 
+- Removed last standing Javascript comment from manifest.json.ejs
+  * And removed "auto-generated" comment from dist version of manifest.json (DEV version ok)
+
 
 DONE 1.2
 
