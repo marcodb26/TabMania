@@ -137,11 +137,14 @@ by running `npm run build-dev` from the top folder of the project.
     assets as well
 
 * Once the tag is available, navigate to the tagged sources and get a link to README.md in that tag
-  * https://github.com/marcodb26/TabMania/commits then click the `< >` button (_Browse the repository
+  * `https://github.com/marcodb26/TabMania/tree/**<tag label>**`
+	- E.g. https://github.com/marcodb26/TabMania/tree/v1.2
+    - Before, used to do: https://github.com/marcodb26/TabMania/commits then click the `< >` button (_Browse the repository
     at this point in the history_)
+	  * But the link would be too long
   * Note down the link of README.md and CHANGELOG.md
-    - Readme: https://github.com/marcodb26/TabMania/blob/1b6c1fda47d89bb3df7e5d9b2d7b30301206f8f0/README.md
-	- Changelog: https://github.com/marcodb26/TabMania/blob/1b6c1fda47d89bb3df7e5d9b2d7b30301206f8f0/CHANGELOG.md
+    - Readme: https://github.com/marcodb26/TabMania/blob/v1.2/README.md
+	- Changelog: https://github.com/marcodb26/TabMania/blob/v1.2/CHANGELOG.md
   * Then edit the release object just created, and add:
 	 `See the documentation and changelog for this release.` with appropriate hyperlinks
 

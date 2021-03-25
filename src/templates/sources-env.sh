@@ -1,7 +1,7 @@
 # This file sets a bunch of variables, and some of them are controlled by "PROD_BUILD"
 # being set when this file is sourced
 
-declare VERSION="1.2"
+declare VERSION="1.3"
 
 # List source files in UNPACKED_POPUP_SOURCES relative to src/popup/ (the same way you want them listed in
 # the auto-generated src/popup/popup.html for DEV)

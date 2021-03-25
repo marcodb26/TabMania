@@ -1,4 +1,14 @@
-TODO 1.2
+TODO 1.3
+
+- Update package summary in manifest.json.ejs
+
+- Remove last Javascript comment from manifest.json.ejs
+
+- Remove "auto-generated" comment from dist version of manifest.json (DEV version ok)
+
+- Update NPM
+
+- Remove "strip-json-comments-cli" if we're not using it anymore
 
 
 PREP FOR NEXT RELEASE
@@ -10,13 +20,10 @@ PREP FOR NEXT RELEASE
 
 PUNTED TO NEXT RELEASE
 
+
 - Allow searching for tabs that are changing title often
   * Typically they're asking for attention, push them to the top of the standard window?
   * Also, avoid full re-rendering when you see that, just let the tile stay where it is
-
-- Update NPM
-
-- Remove "strip-json-comments-cli" if we're not using it anymore
 
 - Re-merge the normalizeTab() for tabs and bookmarks
   * We've seen too many search bugs due to discrepancies in the treatment of bookmarks vs. tabs
