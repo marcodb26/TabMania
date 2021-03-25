@@ -10,6 +10,9 @@ PREP FOR NEXT RELEASE
 
 PUNTED TO NEXT RELEASE
 
+- Allow searching for tabs that are changing title often
+  * Typically they're asking for attention, push them to the top of the standard window?
+
 - Update NPM
 
 - Remove "strip-json-comments-cli" if we're not using it anymore
