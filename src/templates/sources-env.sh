@@ -1,6 +1,8 @@
 # This file sets a bunch of variables, and some of them are controlled by "PROD_BUILD"
 # being set when this file is sourced
 
+declare VERSION="1.2"
+
 # List source files in UNPACKED_POPUP_SOURCES relative to src/popup/ (the same way you want them listed in
 # the auto-generated src/popup/popup.html for DEV)
 declare UNPACKED_POPUP_SOURCES=(						
@@ -84,6 +86,7 @@ createOneJsonList() {
 
 # Call createJsonFile() to generate the full JSON body
 createJsonFile() {
+	declare VERSION_JSON="\"version\": \"${VERSION}\","
 	if [ -z ${PROD_BUILD+x} ]; then
 		declare IS_PROD_JSON="\"isProd\": false"
 	else
@@ -91,6 +94,7 @@ createJsonFile() {
 	fi
 
 	echo -e "{\n" \
+		"${VERSION_JSON} \n" \
 		"\"popupSources\": [ $(createOneJsonList "${POPUP_SOURCES[@]}") ], \n" \
 		"\"bgSources\": [ $(createOneJsonList "${BACKGROUND_SOURCES[@]}") ], \n" \
 		"${IS_PROD_JSON} \n" \

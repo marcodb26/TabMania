@@ -34,7 +34,7 @@ mkdir -p "${TGT}/images"
 # and popup.html
 
 # ${TEMPLATES}/sources-env.sh includes the definition of UNPACKED_POPUP_SOURCES and UNPACKED_BACKGROUND_SOURCES,
-# which we use below in the uglifyJs section.
+# which we use below in the uglifyJs section. It includes VERSION too.
 # It also includes the function createJsonFile(), needed to create the JSON file used to generate
 # manifest.json and popup.html from their respective templates.
 declare PROD_BUILD=""
@@ -160,6 +160,13 @@ runUglifyJs() {
 # Note that UNPACKED_BACKGROUND_SOURCES and UNPACKED_POPUP_SOURCES are relative to two different
 # starting paths, while obviously COMMON_PROD_SOURCES is the same for both
 ( runUglifyJs dist/popup.js "${COMMON_PROD_SOURCES[@]/#/${SRC}/}" "${UNPACKED_POPUP_SOURCES[@]/#/${SRC}/popup/}" )
+
+
+# Create ZIP file and place it in past-releases/vX.Y/
+mkdir "past-releases/v${VERSION}"
+# Per the 7Zip documentation, prefixing the sources with "./" causes the path
+# to be omitted from the generated ZIP file. See https://sevenzip.osdn.jp/chm/cmdline/commands/add.htm
+7z.exe a "past-releases/v${VERSION}/TabMania v${VERSION}.zip" ./dist/*
 
 
 # Pause the terminal before closing
