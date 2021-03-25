@@ -8,7 +8,7 @@
     "dist": "build/build-dist.sh",
     "test": "echo \"Error: no test specified\" && exit 1",
     "//": "Unfortunately there's no hook for 'npm update': https://github.com/npm/npm/issues/12237 ",
-    "postinstall": "build/build-dev.sh",
+    "postinstall": "build/build-dev.sh"
   },
   "repository": {
     "type": "git",
