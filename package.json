@@ -9,7 +9,6 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "//": "Unfortunately there's no hook for 'npm update': https://github.com/npm/npm/issues/12237 ",
     "postinstall": "build/build-dev.sh",
-	"popup": "( MORE_SOURCES=`grep -Po \"\\[.*\\]\" src/templates/popup-sources-dev.json` ; echo \"${MORE_SOURCES}\" ; read)"
   },
   "repository": {
     "type": "git",
