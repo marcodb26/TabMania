@@ -91,7 +91,7 @@ APIs limit injection to a single file, so the source files in `src/content-src` 
 before they can be used in the popup. Run `npm run build-dev` to create `src/content-gen` before
 you point Chrome to `src/` for `manifest.json`, or any time you edit a file in `src/content-src`.
 
-# Adding Javascript source files `manifest.json` and `popup.html`
+# Adding Javascript source files to `manifest.json` and `popup.html`
 `src/manifest.json` and `src/popup/popup.html` are auto-generated files from `src/templates/manifest.json.ejs`
 and `src/templates/popup.html.ejs` respectively. If you need to add or change Javascript source files,
 the "single source of truth" is `src/templates/sources-env.sh`. Edit that file, then apply the changes
