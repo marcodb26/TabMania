@@ -1,5 +1,6 @@
 // CLASS TabsTitleMonitor
 //
+// Use test/pageWantsAttention.html to test this logic
 Classes.TabsTitleMonitor = Classes.Base.subclass({
 
 	// Tracks titles history by tab ID

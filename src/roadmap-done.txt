@@ -18,6 +18,8 @@ DONE 1.3
 
 - Move to top of tiles list any tab that is changing title too frequently
   * The "wantsAttention" logic
+	- Move a tile to the top if its title is changing frequently, and avoid a full
+	  refresh once that condition has been identified
 
 
 DONE 1.2
