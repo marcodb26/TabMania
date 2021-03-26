@@ -1,22 +1,17 @@
 TODO 1.3
 
-
-
-
-
-PREP FOR NEXT RELEASE
-
-- Remove all injection code in preparation for release (again)
-
-- Disable Base._assert() for production code
-
-
-PUNTED TO NEXT RELEASE
-
-
-- Allow searching for tabs that are changing title often
-  * Typically they're asking for attention, push them to the top of the standard window?
-  * Also, avoid full re-rendering when you see that, just let the tile stay where it is
+- BUG: there could be multiple concurrent calls to ContextMenu._onShortcutUpdatedCb() if
+  users make multiple changes quickly (or when calling testSettings() from popup.js with
+  empty sync storage, as it happened in this case). When that happens, each call will
+  wait on the chrome.contextMenus.removeAll(), then each call will try to create new
+  shortcuts with this._addAllMenuItems(), resulting in duplicated entries
+  * We need to serialize these calls and avoid concurrent calls
+  * The console showed this:
+    10:33:07.435 ContextMenu.js:208 [41] ContextMenu::_onShortcutUpdatedCb(90shortcut): menus cleared, building them again
+    10:33:07.437 ContextMenu.js:208 [41] ContextMenu::_onShortcutUpdatedCb(91shortcut): menus cleared, building them again
+    10:33:07.438 ContextMenu.js:208 [41] ContextMenu::_onShortcutUpdatedCb(92shortcut): menus cleared, building them again
+    10:33:07.505 chromeUtils.js:27 [3] ChromeUtils::wrap().cb: ContextMenu::_addAllMenuItems().iter(moveToLeastTabbed): chrome.runtime.lastError = Cannot create item with duplicate id moveToLeastTabbed
+	[ ... then more, one per menu ID, repeated twice for each menu ID ... ]
 
 - Re-merge the normalizeTab() for tabs and bookmarks
   * We've seen too many search bugs due to discrepancies in the treatment of bookmarks vs. tabs
@@ -80,18 +75,16 @@ PUNTED TO NEXT RELEASE
 
 - BUG: Pinned custom groups don't show the color on their left border when they're empty
 
-- BUG: there could be multiple concurrent calls to ContextMenu._onShortcutUpdatedCb() if
-  users make multiple changes quickly (or when calling testSettings() from popup.js with
-  empty sync storage, as it happened in this case). When that happens, each call will
-  wait on the chrome.contextMenus.removeAll(), then each call will try to create new
-  shortcuts with this._addAllMenuItems(), resulting in duplicated entries
-  * We need to serialize these calls and avoid concurrent calls
-  * The console showed this:
-    10:33:07.435 ContextMenu.js:208 [41] ContextMenu::_onShortcutUpdatedCb(90shortcut): menus cleared, building them again
-    10:33:07.437 ContextMenu.js:208 [41] ContextMenu::_onShortcutUpdatedCb(91shortcut): menus cleared, building them again
-    10:33:07.438 ContextMenu.js:208 [41] ContextMenu::_onShortcutUpdatedCb(92shortcut): menus cleared, building them again
-    10:33:07.505 chromeUtils.js:27 [3] ChromeUtils::wrap().cb: ContextMenu::_addAllMenuItems().iter(moveToLeastTabbed): chrome.runtime.lastError = Cannot create item with duplicate id moveToLeastTabbed
-	[ ... then more, one per menu ID, repeated twice for each menu ID ... ]
+
+
+PREP FOR NEXT RELEASE
+
+- Remove all injection code in preparation for release (again)
+
+- Disable Base._assert() for production code
+
+
+PUNTED TO NEXT RELEASE
 
 - Interrupt updates if the pointer is on the "Close" button of a tile
   * It's happened a couple of times that I was trying to close a tab from the tile, and

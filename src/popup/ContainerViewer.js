@@ -71,6 +71,15 @@ append: function(viewer) {
 	Classes.Viewer.append.apply(this, arguments);
 },
 
+// Moves viewer as first child of the container. This function assumes that "viewer"
+// is already in the container, so the container is not empty, and the container's
+// this._appendedCnt must not change. If these two conditions were not true, we'd
+// need to take more actions...
+moveToTop: function(viewer) {
+	// I guess I created moveToTop() just because I needed a place for the comment above it...
+	this.prepend(viewer);
+},
+
 // Override Viewer.clear() as we need a different behavior here
 clear: function() {
 	// When we clear(), we don't really clear, we replace the contents with the empty view

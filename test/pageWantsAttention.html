@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Test wantsAttention</title>
+
+		<script>
+			let cnt = 0;
+			function titleUpdateCb() {
+				let arr = [ "Look at", "me here" ];
+				document.title = `Test wantsAttention: [${cnt}] ${arr[cnt % 2]}`;
+				cnt++;
+				if(cnt < 10) {
+					setTimeout(titleUpdateCb, 1000);
+				}
+			}
+			setTimeout(titleUpdateCb, 1000);
+		</script>
+	</head>
+	<body>
+		This page runs a script that changes the title of the page every second 10 times, then stops.<br>
+		The tabsTitleMonitor "wantsAttention" logic should make the tile of the page go to the top of
+		the tiles list while the title changes, starting from the 4th change. The 4th change should be
+		cnt == 2:
+		<ul>
+		<li>1st transition: from page URL to original title in HTML</li>
+		<li>2nd transition: from original title, to cnt = 0</li>
+		<li>3rd transition: from cnt = 0, to cnt = 1</li>
+		<li>4th transition: from cnt = 1, to cnt = 2</li>
+		</ul>
+		See also comment at TabsTitleMonitor._minTransitionsCountForAttention.<br>
+		Then the tile should stay at the top for 10 seconds	(the value of tabsTitleMonitor._timeSensitivity)
+		after the title stopped changing, then go back to its standard place in the list.
+	</body>
+</html>

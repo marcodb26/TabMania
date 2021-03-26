@@ -484,10 +484,25 @@ _immediateTabUpdate: function(tabId, tab) {
 		// Then we update the tile with the normalized info in place.
 		// See also _setTabProp() for other considerations about calling
 		// TabTileViewer.update().
-		this._tilesByTabId[tabId].update(tab);
+		let tile = this._tilesByTabId[tabId];
+		if(tab.wantsAttention) {
+			// Push tab to the top of the tiles list
+			this._containerViewer.moveToTop(tile);
+		}
+		tile.update(tab);
 	} else {
 		this._log(logHead + "skipping immediate processing, no tile for this tab");
 	}
+},
+
+// This function is responsible for resetting the "wantsAttention" rendering, and
+// gets called by tabsTitleMonitor when a "wantsAttention" situation expires
+_stopAttentionCb: function(tabId) {
+	const logHead = "TabsTabViewer::_stopAttentionCb(" + tabId + "): ";
+
+	this._log(logHead + "entering");
+	// As usual, whenever something change, the action is always the same, full re-render...
+	this._queryAndRenderJob.run(this._queryAndRenderDelay);
 },
 
 _tabUpdatedCb: function(cbType, tabId, activeChangeRemoveInfo, tab) {
@@ -539,19 +554,27 @@ _tabUpdatedCb: function(cbType, tabId, activeChangeRemoveInfo, tab) {
 			//
 			// No reason to update the _normTabs and the shortcutsManager if we don't
 			// have any delay before a full re-query/re-render
+			tabsTitleMonitor.remove(tabId);
 			this._queryAndRenderJob.run();
 			break;
 		case Classes.TabsTabViewer.CbType.UPDATED:
-			// Only in case of a real update we can afford to delay the full re-render,
-			// provided we at least re-render the affected tile... we can only re-render
-			// the affected tile if we already have the affected tile, not if it's new.
-			// See _tabCreatedCb() for search cases where we ignore the creation event
-			// and just wait for the follwing update to arrive (that's a case where we
-			// won't have the tile in place when the update arrives).
-			if(this._queryAndRenderDelay != null && this._queryAndRenderDelay != 0) {
+			// tabsTitleMonitor.update() sets the "tab.wantsAttention" flag in "tab"
+			// when it returns "true". Can't put it in "tab.tm" because "tab.tm" will
+			// be added later.
+			if(tabsTitleMonitor.update(tab, this._stopAttentionCb.bind(this))) {
 				this._immediateTabUpdate(tabId, tab);
+			} else {
+				// Only in case of a real update we can afford to delay the full re-render,
+				// provided we at least re-render the affected tile... we can only re-render
+				// the affected tile if we already have the affected tile, not if it's new.
+				// See _tabCreatedCb() for search cases where we ignore the creation event
+				// and just wait for the follwing update to arrive (that's a case where we
+				// won't have the tile in place when the update arrives).
+				if(this._queryAndRenderDelay != null && this._queryAndRenderDelay != 0) {
+					this._immediateTabUpdate(tabId, tab);
+				}
+				this._queryAndRenderJob.run(this._queryAndRenderDelay);
 			}
-			this._queryAndRenderJob.run(this._queryAndRenderDelay);
 			break;
 		case Classes.TabsTabViewer.CbType.ACTIVATED:
 			if(this._queryAndRenderDelay != null && this._queryAndRenderDelay != 0) {

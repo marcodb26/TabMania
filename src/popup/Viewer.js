@@ -119,12 +119,17 @@ setText: function(text) {
 	}
 },
 
-// This is "append to me", and expects a viewer, not a DOM element
+// This is "append inside me", and expects a viewer, not a DOM element
 append: function(viewer) {
 	this._getBodyElem().append(viewer.getRootElement());
 },
 
-// Add current viewer as sibling before "viewer"
+// This is "prepend inside me", and expects a viewer, not a DOM element
+prepend: function(viewer) {
+	this._getBodyElem().prepend(viewer.getRootElement());
+},
+
+// This is "add to my parent before me". Add current viewer as sibling before "viewer"
 addBefore: function(viewer) {
 	let parentNode = viewer.getRootElement().parentNode;
 	this._assert(parentNode != null);

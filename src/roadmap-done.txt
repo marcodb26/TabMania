@@ -16,6 +16,9 @@ DONE 1.3
 
 - Update package summary in manifest.json.ejs
 
+- Move to top of tiles list any tab that is changing title too frequently
+  * The "wantsAttention" logic
+
 
 DONE 1.2
 
