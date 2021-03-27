@@ -13,6 +13,10 @@ TODO 1.3
     10:33:07.505 chromeUtils.js:27 [3] ChromeUtils::wrap().cb: ContextMenu::_addAllMenuItems().iter(moveToLeastTabbed): chrome.runtime.lastError = Cannot create item with duplicate id moveToLeastTabbed
 	[ ... then more, one per menu ID, repeated twice for each menu ID ... ]
 
+- Don't allow TabMania tile to close itself
+
+- Support merging the tabs of two windows
+
 - Re-merge the normalizeTab() for tabs and bookmarks
   * We've seen too many search bugs due to discrepancies in the treatment of bookmarks vs. tabs
 
