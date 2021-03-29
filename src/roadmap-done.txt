@@ -21,6 +21,9 @@ DONE 1.3
 	- Move a tile to the top if its title is changing frequently, and avoid a full
 	  refresh once that condition has been identified
 
+- BUG: TmConsole.js was not included in background page, so all the "tmConsole" commands
+  listed in README-DEV.md were not working...
+
 
 DONE 1.2
 

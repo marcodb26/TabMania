@@ -26,7 +26,7 @@ declare PACKED_POPUP_SOURCES=(
 # List source files in DEV_BACKGROUND_SOURCES relative to src/ (the same way you want them listed in
 # the auto-generated src/manifest.json)
 declare UNPACKED_BACKGROUND_SOURCES=(
-	"lib/Base.js" "lib/TmUtils.js" "lib/PersistentDict.js" "lib/utils.js" "lib/PerfProfiler.js"
+	"lib/Base.js" "lib/TmUtils.js" "lib/TmConsole.js" "lib/PersistentDict.js" "lib/utils.js" "lib/PerfProfiler.js"
 	"lib/AsyncQueue.js"	"lib/chromeUtils.js" "lib/NormalizedTabs.js" "lib/ShortcutsManager.js"
 	"lib/SettingsStore.js" "lib/LocalStore.js" "lib/ScheduledJob.js" "lib/PopupDockerBase.js"
 	"PopupDockerBg.js" "TabsManager.js" "KeyboardShortcuts.js" "ContextMenu.js" "messaging.js"
