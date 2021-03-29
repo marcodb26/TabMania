@@ -216,6 +216,9 @@ PUNTED TO NEXT RELEASE
 - Priority field in custom groups
 
 - Move to manifest v3 for tabgroups
+  * Can't do this until clipboard-read is supported with service workers in manifest v3
+    - See https://bugs.chromium.org/p/chromium/issues/detail?id=1160302
+	- See also https://groups.google.com/a/chromium.org/g/chromium-extensions/c/GD59r-FOeuQ
 
 - Multi-select of tiles to take actions on selection
   * We'd need to stop updating the tiles list during selection
