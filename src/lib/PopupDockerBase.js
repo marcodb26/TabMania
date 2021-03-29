@@ -40,8 +40,8 @@ _launchUndocked: function() {
 		url: this.getPopupUrl(true),
 		focused: true,
 		type: "popup",
-		left: storedSize.posX, // If it's undefined, use the API default
-		top: storedSize.posY, // If it's undefined, use the API default
+		left: optionalWithDefault(storedSize.posX, 0),
+		top: optionalWithDefault(storedSize.posY, 0),
 		width: optionalWithDefault(storedSize.width , this._undockedInitWidth),
 		height: optionalWithDefault(storedSize.height, this._undockedInitHeight),
 	};

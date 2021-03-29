@@ -22,7 +22,16 @@ DONE 1.3
 	  refresh once that condition has been identified
 
 - BUG: TmConsole.js was not included in background page, so all the "tmConsole" commands
-  listed in README-DEV.md were not working...
+  listed in README-DEV.md were not working from there...
+
+- BUG: when localStore doesn't have a value for "top" and "left" of the undocked popup,
+  the undocked popup gets created 3/4 outside the screen on the top left, only the bottom 1/4
+  is visible, making it very hard to move it (since the title bar is completely out of the
+  screen)
+  * Tested on a laptop screen + external monitor with laptop screen set as primary
+    - I was not having this problem when the external monitor was set as primary instead
+  * The API defaults of chrome.windows.create for "left" and "top" seem to be awful,
+    best to force a known value for "left" and "top" regardless
 
 
 DONE 1.2
