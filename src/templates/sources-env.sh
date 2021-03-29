@@ -7,7 +7,7 @@ declare VERSION="1.3"
 # the auto-generated src/popup/popup.html for DEV)
 declare UNPACKED_POPUP_SOURCES=(						
 	"../lib/Base.js" "../lib/TmUtils.js" "../lib/TmConsole.js" "../lib/PersistentDict.js"
-	"../lib/utils.js" "../lib/PerfProfiler.js" "../lib/AsyncQueue.js" "../lib/chromeUtils.js"
+	"../lib/utils.js" "../lib/PerfProfiler.js" "../lib/AsyncQueue.js" "../lib/SerialPromises.js" "../lib/chromeUtils.js"
 	"../lib/NormalizedTabs.js" "../lib/ShortcutsManager.js" "../lib/SettingsStore.js"
 	"../lib/ScheduledJob.js" "../lib/PopupDockerBase.js" "../lib/LocalStore.js"
 	# Don't include staging/staging.js unless you'r taking screenshots of TabMania for publishing
@@ -27,7 +27,7 @@ declare PACKED_POPUP_SOURCES=(
 # the auto-generated src/manifest.json)
 declare UNPACKED_BACKGROUND_SOURCES=(
 	"lib/Base.js" "lib/TmUtils.js" "lib/TmConsole.js" "lib/PersistentDict.js" "lib/utils.js" "lib/PerfProfiler.js"
-	"lib/AsyncQueue.js"	"lib/chromeUtils.js" "lib/NormalizedTabs.js" "lib/ShortcutsManager.js"
+	"lib/AsyncQueue.js"	"lib/SerialPromises.js" "lib/chromeUtils.js" "lib/NormalizedTabs.js" "lib/ShortcutsManager.js"
 	"lib/SettingsStore.js" "lib/LocalStore.js" "lib/ScheduledJob.js" "lib/PopupDockerBase.js"
 	"PopupDockerBg.js" "TabsManager.js" "KeyboardShortcuts.js" "ContextMenu.js" "messaging.js"
 	"background.js"

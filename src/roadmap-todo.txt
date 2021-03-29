@@ -1,18 +1,5 @@
 TODO 1.3
 
-- BUG: there could be multiple concurrent calls to ContextMenu._onShortcutUpdatedCb() if
-  users make multiple changes quickly (or when calling testSettings() from popup.js with
-  empty sync storage, as it happened in this case). When that happens, each call will
-  wait on the chrome.contextMenus.removeAll(), then each call will try to create new
-  shortcuts with this._addAllMenuItems(), resulting in duplicated entries
-  * We need to serialize these calls and avoid concurrent calls
-  * The console showed this:
-    10:33:07.435 ContextMenu.js:208 [41] ContextMenu::_onShortcutUpdatedCb(90shortcut): menus cleared, building them again
-    10:33:07.437 ContextMenu.js:208 [41] ContextMenu::_onShortcutUpdatedCb(91shortcut): menus cleared, building them again
-    10:33:07.438 ContextMenu.js:208 [41] ContextMenu::_onShortcutUpdatedCb(92shortcut): menus cleared, building them again
-    10:33:07.505 chromeUtils.js:27 [3] ChromeUtils::wrap().cb: ContextMenu::_addAllMenuItems().iter(moveToLeastTabbed): chrome.runtime.lastError = Cannot create item with duplicate id moveToLeastTabbed
-	[ ... then more, one per menu ID, repeated twice for each menu ID ... ]
-
 - Don't allow TabMania tile to close itself
 
 - Support merging the tabs of two windows

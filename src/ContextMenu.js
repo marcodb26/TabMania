@@ -4,6 +4,8 @@ Classes.ContextMenu = Classes.Base.subclass({
 
 	_allMenuItems: null,
 
+	_updateAllSerialPromises: null,
+
 _init: function() {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.Base._init.call(this);
@@ -12,10 +14,10 @@ _init: function() {
 //	// https://developer.chrome.com/docs/extensions/reference/contextMenus/#event-onClicked
 //	chrome.contextMenus.onClicked.addListener(this._onClickedCb.bind(this));
 
-	settingsStore.getShortcutsManager().addEventListener(Classes.EventManager.Events.UPDATED, this._onShortcutUpdatedCb.bind(this));
+	this._updateAllSerialPromises = Classes.SerialPromises.createAs("ContextMenu::_updateAllSerialPromises");
+	this._updateAllSerialPromises.next(this._updateAllMenuItems.bind(this, "init"), "init");
 
-	this._allMenuItems = this._defineAllMenuItems();
-	this._addAllMenuItems(this._allMenuItems);
+	settingsStore.getShortcutsManager().addEventListener(Classes.EventManager.Events.UPDATED, this._onShortcutUpdatedCb.bind(this));
 },
 
 _blinkPopupIconBadge: async function(tabId) {
@@ -211,22 +213,30 @@ _defineAllMenuItems: function() {
 //	this._log(logHead + "entering", arguments);
 //},
 
+_updateAllMenuItems: function(debugInfo) {
+	const logHead = "ContextMenu::_updateAllMenuItems(" + debugInfo + "): ";
+
+	return chromeUtils.wrap(chrome.contextMenus.removeAll, logHead).then(
+		function() {
+			this._log(logHead + "menus cleared, building them again");
+
+			this._allMenuItems = this._defineAllMenuItems();
+			return this._addAllMenuItems(this._allMenuItems);
+		}.bind(this)
+	);
+},
+
 _onShortcutUpdatedCb: function(ev) {
 	let key = ev.detail.key;
 	const logHead = "ContextMenu::_onShortcutUpdatedCb(" + key + "): ";
+
+	this._log(logHead + "entering");
 
 	// We don't have a lot of menu items, rather than going through the trouble of
 	// figuring out which items have been removed (shortcut deleted or removed search
 	// option), or have been modified (title changed), let's just delete all and add
 	// all again...
-	chromeUtils.wrap(chrome.contextMenus.removeAll, logHead).then(
-		function() {
-			this._log(logHead + "menus cleared, building them again");
-
-			this._allMenuItems = this._defineAllMenuItems();
-			this._addAllMenuItems(this._allMenuItems);
-		}.bind(this)
-	);
+	this._updateAllSerialPromises.next(this._updateAllMenuItems.bind(this, key), key);
 },
 
 
