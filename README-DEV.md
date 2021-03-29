@@ -195,6 +195,10 @@ by running `npm run build-dev` from the top folder of the project.
 	  * Add line after `description`:
 		> `"private": true,`
 
+- Node is at v15.12.2 (was v10.8.0) (on old PC)
+  * Updated to latest version from https://nodejs.org/en/download/current/
+    - Picked 64-bit .msi for Windows
+
 - Changed shell for NPM
   * Original: `"C:\\WINDOWS\\system32\\cmd.exe"`
   * New: `"C:\\Program Files\\Git\\git-bash.exe"`
