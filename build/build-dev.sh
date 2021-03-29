@@ -1,5 +1,5 @@
 # Remove the comment to debug the script
-set -x
+#set -x
 
 # Setup the dev environment. This includes the follwing steps
 # - Pull in the bootstrap files
@@ -15,6 +15,7 @@ declare -r NPMBIN=`npm bin`
 
 # Bootstrap stuff
 
+echo "Copying Bootstrap files"
 # We need to remove the sourcemap at the bottom of the files because we don't care to
 # be able to debug the internals of Bootstrap. If we don't remove the last line, the
 # browser complains: "DevTools failed to load SourceMap: Could not load content for ..."
@@ -42,10 +43,12 @@ declare TMPJSON="src/templates/sources-dev.json"
 
 
 # Create manifest.json
+echo "Creating manifest.json"
 "${NPMBIN}/ejs" src/templates/manifest.json.ejs -f "${TMPJSON}" -o src/manifest.json
 
 
 # Create of popup/popup.html
+echo "Creating popup.html"
 "${NPMBIN}/ejs" src/templates/popup.html.ejs -f "${TMPJSON}" -o src/popup/popup.html
 
 
@@ -55,6 +58,7 @@ rm "${TMPJSON}"
 
 
 # Package injection scripts
+echo "Packaging injection scripts"
 
 declare -r SRC="src/content-src"
 declare -r TGT="src/content-gen"
@@ -83,5 +87,6 @@ declare MAINFILE="inject-getMeta.js"
 ( runUglifyJs )
 
 # Pause the terminal before closing
+echo "Press ENTER to close"
 read
 exit 0
