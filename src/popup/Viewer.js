@@ -279,7 +279,7 @@ _init: function(options) {
 	// set "display: none;", but fails on the inner <div> because "d-grid" is defined as
 	// "display: grid!important;" and the "!important" would overrides "display: none;"
 	const buttonHtml = `
-	<div class="tm-btnbar-btn tm-full-height">
+	<div class="tm-btnbar-btn h-100">
 		${fullWidthHtmlBefore}
 			<a class="btn ${this._options.btnExtraClasses.join(" ")}" role="button"	id="${buttonId}">
 				${this._options.labelHtml}

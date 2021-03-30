@@ -54,7 +54,7 @@ _renderEmptyTile: function() {
 	// of those tiles. While you wait, it's better to see a full-sized empty tile
 	// than a bunch of super-thin tiles that later disappear.
 	const rootHtml = `
-	<div style="cursor: default; min-height: 3em;" class="card tm-hover">
+	<div style="min-height: 3em;" class="card tm-hover tm-cursor-default">
 		<div id="${bodyId}" class="card-body px-2 py-1 text-nowrap tm-stacked-below">
 		</div>
 		<div class="tm-overlay tm-full-size tm-hover-target">

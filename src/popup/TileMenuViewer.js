@@ -51,10 +51,10 @@ _MenuViewer_render: function() {
 	// Bootstrap caret, you might need to remove "tm-dropdown-toggle" too if you want to
 	// customize the icon. See the CSS definition of "tm-dropdown-toggle::after" for more details.
 	//
-	// "tm-full-height" is needed only for the dropdown for the bstab main menu, but since
+	// "h-100" is needed only for the dropdown for the bstab main menu, but since
 	// it's not hurting other uses of the menuButton, we'll use it everywhere...
 	let menuButtonHtml = `
-	<div class="dropdown tm-full-height">
+	<div class="dropdown h-100">
 		<a class="btn ${dropdownExtraClasses.join(" ")}" role="button"
 				id="${menuId}" data-bs-toggle="dropdown" aria-expanded="false">
 			${this._options.label}

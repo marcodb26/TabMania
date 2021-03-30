@@ -27,10 +27,6 @@
 	color: #495057;
 }
 
-.tm-full-height {
-	height: 100%;
-}
-
 .tm-scrollable-bstab-body {
 	/* Make scrollbars show on this div, not on the outer top level */
 	height: 100%;

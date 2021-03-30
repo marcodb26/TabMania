@@ -34,7 +34,7 @@ _renderTabsContainer: function() {
 	// we don't want it inside the button bar.
 	// The right margin for the button bar is not needed, the menu button takes care of that.
 	const headingHtml = `
-	<div class="d-flex" style="cursor: default">
+	<div class="d-flex tm-cursor-default">
 		<div class="flex-grow-1">
 			<!-- https://getbootstrap.com/docs/5.0/components/navs-tabs/ -->
 			<ul class="nav nav-tabs nav-justified" id="${headingId}" role="tablist">
