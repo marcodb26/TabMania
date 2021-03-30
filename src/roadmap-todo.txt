@@ -2,15 +2,6 @@ TODO 1.3
 
 - Don't allow TabMania tile to close itself
 
-- Support merging the tabs of two windows
-
-- Re-merge the normalizeTab() for tabs and bookmarks
-  * We've seen too many search bugs due to discrepancies in the treatment of bookmarks vs. tabs
-
-- Add option to control whether a pinned bookmark should be an exact match or a prefix match
-  for the URL of an open tab
-  * Pinned bookmark option (?), can't be a global option
-
 - Auto-select-all in searchbox when user clicks the mouse there to edit
 
 - Improve performance of this._normTabs.getTabByTabId()
@@ -22,6 +13,9 @@ TODO 1.3
 - Add logic to let "www.google.com" be recognized as a valid URL, even though new URL()
   won't consider it valid
   * Make it behave like the browser's omnibar...
+
+- Make all tabs sharing the url of a pinned bookmark inherit the pin
+  * Currently only one does
 
 - Render contents of dropdown menus only when they hover visible
   * Or even when the user clicks the hovered button?
@@ -76,6 +70,16 @@ PREP FOR NEXT RELEASE
 
 
 PUNTED TO NEXT RELEASE
+
+- Support merging the tabs of two windows
+
+- Re-merge the normalizeTab() for tabs and bookmarks
+  * We've seen too many search bugs due to discrepancies in the treatment of bookmarks vs. tabs
+
+- Add option to control whether a pinned bookmark should be an exact match or a prefix match
+  for the URL of an open tab
+  * Right now we match a prefix
+  * Pinned bookmark option (?), can't be a global option
 
 - Interrupt updates if the pointer is on the "Close" button of a tile
   * It's happened a couple of times that I was trying to close a tab from the tile, and
