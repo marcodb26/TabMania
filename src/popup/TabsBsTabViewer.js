@@ -131,10 +131,10 @@ _containerCollapsedCb: function(ev) {
 }); // Classes.TilesGroupViewer
 
 
-// CLASS TabsTabViewer
+// CLASS TabsBsTabViewer
 //
 // Abstract class, parent of all Viewers of tab lists
-Classes.TabsTabViewer = Classes.SearchableTabViewer.subclass({
+Classes.TabsBsTabViewer = Classes.SearchableTabViewer.subclass({
 
 	_containerViewer: null,
 	_groupsBuilder: null,
@@ -199,7 +199,7 @@ _init: function(tabLabelHtml) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.SearchableTabViewer._init.apply(this, arguments);
 
-	const logHead = "TabsTabViewer::_init(): ";
+	const logHead = "TabsBsTabViewer::_init(): ";
 	this.debug();
 
 	this._assert(this._expandedGroups != null,
@@ -224,8 +224,8 @@ _init: function(tabLabelHtml) {
 	this._groupsBuilder = Classes.GroupsBuilder.create();
 	// Call this function before rendering, because it sets _renderTabs(), which
 	// would otherwise be null
-	this._TabsTabViewer_searchBoxInactiveInner();
-	this._TabsTabViewer_render();
+	this._TabsBsTabViewer_searchBoxInactiveInner();
+	this._TabsBsTabViewer_render();
 
 	this._registerChromeCallbacks();
 
@@ -259,23 +259,23 @@ _registerChromeCallbacks: function() {
 	// "highlighted" property of a tab. For that you need to listen to chrome.tabs.onActivated
 	// and onHighlighted, though you'll only be able to learn which tabs are gaining
 	// "active" and "highlighted", not which tabs are losing them.
-	chrome.tabs.onUpdated.addListener(this._tabUpdatedCb.bind(this, Classes.TabsTabViewer.CbType.UPDATED));
+	chrome.tabs.onUpdated.addListener(this._tabUpdatedCb.bind(this, Classes.TabsBsTabViewer.CbType.UPDATED));
 	// https://developer.chrome.com/docs/extensions/reference/tabs/#event-onActivated
-	chrome.tabs.onActivated.addListener(this._tabActivatedHighlightedCb.bind(this, Classes.TabsTabViewer.CbType.ACTIVATED));
+	chrome.tabs.onActivated.addListener(this._tabActivatedHighlightedCb.bind(this, Classes.TabsBsTabViewer.CbType.ACTIVATED));
 	// https://developer.chrome.com/docs/extensions/reference/tabs/#event-onHighlighted
-	chrome.tabs.onHighlighted.addListener(this._tabActivatedHighlightedCb.bind(this, Classes.TabsTabViewer.CbType.HIGHLIGHTED));
+	chrome.tabs.onHighlighted.addListener(this._tabActivatedHighlightedCb.bind(this, Classes.TabsBsTabViewer.CbType.HIGHLIGHTED));
 	// Unfortunately closing a tab doesn't get considered an update to the tab, so we must
 	// register for this other event too...
 	// https://developer.chrome.com/docs/extensions/reference/tabs/#event-onRemoved
-	chrome.tabs.onRemoved.addListener(this._tabUpdatedCb.bind(this, Classes.TabsTabViewer.CbType.REMOVED));
+	chrome.tabs.onRemoved.addListener(this._tabUpdatedCb.bind(this, Classes.TabsBsTabViewer.CbType.REMOVED));
 	// https://developer.chrome.com/docs/extensions/reference/tabs/#event-onAttached
-	chrome.tabs.onAttached.addListener(this._tabUpdatedCb.bind(this, Classes.TabsTabViewer.CbType.ATTACHED));
+	chrome.tabs.onAttached.addListener(this._tabUpdatedCb.bind(this, Classes.TabsBsTabViewer.CbType.ATTACHED));
 	// https://developer.chrome.com/docs/extensions/reference/tabs/#event-onMoved
-	chrome.tabs.onMoved.addListener(this._tabUpdatedCb.bind(this, Classes.TabsTabViewer.CbType.MOVED));
+	chrome.tabs.onMoved.addListener(this._tabUpdatedCb.bind(this, Classes.TabsBsTabViewer.CbType.MOVED));
 },
 
 _tabCreatedCb: function(tab) {
-	const logHead = "TabsTabViewer::_tabCreatedCb(tabId = " + tab.id + "): ";
+	const logHead = "TabsBsTabViewer::_tabCreatedCb(tabId = " + tab.id + "): ";
 
 	// This check probably doesn't make sense, the _tabCreatedCb() for our own popup
 	// window should have already expired by the time we started running our logic...
@@ -321,11 +321,11 @@ _renderTileBodies: function() {
 			if(tab != null) {
 				tile.update(tab);
 			} else {
-				const logHead = "TabsTabViewer::_renderTileBodies(): ";
+				const logHead = "TabsBsTabViewer::_renderTileBodies(): ";
 				this._err(logHead + "unexpected, tile tracks non-existing tabId = " + tabId);
 			}
 //			this._tilesAsyncQueue.enqueue(tile.renderBody.bind(tile),
-//						"TabsTabViewer::_renderTileBodies(), tabId = " + tabId);
+//						"TabsBsTabViewer::_renderTileBodies(), tabId = " + tabId);
 		}
 	} catch(e) {
 		this._err(e, "this._tilesByTabId: ", this._tilesByTabId);
@@ -333,7 +333,7 @@ _renderTileBodies: function() {
 },
 
 _settingsStoreUpdatedCb: function(ev) {
-	const logHead = "TabsTabViewer::_settingsStoreUpdatedCb(" + ev.detail.key + "): ";
+	const logHead = "TabsBsTabViewer::_settingsStoreUpdatedCb(" + ev.detail.key + "): ";
 	if(this._normTabs == null) {
 		this._log(logHead + "_normTabs not initialized ye, skipping event");
 		return;
@@ -364,7 +364,7 @@ _settingsStoreUpdatedCb: function(ev) {
 },
 
 _setTabProp: function(prop, tabId) {
-	const logHead = "TabsTabViewer::_setTabProp(" + tabId + "): ";
+	const logHead = "TabsBsTabViewer::_setTabProp(" + tabId + "): ";
 	if(!(tabId in this._tilesByTabId)) {
 		this._log(logHead + "skipping immediate processing, no tile for this tab");
 		return;
@@ -416,7 +416,7 @@ _setTabProp: function(prop, tabId) {
 // a status change before we had time to process the event that carried that information.
 // So don't take this._stats.issue01Hit too literally...
 _issue01Workaround: function() {
-	const logHead = "TabsTabViewer::_issue01Workaround(): ";
+	const logHead = "TabsBsTabViewer::_issue01Workaround(): ";
 
 	if(this._normTabs == null) {
 		this._log(logHead + "no _normTabs");
@@ -464,10 +464,10 @@ _issue01Workaround: function() {
 },
 
 _immediateTabUpdate: function(tabId, tab) {
-	const logHead = "TabsTabViewer::_immediateTabUpdate(" + tabId + "): ";
+	const logHead = "TabsBsTabViewer::_immediateTabUpdate(" + tabId + "): ";
 
 	if(tabId in this._tilesByTabId) {
-		// Note that only "Classes.TabsTabViewer.CbType.UPDATED" includes "tab".
+		// Note that only "Classes.TabsBsTabViewer.CbType.UPDATED" includes "tab".
 		// All other types don't.
 		// Anyway TabTileViewer.update() is protected against "tab == null".
 
@@ -498,7 +498,7 @@ _immediateTabUpdate: function(tabId, tab) {
 // This function is responsible for resetting the "wantsAttention" rendering, and
 // gets called by tabsTitleMonitor when a "wantsAttention" situation expires
 _stopAttentionCb: function(tabId) {
-	const logHead = "TabsTabViewer::_stopAttentionCb(" + tabId + "): ";
+	const logHead = "TabsBsTabViewer::_stopAttentionCb(" + tabId + "): ";
 
 	this._log(logHead + "entering");
 	// As usual, whenever something change, the action is always the same, full re-render...
@@ -506,7 +506,7 @@ _stopAttentionCb: function(tabId) {
 },
 
 _tabUpdatedCb: function(cbType, tabId, activeChangeRemoveInfo, tab) {
-	const logHead = "TabsTabViewer::_tabUpdatedCb(" + cbType + ", " + tabId + "): ";
+	const logHead = "TabsBsTabViewer::_tabUpdatedCb(" + cbType + ", " + tabId + "): ";
 
 	// Terrible idea: our popup always shows as "loading" unless some other event
 	// happens to clear it. It's not great that we're guaranteed to have to render
@@ -548,7 +548,7 @@ _tabUpdatedCb: function(cbType, tabId, activeChangeRemoveInfo, tab) {
 	this._log(logHead + "entering", activeChangeRemoveInfo, tab);
 
 	switch(cbType) {
-		case Classes.TabsTabViewer.CbType.REMOVED:
+		case Classes.TabsBsTabViewer.CbType.REMOVED:
 			// Like in the case of onCreated, when a tab is removed we want to run the
 			// full re-render immediately.
 			//
@@ -557,7 +557,7 @@ _tabUpdatedCb: function(cbType, tabId, activeChangeRemoveInfo, tab) {
 			tabsTitleMonitor.remove(tabId);
 			this._queryAndRenderJob.run();
 			break;
-		case Classes.TabsTabViewer.CbType.UPDATED:
+		case Classes.TabsBsTabViewer.CbType.UPDATED:
 			// tabsTitleMonitor.update() sets the "tab.wantsAttention" flag in "tab"
 			// when it returns "true". Can't put it in "tab.tm" because "tab.tm" will
 			// be added later.
@@ -576,20 +576,20 @@ _tabUpdatedCb: function(cbType, tabId, activeChangeRemoveInfo, tab) {
 				this._queryAndRenderJob.run(this._queryAndRenderDelay);
 			}
 			break;
-		case Classes.TabsTabViewer.CbType.ACTIVATED:
+		case Classes.TabsBsTabViewer.CbType.ACTIVATED:
 			if(this._queryAndRenderDelay != null && this._queryAndRenderDelay != 0) {
 				this._setTabProp("active", tabId);
 			}
 			this._queryAndRenderJob.run(this._queryAndRenderDelay);
 			break;
-		case Classes.TabsTabViewer.CbType.HIGHLIGHTED:
+		case Classes.TabsBsTabViewer.CbType.HIGHLIGHTED:
 			if(this._queryAndRenderDelay != null && this._queryAndRenderDelay != 0) {
 				activeChangeRemoveInfo.tabIds.forEach(this._setTabProp.bind(this, "highlighted"));
 			}
 			this._queryAndRenderJob.run(this._queryAndRenderDelay);
 			break;
-		case Classes.TabsTabViewer.CbType.MOVED:
-		case Classes.TabsTabViewer.CbType.ATTACHED:
+		case Classes.TabsBsTabViewer.CbType.MOVED:
+		case Classes.TabsBsTabViewer.CbType.ATTACHED:
 			// Adding a parenthesis to handle the "tab" redefinition (as it's also a function input
 			// parameter) inside without incurring in the error: 
 			//   Error in event handler: ReferenceError: Cannot access 'tab' before initialization
@@ -603,7 +603,7 @@ _tabUpdatedCb: function(cbType, tabId, activeChangeRemoveInfo, tab) {
 				// event, but in this case we won't have a tab for that window yet, because it's
 				// new, and we're still in the onCreated event...
 				if(tab != null && this._queryAndRenderDelay != null && this._queryAndRenderDelay != 0) {
-					if(cbType == Classes.TabsTabViewer.CbType.ATTACHED) {
+					if(cbType == Classes.TabsBsTabViewer.CbType.ATTACHED) {
 						tab.index = activeChangeRemoveInfo.newPosition;
 						tab.windowId = activeChangeRemoveInfo.newWindowId;
 					} else { // MOVED
@@ -658,7 +658,7 @@ _historyUpdatedCb: function(ev) {
 	this._updateSearchResultsJob.run(this._updateSearchResultsDelay);
 },
 
-_TabsTabViewer_render: function() {
+_TabsBsTabViewer_render: function() {
 	this._containerViewer = Classes.ContainerViewer.create(this._emptyContainerString);
 	this._queryAndRenderTabs().then(
 		function() {
@@ -676,7 +676,7 @@ _TabsTabViewer_render: function() {
 _tabsAsyncQuery: function() {
 	// e.g. for pinned tabs:
 	// return chromeUtils.wrap(chrome.tabs.query, logHead, { pinned: true })
-	this._errorMustSubclass("TabsTabViewer::_tabsAsyncQuery()");
+	this._errorMustSubclass("TabsBsTabViewer::_tabsAsyncQuery()");
 	throw(new Error("must subclass"));
 },
 
@@ -698,7 +698,7 @@ _tabsAsyncQuery: function() {
 // "returnBookmarks" might be a very silly optimization, it only saves a bunch
 // of push() calls...
 _processPinnedBookmarks: function(tabs, returnBookmarks) {
-	const logHead = "TabsTabViewer::_processPinnedBookmarks(" + returnBookmarks + "): ";
+	const logHead = "TabsBsTabViewer::_processPinnedBookmarks(" + returnBookmarks + "): ";
 
 	let pinnedBookmarks = bookmarksManager.getPinnedBookmarks();
 	let filteredPinnedBookmarks = [];
@@ -810,7 +810,7 @@ _prepareForNewCycle: function() {
 },
 
 _queryAndRenderTabs: function() {
-	const logHead = "TabsTabViewer::_queryAndRenderTabs(): ";
+	const logHead = "TabsBsTabViewer::_queryAndRenderTabs(): ";
 	this._log(logHead + "entering");
 	this.blink();
 	perfProf.mark("queryStart");
@@ -907,7 +907,7 @@ _queryAndRenderTabs: function() {
 _renderTabs: null,
 
 _standardRenderTabs: function(tabs) {
-	const logHead = "TabsTabViewer::_standardRenderTabs(): ";
+	const logHead = "TabsBsTabViewer::_standardRenderTabs(): ";
 
 	// We need to clear() in all cases. This logic is very crude, ideally we should have
 	// a more seamless transition from a set of tabs to a different set of tabs, but
@@ -939,7 +939,7 @@ _standardRenderTabs: function(tabs) {
 // "tabGroup" is optional. If specified, it will be used by the tile to pick a
 // default tile favicon if the tab itself doesn't have one.
 _renderTabsFlatInner: function(containerViewer, tabs, tabGroup) {
-	const logHead = "TabsTabViewer::_renderTabsFlatInner(): ";
+	const logHead = "TabsBsTabViewer::_renderTabsFlatInner(): ";
 
 	tabs.forEach(
 		safeFnWrapper(this._renderTile.bind(this, containerViewer, tabGroup), null,
@@ -952,7 +952,7 @@ _renderTabsFlatInner: function(containerViewer, tabs, tabGroup) {
 },
 
 _renderTabsByGroup: function(tabGroups) {
-	const logHead = "TabsTabViewer::_renderTabsByGroup(): ";
+	const logHead = "TabsBsTabViewer::_renderTabsByGroup(): ";
 
 	tabGroups.forEach(
 		function(tabGroup) {
@@ -1007,7 +1007,7 @@ _getCachedTile: function(tab, tabGroup) {
 },
 
 _renderTile: function(containerViewer, tabGroup, tab) {
-	//const logHead = "TabsTabViewer::_renderTile(): ";
+	//const logHead = "TabsBsTabViewer::_renderTile(): ";
 	let tile = this._getCachedTile(tab, tabGroup);
 
 	if(tile == null) {
@@ -1020,7 +1020,7 @@ _renderTile: function(containerViewer, tabGroup, tab) {
 },
 
 _getAllTabGroups: function() {
-	const logHead = "TabsTabViewer::_getAllTabGroups(): ";
+	const logHead = "TabsBsTabViewer::_getAllTabGroups(): ";
 	// This call is still failing on the default channel (only available in the dev channel)
 	// as of Chrome v.88.0.4324.104 (date 21.01.24)
 	return chromeUtils.wrap(chrome.tabGroups.query, logHead, {});
@@ -1033,7 +1033,7 @@ getTabInfo: function(tabId) {
 
 // TBD when Chrome tabGrops APIs become generally available
 _processTabGroupsCb: function(tabGroups) {
-	const logHead = "TabsTabViewer::_processTabGroupsCb(): ";
+	const logHead = "TabsBsTabViewer::_processTabGroupsCb(): ";
 	this._log(logHead, tabGroups);
 },
 
@@ -1041,7 +1041,7 @@ _processTabGroupsCb: function(tabGroups) {
 // well as in the "click" handler (see TabTileViewer), and there was no cleaner way
 // to make this code available in both
 activateTab: function(tab) {
-	const logHead = "Classes.TabsTabViewer.activateTab(): ";
+	const logHead = "Classes.TabsBsTabViewer.activateTab(): ";
 	if(tab.tm.type == Classes.NormalizedTabs.type.TAB) {
 		chromeUtils.activateTab(tab.id);
 		return;
@@ -1075,7 +1075,7 @@ activateTab: function(tab) {
 // See Classes.SearchableTabViewer._activateSearchBox() for details about why
 // we separated out this sub-function, and call only this standalong at _init()
 // time (instead of just calling _activateSearchBox(false)).
-_TabsTabViewer_searchBoxInactiveInner: function() {
+_TabsBsTabViewer_searchBoxInactiveInner: function() {
 	this._currentSearchResults = null;
 	this._searchQuery = null;
 	this._renderTabs = this._standardRenderTabs;
@@ -1090,14 +1090,14 @@ _activateSearchBox: function(active) {
 
 	active = optionalWithDefault(active, true);
 
-	const logHead = "TabsTabViewer::_activateSearchBox(" + active + "): ";
+	const logHead = "TabsBsTabViewer::_activateSearchBox(" + active + "): ";
 	// When search mode gets activated, we need to switch from a standard view of
 	// tabs and tabgroups to a view of only tabs. And viceversa when the search
 	// mode gets deactivated.
 	if(!active) {
 		this._log(logHead, "switching to standard render");
 		// Switch back to the standard view
-		this._TabsTabViewer_searchBoxInactiveInner();
+		this._TabsBsTabViewer_searchBoxInactiveInner();
 		// Since we're exiting the search, we need to re-render the standard view:
 		// since we didn't have tiles for some of the tabs, some updates have not
 		// been processed in the _normTabs info, and we can't rely on what we have
@@ -1167,7 +1167,7 @@ _searchBoxProcessData: function(value) {
 },
 
 _respondToEnterKey: function(searchBoxText) {
-	const logHead = "TabsTabViewer::_respondToEnterKey(" + searchBoxText + "): ";
+	const logHead = "TabsBsTabViewer::_respondToEnterKey(" + searchBoxText + "): ";
 
 	if(this._currentSearchResults == null) {
 		this._log(logHead + "no search results, nothing to do");
@@ -1176,11 +1176,11 @@ _respondToEnterKey: function(searchBoxText) {
 
 	this._log(logHead + "activating tab Id " + this._currentSearchResults[0].id +
 					" (" + this._currentSearchResults[0].tm.type + ")");
-	Classes.TabsTabViewer.activateTab(this._currentSearchResults[0]);
+	Classes.TabsBsTabViewer.activateTab(this._currentSearchResults[0]);
 },
 
 _searchRenderTabsInner: function(tabs, bmNodes, newSearch) {
-	const logHead = "TabsTabViewer::_searchRenderTabsInner(): ";
+	const logHead = "TabsBsTabViewer::_searchRenderTabsInner(): ";
 
 	perfProf.mark("searchFilterStart");
 	let searchResult = this._searchQuery.search(tabs, logHead);
@@ -1215,11 +1215,11 @@ _searchRenderTabsInner: function(tabs, bmNodes, newSearch) {
 },
 
 _searchRenderTabs: function(tabs, newSearch) {
-	const logHead = "TabsTabViewer::_searchRenderTabs(newSearch: " + newSearch + "): ";
+	const logHead = "TabsBsTabViewer::_searchRenderTabs(newSearch: " + newSearch + "): ";
 
 	if(!this._searchQuery.isInitialized()) {
 		// Sometimes users can enter search mode while this class is going through a
-		// TabsTabViewer::_queryAndRenderTabs() for standard tabs. If that happens
+		// TabsBsTabViewer::_queryAndRenderTabs() for standard tabs. If that happens
 		// while _queryAndRenderTabs() is waiting for the response from
 		// chrome.tabs.query(), the transition to search mode will "hijack" the
 		// _queryAndRenderTabs() cycle, by switching the pointer this._renderTabs to
@@ -1316,19 +1316,19 @@ getSearchParserInfo: function() {
 			"Optimized stats:\n" + this._searchQuery.getOptimizedStats() + unoptimizedStats;
 },
 
-}); // Classes.TabsTabViewer
+}); // Classes.TabsBsTabViewer
 
-Classes.Base.roDef(Classes.TabsTabViewer, "CbType", {});
-Classes.Base.roDef(Classes.TabsTabViewer.CbType, "ACTIVATED", "activated");
-Classes.Base.roDef(Classes.TabsTabViewer.CbType, "HIGHLIGHTED", "highlighted");
-Classes.Base.roDef(Classes.TabsTabViewer.CbType, "UPDATED", "updated");
-Classes.Base.roDef(Classes.TabsTabViewer.CbType, "REMOVED", "removed");
-Classes.Base.roDef(Classes.TabsTabViewer.CbType, "ATTACHED", "attached");
-Classes.Base.roDef(Classes.TabsTabViewer.CbType, "MOVED", "moved");
+Classes.Base.roDef(Classes.TabsBsTabViewer, "CbType", {});
+Classes.Base.roDef(Classes.TabsBsTabViewer.CbType, "ACTIVATED", "activated");
+Classes.Base.roDef(Classes.TabsBsTabViewer.CbType, "HIGHLIGHTED", "highlighted");
+Classes.Base.roDef(Classes.TabsBsTabViewer.CbType, "UPDATED", "updated");
+Classes.Base.roDef(Classes.TabsBsTabViewer.CbType, "REMOVED", "removed");
+Classes.Base.roDef(Classes.TabsBsTabViewer.CbType, "ATTACHED", "attached");
+Classes.Base.roDef(Classes.TabsBsTabViewer.CbType, "MOVED", "moved");
 
-// CLASS AllTabsTabViewer
+// CLASS AllTabsBsTabViewer
 //
-Classes.AllTabsTabViewer = Classes.TabsTabViewer.subclass({
+Classes.AllTabsBsTabViewer = Classes.TabsBsTabViewer.subclass({
 
 	_emptyContainerString: "No tabs",
 
@@ -1337,15 +1337,15 @@ _init: function(tabLabelHtml) {
 	// need to do some rendering, which requires _expandedGroups to be known
 	this._expandedGroups = localStore.allTabsTabExpandedGroups;
 	// Overriding the parent class' _init(), but calling that original function first
-	Classes.TabsTabViewer._init.apply(this, arguments);
+	Classes.TabsBsTabViewer._init.apply(this, arguments);
 },
 
-// Override TabsTabViewer._tabsAsyncQuery()
+// Override TabsBsTabViewer._tabsAsyncQuery()
 _tabsAsyncQuery: function() {
-	const logHead = "AllTabsTabViewer::_tabsAsyncQuery(): ";
+	const logHead = "AllTabsBsTabViewer::_tabsAsyncQuery(): ";
 	// Use an empty dictionary to query for all tabs
 	return chromeUtils.wrap(chrome.tabs.query, logHead, {})
 },
 
-}); // Classes.AllTabsTabViewer
+}); // Classes.AllTabsBsTabViewer
 

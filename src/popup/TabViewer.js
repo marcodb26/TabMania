@@ -231,7 +231,7 @@ _SearchableTabViewer_initBodyElem: function() {
 
 	// "input" and "search" events are relatively equivalent with the "incremental" attribute
 	// set for <input>. The main difference is that "search" triggers the event with some delay,
-	// so you can potentially capture multiple characters in a single TabsTabViewer._queryAndRenderTabs()
+	// so you can potentially capture multiple characters in a single TabsBsTabViewer._queryAndRenderTabs()
 	// cycle, reducing the amount of processing needed.
 	// The delay is noticeable (about 500ms), but doesn't seem to interfere with UX, so for now
 	// let's use the more efficient event. (but definitely never use both, otherwise you'll get

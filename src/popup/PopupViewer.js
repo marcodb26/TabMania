@@ -155,7 +155,7 @@ _createTab: function(suffix, htmlLabel, tabViewerSubclass) {
 },
 
 _populateTabs: function() {
-	this._createTab("home", "Home", Classes.AllTabsTabViewer);
+	this._createTab("home", "Home", Classes.AllTabsBsTabViewer);
 	this._createTab("settings", "Settings", Classes.SettingsTabViewer);
 },
 

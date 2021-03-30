@@ -1,22 +1,5 @@
 TODO 1.3
 
-- Toggle window open/minimized when clicking a tab tile
-  * How do we find out a window needs to be minimized?
-    - When we click the tile, the window can never be in foreground, the TabMania
-	  popup is in foreground
-	  * How do we distinguish a window that needs to be taken to foreground from a
-	    window that needs to be minimized?
-
-- Auto-select-all in searchbox when user clicks the mouse there to edit
-
-- Improve performance of this._normTabs.getTabByTabId()
-  * We should add a side dictionary structure to get tabId
-    - We should not always have to do linear searches...
-
-- Add logic to let "www.google.com" be recognized as a valid URL, even though new URL()
-  won't consider it valid
-  * Make it behave like the browser's omnibar...
-
 - Make all tabs sharing the url of a pinned bookmark inherit the pin
   * Currently only one does
 
@@ -74,6 +57,23 @@ PREP FOR NEXT RELEASE
 
 PUNTED TO NEXT RELEASE
 
+- Toggle window open/minimized when clicking a tab tile
+  * How do we find out a window needs to be minimized?
+    - When we click the tile, the window can never be in foreground, the TabMania
+	  popup is in foreground
+	  * How do we distinguish a window that needs to be taken to foreground from a
+	    window that needs to be minimized?
+
+- Auto-select-all in searchbox when user clicks the mouse there to edit
+
+- Improve performance of this._normTabs.getTabByTabId()
+  * We should add a side dictionary structure to get tabId
+    - We should not always have to do linear searches...
+
+- Add logic to let "www.google.com" be recognized as a valid URL, even though new URL()
+  won't consider it valid
+  * Make it behave like the browser's omnibar...
+
 - Support merging the tabs of two windows
 
 - Re-merge the normalizeTab() for tabs and bookmarks
@@ -130,7 +130,7 @@ PUNTED TO NEXT RELEASE
 - Organize groups by host name inside top level groups (second level)
   * With group/ungroup option for each top level group
 
-- TabsTabViewer needs a more precise caching mechanism for tile viewers
+- TabsBsTabViewer needs a more precise caching mechanism for tile viewers
   * Right now we discard any tile that's not used in the current rendering iteration
   * This means that if you search and find 1,000 bookmarks, then get out of search, the
     tiles of those bookmarks will be discarded, and not available the next time you
@@ -460,7 +460,7 @@ PUNTED TO NEXT RELEASE
 
 - Show current tab in current window at the top of the tabs list?
 
-- Reorganize TabsTabViewer to leverage a separate "TabsSet" object to manage the querying
+- Reorganize TabsBsTabViewer to leverage a separate "TabsSet" object to manage the querying
   and maintenance of tabs subsets (instead of spreading that logic within the class code
   * One such object for the standard view, one for the search view, in future possibly
     one separate object for the incognito view (which needs to behave like standard view,

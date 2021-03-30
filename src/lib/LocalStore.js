@@ -1,5 +1,5 @@
 // It would be cleaner to encapsulate persistent state in the classes that
-// own it (e.g. _expandedGroups are needed only by TabsTabViewer), but the
+// own it (e.g. _expandedGroups are needed only by TabsBsTabViewer), but the
 // problem is that these persistent pieces require async initial loading,
 // and if we initialize them in other classes, using those classes will
 // need to wait until this async initialization is done.
@@ -7,9 +7,9 @@
 // these async initializers we're creating sequential chains of async initializers
 // for things that could be done in parallel. For example: _expandedGroups
 // initialization doesn't need to wait for the window to load, or for the
-// "settingsStore" to load, but TabsTabViewer does. If we wait to initialize
-// _expandedGroups in TabsTabViewer, we miss an opportunity to have it already
-// reay by the time TabsTabViewer gets initialized.
+// "settingsStore" to load, but TabsBsTabViewer does. If we wait to initialize
+// _expandedGroups in TabsBsTabViewer, we miss an opportunity to have it already
+// reay by the time TabsBsTabViewer gets initialized.
 // Since the popup gets rebuilt from scratch every time the user clicks the
 // extension icon, we need to optimize startup performance to avoid too long
 // a delay when that click happens.

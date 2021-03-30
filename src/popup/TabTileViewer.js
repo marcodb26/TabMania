@@ -416,12 +416,12 @@ _renderBody: function(queuePriority) {
 		// the caller after attaching to the DOM, but that seems to have the side effect
 		// of scrolling back all the way to the top.
 		// Decided to use the priority to set a low priority when reusing a tile from
-		// TabsTabViewer._renderTile()
+		// TabsBsTabViewer._renderTile()
 	);
 },
 
 _onTileClickCb: function(ev) {
-	Classes.TabsTabViewer.activateTab(this._tab);
+	Classes.TabsBsTabViewer.activateTab(this._tab);
 },
 
 _onTileCloseCb: function(ev) {

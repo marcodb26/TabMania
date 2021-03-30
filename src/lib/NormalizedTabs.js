@@ -450,7 +450,7 @@ _initRecentlyClosedAsTab: function(tab) {
 	// We want each recently closed tab to be as similar as possible to a tab object...
 	// It seems to already include everything except for "id" and "status".
 
-	// See _assert() in TabsTabViewer._recentlyClosedNormalize() for why we're taking this action
+	// See _assert() in TabsBsTabViewer._recentlyClosedNormalize() for why we're taking this action
 	tab.active = false;
 
 	// Using sessionId for tab.id is probably going to generate some duplicated tab IDs, so
@@ -474,7 +474,7 @@ _initRecentlyClosedAsTab: function(tab) {
 // "objType" is one of Classes.NormalizedTabs.type, default to Classes.NormalizedTabs.type.TAB
 //
 // For historical reasons, standard tabs can call normalizeTab() on tabs that have already been
-// normalized once before (see TabsTabViewer._queryAndRenderTabs()). It's not clear to me whether
+// normalized once before (see TabsBsTabViewer._queryAndRenderTabs()). It's not clear to me whether
 // that's really necessary, or a separate function "update badges for shortcuts"() would be
 // sufficient instead. Anyway the problem is that we definitely CANNOT call this function more
 // than once for any other "objType", if nothing else because this function changes the "id" field,

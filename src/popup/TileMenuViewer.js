@@ -511,7 +511,7 @@ _updateMenuItems: function() {
 },
 
 _actionActivateCb: function(ev) {
-	Classes.TabsTabViewer.activateTab(this._bm);
+	Classes.TabsBsTabViewer.activateTab(this._bm);
 },
 
 _actionBookmarkManagerCb: function(ev) {
@@ -622,7 +622,7 @@ _updateMenuItems: function() {
 },
 
 _actionActivateCb: function(ev) {
-	Classes.TabsTabViewer.activateTab(this._item);
+	Classes.TabsBsTabViewer.activateTab(this._item);
 },
 
 _actionDeleteCb: function(ev) {

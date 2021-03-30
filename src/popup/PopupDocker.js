@@ -117,7 +117,7 @@ _backgroundCommandCb: function(ev) {
 
 // This function monitors if any other tab attempts to open in our window, and if that
 // happens, evicts the ne tab and relocates it to a different (least tabbed) window.
-// See TabsTabViewer._recentlyClosedNormalize() for why we need this.
+// See TabsBsTabViewer._recentlyClosedNormalize() for why we need this.
 _popupDefenderCb: function(tab) {
 	const logHead = "PopupDocker::_popupDefenderCb(): ";
 	if(tab.windowId != this._ownWindowId) {
