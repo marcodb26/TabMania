@@ -3,6 +3,11 @@ DONE 1.3
 - Updated NPM from v.7.5.4 to 7.7.5
 
 - Updated Bootstrap from v.5.0.0-beta2 to v.5.0.0-beta3
+  * Then downgraded back to v.5.0.0-beta2 due to a bug with dropdowns
+    - Dropdowns become unclickable, not sure why
+	- Bootstrap never adds the "show" class
+	- Switching from <a> to <button>, Bootstrap starts giving exceptions on the console
+	  every time you click a dropdown toggle ("... classList of undefined")
 
 - Updated uglify-js from v.3.13.0 to v.3.13.2
 
