@@ -680,6 +680,67 @@ _tabsAsyncQuery: function() {
 	throw(new Error("must subclass"));
 },
 
+// Returns the count of tabs that have been processed
+_processOnePinnedBookmark: function(bmNode, tabs) {
+	function tabMatchesBookmark(tab) {
+		if(tab.url != null && tab.url != "") {
+			// If there's a "tab.url", don't even try "tab.pendingUrl"
+			return tab.url.startsWith(bmNode.url);
+		}
+		if(tab.pendingUrl != null && tab.pendingUrl != "") {
+			return tab.pendingUrl.startsWith(bmNode.url);
+		}
+		return false;
+	}
+
+	let foundCount = 0;
+
+	for(let i = 0; i < tabs.length; i++) {
+		let tab = tabs[i];
+		if(!tabMatchesBookmark(tab)) {
+			continue;
+		}
+
+		foundCount++;
+
+		// Unfortunately we can't add "pinInherited" to tabs[i].tm, because
+		// ".tm" has yet to be assigned by NormalizedTabs, but we can't wait to
+		// call this function after the call to NormalizedTabs (it would break
+		// at least staging if we added pinned bookmarks later).
+		// It's ok to add "pinInherited" at the top level within "tabs[i]".
+		tab.pinInherited = {
+			type: "bookmark",
+			id: bmNode.bookmarkId,
+		};
+
+		// A little trick here. When a tab loads, initially its title its set to
+		// its URL. Unfortunately that means that from a tile perspective, the tile
+		// of the tab will be sorted to a different location when the user clicks
+		// on the pinned bookmark to activate the tab. So it looks like the tile
+		// disappears for a while, then it comes back, and that is visually ugly.
+		// This little trick forces the "title" of a tab to be the same as the title
+		// of the pinned bookmark while the tab is loading and its title has not been
+		// settled yet. Once the title of the tab settles, we stop overwriting it with
+		// the title of the pinned bookmark. Note that there's no guarantee the tile
+		// will stick in place once you load the tab from the pinned bookmark, because
+		// the title of the pinned bookmark could have been edited by the user, or the
+		// title of the website could have changed since the time the bookmark was saved.
+		//
+		// Note the choice of "tab.url.includes(tab.title)" instead of "tab.url == tab.title",
+		// because when the tab is loading, if the URL is "https://www.google.com/", the
+		// title gets set to "https://www.google.com" without the trailing "/", just
+		// to make life a little more interesting...
+		// Note also that we tried to restrict this logic to 'tab.status == "loading"',
+		// but as it turns out when "tab.status" switches to "complete" the title is
+		// still bogus for a while...
+		if(tab.title == "" || tab.url.includes(tab.title) || tab.title == tab.pendingUrl) {
+			tab.title = bmNode.title;
+		}
+	}
+
+	return foundCount;
+},
+
 // Add pinInheritance information to tabs that are mapped to pinned bookmarks,
 // and possibly clean up the title of the tab when necessary (see inside the
 // function for details).
@@ -717,64 +778,15 @@ _processPinnedBookmarks: function(tabs, returnBookmarks) {
 	// through the standard search mechanism of bookmarksManager.find().
 	for(let i = 0; i < pinnedBookmarks.length; i++) {
 		let bmNode = pinnedBookmarks[i];
-		let tabIdx = tabs.findIndex(
-			function(tab) {
-				if(tab.url != null && tab.url != "") {
-					// If there's a "tab.url", don't even try "tab.pendingUrl"
-					return tab.url.startsWith(bmNode.url);
-				}
-				if(tab.pendingUrl != null && tab.pendingUrl != "") {
-					return tab.pendingUrl.startsWith(bmNode.url);
-				}
-				return false;
-			}
-		);
-		if(tabIdx != -1) {
-			let tab = tabs[tabIdx];
-			// Unfortunately we can't add "pinInherited" to tabs[tabIdx].tm, because
-			// ".tm" has yet to be assigned by NormalizedTabs, but we can't wait to
-			// call this function after the call to NormalizedTabs (it would break
-			// at least staging if we added pinned bookmarks later).
-			// It's ok to add "pinInherited" at the top level within "tabs[tabIdx]".
-			tab.pinInherited = {
-				type: "bookmark",
-				id: bmNode.bookmarkId,
-			};
-			// We found a matching tab, skip the bookmark.
-			if(returnBookmarks) {
-				// No need to print a message in search mode, in search mode we always
-				// skip all the bmNodes
-				this._log(logHead + "found tab, skipping bookmark", tab, bmNode);
-			}
-			// A little trick here. When a tab loads, initially its title its set to
-			// its URL. Unfortunately that means that from a tile perspective, the tile
-			// of the tab will be sorted to a different location when the user clicks
-			// on the pinned bookmark to activate the tab. So it looks like the tile
-			// disappears for a while, then it comes back, and that is visually ugly.
-			// This little trick forces the "title" of a tab to be the same as the title
-			// of the pinned bookmark while the tab is loading and its title has not been
-			// settled yet. Once the title of the tab settles, we stop overwriting it with
-			// the title of the pinned bookmark. Note that there's no guarantee the tile
-			// will stick in place once you load the tab from the pinned bookmark, because
-			// the title of the pinned bookmark could have been edited by the user, or the
-			// title of the website could have changed since the time the bookmark was saved.
-			//
-			// Note the choice of "tab.url.includes(tab.title)" instead of "tab.url == tab.title",
-			// because when the tab is loading, if the URL is "https://www.google.com/", the
-			// title gets set to "https://www.google.com" without the trailing "/", just
-			// to make life a little more interesting...
-			// Note also that we tried to restrict this logic to 'tab.status == "loading"',
-			// but as it turns out when "tab.status" switches to "complete" the title is
-			// still bogus for a while...
-			if(tab.title == "" || tab.url.includes(tab.title) || tab.title == tab.pendingUrl) {
-				tab.title = bmNode.title;
-			}
-
-			continue;
-		}
+		let tabsFoundCount = this._processOnePinnedBookmark(bmNode, tabs);
 		if(returnBookmarks) {
-			// No matching tab and not in search mode, add the bookmark
-			filteredPinnedBookmarks.push(bmNode);
+			if(tabsFoundCount > 0) {
+				// We found one or more matching tabs, skip the bookmark
+				this._log(logHead + "found " + tabsFoundCount + " tab(s), skipping bookmark", bmNode);
+			} else {
+				// No matching tab and not in search mode, add the bookmark
+				filteredPinnedBookmarks.push(bmNode);
+			}
 		}
 	}
 

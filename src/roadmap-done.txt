@@ -59,6 +59,9 @@ DONE 1.3
 
 - More "tab" -> "bsTab" cleanup (done now?)
 
+- All tabs sharing the url of a pinned bookmark now inherit the pin
+  * Before only the first tab in the list was inheriting the pin
+
 
 DONE 1.2
 

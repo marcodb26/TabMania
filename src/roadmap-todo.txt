@@ -1,8 +1,5 @@
 TODO 1.3
 
-- Make all tabs sharing the url of a pinned bookmark inherit the pin
-  * Currently only one does
-
 - Render contents of dropdown menus only when they hover visible
   * Or even when the user clicks the hovered button?
   * Or when she hovers on the dropdown button itself (but before clicking)
