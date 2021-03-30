@@ -134,7 +134,7 @@ _containerCollapsedCb: function(ev) {
 // CLASS TabsBsTabViewer
 //
 // Abstract class, parent of all Viewers of tab lists
-Classes.TabsBsTabViewer = Classes.SearchableTabViewer.subclass({
+Classes.TabsBsTabViewer = Classes.SearchableBsTabViewer.subclass({
 
 	_containerViewer: null,
 	_groupsBuilder: null,
@@ -197,7 +197,7 @@ Classes.TabsBsTabViewer = Classes.SearchableTabViewer.subclass({
 
 _init: function(tabLabelHtml) {
 	// Overriding the parent class' _init(), but calling that original function first
-	Classes.SearchableTabViewer._init.apply(this, arguments);
+	Classes.SearchableBsTabViewer._init.apply(this, arguments);
 
 	const logHead = "TabsBsTabViewer::_init(): ";
 	this.debug();
@@ -1072,7 +1072,7 @@ activateTab: function(tab) {
 
 ///// Search-related functionality
 
-// See Classes.SearchableTabViewer._activateSearchBox() for details about why
+// See Classes.SearchableBsTabViewer._activateSearchBox() for details about why
 // we separated out this sub-function, and call only this standalong at _init()
 // time (instead of just calling _activateSearchBox(false)).
 _TabsBsTabViewer_searchBoxInactiveInner: function() {
@@ -1083,10 +1083,10 @@ _TabsBsTabViewer_searchBoxInactiveInner: function() {
 	this.setMessage();
 },
 
-// Override this function from Classes.SearchableTabViewer
+// Override this function from Classes.SearchableBsTabViewer
 _activateSearchBox: function(active) {
 	// Call the original function first
-	Classes.SearchableTabViewer._activateSearchBox.apply(this, arguments);
+	Classes.SearchableBsTabViewer._activateSearchBox.apply(this, arguments);
 
 	active = optionalWithDefault(active, true);
 
@@ -1140,7 +1140,7 @@ _reportSearchParseErrors: function(errors) {
 	this.setMessage(htmlMsgs.join("\n"), true);
 },
 
-// Override this function from Classes.SearchableTabViewer
+// Override this function from Classes.SearchableBsTabViewer
 _searchBoxProcessData: function(value) {
 	// If value.length == 0, this function doesn't get called...
 	this._assert(value.length != 0);

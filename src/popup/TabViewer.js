@@ -131,12 +131,12 @@ _removeBlinkCb: function() {
 
 }); // Classes.TabViewer
 
-// CLASS SearchableTabViewer
+// CLASS SearchableBsTabViewer
 //
 // Subclasses must override:
 // - _respondToEnterKey() to define their expected behavior for "Enter" when in search mode.
 // - _searchBoxProcessData()
-Classes.SearchableTabViewer = Classes.TabViewer.subclass({
+Classes.SearchableBsTabViewer = Classes.TabViewer.subclass({
 
 	_searchBoxElem: null,
 	_searchBoxContainerElem: null,
@@ -169,11 +169,11 @@ _init: function(tabLabelHtml) {
 	// See _activateSearchCbBoundFn above for details
 	this._activateSearchCbBoundFn = this._activateSearchCb.bind(this);
 
-	this._SearchableTabViewer_initBodyElem();
+	this._SearchableBsTabViewer_initBodyElem();
 
 	// Call this after rendering because it expects the _bodyElem to exist.
 	// Don't call _activateSearchBox() (see _activateSearchBox() for details).
-	this._SearchableTabViewer_searchBoxInactiveInner();
+	this._SearchableBsTabViewer_searchBoxInactiveInner();
 	// Classes.TabViewer starts all Bootstrap tabs as inactive, so we don't need to
 	// explicitly call _bsTabActivatedCb(), the event will fire when the tab gets
 	// activated for the first time
@@ -187,8 +187,8 @@ _searchBoxProcessData: function(value) {
 	// on the final result, they should only override _respondToEnterKey().
 },
 
-_SearchableTabViewer_initBodyElem: function() {
-	//const logHead = "SearchableTabViewer::_SearchableTabViewer_setBodyElem(): ";
+_SearchableBsTabViewer_initBodyElem: function() {
+	//const logHead = "SearchableBsTabViewer::_SearchableBsTabViewer_setBodyElem(): ";
 
 	// Note that the DOM ID 'this._id + "-body"' has already been used in the parent
 	// class TabViewer to create the outer <div> that's currently _rootElem, so we
@@ -251,7 +251,7 @@ _SearchableTabViewer_initBodyElem: function() {
 },
 
 _bsTabActivatedCb: function(ev) {
-	const logHead = "SearchableTabViewer::_bsTabActivatedCb(): ";
+	const logHead = "SearchableBsTabViewer::_bsTabActivatedCb(): ";
 	this._log(logHead + "searchable tab activated");
 
 	// We're setting the listener very broadly to "window" instead of putting a more
@@ -268,7 +268,7 @@ _bsTabActivatedCb: function(ev) {
 },
 
 _bsTabDeactivatedCb: function(ev) {
-	const logHead = "SearchableTabViewer::_bsTabDeactivatedCb(): ";
+	const logHead = "SearchableBsTabViewer::_bsTabDeactivatedCb(): ";
 	this._log(logHead + "searchable tab deactivated");
 
 	// See _activateSearchCbBoundFn above for details on this._activateSearchCbBoundFn here.
@@ -277,8 +277,8 @@ _bsTabDeactivatedCb: function(ev) {
 
 // See _activateSearchBox() and _init() for why we split this call out of
 // _activateSearchBox().
-_SearchableTabViewer_searchBoxInactiveInner: function() {
-	const logHead = "SearchableTabViewer::_SearchableTabViewer_searchBoxInactiveInner(): ";
+_SearchableBsTabViewer_searchBoxInactiveInner: function() {
+	const logHead = "SearchableBsTabViewer::_SearchableBsTabViewer_searchBoxInactiveInner(): ";
 	this._searchBoxContainerElem.classList.add("tm-hide");
 	this._bodyElem.classList.remove("tm-fit-after-search");
 	this._searchActive = false;
@@ -288,7 +288,7 @@ _SearchableTabViewer_searchBoxInactiveInner: function() {
 	this._bodyElem.scrollTo(0, this._standardViewScrollTop);
 },
 
-// DO NOT CALL THIS FUNCTION DURING _init() of this class. Use _SearchableTabViewer_searchBoxInactiveInner()
+// DO NOT CALL THIS FUNCTION DURING _init() of this class. Use _SearchableBsTabViewer_searchBoxInactiveInner()
 // instead, to avoid causing subclass overrides to be called before the subclass has
 // even been initialized.
 //
@@ -311,12 +311,12 @@ _activateSearchBox: function(active) {
 		this._searchActive = true;
 		this._searchBoxElem.focus();
 	} else {
-		this._SearchableTabViewer_searchBoxInactiveInner();
+		this._SearchableBsTabViewer_searchBoxInactiveInner();
 	}
 },
 
 _respondToEnterKey: function(searchBoxText) {
-	this._errorMustSubclass("SearchableTabViewer::_respondToEnterKey(): ");
+	this._errorMustSubclass("SearchableBsTabViewer::_respondToEnterKey(): ");
 },
 
 _modifierToString: function(ev) {
@@ -347,7 +347,7 @@ _isPasteKeyboardShortcut(ev, modifier) {
 // - When search is active, use "Enter" to trigger a "click" on the first tile in the
 //   search results.
 _activateSearchCb: function(ev) {
-	const logHead = "SearchableTabViewer::_activateSearchCb(key = " + ev.key + "): ";
+	const logHead = "SearchableBsTabViewer::_activateSearchCb(key = " + ev.key + "): ";
 
 	if(ev.defaultPrevented) {
 		// See https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key
@@ -410,7 +410,7 @@ _activateSearchCb: function(ev) {
 },
 
 _searchBoxInputListenerCb: function(ev) {
-	const logHead = "SearchableTabViewer::_searchBoxInputListenerCb(value: \"" +
+	const logHead = "SearchableBsTabViewer::_searchBoxInputListenerCb(value: \"" +
 					ev.target.value + "\", " + "time: " + Date.now() + "): ";
 
 	this._log(logHead + "searchbox changed");
@@ -437,7 +437,7 @@ _setSearchBoxCount: function(cnt) {
 // "flag" defaults "true" (start blinking)
 _setSearchBoxCountBlinking: function(flag) {
 	flag = optionalWithDefault(flag, true);
-	const logHead = "SearchableTabViewer::_setSearchBoxCountBlinking(" + flag + "): ";
+	const logHead = "SearchableBsTabViewer::_setSearchBoxCountBlinking(" + flag + "): ";
 	this._log(logHead + "entering");
 	if(flag) {
 		// Leave the old count, but start blinking to indicate there's activity
@@ -511,4 +511,4 @@ addSearchEventListener: function(fn) {
 	this._searchBoxElem.addEventListener("search", fn, true);
 },
 
-}); // Classes.SearchableTabViewer
+}); // Classes.SearchableBsTabViewer

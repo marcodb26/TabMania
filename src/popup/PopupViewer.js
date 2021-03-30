@@ -193,7 +193,7 @@ getHomeBsTab: function() {
 
 // This function returns "true" only if the home tab is visible, besides being
 // in search mode. If the settings tab is visible, this function returns false
-// regardless of the SearchableTabViewer.isSearchActive() response.
+// regardless of the SearchableBsTabViewer.isSearchActive() response.
 isSearchActive: function() {
 	let homeBsTabId = this.getHomeBsTabId();
 	if(this.getHomeBsTab().isSearchActive() && this.getActiveBsTabId() == homeBsTabId) {
