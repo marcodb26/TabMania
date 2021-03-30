@@ -156,7 +156,7 @@ _createBsTab: function(suffix, htmlLabel, bsTabViewerSubclass) {
 
 _populateTabs: function() {
 	this._createBsTab("home", "Home", Classes.AllTabsBsTabViewer);
-	this._createBsTab("settings", "Settings", Classes.SettingsTabViewer);
+	this._createBsTab("settings", "Settings", Classes.SettingsBsTabViewer);
 },
 
 _tabsListNotificationCb: function(notification, sender) {

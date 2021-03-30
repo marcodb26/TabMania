@@ -257,9 +257,9 @@ _containerExpandedCb: function(ev) {
 }); // Classes.SettingsCustomShortcutsContainerViewer
 
 
-// CLASS SettingsTabViewer
+// CLASS SettingsBsTabViewer
 //
-Classes.SettingsTabViewer = Classes.BsTabViewer.subclass({
+Classes.SettingsBsTabViewer = Classes.BsTabViewer.subclass({
 
 	// We need to add a _bodyElem, because the _rootElem needs to be set to
 	// "height: 100%" to allow the scrollbar to stay inside the tab body...
@@ -280,7 +280,7 @@ _init: function(bsTabLabelHtml) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.BsTabViewer._init.apply(this, arguments);
 
-	const logHead = "SettingsTabViewer::_init(): ";
+	const logHead = "SettingsBsTabViewer::_init(): ";
 	this.debug();
 
 	this._manifest = chrome.runtime.getManifest();
@@ -303,11 +303,11 @@ _init: function(bsTabLabelHtml) {
 },
 
 // This is not a private function because it needs to be called by other classes
-// contained in SettingsTabViewer
+// contained in SettingsBsTabViewer
 loadUrlThroughBackground: function(url) {
 	this._msgClient.sendRequest("launchUrl", { url: url }).then(
 		function(response) {
-			const logHead = "SettingsTabViewer::loadUrlThroughBackground().response(): ";
+			const logHead = "SettingsBsTabViewer::loadUrlThroughBackground().response(): ";
 			if(response.status == "success") {
 				this._log(logHead + "received ", response);
 			} else {
@@ -329,7 +329,7 @@ _setBody: function() {
 },
 
 _renderTitle: function() {
-	// const logHead = "SettingsTabViewer::_renderTitle(): ";
+	// const logHead = "SettingsBsTabViewer::_renderTitle(): ";
 	let version = this._safeText(this._manifest.version);
 	if(!isProd()) {
 		version += "-DEV";
@@ -345,7 +345,7 @@ _renderTitle: function() {
 },
 
 _renderIncognitoInfo: function() {
-	const logHead = "SettingsTabViewer::_renderIncognitoInfo(): ";
+	const logHead = "SettingsBsTabViewer::_renderIncognitoInfo(): ";
 	const linkId = this._id + "-extSettingsLink";
 
 	const extensionId = chromeUtils.getExtensionId();
@@ -475,7 +475,7 @@ _renderSettings: function() {
 },
 
 _addCustomGroups: function(namesList) {
-	const logHead = "SettingsTabViewer::_addCustomGroups(): ";
+	const logHead = "SettingsBsTabViewer::_addCustomGroups(): ";
 	this._log(logHead, namesList);
 	namesList.forEach(
 		function(name) {
@@ -487,7 +487,7 @@ _addCustomGroups: function(namesList) {
 },
 
 _delCustomGroups: function(namesList) {
-	const logHead = "SettingsTabViewer::_delCustomGroups(): ";
+	const logHead = "SettingsBsTabViewer::_delCustomGroups(): ";
 	this._log(logHead, namesList);
 	let promisesList = [];
 
@@ -517,7 +517,7 @@ _delCustomGroups: function(namesList) {
 },
 
 _updatedCb: function(ev) {
-	const logHead = "SettingsTabViewer::_updatedCb(" + ev.detail.key + "): ";
+	const logHead = "SettingsBsTabViewer::_updatedCb(" + ev.detail.key + "): ";
 
 	if(ev.detail.key != "customGroups") {
 		this._log(logHead + "ignoring key");
@@ -575,11 +575,11 @@ _updatedCb: function(ev) {
 },
 
 _bsTabActivatedCb: function(ev) {
-	const logHead = "SettingsTabViewer::_bsTabActivatedCb(" + ev.target.id + "): ";
+	const logHead = "SettingsBsTabViewer::_bsTabActivatedCb(" + ev.target.id + "): ";
 	this._log(logHead + "tab activated", ev);
 
 	this._shortcutsContainer.updateShortcutText();
 },
 
-}); // Classes.SettingsTabViewer
+}); // Classes.SettingsBsTabViewer
 

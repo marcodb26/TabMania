@@ -10,7 +10,7 @@
 // That's good enough for the tiles view (given the continuous full re-query/re-render
 // cycles), but doesn't work for something more dynamic like the custom group cards.
 // Worked around the issue forcing calls to clear() in the container when it's supposed to be
-// empty (the container doesn't know, but SettingsTabViewer does).
+// empty (the container doesn't know, but SettingsBsTabViewer does).
 //
 Classes.ContainerViewer = Classes.Viewer.subclass({
 	__idPrefix: "ContainerViewer",

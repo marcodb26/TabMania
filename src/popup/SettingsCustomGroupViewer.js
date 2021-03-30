@@ -312,10 +312,10 @@ _renameCustomGroup: function(newName) {
 	} else {
 		// We need to create the new object in settingsStore
 		cgm.setCustomGroup(newName, {});
-		// Once settingsStore generates its notification, SettingsTabViewer
+		// Once settingsStore generates its notification, SettingsBsTabViewer
 		// will do its diffs and discover it needs to add a new card with
 		// the newName we just set. It so happens the card already exists
-		// (it's this card), but SettingsTabViewer doesn't know it, so it
+		// (it's this card), but SettingsBsTabViewer doesn't know it, so it
 		// will create a new one... let's just close this one here then...
 		//this._enableSettings();
 		this.closeCard(false);
