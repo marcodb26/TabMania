@@ -1,7 +1,5 @@
 TODO 1.3
 
-- Don't allow TabMania tile to close itself
-
 - Auto-select-all in searchbox when user clicks the mouse there to edit
 
 - Improve performance of this._normTabs.getTabByTabId()

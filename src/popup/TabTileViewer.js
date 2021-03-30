@@ -71,16 +71,11 @@ _renderEmptyTile: function() {
 
 	this._rootElem = this._elementGen(rootHtml);
 	this._bodyElem = this.getElementById(bodyId);
+
+	// We always start with menu and close button visible, but _renderBodyInner() can decide
+	// to hide them depending on _renderState
 	this._menuElem = this.getElementById(menuId);
 	this._closeElem = this.getElementById(closeId);
-
-	if(this._tab.tm.type == Classes.NormalizedTabs.type.RCTAB ||
-		(this._tab.tm.type == Classes.NormalizedTabs.type.BOOKMARK && this._tab.unmodifiable != null)) {
-		// You can't close or delete a recently closed tab, so no reason to show a "close" button.
-		// You also can't delete a bookmark if it's marked "unmodifiable".
-		// Let's just hide the "close" button in these cases.
-		this._closeElem.classList.add("tm-hide");
-	}
 
 	this.setClickHandler(this._onTileClickCb.bind(this));
 	this.setClickCloseHandler(this._onTileCloseCb.bind(this));
@@ -153,12 +148,6 @@ _renderMenuInner: function() {
 },
 
 _renderMenu: function() {
-	// No reason to have a dropdown menu for a recently closed tab...
-	if(this._renderState.tmType == Classes.NormalizedTabs.type.RCTAB) {
-		this._menuViewer = null;
-		return;
-	}
-
 	const logHead = "TabTileViewer::_renderMenu(tile " + this._id + "): ";
 	this._asyncQueue.enqueue(this._renderMenuInner.bind(this), logHead,
 			// Use low priority queue for the menu, as it's not immediately visible
@@ -291,7 +280,7 @@ _renderBodyInner: function() {
 	}
 
 	let imgHtml = "";
-	if(this._imgUrl != "") {
+	if(this._renderState.imgUrl != "") {
 		imgHtml = `
 			<span class="pe-1"><img id="${imgId}" class="tm-favicon-16 ${imgExtraClasses.join(" ")}" src="${this._renderState.imgUrl}"></span>
 		`;
@@ -322,9 +311,19 @@ _renderBodyInner: function() {
 	let favIconElem = this.getElementById(imgId);
 	favIconElem.addEventListener("error", this._favIconLoadErrorCb.bind(this));
 
-	// The _menuViewer is not in the body of the tile, but its destiny is parallel
-	// to that of the body of the tile...
-	this._processMenuViewer();
+	if(this._renderState.showCloseButton) {
+		this._closeElem.classList.remove("tm-hide");
+	} else {
+		this._closeElem.classList.add("tm-hide");
+	}
+	if(this._renderState.showMenu) {
+		this._menuElem.classList.remove("tm-hide");
+		// The _menuViewer is not in the body of the tile, but its destiny is parallel
+		// to that of the body of the tile...
+		this._processMenuViewer();
+	} else {
+		this._menuElem.classList.add("tm-hide");
+	}
 },
 
 // Returns a Promise that can be then() with a function(metaTags), where
@@ -463,14 +462,17 @@ _onTileCloseCb: function(ev) {
 	ev.stopPropagation();
 },
 
-_cleanupUrl: function(url) {
+_isThisPopupTab: function(tab) {
+	return (tab.id == popupDocker.getOwnTabId());
+},
+
+_cleanupUrl: function(tab) {
+	let url = tab.url;
 	if(url == "chrome://newtab/") {
 		return "New tab";
 	}
 
-	// There should only be one undocked popup, but just in case, let's validate
-	// this using two pieces of information
-	if(url == popupDocker.getPopupUrl(true) && this._tab.id == popupDocker.getOwnTabId()) {
+	if(this._isThisPopupTab(tab)) {
 		// Hide our ugly URL...
 		return "This popup window";
 	}
@@ -493,7 +495,7 @@ _createRenderState: function(tab, tabGroup) {
 	renderState.id = tab.id;
 	renderState.tmType = tab.tm.type;
 	renderState.title = tab.title;
-	renderState.url = this._cleanupUrl(tab.url);
+	renderState.url = this._cleanupUrl(tab);
 
 	if(tab.favIconUrl != null) {
 		renderState.imgUrl = tab.favIconUrl;
@@ -548,6 +550,25 @@ _createRenderState: function(tab, tabGroup) {
 	renderState.pinned = tab.pinned;
 	renderState.pinInherited = (tab.pinInherited != null);
 	renderState.status = tab.status;
+
+	renderState.showMenu = true;
+	renderState.showCloseButton = true;
+
+	if(this._isThisPopupTab(tab) || tab.tm.type == Classes.NormalizedTabs.type.RCTAB) {
+		// We're disabling all actions on the tile representing this TabMania popup because none
+		// of them make sense on the popup. We could leave the close action, but you can close it
+		// with the standard close button of the popup window you're on.
+		// You can't close or delete a recently closed tab, so no reason to show a "close" button,
+		// and no action in the menu: the only action (restore) is taken when clicking on the tile.
+		renderState.showMenu = false;
+		renderState.showCloseButton = false;
+	}
+
+	if(tab.tm.type == Classes.NormalizedTabs.type.BOOKMARK && tab.unmodifiable != null) {
+		// You also can't delete a bookmark if it's marked "unmodifiable".
+		// Let's just hide the "close" button in this case.
+		renderState.showCloseButton = false;
+	}
 
 	return renderState;
 },
@@ -634,7 +655,9 @@ update: function(tab, tabGroup, queuePriority) {
 	// won't get here if it's "false")
 	this._assert(pastRenderState != null);
 	if(tmUtils.isEqual(pastRenderState, this._renderState)) {
-		this._processMenuViewer();
+		if(this._renderState.showMenu) {
+			this._processMenuViewer();
+		}
 		// Returning "false" here tells the caller only about the state of the tile
 		// being unchanged, not about the state of the menu being unchanged.
 		return false;

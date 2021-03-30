@@ -51,6 +51,12 @@ DONE 1.3
     10:33:07.505 chromeUtils.js:27 [3] ChromeUtils::wrap().cb: ContextMenu::_addAllMenuItems().iter(moveToLeastTabbed): chrome.runtime.lastError = Cannot create item with duplicate id moveToLeastTabbed
 	[ ... then more, one per menu ID, repeated twice for each menu ID ... ]
 
+- Don't allow TabMania tile to close itself
+  * Actually none of the menu items in the dropdown make sense for the TabMania popup,
+    so we should simply disable both dropdown and close icon
+  * In the process of writing this code, cleaned up TabTileViewer to rely on _renderState
+    to decide to show/render menu and close button (before this code was still ad-hoc)
+
 
 DONE 1.2
 
