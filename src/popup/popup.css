@@ -41,6 +41,11 @@
 	margin-top: 0.39em;
 }
 
+/* Without the ":not(:disabled)", for buttons the Bootstrap default wins ("button:not(:disabled)") */
+.tm-cursor-default, .tm-cursor-default:not(:disabled) {
+	cursor: default;
+}
+
 .tm-searchbox {
 	padding-left: 2rem;
 	padding-right: 0.5rem;

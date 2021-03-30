@@ -144,9 +144,6 @@ PUNTED TO NEXT RELEASE
 
 - BUG: lowercase "g" gets cut in tile title
 
-- The bstabs show an ugly URL at the bottom of the undocked window, we should
-  get rid of it
-
 - Sorting tiles, add secondary criteria
   * If two tabs have the same title, sort by url
   * Same URL, sort by index in window (to match their appearance on chrome)

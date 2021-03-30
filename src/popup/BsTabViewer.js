@@ -36,7 +36,7 @@ _createBsTab: function(bsTabLabelHtml) {
 	// all kind of stuff will show up under them.
 	const headingHtml = `
 		<li class="nav-item bg-light" role="presentation">
-			<a class="nav-link tm-nav-link" id="${headingId}" data-bs-toggle="tab" href="#${bodyId}" role="tab" aria-controls="${bodyId}" aria-selected="false">${bsTabLabelHtml}</a>
+			<button type="button" class="nav-link w-100 tm-cursor-default" id="${headingId}" data-bs-toggle="tab" data-bs-target="#${bodyId}" role="tab" aria-controls="${bodyId}" aria-selected="false">${bsTabLabelHtml}</button>
 		</li>
 	`;
 
