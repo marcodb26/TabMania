@@ -66,9 +66,9 @@ DONE 1.3
   * And a bothering blue aura when they have the focus
   * Removed the tint and aura
 
-- The bstabs show an ugly URL at the bottom of the undocked window, got rid of it
+- Got rid of the ugly URL at the bottom of the undocked window when hovering over a bstabs
   * Replaced <a> with <button> for nav-tab
-  * Also removed the "cursor: pointer" that's default for Bootstrap
+  * Also removed the "cursor: pointer" for bstabs
 
 
 DONE 1.2
