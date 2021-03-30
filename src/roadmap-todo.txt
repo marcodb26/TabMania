@@ -1,12 +1,17 @@
 TODO 1.3
 
+- Toggle window open/minimized when clicking a tab tile
+  * How do we find out a window needs to be minimized?
+    - When we click the tile, the window can never be in foreground, the TabMania
+	  popup is in foreground
+	  * How do we distinguish a window that needs to be taken to foreground from a
+	    window that needs to be minimized?
+
 - Auto-select-all in searchbox when user clicks the mouse there to edit
 
 - Improve performance of this._normTabs.getTabByTabId()
   * We should add a side dictionary structure to get tabId
     - We should not always have to do linear searches...
-
-- Toggle window open/minimized when clicking a tab tile
 
 - Add logic to let "www.google.com" be recognized as a valid URL, even though new URL()
   won't consider it valid
