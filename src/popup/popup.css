@@ -246,8 +246,38 @@
 	z-index: 1;
 }
 
+/* Use this class in the same element where you use .accordion-button, as this class
+   resets some of the visual styles (focused, expanded) of .accordion-button
+*/
 .tm-customgroup-header {
 	line-height: 1.7;
+}
+
+.tm-customgroup-header:focus {
+	/* Reset the values from .accordion-button:focus, we don't want the blue aura.
+	   See also .tm-callout-* for the extra hoops we need to go through to make the
+	   callout colors stick. Make sure this class is defined before .tm-callout-*,
+	   otherwise those overrides won't work. .tm-callout-* is also the reason why we
+	   split "border-color" into 4 pieces here...
+	*/
+	box-shadow: initial;
+	border-color: rgba(0, 0, 0, 0.125);
+}
+
+.tm-customgroup-header:not(.collapsed) {
+	/* Reset the values from .accordion-button:not(.collapsed), by assigning
+	   the same values used in .accordion-button.
+	*/
+	color: #212529;
+	background-color: transparent;
+}
+
+.tm-customgroup-header:not(.collapsed)::after {
+	/* Reset the color of the caret from .accordion-button:not(.collapsed)::after to the
+	   color used by .accordion-button::after
+	   It's annoying that we need to copy over the whole SVG just to change its color.
+	*/
+	background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23212529'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
 }
 
 /* To be used in conjunction with Bootstrap's "badge" class.
@@ -612,9 +642,12 @@ Encoded with https://www.base64encode.org/
 
 /* Inspired from Bootstrap's "callout" class, which is described in the docs of
    Bootstrap 5, but then doesn't seem to exist in the actual CSS as of the
-   alpha version of Bootstrap 5
+   alpha version of Bootstrap 5.
+
+   See .tm-customgroup-header:focus for the reasons why we need the ":focus"
+   override here.
 */
-.tm-callout {
+.tm-callout, .tm-callout:focus {
     border: 1px solid #e9ecef;
     border-left-width: .25rem;
     border-radius: .25rem;
@@ -625,28 +658,32 @@ Encoded with https://www.base64encode.org/
     padding-bottom: 0.5rem;
 }
 
-/* Matching the Bootstrap colors for consistency */
-.tm-callout-grey {
+/* Matching the Bootstrap colors for consistency.
+
+   See .tm-customgroup-header:focus for the reasons why we need the ":focus"
+   override here.
+*/
+.tm-callout-grey, .tm-callout-grey:focus {
     border-left-color: #6c757d;
 }
 
-.tm-callout-blue {
+.tm-callout-blue, .tm-callout-blue:focus {
     border-left-color: #0d6efd;
 }
 
-.tm-callout-red {
+.tm-callout-red, .tm-callout-red:focus {
     border-left-color: #dc3545;
 }
 
-.tm-callout-yellow {
+.tm-callout-yellow, .tm-callout-yellow:focus {
     border-left-color: #ffc107;
 }
 
-.tm-callout-green {
+.tm-callout-green, .tm-callout-green:focus {
     border-left-color: #198754;
 }
 
-.tm-callout-cyan {
+.tm-callout-cyan, .tm-callout-cyan:focus {
     border-left-color: #0dcaf0;
 }
 

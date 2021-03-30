@@ -62,6 +62,10 @@ DONE 1.3
 - All tabs sharing the url of a pinned bookmark now inherit the pin
   * Before only the first tab in the list was inheriting the pin
 
+- Standard Bootstrap accordions have a bothering blue tint when expanded
+  * And a bothering blue aura when they have the focus
+  * Removed the tint and aura
+
 
 DONE 1.2
 

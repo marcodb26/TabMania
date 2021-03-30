@@ -426,9 +426,6 @@ PUNTED TO NEXT RELEASE
   * And send all errors also to the background page! (otherwise they get lost when the
     popup gets closed)
 
-- Expanded accordions have a bothering blue tint
-  * Remove the tint, or, for custom groups, align it to the color of the custom group
-
 - Show a badge/icon if a tab is in full screen
   * https://stackoverflow.com/questions/4296005/determining-if-chrome-is-in-fullscreen-mode-for-extension-development
   * And set/remove full screen?
