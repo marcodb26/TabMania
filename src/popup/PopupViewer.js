@@ -65,9 +65,9 @@ _renderTabsContainer: function() {
 },
 
 // Override Viewer.append()
-append: function(tabViewer) {
+append: function(bsTabViewer) {
 	// Append the heading
-	this._headingElem.append(tabViewer.getHeadingElement());
+	this._headingElem.append(bsTabViewer.getHeadingElement());
 
 	// Append the body
 	Classes.Viewer.append.apply(this, arguments);
@@ -87,7 +87,7 @@ appendButton: function(viewer) {
 //   needed when creating this DOM tree
 Classes.PopupViewer = Classes.BootstrapTabsViewer.subclass({
 
-	_tabViewersDict: null,
+	_bsTabViewersDict: null,
 
 	_activeBsTabId: null,
 
@@ -96,12 +96,12 @@ _init: function(parentElem) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.BootstrapTabsViewer._init.apply(this, arguments);
 
-	this._tabViewersDict = {};
+	this._bsTabViewersDict = {};
 
 	this._populateTabs();
 	perfProf.mark("popupViewerEnd");
 
-	// _initActiveTabId() eventually calls TabViewer.activate(), which calls
+	// _initActiveTabId() eventually calls BsTabViewer.activate(), which calls
 	// a Bootstrap function. The Bootstrap function seems to take no action
 	// if the DOM is not attached to "document", and the tab doesn't get
 	// activated. So we need to make sure we attach this class to the DOM
@@ -123,7 +123,7 @@ _initActiveTabId: function(results) {
 
 	if(activeTabId != null) {
 		this._log(logHead + "initializing active Bootstrap tabId to stored " + activeTabId);
-		if(activeTabId in this._tabViewersDict) {
+		if(activeTabId in this._bsTabViewersDict) {
 			this._activeBsTabId = activeTabId;
 		} else {
 			this._log(logHead + "Bootstrap tabId not found, initializing to default: " + this._activeBsTabId);
@@ -142,21 +142,21 @@ _bsTabActivatedCb: function(ev) {
 	localStore.setActiveBsTab(ev.target.id);
 },
 
-_createTab: function(suffix, htmlLabel, tabViewerSubclass) {
-	tabViewerSubclass = optionalWithDefault(tabViewerSubclass, Classes.TabViewer);
+_createBsTab: function(suffix, htmlLabel, bsTabViewerSubclass) {
+	bsTabViewerSubclass = optionalWithDefault(bsTabViewerSubclass, Classes.BsTabViewer);
 	const bsTabId = this._id + "-" + suffix;
 	
-	this._tabViewersDict[bsTabId] = tabViewerSubclass.createAs(bsTabId, htmlLabel);
+	this._bsTabViewersDict[bsTabId] = bsTabViewerSubclass.createAs(bsTabId, htmlLabel);
 
-	this._tabViewersDict[bsTabId].addBsTabActivationStartListener(this._bsTabActivatedCb.bind(this));
-	this.append(this._tabViewersDict[bsTabId]);
+	this._bsTabViewersDict[bsTabId].addBsTabActivationStartListener(this._bsTabActivatedCb.bind(this));
+	this.append(this._bsTabViewersDict[bsTabId]);
 
-	return this._tabViewersDict[bsTabId];
+	return this._bsTabViewersDict[bsTabId];
 },
 
 _populateTabs: function() {
-	this._createTab("home", "Home", Classes.AllTabsBsTabViewer);
-	this._createTab("settings", "Settings", Classes.SettingsTabViewer);
+	this._createBsTab("home", "Home", Classes.AllTabsBsTabViewer);
+	this._createBsTab("settings", "Settings", Classes.SettingsTabViewer);
 },
 
 _tabsListNotificationCb: function(notification, sender) {
@@ -175,7 +175,7 @@ attachToElement: function() {
 },
 
 getBsTabViewerById: function(bsTabId) {
-	return this._tabViewersDict[bsTabId];
+	return this._bsTabViewersDict[bsTabId];
 },
 
 getActiveBsTabId: function() {

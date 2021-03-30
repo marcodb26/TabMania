@@ -259,7 +259,7 @@ _containerExpandedCb: function(ev) {
 
 // CLASS SettingsTabViewer
 //
-Classes.SettingsTabViewer = Classes.TabViewer.subclass({
+Classes.SettingsTabViewer = Classes.BsTabViewer.subclass({
 
 	// We need to add a _bodyElem, because the _rootElem needs to be set to
 	// "height: 100%" to allow the scrollbar to stay inside the tab body...
@@ -276,9 +276,9 @@ Classes.SettingsTabViewer = Classes.TabViewer.subclass({
 
 	_msgClient: null,
 
-_init: function(tabLabelHtml) {
+_init: function(bsTabLabelHtml) {
 	// Overriding the parent class' _init(), but calling that original function first
-	Classes.TabViewer._init.apply(this, arguments);
+	Classes.BsTabViewer._init.apply(this, arguments);
 
 	const logHead = "SettingsTabViewer::_init(): ";
 	this.debug();

@@ -1,10 +1,10 @@
-// CLASS TabViewer
+// CLASS BsTabViewer
 //
-// To create an object, use TabViewer.createAs(), where:
+// To create an object, use BsTabViewer.createAs(), where:
 // - the "id" argument is going to be used as prefix for all the DOM IDs
 //   needed when creating this DOM tree
 // The caller will need to attach the tab DOM somewhere
-Classes.TabViewer = Classes.Viewer.subclass({
+Classes.BsTabViewer = Classes.Viewer.subclass({
 
 	_headingElem: null,
 	// The heading of a tab is a <li><a></a></li>, so the heading element
@@ -18,14 +18,14 @@ Classes.TabViewer = Classes.Viewer.subclass({
 	// body, almost nothing should ever happen to its header after initialization.
 	_rootElem: null,
 
-_init: function(tabLabelHtml) {
+_init: function(bsTabLabelHtml) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.Viewer._init.apply(this, arguments);
 
-	this._createTab(tabLabelHtml);
+	this._createBsTab(bsTabLabelHtml);
 },
 
-_createTab: function(tabLabelHtml) {
+_createBsTab: function(bsTabLabelHtml) {
 //	const headingId = this._id + "-heading";
 	const headingId = this._id;
 	const bodyId = this._id + "-body";
@@ -36,7 +36,7 @@ _createTab: function(tabLabelHtml) {
 	// all kind of stuff will show up under them.
 	const headingHtml = `
 		<li class="nav-item bg-light" role="presentation">
-			<a class="nav-link tm-nav-link" id="${headingId}" data-bs-toggle="tab" href="#${bodyId}" role="tab" aria-controls="${bodyId}" aria-selected="false">${tabLabelHtml}</a>
+			<a class="nav-link tm-nav-link" id="${headingId}" data-bs-toggle="tab" href="#${bodyId}" role="tab" aria-controls="${bodyId}" aria-selected="false">${bsTabLabelHtml}</a>
 		</li>
 	`;
 
@@ -91,14 +91,14 @@ addBsTabDeactivationEndListener: function(fn) {
 
 // Activate tab
 activate: function() {
-	const logHead = "TabViewer::activate(): ";
+	const logHead = "BsTabViewer::activate(): ";
 	this._log(logHead + "entering");
 	// See https://getbootstrap.com/docs/5.0/components/navs-tabs/
 	let tab = new bootstrap.Tab(this._triggerElem);
 	tab.show();
 },
 
-isTabActive: function() {
+isBsTabActive: function() {
 	// bootstrap.Tab doesn't have this function, so we need to look at the
 	// classes in the trigger element
 	return this._triggerElem.classList.contains("active");
@@ -129,14 +129,14 @@ _removeBlinkCb: function() {
 	this._triggerElem.classList.remove("tm-blink");
 },
 
-}); // Classes.TabViewer
+}); // Classes.BsTabViewer
 
 // CLASS SearchableBsTabViewer
 //
 // Subclasses must override:
 // - _respondToEnterKey() to define their expected behavior for "Enter" when in search mode.
 // - _searchBoxProcessData()
-Classes.SearchableBsTabViewer = Classes.TabViewer.subclass({
+Classes.SearchableBsTabViewer = Classes.BsTabViewer.subclass({
 
 	_searchBoxElem: null,
 	_searchBoxContainerElem: null,
@@ -162,9 +162,9 @@ Classes.SearchableBsTabViewer = Classes.TabViewer.subclass({
 	// to have it at all time.
 	_activateSearchCbBoundFn: null,
 
-_init: function(tabLabelHtml) {
+_init: function(bsTabLabelHtml) {
 	// Overriding the parent class' _init(), but calling that original function first
-	Classes.TabViewer._init.apply(this, arguments);
+	Classes.BsTabViewer._init.apply(this, arguments);
 
 	// See _activateSearchCbBoundFn above for details
 	this._activateSearchCbBoundFn = this._activateSearchCb.bind(this);
@@ -174,7 +174,7 @@ _init: function(tabLabelHtml) {
 	// Call this after rendering because it expects the _bodyElem to exist.
 	// Don't call _activateSearchBox() (see _activateSearchBox() for details).
 	this._SearchableBsTabViewer_searchBoxInactiveInner();
-	// Classes.TabViewer starts all Bootstrap tabs as inactive, so we don't need to
+	// Classes.BsTabViewer starts all Bootstrap tabs as inactive, so we don't need to
 	// explicitly call _bsTabActivatedCb(), the event will fire when the tab gets
 	// activated for the first time
 },

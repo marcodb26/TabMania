@@ -195,7 +195,7 @@ Classes.TabsBsTabViewer = Classes.SearchableBsTabViewer.subclass({
 
 	_stats: null,
 
-_init: function(tabLabelHtml) {
+_init: function(bsTabLabelHtml) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.SearchableBsTabViewer._init.apply(this, arguments);
 
@@ -1332,7 +1332,7 @@ Classes.AllTabsBsTabViewer = Classes.TabsBsTabViewer.subclass({
 
 	_emptyContainerString: "No tabs",
 
-_init: function(tabLabelHtml) {
+_init: function(bsTabLabelHtml) {
 	// Define _expandedGroups before calling the parent's _init(), as it might
 	// need to do some rendering, which requires _expandedGroups to be known
 	this._expandedGroups = localStore.allTabsTabExpandedGroups;
