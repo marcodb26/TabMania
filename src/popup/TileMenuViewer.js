@@ -82,6 +82,14 @@ _MenuViewer_render: function() {
 		false);
 },
 
+// Pass as "dateData" any format accepted by dayjs(dateData)
+_formatDate: function(dateData) {
+	let dateObj = dayjs(dateData);
+	return dateObj.fromNow() + " (" +
+				// "Fri, Jun 9 2017 at 3:45PM" (in local time)
+				dateObj.format("ddd, MMM D YYYY [at] h:mmA") + ")";
+},
+
 }); // Classes.MenuViewer
 
 
@@ -429,7 +437,7 @@ _init: function(bm) {
 },
 
 _renderSubtitleHtml: function(folder) {
-	let createdText = (new Date(this._bm.dateAdded)).toString();
+	let createdText = this._formatDate(this._bm.dateAdded);
 
 	let typeHtml = "Bookmark";
 	if(this._bm.unmodifiable != null) {
@@ -437,7 +445,7 @@ _renderSubtitleHtml: function(folder) {
 	}
 
 	return `
-	${typeHtml} at <i>${folder}</i><br>Created on ${createdText}
+	${typeHtml} at <i>${folder}</i><br>Created ${createdText}
 	`;
 },
 
@@ -600,13 +608,13 @@ _renderTitle: function() {
 _updateTitleMenuItem: function() {
 	this._titleElem.innerHTML = `<b>${this._safeText(this._item.title)}</b>`;
 	let visitsCnt = this._item.visitCount + this._item.typedCount;
-	let lastVisited = (new Date(this._item.lastVisitTime)).toString();
+	let lastVisited = this._formatDate(this._item.lastVisitTime);
 
 	let midString = `${visitsCnt} times, last`;
 	if(visitsCnt == 1) {
 		midString = "once";
 	}
-	this._subtitleElem.innerHTML = `History item, visited ${midString} on ${lastVisited}`;
+	this._subtitleElem.innerHTML = `History item, visited ${midString} ${lastVisited}`;
 },
 
 _initMenuItems: function() {

@@ -9,9 +9,6 @@ TODO 1.3
 - Show button to move back to top when a tab wants attention
   * The tile moves to the top, but the user might not be at the top
 
-- Improve date visualization in TileHistoryMenuViewer._updateTitleMenuItem()
-  * Use moments.js or something equivalent?
-
 - Add shortcut title to dropdown menu of tabs
   * We use the "shortcut title" in context menus, should we also use it in the tile
     dropdown (maybe as a subtitle?) to tell the user what that "SC2" badge means?

@@ -114,6 +114,9 @@ function testSettings() {
 function init() {
 	perfProf.mark("windowLoaded");
 
+	// See https://day.js.org/docs/en/plugin/loading-into-browser
+	dayjs.extend(window.dayjs_plugin_relativeTime);
+
 	// Waiting for the async initialization of the settingsStore before starting
 	// the popup
 	Promise.all([ settingsStore.getInitPromise(), localStore.getInitPromise() ]).then(

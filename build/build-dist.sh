@@ -7,12 +7,15 @@ set -x
 # once and store the path instead.
 declare -r NPMBIN=`npm bin`
 
+# Find the absolute path of TabMania/node_modules
+declare -r NPMROOT=`npm root`
 
 
 # Prepare the dist folder. This includes the follwing steps
 # - Create prod version of `dist/manifest.json`
 # - Create prod version of `dist/popup.html`
 # - Pull in the bootstrap files
+# - Pull in the day.js files
 # - Minify `src/popup/popup.css` to `dist/popup.css`
 # - Run uglifyJs to generate `dist/background.js` and `dist/popup.js`
 
@@ -27,6 +30,7 @@ declare COMMON_PROD_SOURCES=("lib/prod.js")
 
 
 mkdir -p "${TGT}"
+mkdir -p "${TGT}/lib"
 mkdir -p "${TGT}/images"
 
 
@@ -78,6 +82,11 @@ cp "${SRC}"/images/*.png "${TGT}/images"
 head -n -1 "node_modules/bootstrap/dist/css/bootstrap.min.css" > "${TGT}/bootstrap.min.css"
 # cp node_modules/bootstrap/dist/js/bootstrap.bundle.min.js dist/
 head -n -1 "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js" > "${TGT}/bootstrap.bundle.min.js"
+
+
+echo "Copying day.js files"
+cp "${NPMROOT}/dayjs/dayjs.min.js" "${TGT}/lib/dayjs.min.js"
+cp "${NPMROOT}/dayjs/plugin/relativeTime.js" "${TGT}/lib/relativeTime.js"
 
 # Minify CSS
 "${NPMBIN}/csso" "${SRC}/popup/popup.css" --output "${TGT}/popup.css"

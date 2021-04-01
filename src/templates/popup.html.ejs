@@ -35,6 +35,11 @@ Note the use of the closing tag with the leading "-", indicating "trim-mode ('ne
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 
+		<%_
+			let basePath = isProd ? "" : "../"; 
+			let libPath = isProd ? "lib/" : "../lib/npm/";
+		-%>
+
 		<%_ %><%# Bootstrap CSS -%>
 		<link href="bootstrap.min.css" rel="stylesheet">
 
@@ -55,14 +60,14 @@ Note the use of the closing tag with the leading "-", indicating "trim-mode ('ne
 			  # let the parser run and do syntax checking, otherwise chrome.executeScript()
 			  # will just leave a "Failed to load file: "inject-getMeta.js"" error -->
 			%>
-		<script src="../content-gen/inject-getMeta.js"></script>
-		<script src="../content-gen/inject-togglePlay.js"></script>
+		<script src="<%- basePath + "content-gen/inject-getMeta.js" %>"></script>
+		<script src="<%- basePath + "content-gen/inject-togglePlay.js" %>"></script>
 		<%_ } -%>
 
 
 		<%_ %><%# A title and favicon are needed for the undocked version of the popup -%>
 		<title>TabMania</title>
-		<link rel="icon" href="<%- isProd ? "images/icon-16.png" : "../images/icon-16.png" %>" type="image/png">
+		<link rel="icon" href="<%- basePath + "images/icon-16.png" %>" type="image/png">
 	</head>
 
 	<%_ %><%# The "height" is needed for the docked popup, and will be ignored by the undocked popup.
@@ -77,6 +82,8 @@ Note the use of the closing tag with the leading "-", indicating "trim-mode ('ne
 		<div id="popup-tabs-div"></div>
 		<%_ %><%# Optional JavaScript for Bootstrap -%>
 		<script src="bootstrap.bundle.min.js"></script>
+		<script src="<%- libPath + "dayjs.min.js" %>"></script>
+		<script src="<%- libPath + "relativeTime.js" %>"></script>
 
 		<%_ %><%# Never add this back, it's slowing down performance significantly, see notes in /docs
 		  #	<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/js/all.min.js"></script>

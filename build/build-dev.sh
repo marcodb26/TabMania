@@ -3,6 +3,7 @@
 
 # Setup the dev environment. This includes the follwing steps
 # - Pull in the bootstrap files
+# - Pull in the day.js files
 # - Create the "popup/popup.html" from templates/popup.html.ejs
 # - Package the injection scripts as single files in src/content-gen/
 
@@ -12,6 +13,11 @@
 # once and store the path instead.
 declare -r NPMBIN=`npm bin`
 
+# Find the absolute path of TabMania/node_modules
+declare -r NPMROOT=`npm root`
+
+declare -r LIB="src/lib/npm"
+mkdir -p "${LIB}"
 
 # Bootstrap stuff
 
@@ -32,6 +38,11 @@ head -n -1 node_modules/bootstrap/dist/css/bootstrap.min.css > src/popup/bootstr
 
 # cp node_modules/bootstrap/dist/js/bootstrap.bundle.min.js src/popup 
 head -n -1 node_modules/bootstrap/dist/js/bootstrap.bundle.min.js > src/popup/bootstrap.bundle.min.js
+
+
+echo "Copying day.js files"
+cp "${NPMROOT}/dayjs/dayjs.min.js" "${LIB}/dayjs.min.js"
+cp "${NPMROOT}/dayjs/plugin/relativeTime.js" "${LIB}/relativeTime.js"
 
 
 # Create the JSON file we'll need to run against our templates to build manifest.json
