@@ -659,8 +659,16 @@ _historyUpdatedCb: function(ev) {
 },
 
 _TabsBsTabViewer_render: function() {
+	let rootElem = this.getRootElement();
 	// Make the TabsBsTabViewer content unselectable
-	this.getRootElement().classList.add("tm-select-none");
+	rootElem.classList.add("tm-select-none");
+	// When users use touch screens, a long hold (without moving) triggers the context
+	// menu of the browser page. We don't care that users can see the context menu in
+	// general (except that we don't want the TabMania context menu items there), but
+	// we need the long hold on touch to trigger the simulated "mouseover" (which Chrome
+	// does automatically) to display the tile dropdown menu and close button, so we
+	// can't have the context menu also show up in that case.
+	rootElem.addEventListener("touchend", function(ev) { ev.preventDefault(); }, false);
 
 	this._containerViewer = Classes.ContainerViewer.create(this._emptyContainerString);
 	this._queryAndRenderTabs().then(
