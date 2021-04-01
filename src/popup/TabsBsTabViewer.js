@@ -659,6 +659,9 @@ _historyUpdatedCb: function(ev) {
 },
 
 _TabsBsTabViewer_render: function() {
+	// Make the TabsBsTabViewer content unselectable
+	this.getRootElement().classList.add("tm-select-none");
+
 	this._containerViewer = Classes.ContainerViewer.create(this._emptyContainerString);
 	this._queryAndRenderTabs().then(
 		function() {

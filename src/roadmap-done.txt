@@ -81,6 +81,8 @@ DONE 1.3
 	all URLs with schema "chrome-extension", but that should be ok
 	- https://stackoverflow.com/questions/42814357/how-to-create-an-exception-for-all-urls-in-chrome-extension
 
+- "Home" bsTab is now unselectable (especially important when using touch screens)
+
 
 DONE 1.2
 

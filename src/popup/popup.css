@@ -42,6 +42,14 @@
 	cursor: default;
 }
 
+.tm-select-none {
+	/* See https://developer.mozilla.org/en-US/docs/Web/CSS/user-select */
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	user-select: none;
+}
+
 .tm-searchbox {
 	padding-left: 2rem;
 	padding-right: 0.5rem;
