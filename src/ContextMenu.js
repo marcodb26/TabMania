@@ -151,6 +151,17 @@ _defineAllMenuItems: function() {
 			id: "moveToLeastTabbed",
 			title: "Move this tab to least tabbed window",
 			contexts: [ "page" ],
+			// The pattern "*://*/*" is different from the pattern "<all_url>", as the
+			// first "*" for the schema matches only "http" and "https".
+			// In theory we only care to exclude "chrome-extension://flhpmmboiepkmkippdhjllnejfolajdb/popup/popup.html?undocked"
+			// (this extension), but the match patterns can't have exclusions, so we need to
+			// go by inclusion. See https://developer.chrome.com/docs/extensions/mv3/match_patterns/
+			// Excluding the "chrome-extension" schema seems ok, while "ftp" and other schemas
+			// could be added back explicitly later if needed (following the syntax describe above).
+			// For now we're just focusing on including what seems to be relevant for TabMania
+			// to handle. That includes the "chrome" schema because these are all tabs that
+			// could be moved around as needed (e.g. "chrome://bookmarks/", the bookmark manager).
+			documentUrlPatterns: [ "*://*/*", "chrome://*/*", "file:///*" ],
 			onclick: this._moveToLeastTabbedCb.bind(this)
 		},
 		{

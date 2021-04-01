@@ -75,6 +75,12 @@ DONE 1.3
   * Added day.js to display relative times
     - It should be much smaller than moment.js and offer similar functionality
 
+- Disabled TabMania context menus on the TabMania popup itself
+  * The chrome.contextMenus.create() API uses "match patterns", which don't offer very granular
+    URL filtering (specifically, doesn't allow to exclude individual URLs), so I had to exclude
+	all URLs with schema "chrome-extension", but that should be ok
+	- https://stackoverflow.com/questions/42814357/how-to-create-an-exception-for-all-urls-in-chrome-extension
+
 
 DONE 1.2
 
