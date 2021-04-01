@@ -227,3 +227,6 @@ by running `npm run build-dev` from the top folder of the project.
 - Added `C:\Program Files\7-Zip` to `PATH` environment variable to have `7z.exe`
   available
   * Needed by `npm run dist`
+
+- Installed day.js v1.10.4 (replacement for moment.js)
+  > `npm install dayjs --save`

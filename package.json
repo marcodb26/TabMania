@@ -34,6 +34,7 @@
     "uglify-js": "^3.12.8"
   },
   "dependencies": {
-    "bootstrap": "^5.0.0-beta2"
+    "bootstrap": "^5.0.0-beta2",
+    "dayjs": "^1.10.4"
   }
 }
