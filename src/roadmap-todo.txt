@@ -1,8 +1,67 @@
 TODO 1.3
 
+- Add a star to a tile if it's bookmarked
+  * We must do this asynchronously, we can't wait for all these bookmark searches
+    to go through after every tab query
+    - Do it directly in the tile?
+	  * We should do it only when the tile becomes visible in the scrolling
+
+- Show button to move back to top when a tab wants attention
+  * The tile moves to the top, but the user might not be at the top
+
+- Improve date visualization in TileHistoryMenuViewer._updateTitleMenuItem()
+  * Use moments.js or something equivalent?
+
+- Add shortcut title to dropdown menu of tabs
+  * We use the "shortcut title" in context menus, should we also use it in the tile
+    dropdown (maybe as a subtitle?) to tell the user what that "SC2" badge means?
+
+- Make bstabs disappear when they get too small and they would want to go on two lines
+  * Can't use ".d-none .d-sm-block" as described in https://getbootstrap.com/docs/5.0/utilities/display/
+    - It removes them when the window is still way too large
+
+- Remove vertical scrollbar and replace it with buttons at the top and bottom of the
+  popup view
+  * Even if without full scrollbar, users should be able to scroll using modern
+    wheels / gestures
+	- Doesn't work with "overflow: hidden;", but it should work with this:
+	  https://www.w3schools.com/howto/howto_css_custom_scrollbar.asp
+	  e.g.:
+		::-webkit-scrollbar {
+			width: 0px;
+		}
+  * Optional controlled by Settings?
+  * Only for undocked popup?
+  * Needed to make the undocked popup look slicker when very narrow and long
+    - The vertical scrollbar takes up precious real estate in that case, and forces
+	  the popup to be slightly wider to get the same amount of visible text
+
+- Sorting tiles, add secondary criteria
+  * If two tabs have the same title, sort by url
+  * Same URL, sort by index in window (to match their appearance on chrome)
+  * Any other sorting criteria besides "title" and "url"?
+
+- Multi-select of tiles to take actions on selection
+  * We'd need to stop updating the tiles list during selection
+
+- Add action menu to containers
+
+- Menu item to move all tabs in a custom group to the same window
+
+- If you open a dropdown menu and hover away from the tile (without clicking the menu),
+  make sure the menu gets closed automatically
+
 - Render contents of dropdown menus only when they hover visible
   * Or even when the user clicks the hovered button?
   * Or when she hovers on the dropdown button itself (but before clicking)
+
+- Suspend tiles refresh when displaying menu items
+  * Especially at brwser startup time, there are lots of refreshes, and they cause
+    the menu dropdown and the "x" clse button to disappear
+  * If you're unlucky, you press the "x" button right after it's gone and you end
+    up taking the tab to the fore instead
+  * Not sure this is a good idea, what if one stays with the mouse on a tile forever?
+    No refreshes ever again?
 
 - Continue testing with search query: site:mail.google.com and ---inurl:site:google.com or site:amazon.com
 
@@ -53,6 +112,12 @@ PREP FOR NEXT RELEASE
 
 
 PUNTED TO NEXT RELEASE
+
+- Support "undo" for deleted bookmarks
+  * Can we also "undo" deleted browsing history items?
+
+- Add back this._getTabMetaTags() to TabTileViewer::_renderBody()
+  * And add back host permission "*://*/*" to allow the code injection to run properly
 
 - Toggle window open/minimized when clicking a tab tile
   * How do we find out a window needs to be minimized?
@@ -144,11 +209,6 @@ PUNTED TO NEXT RELEASE
 
 - BUG: lowercase "g" gets cut in tile title
 
-- Sorting tiles, add secondary criteria
-  * If two tabs have the same title, sort by url
-  * Same URL, sort by index in window (to match their appearance on chrome)
-  * Any other sorting criteria besides "title" and "url"?
-
 - Instead of setting an arbitrary "3em" for the min-height of tiles, we should add some
   code to measure the height of a populated tile right after startup, then use that exact
   value for the empty tile body from that point on
@@ -216,14 +276,6 @@ PUNTED TO NEXT RELEASE
 
 - Priority field in custom groups
 
-- Move to manifest v3 for tabgroups
-  * Can't do this until clipboard-read is supported with service workers in manifest v3
-    - See https://bugs.chromium.org/p/chromium/issues/detail?id=1160302
-	- See also https://groups.google.com/a/chromium.org/g/chromium-extensions/c/GD59r-FOeuQ
-
-- Multi-select of tiles to take actions on selection
-  * We'd need to stop updating the tiles list during selection
-
 - BUG: Class .tm-dropdown-menu says "min-width: 20em", causing the popup to have
   a horizontal scroller when the popup width is less than 20em
   - We need to replace that with a more dynamic setting
@@ -245,8 +297,6 @@ PUNTED TO NEXT RELEASE
 
 - Manage incognito tabs (same view, different BS-tab, hide, etc)
 
-- Add action menu to containers
-
 - Update ScheduledJob to not only wait for the timer event, but also for other events
   the job needs to have satisfied in order to run.
   * See the comments before BookmarksManager._applySettingsChangeDelay to get an idea of
@@ -255,26 +305,6 @@ PUNTED TO NEXT RELEASE
     scheduled, or Promises that become known when the job is expected to start running.
     - Any other call to schedule a new job should find the current job still pending
 	  (technically never started) and rely on that same job instead of scheduling a new one
-
-- Make bstabs disappear when they get too small and they would want to go on two lines
-  * Can't use ".d-none .d-sm-block" as described in https://getbootstrap.com/docs/5.0/utilities/display/
-    - It removes them when the window is still way too large
-
-- Remove vertical scrollbar and replace it with buttons at the top and bottom of the
-  popup view
-  * Even if without full scrollbar, users should be able to scroll using modern
-    wheels / gestures
-	- Doesn't work with "overflow: hidden;", but it should work with this:
-	  https://www.w3schools.com/howto/howto_css_custom_scrollbar.asp
-	  e.g.:
-		::-webkit-scrollbar {
-			width: 0px;
-		}
-  * Optional controlled by Settings?
-  * Only for undocked popup?
-  * Needed to make the undocked popup look slicker when very narrow and long
-    - The vertical scrollbar takes up precious real estate in that case, and forces
-	  the popup to be slightly wider to get the same amount of visible text
 
 - Add badge "recent" to the last 10-15 visited tabs
   * Independent of the "active" badge
@@ -285,8 +315,6 @@ PUNTED TO NEXT RELEASE
 
 - Shortcuts1-5 with option to select incognito tabs
   * If not selected, ignore incognito tabs
-
-- Menu item to move all tabs in a custom group to the same window
 
 - Time slice settings (fixed or relative times), just do fixed times for now
 
@@ -308,20 +336,7 @@ PUNTED TO NEXT RELEASE
   * "When the popup gets focused" seems to be the only reliable way to trigger the check
     - Event initiated from background.js, since background.js knows
 
-- Add back this._getTabMetaTags() to TabTileViewer::_renderBody()
-  * And add back host permission "*://*/*" to allow the code injection to run properly
-
 - Option to find URLs open in multiple tabs (deduplicate)
-
-- If you open a dropdown menu and hover away from the tile (without clicking the menu),
-  make sure the menu gets closed automatically
-
-- Support "undo" for deleted bookmarks
-  * Can we also "undo" deleted browsing history items?
-
-- Add shortcut title to dropdown menu of tabs
-  * We use the "shortcut title" in context menus, should we also use it in the tile
-    dropdown (maybe as a subtitle?) to tell the user what that "SC2" badge means?
 
 - When clicking on the "shortcut text" in the shortcut settings, we open the Chrome page for
   extension shortcuts settings in a new window with every click
@@ -366,25 +381,8 @@ PUNTED TO NEXT RELEASE
 - Create subsystem to monitor which tiles are currently visible
   * This will be useful later to perform more complex computations only on visible tabs
 
-- Improve date visualization in TileHistoryMenuViewer._updateTitleMenuItem()
-  * Use moments.js or something equivalent?
-
 - Create a small always-on-top notification with the list of pinned tabs (icons only)?
   * Similar to Windows tray
-
-- Suspend tiles refresh when displaying menu items
-  * Especially at brwser startup time, there are lots of refreshes, and they cause
-    the menu dropdown and the "x" clse button to disappear
-  * If you're unlucky, you press the "x" button right after it's gone and you end
-    up taking the tab to the fore instead
-  * Not sure this is a good idea, what if one stays with the mouse on a tile forever?
-    No refreshes ever again?
-
-- Add a star to a tile if it's bookmarked
-  * We must do this asynchronously, we can't wait for all these bookmark searches
-    to go through after every tab query
-    - Do it directly in the tile?
-	  * It could do it only when it becomes visible in the scrolling
 
 - BUG: creating a custom group with just name and no other settings leads to no group
   displayed
@@ -411,10 +409,8 @@ PUNTED TO NEXT RELEASE
 - Do we need a different icon for the "launch/search" behavior of the "Open new
   tab" button?
 
-- Make sure to filter out of the tab list the tab about the undocked popup(!)
-  * Also filter it out of the back/fwd history
-  * Should we leave in the count of open tabs? Probably yes (besides it's probably
-    too complicated to filter there)
+- Filter out of the the back/fwd history the tab about the undocked popup
+  * This should probably be a configurable option
 
 - Fix double scroll bars when undocked popup has too little width (horizontally only)
 
@@ -423,19 +419,6 @@ PUNTED TO NEXT RELEASE
   * And send all errors also to the background page! (otherwise they get lost when the
     popup gets closed)
 
-- Show a badge/icon if a tab is in full screen
-  * https://stackoverflow.com/questions/4296005/determining-if-chrome-is-in-fullscreen-mode-for-extension-development
-  * And set/remove full screen?
-    - https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullScreen
-	- Probably hard to detect in general which elements need to call the API
-
-- Find a way to keep the docked popup open when it triggers the creation or removal of a tab in
-  the same window
-  * It's very annoying to click "x" on a tile to remove a tab, and have the entire popup
-    disappear
-	- Maybe it disappears only if the active tab is being removed?
-  * As of v.1.1, this can be mitigated by undocking the popup
-
 - Find a way to support autocomplete for the search input (a.k.a. "remember recent searches")
   * https://stackoverflow.com/questions/15462991/trigger-autocomplete-without-submitting-a-form
     - The HTML5 <input autocomplete="On"> only works if you
@@ -443,13 +426,11 @@ PUNTED TO NEXT RELEASE
 	  * Force a real form submission
   * Alternatively, find a library to do something custom with it...
 
-- BUG: if a group has a long name and it's pinned, it's thumbtack is slighty off
+- BUG: if a group has a long name and it's pinned, its thumbtack is slighty off
   to the right compared to the other pinned groups/tiles around it
 
 - Display <meta> tag information in dropdown, under title
   * Only "description"? Or also "image" when available?
-
-- Show current tab in current window at the top of the tabs list?
 
 - Reorganize TabsBsTabViewer to leverage a separate "TabsSet" object to manage the querying
   and maintenance of tabs subsets (instead of spreading that logic within the class code
@@ -469,29 +450,6 @@ PUNTED TO NEXT RELEASE
   the shortcut becomes dead and doesn't arrive to the background page anymore
   * Then you change it, the shortcut is still dead until you reload the extension
   * As of 21.03.09 it seems to be working fine again
-
-- Display details about video
-  * For Zoom video playback, you can use:
-	"-webkit-media-controls-timeline"
-	<input type="range" step="any" pseudo="-webkit-media-controls-timeline" max="2733.408" aria-label="video time scrubber 0:00 / 45:33" aria-valuetext="elapsed time: 0:00">
-  * Or:
-    <input type="button" pseudo="-webkit-media-controls-play-button" aria-label="play" class="pause" style="">
-	<div aria-label="elapsed time: 0:00" pseudo="-webkit-media-controls-current-time-display" style="">0:00</div>
-	(though the time seems to be stuck at "0:00")
-  * Actually this has all the data (updated in real time):	
-	<div class="vjs-control-bar" dir="ltr">
-	  <div class="vjs-progress-control vjs-control">
-	    <div tabindex="0" class="vjs-progress-holder vjs-slider vjs-slider-horizontal" role="slider" aria-valuenow="NaN" aria-valuemin="0" aria-valuemax="100" aria-label="Progress Bar" aria-valuetext="04:40 of 45:33">
-		[...]
-		  <div class="vjs-time-tooltip" aria-hidden="true" style="right: -23.0156px;">14:45</div>
-		  <div class="vjs-time-tooltip" aria-hidden="true">04:38</div>
-  * For Youtube can use:
-    <div class="ytp-time-display notranslate" style="">
-	  <span class="ytp-time-current">0:22</span>
-	  <span class="ytp-time-separator"> / </span>
-	  <span class="ytp-time-duration">2:00:21</span>
-  * This might be useless, given Chrome now has:
-    - https://support.google.com/chrome/answer/9692215?hl=en
 
 - Remove from SettingsStore.js the stuff that doesn't belong there
   * See comment at top of file. Dose background.js really need the
@@ -546,8 +504,6 @@ PUNTED TO NEXT RELEASE
   * Probably not really needed, when the user makes the incognito change, the popup gets automatically
     closed by Chrome (even if undocked!)
 
-- Find a better way to implement chromeUtils.getExtensionId()
-
 - When a tab has a load error (which prevents injection of inject-getMeta.js)
   display a special error icon to identify the tab failed to load (e.g. because
   of network down) (search "network down" in the code to find the place where
@@ -583,18 +539,8 @@ PUNTED TO NEXT RELEASE
 - "Candidate tabs" behavior should apply also for hostnames and URLs not in "search mode"
   ("useClipboard")
 
-- Add support for wildcards in "matchList" of custom groups
-
 - Fix the domElem.addEventListener(event, fn, true), sometimes we say "true", sometimes
   we say "false", can we do it more accurately than random?
-
-- BUG: sometimes some websites blink the title continouosly between two
-  different titles, e.g.:
-  https://www.snowflake.com/data-warehousing-difference-sql-nosql/
-  switching between normal title and "(1) new message" because of the
-  "bear" with the chat with a pending advertisement
-  - How do we throttle that to avoid too much blinking of the bsTab and
-    too much re-rendering of the popup?
 
 - BUG: console.log() and console.info() are the same thing in Chrome,
   so our functions this._log() and this._log.info() are the same thing...
@@ -632,3 +578,31 @@ PUNTED TO NEXT RELEASE
   * An extension is installed within the context of a profile, so it doesn't have access to
     data from other profiles
 	- Every profile needs to re-install the extension if they want it
+
+- Move to manifest v3 for tabgroups
+  * Can't do this until clipboard-read is supported with service workers in manifest v3
+    - See https://bugs.chromium.org/p/chromium/issues/detail?id=1160302
+	- See also https://groups.google.com/a/chromium.org/g/chromium-extensions/c/GD59r-FOeuQ
+
+- Display details about video
+  * For Zoom video playback, you can use:
+	"-webkit-media-controls-timeline"
+	<input type="range" step="any" pseudo="-webkit-media-controls-timeline" max="2733.408" aria-label="video time scrubber 0:00 / 45:33" aria-valuetext="elapsed time: 0:00">
+  * Or:
+    <input type="button" pseudo="-webkit-media-controls-play-button" aria-label="play" class="pause" style="">
+	<div aria-label="elapsed time: 0:00" pseudo="-webkit-media-controls-current-time-display" style="">0:00</div>
+	(though the time seems to be stuck at "0:00")
+  * Actually this has all the data (updated in real time):	
+	<div class="vjs-control-bar" dir="ltr">
+	  <div class="vjs-progress-control vjs-control">
+	    <div tabindex="0" class="vjs-progress-holder vjs-slider vjs-slider-horizontal" role="slider" aria-valuenow="NaN" aria-valuemin="0" aria-valuemax="100" aria-label="Progress Bar" aria-valuetext="04:40 of 45:33">
+		[...]
+		  <div class="vjs-time-tooltip" aria-hidden="true" style="right: -23.0156px;">14:45</div>
+		  <div class="vjs-time-tooltip" aria-hidden="true">04:38</div>
+  * For Youtube can use:
+    <div class="ytp-time-display notranslate" style="">
+	  <span class="ytp-time-current">0:22</span>
+	  <span class="ytp-time-separator"> / </span>
+	  <span class="ytp-time-duration">2:00:21</span>
+  * This might be useless, given Chrome now has:
+    - https://support.google.com/chrome/answer/9692215?hl=en
