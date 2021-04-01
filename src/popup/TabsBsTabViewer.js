@@ -668,7 +668,13 @@ _TabsBsTabViewer_render: function() {
 	// we need the long hold on touch to trigger the simulated "mouseover" (which Chrome
 	// does automatically) to display the tile dropdown menu and close button, so we
 	// can't have the context menu also show up in that case.
-	rootElem.addEventListener("touchend", function(ev) { ev.preventDefault(); }, false);
+	//
+	// UPDATE: unfortunately preventDefault() on "touchend" breaks all the "click" actions
+	// (dropdown can't be pressed, close button can't be pressed), so we are forced to
+	// disable "contextmenu" in general. Note that we're disabling it only in the tiles
+	// container, so it's still possible to get the context menu by clicking on the bsTabs.
+//	rootElem.addEventListener("touchend", function(ev) { ev.preventDefault(); }, false);
+	rootElem.addEventListener("contextmenu", function(ev) { ev.preventDefault(); }, false);
 
 	this._containerViewer = Classes.ContainerViewer.create(this._emptyContainerString);
 	this._queryAndRenderTabs().then(
