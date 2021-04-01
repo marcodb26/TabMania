@@ -97,6 +97,13 @@ and `src/templates/popup.html.ejs` respectively. If you need to add or change Ja
 the "single source of truth" is `src/templates/sources-env.sh`. Edit that file, then apply the changes
 by running `npm run build-dev` from the top folder of the project.
 
+# Adding third party libraries
+All 3rd party libraries need to first be installed with `npm install`, then imported in the project by
+editing `build/build-dev.sh` and `build/build-dist.sh` to copy the files needed into the source and dist
+trees. The import logic for all 3rd party code should copy all relevant files in `src/lib/npm` and
+in `dist/lib`. Then `src/templates/popup.html.ejs` needs to be updated to make sure these 3rd party
+files are loaded (unless you want them to get built into `dist/popup.js`).
+
 # Release process
 * Delete /dist
 
