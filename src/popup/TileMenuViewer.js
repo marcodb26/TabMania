@@ -9,6 +9,8 @@ Classes.MenuViewer = Classes.Viewer.subclass({
 
 	_options: null,
 
+	_dropdownBsObj: null,
+
 // "options" includes:
 // - "label", if not specified (default), the dropdown will just show the caret. The label
 //   can contain HTML, not only text
@@ -68,7 +70,7 @@ _MenuViewer_render: function() {
 	this._bodyElem = this.getElementById(menuItemsContainerId);
 
 	let menuElem = this.getElementById(menuId);
-	let bootstrapObj = new bootstrap.Dropdown(menuElem);
+	this._dropdownBsObj = new bootstrap.Dropdown(menuElem);
 	// Prevent clicks on the menu items from propagating all the way
 	// down to the page owning the menu
 	this._rootElem.addEventListener("click",
@@ -77,8 +79,8 @@ _MenuViewer_render: function() {
 			// Since the click doesn't propagate, the menu won't close by itself when
 			// clicked (?). Actually not sure this is the real root cause, but calling
 			// the next function fixes the problem.
-			bootstrapObj.hide();
-		},
+			this._dropdownBsObj.hide();
+		}.bind(this),
 		false);
 },
 
@@ -88,6 +90,16 @@ _formatDate: function(dateData) {
 	return dateObj.fromNow() + " (" +
 				// "Fri, Jun 9 2017 at 3:45PM" (in local time)
 				dateObj.format("ddd, MMM D YYYY [at] h:mmA") + ")";
+},
+
+// hide() and show() are already taken to implement a different function in Viewer, so let's
+// use other verbs
+close: function() {
+	this._dropdownBsObj.hide();
+},
+
+open: function() {
+	this._dropdownBsObj.show();
 },
 
 }); // Classes.MenuViewer

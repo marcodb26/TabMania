@@ -86,6 +86,7 @@ DONE 1.3
 - Touch screens cleanup
   * Prevent Chrome context menu from appearing when users hold their finger on a tile long
     enough to generate the simulated "mouseover" event
+  * Automatically open dropdown menu on "mouseover" events simulated by touch ("pointerover")
 
 
 DONE 1.2
