@@ -41,7 +41,7 @@ Note the use of the closing tag with the leading "-", indicating "trim-mode ('ne
 		-%>
 
 		<%_ %><%# Bootstrap CSS -%>
-		<link href="bootstrap.min.css" rel="stylesheet">
+		<link href="<%- libPath + "bootstrap.min.css" %>" rel="stylesheet">
 
 		<%_ %><%# https://cdnjs.com/libraries/font-awesome
 		  #	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" rel="stylesheet">
@@ -81,7 +81,7 @@ Note the use of the closing tag with the leading "-", indicating "trim-mode ('ne
 		-%>
 		<div id="popup-tabs-div"></div>
 		<%_ %><%# Optional JavaScript for Bootstrap -%>
-		<script src="bootstrap.bundle.min.js"></script>
+		<script src="<%- libPath + "bootstrap.bundle.min.js" %>"></script>
 		<script src="<%- libPath + "dayjs.min.js" %>"></script>
 		<script src="<%- libPath + "relativeTime.js" %>"></script>
 

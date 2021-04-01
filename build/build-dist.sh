@@ -79,9 +79,9 @@ cp "${SRC}"/images/*.png "${TGT}/images"
 # but we'll worry about that if someone with a Mac needs this.
 
 # cp node_modules/bootstrap/dist/css/bootstrap.min.css dist/
-head -n -1 "node_modules/bootstrap/dist/css/bootstrap.min.css" > "${TGT}/bootstrap.min.css"
+head -n -1 "${NPMROOT}/bootstrap/dist/css/bootstrap.min.css" > "${TGT}/lib/bootstrap.min.css"
 # cp node_modules/bootstrap/dist/js/bootstrap.bundle.min.js dist/
-head -n -1 "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js" > "${TGT}/bootstrap.bundle.min.js"
+head -n -1 "${NPMROOT}/bootstrap/dist/js/bootstrap.bundle.min.js" > "${TGT}/lib/bootstrap.bundle.min.js"
 
 
 echo "Copying day.js files"

@@ -33,11 +33,11 @@ echo "Copying Bootstrap files"
 # for how to edit out the last line of a file in bash. This doesn't seem to be portable,
 # but we'll worry about that if someone with a Mac needs this.
 
-# cp node_modules/bootstrap/dist/css/bootstrap.min.css src/popup
-head -n -1 node_modules/bootstrap/dist/css/bootstrap.min.css > src/popup/bootstrap.min.css
+# cp node_modules/bootstrap/dist/css/bootstrap.min.css ${LIB}
+head -n -1 "${NPMROOT}/bootstrap/dist/css/bootstrap.min.css" > "${LIB}/bootstrap.min.css"
 
-# cp node_modules/bootstrap/dist/js/bootstrap.bundle.min.js src/popup 
-head -n -1 node_modules/bootstrap/dist/js/bootstrap.bundle.min.js > src/popup/bootstrap.bundle.min.js
+# cp node_modules/bootstrap/dist/js/bootstrap.bundle.min.js ${LIB} 
+head -n -1 "${NPMROOT}/bootstrap/dist/js/bootstrap.bundle.min.js" > "${LIB}/bootstrap.bundle.min.js"
 
 
 echo "Copying day.js files"
