@@ -341,7 +341,7 @@ _favIconLoadErrorCb: function(ev) {
 	this._log(logHead, this._tab, arguments);
 
 	if(!Classes.NormalizedTabs.isCachedFavIconUrl(ev.target.src)) {
-		let altFavIconUrl = Classes.NormalizedTabs.getCachedFavIconUrl(this._tab.url);
+		let altFavIconUrl = this._tab.tm.cachedFavIconUrl;
 		this._log(logHead, "setting favIcon URL to " + altFavIconUrl);
 
 		ev.target.src = altFavIconUrl;

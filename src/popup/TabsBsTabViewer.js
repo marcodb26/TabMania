@@ -27,7 +27,7 @@ _init: function(tabGroup, expandedGroups) {
 	// to auto-open the accordion if it gets open in the popup of another window...
 },
 
-_groupHeadingHtml: function() {
+_TilesGroupViewer_renderHeading: function() {
 	let iconBadgeHtml = `
 		<div class="tm-overlay tm-full-size">
 			<div class="tm-icon-badge-pos small">
@@ -56,17 +56,19 @@ _groupHeadingHtml: function() {
 		</p>`;
 	}
 
+	let favIconContainerId = this._id + "-favIcon";
+
 	// Do we need the attribute "width='16px'" in the <img> below, or are the min-width
 	// and max-width settings of "tm-favicon-16" enough?
 	// "width: 95%" because we don't want to push the caret on the right too far out
 	// when the group title is long.
 	// "text-align: left;" is required because we're inside a button (the accordion button),
 	// and that sets center alignment.
-	let retVal = `
+	let groupHeadingHtml = `
 		<div class="tm-stacked-below" style="width: 95%;">
 			<div class="d-flex">
 				<p class="flex-grow-1 m-0 text-nowrap text-truncate" style="text-align: left;">
-					<span class="pe-2"><img class="tm-favicon-16" src="${this._tabGroup.favIconUrl}"></span>
+					<span id="${favIconContainerId}" class="pe-2"><!-- The favicon goes here --></span>
 					<span>${this._groupName}</span>
 				</p>
 				${pinnedIconHtml}
@@ -74,11 +76,22 @@ _groupHeadingHtml: function() {
 			${iconBadgeHtml}
 		</div>
 	`;
-	return retVal;
+
+	this.setHeadingHtml(groupHeadingHtml);
+
+	let favIconContainerElem = this.getElementById(favIconContainerId);
+
+	let favIconOptions = {
+		src: this._tabGroup.favIconUrl,
+		srcBackup: this._tabGroup.cachedFavIconUrl,
+		extraClasses: [ "tm-favicon-16" ],
+	};
+	let favIconViewer = Classes.ImageViewer.create(favIconOptions);
+	favIconViewer.attachToElement(favIconContainerElem);
 },
 
 _TilesGroupViewer_render: function() {
-	this.setHeadingHtml(this._groupHeadingHtml());
+	this._TilesGroupViewer_renderHeading();
 	this.addExpandedStartListener(this._containerExpandedCb.bind(this));
 	this.addCollapsedStartListener(this._containerCollapsedCb.bind(this));
 

@@ -30,34 +30,43 @@ _getWindowId: function(tab) {
 	return tab.windowId;
 },
 
+// Returns an array of two elements: [ favIconUrl, cachedFavIconUrl ].
+// The caller can use "cachedFavIconUrl" as backup in case "favIconUrl" fails to load.
 _findFavIconUrl: function(groupName, tabs) {
-	let favIconUrl = settingsStore.getCustomGroupsManager().getCustomGroupProp(groupName, "favIconUrl");
+	const favIconUrl = settingsStore.getCustomGroupsManager().getCustomGroupProp(groupName, "favIconUrl");
+
+	// Note that we construct the last resort URL without an actual URL, hoping Chrome
+	// returns its default favicon in that case. So far it's working, but who knows if
+	// it'll continue to work in future...
+	const lastResortUrl = Classes.NormalizedTabs.buildCachedFavIconUrl("");
 
 	if(favIconUrl != null) {
-		return favIconUrl;
+		return [ favIconUrl, lastResortUrl ];
 	}
 
-	let secondChoice = null;
+	let secondChoiceUrl = null;
 	// Default case, grab the first favicon you find in the list of tabs
 	for(var i = 0; i < tabs.length; i++) {
 		if(tabs[i].favIconUrl != null) {
-			if(tabs[i].tm.cachedFavIcon) {
+			if(tabs[i].tm.useCachedFavIcon) {
 				// We return with confidence only if there's a direct favIconUrl,
 				// while if we created the favIconUrl from the Chrome cache we have
 				// less confidence, so we save this second choice only to be used
 				// if no better choice is found
-				secondChoice = tabs[i].favIconUrl;
+				secondChoiceUrl = tabs[i].favIconUrl;
 			} else {
-				return tabs[i].favIconUrl;
+				return [ tabs[i].favIconUrl, tabs[i].tm.cachedFavIconUrl ];
 			}
 		}
 	}
 	// If we get here, we didn't find a "full confidence" favIconUrl, but we might have
 	// found a second choice favIconUrl...
-	if(secondChoice != null) {
-		return secondChoice;
+	if(secondChoiceUrl != null) {
+		// By construction, "secondChoiceUrl" is a cached favicon, so we must return
+		// it as both elements of the return array
+		return [ secondChoiceUrl, secondChoiceUrl ];
 	}
-	return "";
+	return [ lastResortUrl, lastResortUrl ];
 },
 
 // "pinned" is optional, default "false"
@@ -83,7 +92,7 @@ _tabGroupEntryToObj: function(groupName, data, pinned) {
 	} else {
 		retVal.type = data.type;
 		retVal.title = groupName;
-		retVal.favIconUrl = this._findFavIconUrl(groupName, data.tabs);
+		[ retVal.favIconUrl, retVal.cachedFavIconUrl ] = this._findFavIconUrl(groupName, data.tabs);
 	}
 
 	// The normalized title is what we'll use for sorting. We've already added

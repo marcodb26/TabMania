@@ -374,7 +374,7 @@ updateHistoryBadges: function(tab) {
 },
 
 // Static function
-getCachedFavIconUrl: function(url) {
+buildCachedFavIconUrl: function(url) {
 	// See https://stackoverflow.com/questions/10665321/reliably-getting-favicons-in-chrome-extensions-chrome-favicon
 	return "chrome://favicon/size/16@1x/" + url;
 },
@@ -406,10 +406,6 @@ _initBookmarkAsTab: function(tab) {
 	tab.bookmarkId = tab.id;
 	tab.id = Classes.NormalizedTabs.normalizeBookmarkId(tab.id);
 
-// Now promoted to NormalizeTab()
-//	// BookmarkTreeNode doesn't include a favIcon for the bookmark, but we could be
-//	// lucky and find one in the Chrome's favIcon cache...
-//	tab.favIconUrl = Classes.NormalizedTabs.getCachedFavIconUrl(tab.url);
 	tab.status = "unloaded";
 },
 
@@ -434,9 +430,6 @@ _initHistoryItemAsTab: function(tab) {
 	tab.historyId = tab.id;
 	tab.id = Classes.NormalizedTabs.normalizeHistoryItemId(tab.id);
 
-// Now promoted to NormalizeTab()
-//	// Try to get an icon in the Chrome's favIcon cache...
-//	tab.favIconUrl = Classes.NormalizedTabs.getCachedFavIconUrl(tab.url);
 	tab.status = "unloaded";
 },
 
@@ -460,10 +453,6 @@ _initRecentlyClosedAsTab: function(tab) {
 	// a different property from "id".
 	tab.id = Classes.NormalizedTabs.normalizeRecentlyClosedId(tab.sessionId);
 
-// Now promoted to NormalizeTab()
-//	if(tab.favIconUrl == null || tab.favIconUrl == "") {
-//		tab.favIconUrl = Classes.NormalizedTabs.getCachedFavIconUrl(tab.url);
-//	}
 	tab.status = "unloaded";
 },
 
@@ -539,10 +528,11 @@ normalizeTab: function(tab, objType) {
 	// Bookmarks and history have no favIconUrl, but sometimes recently closed and
 	// standard tabs also don't have favIconUrl, so let's just try the cache here
 	// for all these cases...
-	let cachedFavIcon = false;
+	let useCachedFavIcon = false;
+	const cachedFavIconUrl = Classes.NormalizedTabs.buildCachedFavIconUrl(url);
 	if(tab.favIconUrl == null || tab.favIconUrl == "") {
-		tab.favIconUrl = Classes.NormalizedTabs.getCachedFavIconUrl(url);
-		cachedFavIcon = true;
+		tab.favIconUrl = cachedFavIconUrl;
+		useCachedFavIcon = true;
 	}
 
 	tab.tm = {
@@ -558,7 +548,8 @@ normalizeTab: function(tab, objType) {
 		lowerCaseUrl: url.toLowerCase(),
 		lowerCaseTitle: lowerCaseTitle,
 		normTitle: thisObj.normalizeLowerCaseTitle(lowerCaseTitle),
-		cachedFavIcon: cachedFavIcon,
+		useCachedFavIcon: useCachedFavIcon,
+		cachedFavIconUrl: cachedFavIconUrl,
 		// "folder" is non empty only for bookmarks, but to make the search
 		// logic easier, we want to make it non-null for all tabs
 		folder: "",

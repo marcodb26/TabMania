@@ -94,6 +94,13 @@ DONE 1.3
 - If you open a dropdown menu and hover away from the tile (without clicking menu items or otherwise
   closing the dropdown explicitly), make sure the menu gets closed automatically
 
+- BUG: tiles of groups (group headings) show the broken image as favIcon when inheriting a broken
+  favicon from one of the tiles they contain
+  * The contained tile doesn't show the broken image because they can respond to the error and
+    replace the URL with a cached favIcon
+  * Now every tab includes its cachedFavIcon, and GroupBuilder inherits both facIcon and cachedFavIcon
+  * Cleaned up image error handling logic
+
 
 DONE 1.2
 

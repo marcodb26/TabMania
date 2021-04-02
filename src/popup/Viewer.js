@@ -253,6 +253,7 @@ Classes.ButtonViewer = Classes.HtmlViewer.subclass({
 	__idPrefix: "btn",
 
 	_buttonElem: null,
+	_options: null,
 
 _init: function(options) {
 	options = optionalWithDefault(options, {});
@@ -308,3 +309,44 @@ onButtonClickCb: function(ev) {
 },
 
 }); // Classes.ButtonViewer
+
+// CLASS ImageViewer
+//
+Classes.ImageViewer = Classes.HtmlViewer.subclass({
+	__idPrefix: "img",
+
+	_options: null,
+
+_init: function(options) {
+	options = optionalWithDefault(options, {});
+	options.src = optionalWithDefault(options.src, "");
+	options.srcBackup = optionalWithDefault(options.srcBackup, "");
+	options.extraClasses = optionalWithDefault(options.extraClasses, []);
+
+	this._options = options;
+
+	let imgHtml = `
+	<img id="${this._id}" class="${this._options.extraClasses.join(" ")}" src="${this._options.src}">
+	`;
+
+	// Overriding the parent class' _init(), but calling that original function first
+	Classes.HtmlViewer._init.call(this, imgHtml);
+	this.debug();
+
+	this.getRootElement().addEventListener("error", this._loadErrorCb.bind(this));
+},
+
+_loadErrorCb: function(ev) {
+	const logHead = "ImageViewer::_loadErrorCb(): ";
+	this._log(logHead, ev);
+
+	if(ev.target.src != this._options.srcBackup) {
+		this._log(logHead, "setting favIcon URL to " + this._options.srcBackup);
+		ev.target.src = this._options.srcBackup;
+	} else {
+		// We need this check to avoid entering an infinite loop of failure / recovery / failure...
+		this._log(logHead + "failure with backup URL, no other action to take");
+	}
+},
+
+}); // Classes.ImageViewer
