@@ -181,14 +181,16 @@ _hoverTransitionEndCb: function(ev) {
 
 	this._log(logHead + "entering, this._overlayVisible:", this._overlayVisible, ev);
 
-	if(this._menuViewer == null) {
-		this._log(logHead + "no _menuViewer, can't proceed");
-	}
-
 	if(!this._overlayVisible) {
-		// If there was a past instance of "pointerover" still waiting to take action, cancel it
+		// If there was a past instance of "pointerover" still waiting to take action, cancel it.
+		// It's almost certain this is not needed when _menuViewer == null, but it doesn't do
+		// any harm to leave this action outside of the following check.
 		this._touchHoverSerialPromises.reset();
-		this._menuViewer.close();
+		if(this._menuViewer == null) {
+			this._log(logHead + "no _menuViewer, can't proceed");
+		} else {
+			this._menuViewer.close();
+		}
 	}
 },
 
