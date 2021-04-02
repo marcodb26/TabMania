@@ -637,6 +637,13 @@ Encoded with https://www.base64encode.org/
    See "descendent combinator" in https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors
  */
 .tm-hover .tm-hover-target {
+	/* We need to add a "transition-delay" because we want to have an event when the
+	   dropdown button becomes invisible (we need to take some actions then). For more
+	   details, see TabTileViewer::_hoverTransitionEndCb().
+	   Tried to set "transition-delay: 0s", but in that case the "transitionend" event
+	   doesn't fire, so setting to 0.1s
+	*/
+	transition-delay: 0.1s;
 	visibility: hidden;
 }
 

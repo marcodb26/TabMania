@@ -61,6 +61,40 @@ _pointerOverCb: function(ev) {
 	this._menuViewer.open();
 },
 
+// When the dropdown menu of a tile becomes invisible (cursor hovered away from tile),
+// we want to force the dropdown menu to get automatically closed, so that when the user
+// hovers back on the tile, it finds the dropdown in the same state (closed) every time.
+// Since there's no explicit event for CSS style changes, we're emulating that by attaching
+// an animation to the "hover start/stop" transitions (see CSS for ".tm-hover .tm-hover-target").
+// This function gets invoked when the animation ends, tries to establish what happened to
+// the CSS "visibility" style, and determines that if visibility has transitioned to "hidden",
+// then this._menuViewer.close() must be called.
+_hoverTransitionEndCb: function(ev) {
+	const logHead = "TabTileViewer::_hoverTransitionEndCb(): ";
+
+	if(ev.propertyName != "visibility") {
+		// Bootstrap has other animations on the dropdown toggle, let's make sure
+		// we only work with the "visibility" animation
+		return;
+	}
+
+	if(this._menuViewer == null) {
+		this._log(logHead + "no _menuViewer, can't proceed", ev);
+	}
+
+//	perfProf.mark("getComputedStyleStart");
+	// After a few experiments, this seems to be taking less than 1 millisecond (0.7ms on average),
+	// so it's not a huge performance drain
+	let visible = window.getComputedStyle(ev.target).visibility !== "hidden";
+//	perfProf.mark("getComputedStyleEnd");
+//	perfProf.measure("TabTileViewer::getComputedStyle", "getComputedStyleStart", "getComputedStyleEnd");
+	this._log(logHead + "entering, visible:", visible, ev);
+
+	if(!visible) {
+		this._menuViewer.close();
+	}
+},
+
 _renderEmptyTile: function() {
 	const bodyId = this._id + "-body";
 	const menuId = this._id + "-menu";
@@ -102,6 +136,7 @@ _renderEmptyTile: function() {
 	this.setClickCloseHandler(this._onTileCloseCb.bind(this));
 
 	this._rootElem.addEventListener("pointerover", this._pointerOverCb.bind(this));
+	this._menuElem.parentElement.addEventListener("transitionend", this._hoverTransitionEndCb.bind(this));
 },
 
 _colorToBgCss: {

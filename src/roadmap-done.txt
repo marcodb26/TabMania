@@ -88,6 +88,9 @@ DONE 1.3
     enough to generate the simulated "mouseover" event
   * Automatically open dropdown menu on "mouseover" events simulated by touch ("pointerover")
 
+- If you open a dropdown menu and hover away from the tile (without clicking menu items or otherwise
+  closing the dropdown explicitly), make sure the menu gets closed automatically
+
 
 DONE 1.2
 
