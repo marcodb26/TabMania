@@ -106,12 +106,13 @@ _pointerOverCb: function(ev) {
 
 	// If there was a past instance of this event still waiting to take action, cancel it
 	this._touchHoverSerialPromises.reset();
-	// The problem with the "pointerover" event is that it arrives immediately on hover,
-	// before the menu is actually visible, and before we can have clues as to whether this
-	// hover is legitimate (the user is touch-holding a tile because she wants to see the
-	// menu, or the user is touch-holding a tile because she's trying to scroll through
-	// tiles). Before we can take any action, we need to first wait a bit, to understand
-	// under what conditions this event fired.
+	// The problem with the "pointerover" event is that it arrives immediately (before
+	// the "pointerdown" event), before the menu is actually visible, and before we can
+	// have clues as to whether this hover is legitimate (the user is tap-holding a tile
+	// because she wants to see the menu, or the user is tap-holding a tile because she's
+	// trying to scroll through tiles, or even the user is just clicking). Before we can
+	// take any action, we need to first wait a bit, to understand under what conditions
+	// this event fired.
 	//
 	// Wait 700ms, then call openFn() (unless it gets cancelled).
 	this._touchHoverSerialPromises.next(delay.bind(null, 700), "delay");
