@@ -658,23 +658,51 @@ _historyUpdatedCb: function(ev) {
 	this._updateSearchResultsJob.run(this._updateSearchResultsDelay);
 },
 
-_TabsBsTabViewer_render: function() {
+// When users use touch screens, a long hold (without moving) triggers the context
+// menu of the browser page. We don't care that users can see the context menu in
+// general (except that we don't want the TabMania context menu items there), but
+// we need the long hold on touch to trigger the simulated "mouseover" (which Chrome
+// does automatically) to display the tile dropdown menu and close button, so we
+// can't have the context menu also show up in that case.
+//
+// UPDATE: unfortunately preventDefault() on "touchend" breaks all the "click" actions
+// (dropdown can't be pressed, close button can't be pressed), so we are forced to
+// disable "contextmenu" in general. Note that we're disabling it only in the tiles
+// container, so it's still possible to get the context menu by clicking on the bsTabs.
+//
+// UPDATE2: working without [ right-click then "Inspect" ] is really hard... decided to
+// go for this hack to try to restrict context menu only for contextmenu events triggered
+// by touchend events. The hack is not foolproof, but in the worst case you'll miss
+// a contextmenu you wanted to get, or you'll get a context menu you wanted to miss
+// (every once in a while, not always). In a nutshell, the hack monitors for "touchend"
+// events (which trigger "contextmenu" events), and sets a flag for 100ms (then automatically
+// unsets it). If the contextmenu event fires while the flag is set, we assume the contextmenu
+// event was triggered by the touchend event... it's an educated guess, not hard science.
+_disableContextMenuOnTouchEnd: function() {
+	let touchEndRecentlyFired = false;
+	let monitorTouchEndCb = function(ev) {
+		touchEndRecentlyFired = true;
+		delay(100).then(function() { touchEndRecentlyFired = false; } );
+	};
+
+	let monitorContextMenuCb = function(ev) {
+		if(touchEndRecentlyFired) {
+			const logHead = "TabsBsTabViewer::monitorContextMenuCb(): ";
+			this._log(logHead + "suppressing 'contextmenu' event after 'touchend' event");
+			ev.preventDefault();
+		}
+	}.bind(this);
+
 	let rootElem = this.getRootElement();
+	rootElem.addEventListener("touchend", monitorTouchEndCb, false);
+	rootElem.addEventListener("contextmenu", monitorContextMenuCb, false);
+},
+
+_TabsBsTabViewer_render: function() {
 	// Make the TabsBsTabViewer content unselectable
-	rootElem.classList.add("tm-select-none");
-	// When users use touch screens, a long hold (without moving) triggers the context
-	// menu of the browser page. We don't care that users can see the context menu in
-	// general (except that we don't want the TabMania context menu items there), but
-	// we need the long hold on touch to trigger the simulated "mouseover" (which Chrome
-	// does automatically) to display the tile dropdown menu and close button, so we
-	// can't have the context menu also show up in that case.
-	//
-	// UPDATE: unfortunately preventDefault() on "touchend" breaks all the "click" actions
-	// (dropdown can't be pressed, close button can't be pressed), so we are forced to
-	// disable "contextmenu" in general. Note that we're disabling it only in the tiles
-	// container, so it's still possible to get the context menu by clicking on the bsTabs.
-//	rootElem.addEventListener("touchend", function(ev) { ev.preventDefault(); }, false);
-	rootElem.addEventListener("contextmenu", function(ev) { ev.preventDefault(); }, false);
+	this.getRootElement().classList.add("tm-select-none");
+
+	this._disableContextMenuOnTouchEnd();
 
 	this._containerViewer = Classes.ContainerViewer.create(this._emptyContainerString);
 	this._queryAndRenderTabs().then(
