@@ -7,6 +7,8 @@ Classes.MenuViewer = Classes.Viewer.subclass({
 	// This class uses a body element different from the _rootElem
 	_bodyElem: null,
 
+	_menuElem: null,
+
 	_options: null,
 
 	_dropdownBsObj: null,
@@ -69,8 +71,8 @@ _MenuViewer_render: function() {
 	this._rootElem = this._elementGen(menuButtonHtml);
 	this._bodyElem = this.getElementById(menuItemsContainerId);
 
-	let menuElem = this.getElementById(menuId);
-	this._dropdownBsObj = new bootstrap.Dropdown(menuElem);
+	this._menuElem = this.getElementById(menuId);
+	this._dropdownBsObj = new bootstrap.Dropdown(this._menuElem);
 	// Prevent clicks on the menu items from propagating all the way
 	// down to the page owning the menu
 	this._rootElem.addEventListener("click",
