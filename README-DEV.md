@@ -35,6 +35,8 @@ page, some only on the popups) to monitor the state of the extension, or make ch
 
 * Call `popupDockerBg.showState()` in the background page console to find the state of the popup (docked or undocked)
 
+* Use `monitorEvents(document, "pointercancel")` (standard Chrome dev tool) to monitor events for touch displays
+
 * Why should I not just use `chrome://inspect/#pages` to make sense of my tabs?
   * Chrome inspect pages is a DevTool, and shows info for developers, so for each page you'll also
   see iFrames or other embedded things
