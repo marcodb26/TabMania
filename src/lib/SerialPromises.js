@@ -15,8 +15,7 @@ _init: function() {
 
 	this.debug();
 
-	this._currPromise = null;
-	this._nextPromise = null;
+	this.reset();
 },
 
 _resetCurrPromise: function() {
@@ -50,6 +49,11 @@ next: function(nextFn, debugInfo) {
 	)
 
 	return this._nextPromise.then(this._runNext.bind(this, this._nextPromise, nextFn, debugInfo));
+},
+
+reset: function() {
+	this._currPromise = null;
+	this._nextPromise = null;
 },
 
 }); // Classes.SerialPromises
