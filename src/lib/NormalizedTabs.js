@@ -374,6 +374,9 @@ updateHistoryBadges: function(tab) {
 },
 
 // Static function
+// Note that you can use this function with "url" as an empty string to get a last resort
+// URL that renders to the default Chrome favIcon for sites without a favIcon.
+// See GroupBuilder._findFavIconUrl() for an explanation for this "last resort URL".
 buildCachedFavIconUrl: function(url) {
 	// See https://stackoverflow.com/questions/10665321/reliably-getting-favicons-in-chrome-extensions-chrome-favicon
 	return "chrome://favicon/size/16@1x/" + url;

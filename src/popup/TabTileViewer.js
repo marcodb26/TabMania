@@ -336,28 +336,13 @@ _processMenuViewer: function() {
 	}
 },
 
-_favIconLoadErrorCb: function(ev) {
-	const logHead = "TabTileViewer::_favIconLoadErrorCb(): ";
-	this._log(logHead, this._tab, arguments);
-
-	if(!Classes.NormalizedTabs.isCachedFavIconUrl(ev.target.src)) {
-		let altFavIconUrl = this._tab.tm.cachedFavIconUrl;
-		this._log(logHead, "setting favIcon URL to " + altFavIconUrl);
-
-		ev.target.src = altFavIconUrl;
-	} else {
-		// We need this check to avoid entering an infinite loop of failure / recovery /failure...
-		this._log(logHead + "failure with cached URL, no other action to take");
-	}
-},
-
 _renderBodyInner: function() {
 	const logHead = "TabTileViewer::_renderBodyInner(): ";
 	let visibleBadgesHtml = [];
 	let titleExtraClasses = [];
 	let textMuted = "text-muted";
-	const imgId = this._id + "-favicon";
-	let imgExtraClasses = [];
+	const favIconContainerId = this._id + "-favicon";
+	let favIconClasses = [ "tm-favicon-16" ];
 
 	switch(this._renderState.audio) {
 		case "audible-muted":
@@ -410,7 +395,7 @@ _renderBodyInner: function() {
 		switch(this._renderState.status) {
 			case "unloaded":
 				titleExtraClasses.push("fst-italic");
-				imgExtraClasses.push("tm-favicon-bw");
+				favIconClasses.push("tm-favicon-bw");
 				break;
 			case "loading":
 			case "complete":
@@ -441,19 +426,12 @@ _renderBodyInner: function() {
 			break;
 	}
 
-	let imgHtml = "";
-	if(this._renderState.imgUrl != "") {
-		imgHtml = `
-			<span class="pe-1"><img id="${imgId}" class="tm-favicon-16 ${imgExtraClasses.join(" ")}" src="${this._renderState.imgUrl}"></span>
-		`;
-	}
-
 	// See https://getbootstrap.com/docs/5.0/components/card/
 	// Do we need the attribute "width='16px'" in the <img> below, or are the min-width
 	// and max-width settings of tm-favicon-16 enough?
 	const bodyHtml = `
 		<p class="card-title text-truncate tm-tile-title mb-0">
-			${imgHtml}
+			<span id="${favIconContainerId}" class="pe-1"><!-- The favicon goes here --></span>
 			${specialIcon}
 			<span class="align-middle ${textMuted} ${titleExtraClasses.join(" ")}">${this._safeText(this._renderState.title)}</span>
 		</p>
@@ -470,8 +448,15 @@ _renderBodyInner: function() {
 
 	this.setHtml(bodyHtml);
 
-	let favIconElem = this.getElementById(imgId);
-	favIconElem.addEventListener("error", this._favIconLoadErrorCb.bind(this));
+	let favIconContainerElem = this.getElementById(favIconContainerId);
+
+	let favIconOptions = {
+		src: this._renderState.imgUrl,
+		srcBackup: this._renderState.imgUrlBackup,
+		extraClasses: favIconClasses,
+	};
+	let favIconViewer = Classes.ImageViewer.create(favIconOptions);
+	favIconViewer.attachToElement(favIconContainerElem);
 
 	if(this._renderState.showCloseButton) {
 		this._closeElem.classList.remove("tm-hide");
@@ -661,11 +646,16 @@ _createRenderState: function(tab, tabGroup) {
 
 	if(tab.favIconUrl != null) {
 		renderState.imgUrl = tab.favIconUrl;
+		renderState.imgUrlBackup = tab.tm.cachedFavIconUrl;
 	} else {
 		if(tabGroup != null && tabGroup.favIconUrl != null) {
 			renderState.imgUrl = tabGroup.favIconUrl;
+			renderState.imgUrlBackup = tab.tm.cachedFavIconUrl;
 		} else {
-			renderState.imgUrl = "";
+			// See GroupBuilder._findFavIconUrl() for an explanation for this
+			// "last resort URL"
+			renderState.imgUrl = Classes.NormalizedTabs.buildCachedFavIconUrl("");
+			renderState.imgUrlBackup = renderState.imgUrl;
 		}
 	}
 
