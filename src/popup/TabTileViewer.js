@@ -23,6 +23,24 @@ Classes.TabTileViewer = Classes.Viewer.subclass({
 
 	_menuViewer: null,
 
+	// The tile has an underlay with tab icon, title and website, and an overlay (higher z-index)
+	// with dropdown menu and tile-close button. The overlay is normally hidden until the pointer
+	// hovers over the tile, at which points it becomes visible with a short delay. The overlay
+	// stays visible until the pointer hovers away. With touch gestures, the hover is simulated, and
+	// that's a problem because a moouse is always hovering over something, causing the hover state
+	// to always be accurate, while a touch applied to an element triggers a hover state that can't
+	// be removed until it's triggered somewhere else by another gesture (you can't "cancel" the hover
+	// state simulated on a tile).
+	// In general we need to know when the overlay is visible because we need that information to
+	// decide whether or not we should auto-open dropdown menus.
+	_overlayVisible: false,
+
+	_touchHoverSerialPromises: null,
+
+	// _pointerUpCancelRecentlyFired is a flag, but we store a timestamp in it to get a bit
+	// more debug information, so assume that non-zero values mean "true" and 0 means "false"
+	_pointerUpCancelRecentlyFired: 0,
+
 // "tabGroup" is optional, if specified it can be used to provide a default favIconUrl
 // "asyncQueue" is mandatory, and it's the queue where the tile needs to enqueue all heavy
 // rendering of itself.
@@ -33,6 +51,7 @@ _init: function(tab, tabGroup, asyncQueue) {
 	this.debug();
 
 	this._renderBodyCompleted = false;
+	this._touchHoverSerialPromises = Classes.SerialPromises.createAs(this._id + "::_touchHoverSerialPromises");
 	this._tab = tab;
 	this._asyncQueue = asyncQueue;
 
@@ -55,10 +74,84 @@ _pointerOverCb: function(ev) {
 
 	if(this._menuViewer == null) {
 		this._log(logHead + "no _menuViewer, can't proceed", ev);
+		return;
 	}
 
-	this._log(logHead + "entering", ev);
-	this._menuViewer.open();
+	// Remember that SerialPromises.next() needs a function that returns a Promise.
+	let openFn = function() {
+		if(this._pointerUpCancelRecentlyFired != 0) {
+			// Note that while you would expect the next log to only show intervals of
+			// less than 500ms (the time it takes to reset _pointerUpCancelRecentlyFired),
+			// you'll actually see longer intervals when the user does a short tap (click),
+			// because the cascade of actions triggered by moving to foreground a new tab
+			// (including the likely full re-query/re-render triggered by it) will delay
+			// all other async actions. It's good that this async action (this function)
+			// gets invoked in order, before the async action that should reset the value
+			// of _pointerUpCancelRecentlyFired, because this async function is also getting
+			// delayed, and it would have fired within those 500ms if it wasn't delayed
+			// (otherwise it would get called in order after the reset of _pointerUpCancelRecentlyFired).
+			// This is why it's best to work with the reset, rather than try to compute the
+			// time delta here.
+			this._log(logHead + "suppressing auto-opening dropdown " +
+								(performance.now() - this._pointerUpCancelRecentlyFired) +
+								"ms after 'pointerup'/'pointercancel' event");
+			this._pointerUpCancelRecentlyFired = 0;
+			return Promise.resolve();
+		}
+
+		this._log(logHead + "opening menu", ev);
+		this._menuViewer.open();
+		return Promise.resolve();
+	}.bind(this);
+
+	// If there was a past instance of this event still waiting to take action, cancel it
+	this._touchHoverSerialPromises.reset();
+	// The problem with the "pointerover" event is that it arrives immediately on hover,
+	// before the menu is actually visible, and before we can have clues as to whether this
+	// hover is legitimate (the user is touch-holding a tile because she wants to see the
+	// menu, or the user is touch-holding a tile because she's trying to scroll through
+	// tiles). Before we can take any action, we need to first wait a bit, to understand
+	// under what conditions this event fired.
+	//
+	// Wait 700ms, then call openFn() (unless it gets cancelled).
+	this._touchHoverSerialPromises.next(delay.bind(null, 700), "delay");
+	this._touchHoverSerialPromises.next(openFn, "openFn");
+},
+
+// Trying to manage the "hover" state for touch devices is a bit crazy, and doesn't really
+// work very well, but the laternative is more difficult. If we didn't want to use "hover",
+// we would need to manage these 3 sequences:
+// - pointerdown -> pointercancel (move/scroll gesture)
+// - pointerdown -> pointerup (click: short interval)
+// - pointerdown -> pointerup (tap-hold: long interval)
+// This looks deceptively simple, and the complexity is in the fact that "tap-hold" should
+// trigger a state change in the tile (and make the overlay visible), but there's no "reverse
+// event" to change the state back to "overlay not visible". How do you go back to "overlay
+// not visible" after you've detected a "tap-hold"? The answer is "you wait for the tap-hold
+// to show up on another tile" (besides offering a way to reverse it within the tile itself).
+// Having to monitor all tiles is the problem, the detection of the reverse event can't be
+// self-contained within the tile, it's a collaborative effort across tiles (and possibly
+// other elements of the DOM). And it needs to be a collaborative effort between touch
+// gestures and mouse events (because a mouse hover on another tile must also change the
+// state of the tile that had been tab-held).
+// The reverse event and the intermixing with mouse events are automatically available with
+// the simulated "hover" state, so it's less work to keep hacking around it for touch, even
+// though the "hover" state can't be reversed by taking explicit actions on the same tile.
+//
+// If touch gestures represented a more promininent use case for TabMania, maybe we'd need
+// to invest the effort. But TabMania is only for desktop/laptop computers (because Chrome
+// extensions are, mostly), not mobile devices. Touch on desktops/laptops is not as necessary,
+// so we can leave with these hacks.
+_pointerUpCancelCb: function(ev) {
+	// See https://developer.mozilla.org/en-US/docs/Web/API/PointerEvent/pointerType
+	if(ev.pointerType == "mouse") {
+		return;
+	}
+
+	const logHead = "TabTileViewer::_pointerUpCancelCb(): ";
+	this._log(logHead + "entering");
+	this._pointerUpCancelRecentlyFired = performance.now();
+	delay(500).then(function() { this._pointerUpCancelRecentlyFired = 0; } );
 },
 
 // When the dropdown menu of a tile becomes invisible (cursor hovered away from tile),
@@ -78,19 +171,22 @@ _hoverTransitionEndCb: function(ev) {
 		return;
 	}
 
-	if(this._menuViewer == null) {
-		this._log(logHead + "no _menuViewer, can't proceed", ev);
-	}
-
 //	perfProf.mark("getComputedStyleStart");
 	// After a few experiments, this seems to be taking less than 1 millisecond (0.7ms on average),
 	// so it's not a huge performance drain
-	let visible = window.getComputedStyle(ev.target).visibility !== "hidden";
+	this._overlayVisible = window.getComputedStyle(ev.target).visibility !== "hidden";
 //	perfProf.mark("getComputedStyleEnd");
 //	perfProf.measure("TabTileViewer::getComputedStyle", "getComputedStyleStart", "getComputedStyleEnd");
-	this._log(logHead + "entering, visible:", visible, ev);
 
-	if(!visible) {
+	this._log(logHead + "entering, this._overlayVisible:", this._overlayVisible, ev);
+
+	if(this._menuViewer == null) {
+		this._log(logHead + "no _menuViewer, can't proceed");
+	}
+
+	if(!this._overlayVisible) {
+		// If there was a past instance of "pointerover" still waiting to take action, cancel it
+		this._touchHoverSerialPromises.reset();
 		this._menuViewer.close();
 	}
 },
@@ -135,7 +231,14 @@ _renderEmptyTile: function() {
 	this.setClickHandler(this._onTileClickCb.bind(this));
 	this.setClickCloseHandler(this._onTileCloseCb.bind(this));
 
+	// We're tracking the following events to manage touch screens:
+	// "pointerover" + "pointercancel"/"pointerup" are used together to figure out whether or
+	// not we can auto-open the dropdown menu for touch-hold gestures.
+	// "transitionend" is used to track _overlayVisible and to auto-close open dropdown menus
+	// (for any kind of pointer, mouse or touch).
 	this._rootElem.addEventListener("pointerover", this._pointerOverCb.bind(this));
+	this._rootElem.addEventListener("pointerup", this._pointerUpCancelCb.bind(this));
+	this._rootElem.addEventListener("pointercancel", this._pointerUpCancelCb.bind(this));
 	this._menuElem.parentElement.addEventListener("transitionend", this._hoverTransitionEndCb.bind(this));
 },
 

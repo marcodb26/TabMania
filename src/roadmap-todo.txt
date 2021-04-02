@@ -1,5 +1,9 @@
 TODO 1.3
 
+- Find a way to remove the touch-hold "hover" state of a tile
+  * When you touch-hold, Chrome simulates a "pointerover"/"mouseover" that triggers the
+    :hover CSS pseudo-class, but there's no way to get out of that state
+
 - Add a star to a tile if it's bookmarked
   * We must do this asynchronously, we can't wait for all these bookmark searches
     to go through after every tab query
