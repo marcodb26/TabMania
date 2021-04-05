@@ -147,11 +147,6 @@ _tabGroupsToArrays: function(tabGroups) {
 				}
 				break;
 
-			case Classes.GroupsBuilder.Type.PINNEDEMPTY:
-				// This should be in the pinned array by definition
-				pinned.push(this._tabGroupEntryToObj(groupName, data, true));
-				break;
-
 			default:
 				// Classes.GroupsBuilder.Type.TAB is never used by the grouping function,
 				// so it should never be found here.
@@ -161,6 +156,7 @@ _tabGroupsToArrays: function(tabGroups) {
 		}
 	}
 
+	this._log(logHead + "pinned = ", pinned);
 	this._log(logHead + "unpinned = ", unpinned);
 	return [ pinned.sort(Classes.NormalizedTabs.compareTitlesFn),
 			unpinned.sort(Classes.NormalizedTabs.compareTitlesFn) ];
@@ -259,6 +255,8 @@ _addCustomGroups: function(inputTabGroups) {
 },
 
 _addEmptyPinnedGroups: function(tabGroups) {
+	let cgm = settingsStore.getCustomGroupsManager();
+
 	// Add empty pinned groups
 	settingsStore.getPinnedGroups().getAll().forEach(
 		function(groupName) {
@@ -266,9 +264,13 @@ _addEmptyPinnedGroups: function(tabGroups) {
 				// The group is already populated, nothing to do
 				return;
 			}
+
+			let type = cgm.hasCustomGroup(groupName, true) ?
+							Classes.GroupsBuilder.Type.CUSTOM : Classes.GroupsBuilder.Type.HOSTNAME;
+
 			// The group is not in the object, add it as empty
 			tabGroups[groupName] = {
-				type: Classes.GroupsBuilder.Type.PINNEDEMPTY,
+				type: type,
 				// Let's make our life easier by always having "tabs" even if empty...
 				tabs: []
 			};
@@ -306,7 +308,5 @@ Classes.Base.roDef(Classes.GroupsBuilder.Type, "HOSTNAME", "hostname");
 Classes.Base.roDef(Classes.GroupsBuilder.Type, "WINDOWID", "windowid");
 // Type "CUSTOM" is a group with title based on a custom group properties
 Classes.Base.roDef(Classes.GroupsBuilder.Type, "CUSTOM", "custom");
-// Type "PINNEDEMPTY" is a group with title based on a pinned group, but no data
-Classes.Base.roDef(Classes.GroupsBuilder.Type, "PINNEDEMPTY", "pinnedempty");
 // Type "TAB" is not a group, it's an individual tab with title based on the tab's title
 Classes.Base.roDef(Classes.GroupsBuilder.Type, "TAB", "tab");

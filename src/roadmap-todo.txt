@@ -1,7 +1,5 @@
 TODO 1.3
 
-- BUG: Pinned custom groups don't show the color on their left border when they're empty
-
 - Now that we show bookmark folders in the tile, should standard search account for folders too without
   specifying the "folder:" modifier?
 
