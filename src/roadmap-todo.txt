@@ -1,5 +1,7 @@
 TODO 1.3
 
+- BUG: Pinned custom groups don't show the color on their left border when they're empty
+
 - Now that we show bookmark folders in the tile, should standard search account for folders too without
   specifying the "folder:" modifier?
 
@@ -23,23 +25,7 @@ TODO 1.3
     - The vertical scrollbar takes up precious real estate in that case, and forces
 	  the popup to be slightly wider to get the same amount of visible text
 
-- Sorting tiles, add secondary criteria
-  * If two tabs have the same title, sort by url
-  * Same URL, sort by index in window (to match their appearance on chrome)
-  * Any other sorting criteria besides "title" and "url"?
-
-- Multi-select of tiles to take actions on selection
-  * We'd need to stop updating the tiles list during selection
-
-- Add action menu to containers
-
 - Menu item to move all tabs in a custom group to the same window
-
-- Render contents of dropdown menus only when they hover visible
-  * Or even when the user clicks the hovered button?
-  * Or when she hovers on the dropdown button itself (but before clicking)
-
-- BUG: Pinned custom groups don't show the color on their left border when they're empty
 
 
 PREP FOR NEXT RELEASE
@@ -53,6 +39,20 @@ PUNTED TO NEXT RELEASE
 
 - Show button to move back to top when a tab wants attention
   * The tile moves to the top, but the user might not be at the top
+
+- Render contents of dropdown menus only when they hover visible
+  * Or even when the user clicks the hovered button?
+  * Or when she hovers on the dropdown button itself (but before clicking)
+
+- Sorting tiles, add secondary criteria
+  * If two tabs have the same title, sort by url
+  * Same URL, sort by index in window (to match their appearance on chrome)
+  * Any other sorting criteria besides "title" and "url"?
+
+- Multi-select of tiles to take actions on selection
+  * We'd need to stop updating the tiles list during selection
+
+- Add action menu to containers
 
 - Change rendering of custom group configuration by showing one hostname per input box,
   and support "-" to indicate exclusion
