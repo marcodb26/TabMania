@@ -19,7 +19,7 @@ _init: function(tabGroup, expandedGroups) {
 
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.CollapsibleContainerViewer._init.call(this, options);
-	const logHead = "TilesGroupViewer::_init(): ";
+//	const logHead = "TilesGroupViewer::_init(): ";
 
 	this._TilesGroupViewer_render();
 
