@@ -328,7 +328,7 @@ function safeFnWrapper(fnToWrap, errMsgPrefix, errFn) {
 			return fnToWrap(...arguments);
 		} catch(e) {
 			if(errMsgPrefix != null) {
-				tmUtils.err(errMsgPrefix + e.message, e);
+				tmUtils.err(errMsgPrefix + e.message + " |", e);
 			}
 			if(errFn != null) {
 				return errFn(e, ...arguments);
