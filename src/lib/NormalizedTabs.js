@@ -412,6 +412,20 @@ _initBookmarkAsTab: function(tab) {
 	tab.status = "unloaded";
 },
 
+updateBookmarkFolder: function(tab) {
+	let folder = bookmarksManager.getBmFolderSync(tab);
+	if(folder != null) {
+		// Best effort, we only try the sync version, we don't want to wait for
+		// the async version to fill this out
+		tab.tm.folder = folder;
+		tab.tm.lowerCaseFolder = folder.toLowerCase();
+	} else {
+		tmUtils.log(logHead + "folder not available for", tab);
+		tab.tm.folder = "";
+		tab.tm.lowerCaseFolder = "";
+	}
+},
+
 // Static function
 normalizeHistoryItemId : function(id) {
 	return "h" + id;
@@ -605,15 +619,7 @@ normalizeTab: function(tab, objType) {
 			thisObj.updateSearchBadges(tab);
 			break;
 		case Classes.NormalizedTabs.type.BOOKMARK:
-			let folder = bookmarksManager.getBmFolderSync(tab);
-			if(folder != null) {
-				// Best effort, we only try the sync version, we don't want to wait for
-				// the async version to fill this out
-				tab.tm.folder = folder;
-				tab.tm.lowerCaseFolder = folder.toLowerCase();
-			} else {
-				tmUtils.log(logHead + "folder not available for", tab);
-			}
+			thisObj.updateBookmarkFolder(tab);
 			thisObj.updateBookmarkBadges(tab);
 			break;
 		case Classes.NormalizedTabs.type.HISTORY:

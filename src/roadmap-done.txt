@@ -106,6 +106,9 @@ DONE 1.3
 
 - Added bookmark folder on tile's second line of text
 
+- BUG: when moving a bookmark to a new folder, search results (for searches using the "folder:" modifier)
+  don't get updated
+
 
 DONE 1.2
 

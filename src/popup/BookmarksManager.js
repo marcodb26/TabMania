@@ -571,6 +571,8 @@ _applyBookmarkMoveCb: function(id, moveInfo) {
 
 		this._assert(bm.parentId == moveInfo.oldParentId);
 		bm.parentId = moveInfo.parentId;
+		// Once we update the parentId, we also need to update the searchable folder info
+		Classes.NormalizedTabs.updateBookmarkFolder(bm);
 
 		// We don't really care about the index of the bookmark within its parent folder, but
 		// since we got the data, let's take it...
