@@ -283,8 +283,10 @@ resetStats: function() {
 		// We ignore an "onCreated" event if there's an import in progress
 		onCreatedIgnored: 0,
 		onChanged: 0,
+		onChangedUntracked: 0,
 		onRemoved: 0,
 		onMoved: 0,
+		onMovedUntracked: 0,
 		onImportBegan: 0,
 		onImportEnded: 0,
 	};
@@ -527,22 +529,28 @@ _applyBookmarkCreateCb: function(id, bmNode) {
 
 _applyBookmarkChangeCb: function(id, changeInfo) {
 	const logHead = "BookmarksManager::_applyBookmarkChangeCb(" + id + "): ";
-	this._stats.onChanged++;
 
 	let bm = this._bookmarksDict[id];
-	if(bm != null) {
-		this._log(logHead + "processing", changeInfo);
-
-		bm.title = changeInfo.title;
-		bm.url = changeInfo.url;
-	} else {
+	if(bm == null) {
 		this._log(logHead + "not tracked, ignoring", changeInfo);
+		this._stats.onChangedUntracked++;
+		return;
 	}
+
+	this._log(logHead + "processing", changeInfo);
+	this._stats.onChanged++;
+
+	bm.title = changeInfo.title;
+	bm.url = changeInfo.url;
+
 	this._eventManager.notifyListeners(Classes.EventManager.Events.UPDATED, { id: Classes.NormalizedTabs.normalizeBookmarkId(id) });
 },
 
 _applyBookmarkRemoveCb: function(id, removeInfo) {
 	const logHead = "BookmarksManager::_applyBookmarkRemoveCb(" + id + "): ";
+
+	// In the case of removal, we might not be tracking a bookmark in bookmarkManager,
+	// but it might still be configured pinned, in which case we still need to remove it
 	this._stats.onRemoved++;
 
 	this._log(logHead + "processing", removeInfo);
@@ -563,35 +571,37 @@ _applyBookmarkRemoveCb: function(id, removeInfo) {
 
 _applyBookmarkMoveCb: function(id, moveInfo) {
 	const logHead = "BookmarksManager::_applyBookmarkMoveCb(" + id + "): ";
-	this._stats.onMoved++;
 
 	let bm = this._bookmarksDict[id];
 	if(bm != null) {
-		this._log(logHead + "processing", moveInfo);
-
-		this._assert(bm.parentId == moveInfo.oldParentId);
-		bm.parentId = moveInfo.parentId;
-		// Once we update the parentId, we also need to update the searchable folder info
-		Classes.NormalizedTabs.updateBookmarkFolder(bm);
-
-		// We don't really care about the index of the bookmark within its parent folder, but
-		// since we got the data, let's take it...
-		// UPDATE: we can't make this assert, because the way indices are reported in onMoved
-		// callbacks is kind of broken when you multi-select and move multiple bookmarks.
-		// Specifically, say you select two adjacent bookmarks A and B with indices 1 and 2 and
-		// move them below the bookmark that's currently at index 3. It looks like internally
-		// the API moves the bookmark with lower index first (so A), and generates an event for
-		// A, but it also updates all indices without generating events for B and C. Then the API
-		// moves B, and generates an event for B, but claims that B was at index 1, not at index
-		// 2, before its onMoved event... and of course no event is generated for C, but if A and
-		// B changed index, C changed index too...
-		// All right, let's drop this assert.
-		//
-		//this._assert(bm.index == moveInfo.oldIndex);
-		bm.index = moveInfo.index;
-	} else {
 		this._log(logHead + "not tracked, ignoring", moveInfo);
+		this._stats.onMovedUntracked++;
+		return;
 	}
+
+	this._log(logHead + "processing", moveInfo);
+	this._stats.onMoved++;
+
+	this._assert(bm.parentId == moveInfo.oldParentId);
+	bm.parentId = moveInfo.parentId;
+	// Once we update the parentId, we also need to update the searchable folder info
+	Classes.NormalizedTabs.updateBookmarkFolder(bm);
+
+	// We don't really care about the index of the bookmark within its parent folder, but
+	// since we got the data, let's take it...
+	// UPDATE: we can't make this assert, because the way indices are reported in onMoved
+	// callbacks is kind of broken when you multi-select and move multiple bookmarks.
+	// Specifically, say you select two adjacent bookmarks A and B with indices 1 and 2 and
+	// move them below the bookmark that's currently at index 3. It looks like internally
+	// the API moves the bookmark with lower index first (so A), and generates an event for
+	// A, but it also updates all indices without generating events for B and C. Then the API
+	// moves B, and generates an event for B, but claims that B was at index 1, not at index
+	// 2, before its onMoved event... and of course no event is generated for C, but if A and
+	// B changed index, C changed index too...
+	// All right, let's drop this assert.
+	//
+	//this._assert(bm.index == moveInfo.oldIndex);
+	bm.index = moveInfo.index;
 
 	this._eventManager.notifyListeners(Classes.EventManager.Events.UPDATED, { id: Classes.NormalizedTabs.normalizeBookmarkId(id) });
 },

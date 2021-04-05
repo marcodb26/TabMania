@@ -109,6 +109,11 @@ DONE 1.3
 - BUG: when moving a bookmark to a new folder, search results (for searches using the "folder:" modifier)
   don't get updated
 
+- BookmarksManager's _applyBookmarkChangeCb() and _applyBookmarkMoveCb() claim to ignore notifications for
+  untracked bookmarks, but then notify their listeners...
+  * Cleanup that logic, we now do nothing for untracked bookmarks, except adding to stats
+    of untracked events
+
 
 DONE 1.2
 
