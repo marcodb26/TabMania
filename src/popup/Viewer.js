@@ -325,8 +325,14 @@ _init: function(options) {
 
 	this._options = options;
 
+	// If the network is known to be offline, let's not even bother using options.src,
+	// and just use options.srcBackup instead, without waiting for a network error to
+	// make the switch.
+	// See https://developer.mozilla.org/en-US/docs/Web/API/NavigatorOnLine/onLine
+	let imgSrc = window.navigator.onLine ? options.src : options.srcBackup;
+
 	let imgHtml = `
-	<img id="${this._id}" class="${this._options.extraClasses.join(" ")}" src="${this._options.src}">
+	<img id="${this._id}" class="${this._options.extraClasses.join(" ")}" src="${imgSrc}">
 	`;
 
 	// Overriding the parent class' _init(), but calling that original function first

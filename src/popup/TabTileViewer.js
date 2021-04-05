@@ -661,6 +661,14 @@ _createRenderState: function(tab, tabGroup) {
 		}
 	}
 
+	// Classes.ImageViewer uses the window.navigator.onLine state to determine whether
+	// to use the default favicon URL or its backup URL. For this reason, even though
+	// the rendering logic doesn't explicitly use "renderState.networkOnline", we need
+	// to track it as renderState because it influences the ImageViewer used by favicon.
+	// By tracking it in renderState, we can make sure the tile will try to re-render
+	// when the network state changes.
+	renderState.networkOnline = window.navigator.onLine;
+
 	renderState.incognito = tab.incognito;
 
 	// "audible" and "muted" are not mutually exclusive, but we want to show a

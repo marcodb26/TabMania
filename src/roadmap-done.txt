@@ -101,6 +101,9 @@ DONE 1.3
   * Now every tab includes its cachedFavIcon, and GroupBuilder inherits both facIcon and cachedFavIcon
   * Cleaned up image error handling logic, so it can be applied to both tab tiles and group heading tiles
 
+- If the browser is offline, use the cached favicon without waiting for the <img> tag to trigger
+  the URL loading error logic
+
 
 DONE 1.2
 
