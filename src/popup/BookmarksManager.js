@@ -543,6 +543,10 @@ _applyBookmarkChangeCb: function(id, changeInfo) {
 	bm.title = changeInfo.title;
 	bm.url = changeInfo.url;
 
+	// updateTitle() requires updateUrl() to be called first
+	Classes.NormalizedTabs.updateUrl(bm);
+	Classes.NormalizedTabs.updateTitle(bm);
+
 	this._eventManager.notifyListeners(Classes.EventManager.Events.UPDATED, { id: Classes.NormalizedTabs.normalizeBookmarkId(id) });
 },
 

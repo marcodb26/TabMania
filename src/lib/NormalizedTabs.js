@@ -174,6 +174,59 @@ cleanupTitle: function(title, url) {
 	return `${title} - ${type} "${bmNode.title}"`;
 },
 
+
+// Static function
+updateUrl: function(tab) {
+	let thisObj = Classes.NormalizedTabs;
+
+	// Sometimes "tab.url" is empty, because "tab.pendingUrl" is still loading.
+	// But in some cases, tab.url is empty, and tab.pendingUrl doesn't even exist,
+	// so we use optionalWithDefault() to cover that last corner case.
+	let url = optionalWithDefault((tab.url != "") ? tab.url : tab.pendingUrl, "");
+
+	let [ protocol, hostname ] = thisObj.getProtocolHostname(url);
+
+	// We want to leave the tab.url as it's been originally given to us, but since we're
+	// potentially working on tab.pendingUrl instead of tab.url, let's store in "tab.tm.url"
+	// the URL we've actually used, wherever it was from
+	tab.tm.url = url;
+	tab.tm.protocol = protocol;
+	tab.tm.hostname = hostname;
+	// Bookmarks can be part of a custom group, why not?
+	tab.tm.customGroupName = settingsStore.getCustomGroupsManager().getCustomGroupByHostname(hostname);
+	tab.tm.lowerCaseUrl = url.toLowerCase();
+},
+
+// Static function.
+// If you're updating both title and URL, make sure to call updateUrl() first, as this
+// function depends on the right URL being in place.
+updateTitle: function(tab) {
+	let thisObj = Classes.NormalizedTabs;
+
+	tab.title = thisObj.cleanupTitle(tab.title, tab.tm.url);
+	let lowerCaseTitle = tab.title.toLowerCase();
+
+	tab.tm.lowerCaseTitle = lowerCaseTitle;
+	tab.tm.normTitle = thisObj.normalizeLowerCaseTitle(lowerCaseTitle);
+},
+
+// Static function.
+// If you're updating both favIcon and URL, make sure to call updateUrl() first, as this
+// function depends on the right URL being in place.
+updateFavIcon: function(tab) {
+	let thisObj = Classes.NormalizedTabs;
+
+	let useCachedFavIcon = false;
+	const cachedFavIconUrl = thisObj.buildCachedFavIconUrl(tab.tm.url);
+	if(tab.favIconUrl == null || tab.favIconUrl == "") {
+		tab.favIconUrl = cachedFavIconUrl;
+		useCachedFavIcon = true;
+	}
+
+	tab.tm.useCachedFavIcon = useCachedFavIcon;
+	tab.tm.cachedFavIconUrl = cachedFavIconUrl;
+},
+
 // Static function
 formatExtendedId: function(tab, objType) {
 	if(tab.tm != null) {
@@ -382,6 +435,7 @@ buildCachedFavIconUrl: function(url) {
 	return "chrome://favicon/size/16@1x/" + url;
 },
 
+// Static function
 isCachedFavIconUrl: function(favIconUrl) {
 	return favIconUrl.startsWith("chrome://favicon/size/16@1x/");
 },
@@ -412,6 +466,7 @@ _initBookmarkAsTab: function(tab) {
 	tab.status = "unloaded";
 },
 
+// Static function
 updateBookmarkFolder: function(tab) {
 	let folder = bookmarksManager.getBmFolderSync(tab);
 	if(folder != null) {
@@ -532,41 +587,21 @@ normalizeTab: function(tab, objType) {
 			break;
 	}
 
-	// Sometimes "tab.url" is empty, because "tab.pendingUrl" is still loading.
-	// But in some cases, tab.url is empty, and tab.pendingUrl doesn't even exist,
-	// so we use optionalWithDefault() to cover that last corner case.
-	let url = optionalWithDefault((tab.url != "") ? tab.url : tab.pendingUrl, "");
-
-	tab.title = thisObj.cleanupTitle(tab.title, url);
-
-	let lowerCaseTitle = tab.title.toLowerCase();
-	let [ protocol, hostname ] = thisObj.getProtocolHostname(url);
-
-	// Bookmarks and history have no favIconUrl, but sometimes recently closed and
-	// standard tabs also don't have favIconUrl, so let's just try the cache here
-	// for all these cases...
-	let useCachedFavIcon = false;
-	const cachedFavIconUrl = Classes.NormalizedTabs.buildCachedFavIconUrl(url);
-	if(tab.favIconUrl == null || tab.favIconUrl == "") {
-		tab.favIconUrl = cachedFavIconUrl;
-		useCachedFavIcon = true;
-	}
-
 	tab.tm = {
 		type: objType,
 
-		// We could use "this" here, but since we decided these
-		// we're invoking are static functions, let's follow through
-		// with that
-		protocol: protocol,
-		hostname: hostname,
-		// Bookmarks can be part of a custom group, why not?
-		customGroupName: settingsStore.getCustomGroupsManager().getCustomGroupByHostname(hostname),
-		lowerCaseUrl: url.toLowerCase(),
-		lowerCaseTitle: lowerCaseTitle,
-		normTitle: thisObj.normalizeLowerCaseTitle(lowerCaseTitle),
-		useCachedFavIcon: useCachedFavIcon,
-		cachedFavIconUrl: cachedFavIconUrl,
+		// All the properties initialized to "null", empty strings or empty arrays are just
+		// listed for completeness, and are actually initialized later in this function via
+		// custom initialization logic
+		url: null,
+		protocol: null,
+		hostname: null,
+		customGroupName: null,
+		lowerCaseUrl: null,
+		lowerCaseTitle: null,
+		normTitle: null,
+		useCachedFavIcon: null,
+		cachedFavIconUrl: null,
 		// "folder" is non empty only for bookmarks, but to make the search
 		// logic easier, we want to make it non-null for all tabs
 		folder: "",
@@ -602,6 +637,14 @@ normalizeTab: function(tab, objType) {
 		primaryShortcutBadges: [],
 		secondaryShortcutBadges: [],
 	};
+
+	// updateTitle() and updateFavIcon() require updateUrl() to be called first
+	thisObj.updateUrl(tab);
+	thisObj.updateTitle(tab);
+	// Bookmarks and history have no favIconUrl, but sometimes recently closed and
+	// standard tabs also don't have favIconUrl, so let's just try the cache here
+	// for all these cases...
+	thisObj.updateFavIcon(tab);
 
 	switch(objType) {
 		case Classes.NormalizedTabs.type.TAB:

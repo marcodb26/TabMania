@@ -114,6 +114,9 @@ DONE 1.3
   * Cleanup that logic, we now do nothing for untracked bookmarks, except adding to stats
     of untracked events
 
+- BUG: when bookmark title or URL are edited on an existing bookmark, BookmarksManager wasn't updating
+  all the search support data structures
+
 
 DONE 1.2
 
