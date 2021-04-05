@@ -414,7 +414,7 @@ _renderBodyInner: function() {
 	switch(this._renderState.tmType) {
 		case Classes.NormalizedTabs.type.BOOKMARK:
 			specialIcon = icons.bookmark;
-			if(this._renderState.folder != null) {
+			if(this._renderState.folder != "") {
 				urlLine = this._renderState.folder + " | " + urlLine;
 			}
 			break;
