@@ -1,5 +1,11 @@
 TODO 1.3
 
+- BookmakrManager's _applyBookmarkChangeCb, _applyBookmarkMoveCb claim to ingore notifications for
+  untracked bookmarks, but then notify their listeners...
+  * Cleanup that logic, we should do nothing for untracked bookmarks, except adding to stats
+    of untracked events (right now we update stats of tracked events)
+  * Also cleanup _applyBookmarkRemoveCb (any others?) which right now doesn't perform the same check
+
 - Make bstabs disappear when they get too small and they would want to go on two lines
   * Can't use ".d-none .d-sm-block" as described in https://getbootstrap.com/docs/5.0/utilities/display/
     - It removes them when the window is still way too large
