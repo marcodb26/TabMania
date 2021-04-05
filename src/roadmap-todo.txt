@@ -6,6 +6,9 @@ TODO 1.3
     of untracked events (right now we update stats of tracked events)
   * Also cleanup _applyBookmarkRemoveCb (any others?) which right now doesn't perform the same check
 
+- Now that we show bookmark folders in the tile, should standard search account for folders too without
+  specifying the "folder:" modifier?
+
 - Make bstabs disappear when they get too small and they would want to go on two lines
   * Can't use ".d-none .d-sm-block" as described in https://getbootstrap.com/docs/5.0/utilities/display/
     - It removes them when the window is still way too large
