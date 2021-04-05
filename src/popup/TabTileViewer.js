@@ -410,9 +410,13 @@ _renderBodyInner: function() {
 	}
 
 	let specialIcon = "";
+	let urlLine = this._renderState.url;
 	switch(this._renderState.tmType) {
 		case Classes.NormalizedTabs.type.BOOKMARK:
 			specialIcon = icons.bookmark;
+			if(this._renderState.folder != null) {
+				urlLine = this._renderState.folder + " | " + urlLine;
+			}
 			break;
 		case Classes.NormalizedTabs.type.RCTAB:
 			specialIcon = icons.history("tm-fa-recently-closed");
@@ -439,7 +443,7 @@ _renderBodyInner: function() {
 		</p>
 		<div class="d-flex">
 			<p class="flex-grow-1 align-self-center text-truncate tm-tile-url">
-				<small class="${textMuted}">${this._safeText(this._renderState.url)}</small>
+				<small class="${textMuted}">${this._safeText(urlLine)}</small>
 			</p>
 			<p> </p>
 			<p class="align-self-center card-text small" style="text-align: right;">
@@ -555,7 +559,7 @@ _renderBody: function(queuePriority) {
 
 			this._renderBodyCompleted = true;
 		}.bind(this),
-		"tile " + this._id,
+		"tile " + this._id + ": ",
 		queuePriority
 		// Tried to play with the priority based on this._isInViewport(), but when we are
 		// here during tile creation, the tile has yet to be attached to the DOM, because
@@ -726,10 +730,13 @@ _createRenderState: function(tab, tabGroup) {
 		renderState.showCloseButton = false;
 	}
 
-	if(tab.tm.type == Classes.NormalizedTabs.type.BOOKMARK && tab.unmodifiable != null) {
-		// You also can't delete a bookmark if it's marked "unmodifiable".
-		// Let's just hide the "close" button in this case.
-		renderState.showCloseButton = false;
+	if(tab.tm.type == Classes.NormalizedTabs.type.BOOKMARK) {
+		renderState.folder = tab.tm.folder;
+		if(tab.unmodifiable != null) {
+			// You also can't delete a bookmark if it's marked "unmodifiable".
+			// Let's just hide the "close" button in this case.
+			renderState.showCloseButton = false;
+		}
 	}
 
 	return renderState;
