@@ -1,21 +1,6 @@
 TODO 1.3
 
-- Find a way to remove the touch-hold "hover" state of a tile
-  * When you touch-hold, Chrome simulates a "pointerover"/"mouseover" that triggers the
-    :hover CSS pseudo-class, but there's no way to get out of that state
-
-- Add a star to a tile if it's bookmarked
-  * We must do this asynchronously, we can't wait for all these bookmark searches
-    to go through after every tab query
-    - Do it directly in the tile?
-	  * We should do it only when the tile becomes visible in the scrolling
-
-- Show button to move back to top when a tab wants attention
-  * The tile moves to the top, but the user might not be at the top
-
-- Add shortcut title to dropdown menu of tabs
-  * We use the "shortcut title" in context menus, should we also use it in the tile
-    dropdown (maybe as a subtitle?) to tell the user what that "SC2" badge means?
+- Add bookmark folder on tile's second line
 
 - Make bstabs disappear when they get too small and they would want to go on two lines
   * Can't use ".d-none .d-sm-block" as described in https://getbootstrap.com/docs/5.0/utilities/display/
@@ -53,6 +38,38 @@ TODO 1.3
   * Or even when the user clicks the hovered button?
   * Or when she hovers on the dropdown button itself (but before clicking)
 
+- BUG: Pinned custom groups don't show the color on their left border when they're empty
+
+
+PREP FOR NEXT RELEASE
+
+- Remove all injection code in preparation for release (again)
+
+- Disable Base._assert() for production code
+
+
+PUNTED TO NEXT RELEASE
+
+- Show button to move back to top when a tab wants attention
+  * The tile moves to the top, but the user might not be at the top
+
+- Change rendering of custom group configuration by showing one hostname per input box,
+  and support "-" to indicate exclusion
+  * Then implement search by running a search query in custom group
+
+- Improve displaying of hostnames in custom groups configuration
+  * Instead of a text area, list each hostname as their own input box, with options to
+    delete or disable
+	- Plus a button to add a line
+  * Internally they can still be stored as a long string (?)
+    - Prepend a line with a comment ("//") to identify lines that are disabled
+	  * Or should we support real comments, in which case we might need a special prefix
+	    for lines that are disabled
+
+- Do we need to support search as a textarea instead of an input box?
+
+- Add more shortcut keypresses (SC6-SC10?)
+
 - Suspend tiles refresh when displaying menu items
   * Especially at brwser startup time, there are lots of refreshes, and they cause
     the menu dropdown and the "x" clse button to disappear
@@ -63,26 +80,9 @@ TODO 1.3
 
 - Continue testing with search query: site:mail.google.com and ---inurl:site:google.com or site:amazon.com
 
-- Change rendering of custom group configuration by showing one hostname per input box,
-  and support "-" to indicate exclusion
-  * Then implement search by running a search query in custom group
-- Improve displaying of hostnames in custom groups configuration
-  * Instead of a text area, list each hostname as their own input box, with options to
-    delete or disable
-	- Plus a button to add a line
-  * Internally they can still be stored as a long string (?)
-    - Prepend a line with a comment ("//") to identify lines that are disabled
-	  * Or should we support real comments, in which case we might need a special prefix
-	    for lines that are disabled
-
-- Search: how does the new multi-token model work with history?
-  * Do we need the simplified query string (purged of operators?) to pass to HistoryFinder?
-
-- Do we need to support search as a textarea instead of an input box?
-
-- BUG: If searchbox has too much text and ends with a whitespace, when you move the
-  cursor to the end of the string (after the last whitespace), the cursor disappears
-  * No way to play with margins because of the "::after" element for the "x"
+- Add shortcut title to dropdown menu of tabs
+  * We use the "shortcut title" in context menus, should we also use it in the tile
+    dropdown (maybe as a subtitle?) to tell the user what that "SC2" badge means?
 
 - BUG: while testing production, "Open in least tabbed window" chose a window with
   more tabs than the one where the parent tab was
@@ -96,20 +96,19 @@ TODO 1.3
     specific shortcut configurations, and leave ohter shortcuts without a keypress
 	and available only in context menus
 
-- Add more shortcut keypresses (SC6-SC10?)
+- BUG: If searchbox has too much text and ends with a whitespace, when you move the
+  cursor to the end of the string (after the last whitespace), the cursor disappears
+  * No way to play with margins because of the "::after" element for the "x"
 
-- BUG: Pinned custom groups don't show the color on their left border when they're empty
+- Add a star to a tile if it's bookmarked
+  * We must do this asynchronously, we can't wait for all these bookmark searches
+    to go through after every tab query
+    - Do it directly in the tile?
+	  * We should do it only when the tile becomes visible in the scrolling
 
-
-
-PREP FOR NEXT RELEASE
-
-- Remove all injection code in preparation for release (again)
-
-- Disable Base._assert() for production code
-
-
-PUNTED TO NEXT RELEASE
+- Find a way to remove the touch-hold "hover" state of a tile
+  * When you touch-hold, Chrome simulates a "pointerover"/"mouseover" that triggers the
+    :hover CSS pseudo-class, but there's no way to get out of that state
 
 - Support "undo" for deleted bookmarks
   * Can we also "undo" deleted browsing history items?
@@ -125,6 +124,9 @@ PUNTED TO NEXT RELEASE
 	    window that needs to be minimized?
 
 - Auto-select-all in searchbox when user clicks the mouse there to edit
+
+- Search: how does the new multi-token model work with history?
+  * Do we need the simplified query string (purged of operators?) to pass to HistoryFinder?
 
 - Improve performance of this._normTabs.getTabByTabId()
   * We should add a side dictionary structure to get tabId
