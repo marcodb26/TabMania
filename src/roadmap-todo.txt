@@ -1,5 +1,55 @@
 TODO 1.3
 
+- BUG:
+  GroupsBuilder.js:182 [52] GroupsBuilder::_groupByCriterion(): unable to generate key for tab
+  {active: true, audible: false, autoDiscardable: true, discarded: false, groupId: -1, …}
+  active: true,
+  audible: false,
+  autoDiscardable: true,
+  discarded: false,
+  favIconUrl: "chrome://favicon/size/16@1x/",
+  groupId: -1,
+  height: 607,
+  highlighted: true,
+  id: 1950,
+  incognito: false,
+  index: 47,
+  mutedInfo: {muted: false},
+  openerTabId: 1947,
+  pinned: false,
+  selected: true,
+  status: "complete",
+  title: "",
+  tm: {type: "tab", url: "", protocol: null, hostname: null, customGroupName: null, …},
+  url: "",
+  width: 1248,
+  windowId: 396,
+	(anonymous) @ GroupsBuilder.js:182
+	_groupByCriterion @ GroupsBuilder.js:177
+	groupByHostname @ GroupsBuilder.js:287
+	_standardRenderTabs @ TabsBsTabViewer.js:988
+	(anonymous) @ TabsBsTabViewer.js:956
+	Promise.then (async)
+	_queryAndRenderTabs @ TabsBsTabViewer.js:887
+	run @ ScheduledJob.js:64
+	_tabCreatedCb @ TabsBsTabViewer.js:318
+
+- BUG:
+  [4] ChromeUtils::wrap().cb: TabsBsTabViewer::_issue01Workaround(): chrome.runtime.lastError = No tab with id: 1993. (anonymous) @ chromeUtils.js:27
+	popup.html:1 Uncaught (in promise) {}
+	Promise.then (async)
+	_issue01Workaround @ TabsBsTabViewer.js:456
+	setInterval (async)
+	_safeSetInterval @ ScheduledJob.js:174
+	start @ ScheduledJob.js:100
+	(anonymous) @ TabsBsTabViewer.js:908
+	Promise.then (async)
+	_queryAndRenderTabs @ TabsBsTabViewer.js:887
+	run @ ScheduledJob.js:64
+	_tabCreatedCb @ TabsBsTabViewer.js:318
+
+- Generate notification when tab wants attention
+
 - Make bstabs disappear when they get too small and they would want to go on two lines
   * Can't use ".d-none .d-sm-block" as described in https://getbootstrap.com/docs/5.0/utilities/display/
     - It removes them when the window is still way too large
