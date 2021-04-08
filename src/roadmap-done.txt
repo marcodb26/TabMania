@@ -119,6 +119,8 @@ DONE 1.3
 
 - BUG: Pinned custom groups don't show the color on their left border when they're empty
 
+- Non-active bstabs now get hidden when they get too small and they would want to go on multiple lines
+
 
 DONE 1.2
 

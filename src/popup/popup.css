@@ -805,3 +805,15 @@ input[type="search"]::-webkit-search-cancel-button {
   /* Place on top of each other */
   grid-area: 1 / 1 / 2 / 2;
 }
+
+@media (max-width: 240px) {
+	/* Kind of following Bootstrap conventions, but using "xxs" as "extra extra small", which is not
+	   a valid Bootstrap breakpoint. Bootstrap's "xs" is still too large for our needs.
+
+	   Note that there's no definition of a .tm-active class, we just need it to identify
+	   the case here.
+	*/
+	.tm-xxs-hide:not(.tm-active) {
+		display: none;
+	}
+}

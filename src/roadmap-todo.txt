@@ -1,8 +1,11 @@
 TODO 1.3
 
-- Make bstabs disappear when they get too small and they would want to go on two lines
-  * Can't use ".d-none .d-sm-block" as described in https://getbootstrap.com/docs/5.0/utilities/display/
-    - It removes them when the window is still way too large
+- Add a top level menu group to pick a different bstab
+  * Needed when the window is too narrow and only the active bstab is visible
+
+- Close top level menu when button loses focus
+  * Resize window, scroll tiles, start typing for search, etc.
+  * It currently only closes if you change BsTab
 
 - Remove vertical scrollbar and replace it with buttons at the top and bottom of the
   popup view

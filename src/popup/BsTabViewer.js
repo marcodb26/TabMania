@@ -25,8 +25,33 @@ _init: function(bsTabLabelHtml) {
 	this._createBsTab(bsTabLabelHtml);
 },
 
+_setParentActiveClass: function(active) {
+	// The class .tm-active is just a stub, needed only to allow us to use .tm-xxs-hide
+	// correctly. .tm-xxs-hide must be used in the <li>, but the Bootstrap .active gets
+	// set in the <button>, and unfortunately there's no way to select a parent with a
+	// CSS selector (":has" is still not standard), so the easiest workaround is to make
+	// sure we propagate the .active information in the parent <li> when it gets set in
+	// the <button>, which is what this logic does.
+	//
+	// Note that an alternative implementation would be to disable the .nav-justified of the
+	// <ul> (the parent of the <li>) when the window becomes very narrow (similar to what
+	// .tm-xxs-hide does), and move the .tm-xxs-hide class to the <button> (and let it monitor
+	// the .active class on the <button> instead of the .tm-active class on the <li>). The
+	// only reason we need to use the .tm-xxs-hide on the <li> is because the .nav-justified
+	// causes the <li> with hidden <button> to still take some space. Without .nav-justified,
+	// the <li> with hidden <button> would not occupy any space, and that would be ok. It's
+	// just slightly less pretty than making the whole <li> disappear while keeping the
+	// .nav-justfied the whole time, because when .nav-justified "disappears" and the non
+	// .active <button> disappears too, we're left with an empty hole between the BsTab
+	// that's still visible and the button bar.
+	if(active) {
+		this._triggerElem.parentElement.classList.add("tm-active");
+	} else {
+		this._triggerElem.parentElement.classList.remove("tm-active");
+	}
+},
+
 _createBsTab: function(bsTabLabelHtml) {
-//	const headingId = this._id + "-heading";
 	const headingId = this._id;
 	const bodyId = this._id + "-body";
 
@@ -34,9 +59,13 @@ _createBsTab: function(bsTabLabelHtml) {
 	// Note that we need the background color (bg-light), because otherwise unselected
 	// tabs have transparent backgrounds, and that doesn't work at all with "fixed-top",
 	// all kind of stuff will show up under them.
+	//
+	// "px-1" for the button is ok because the parent of the <li> uses "nav-justified",
+	// so the actual padding of each tab will be much larger, except when the window
+	// becomes very narrow
 	const headingHtml = `
-		<li class="nav-item bg-light" role="presentation">
-			<button type="button" class="nav-link w-100 tm-cursor-default" id="${headingId}" data-bs-toggle="tab" data-bs-target="#${bodyId}" role="tab" aria-controls="${bodyId}" aria-selected="false">${bsTabLabelHtml}</button>
+		<li class="nav-item bg-light tm-xxs-hide" role="presentation">
+			<button type="button" class="nav-link w-100 px-1 tm-cursor-default" id="${headingId}" data-bs-toggle="tab" data-bs-target="#${bodyId}" role="tab" aria-controls="${bodyId}" aria-selected="false">${bsTabLabelHtml}</button>
 		</li>
 	`;
 
@@ -50,6 +79,9 @@ _createBsTab: function(bsTabLabelHtml) {
 	this._headingElem = this._elementGen(headingHtml);
 	this._triggerElem = this._headingElem.querySelector("#" + headingId);
 	this._rootElem = this._elementGen(bodyHtml);
+
+	this.addBsTabActivationStartListener(this._setParentActiveClass.bind(this, true));
+	this.addBsTabDeactivationStartListener(this._setParentActiveClass.bind(this, false));
 },
 
 // The signature of the callback is function(event).
