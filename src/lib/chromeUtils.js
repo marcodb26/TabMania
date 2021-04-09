@@ -132,7 +132,37 @@ getLeastTabbedWindowId: function(preferredWinId) {
 getEmptyTabsList: function() {
 	const logHead = "ChromeUtils::getEmptyTabsList(): ";
 
-	return chromeUtils.wrap(chrome.tabs.query, logHead, { url: "chrome://newtab/" });
+	return this.wrap(chrome.tabs.query, logHead, { url: "chrome://newtab/" });
+},
+
+discardTab: async function(tab) {
+	const logHead = "ChromeUtils::discardTab(" + tab.id + "): ";
+
+	// Discarding (a.k.a. "suspending") a tab requires special handling if the tab is
+	// currently active. Before you can discard, you must explicitly activate a different
+	// tab in the window (if another tab exists in the window). The problem is that Chrome
+	// has the bad habit of reloading a discarded (but active) tab when the user manually
+	// switches to a different tab, so leaving the tab active defeats the original purpose.
+	if(tab.active) {
+		// Pick the tab before "tab", unless "tab" is the first tab, in which case we
+		// pick the first tab after "tab".
+		let activateIndex = tab.index - 1;
+		if(tab.index == 0) {
+			activateIndex = 1;
+		}
+
+		let neighborTabs = await this.wrap(chrome.tabs.query, logHead, { index: activateIndex, windowId: tab.windowId });
+		this._log(logHead + "tabs.query for index " + activateIndex + " returned: ", neighborTabs);
+
+		// If neighborTabs.length == 0, that means the tab is alone in the window, so we
+		// can't activate any other tab
+		if(neighborTabs.length != 0) {
+			await this.activateTab(neighborTabs[0].id);
+		}
+	}
+
+	this.wrap(chrome.tabs.discard, logHead, tab.id);
+	this._log(logHead + "completed");
 },
 
 // Focus the current window of a tabId. Since tabs can be moved from window to window,
@@ -233,7 +263,7 @@ loadUrl: function(url, tabId, winId) {
 	let promiseA = null;
 	let promiseB = null;
 
-	promiseA = chromeUtils.activateTab(tabId);
+	promiseA = this.activateTab(tabId);
 	// Note that "url" could be undefined here (when we reuse an existing "new tab", recursive
 	// call coming from reuseOrCreateTab()), but that's ok
 	promiseB = this.wrap(chrome.tabs.update, logHead, tabId, { url: url });

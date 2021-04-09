@@ -421,12 +421,7 @@ _actionMoveToLeastTabbedCb: function(ev) {
 },
 
 _actionSuspendCb: function(ev) {
-	const logHead = "TileTabMenuViewer::_actionSuspendCb(" + this._tab.id + "): ";
-	chromeUtils.wrap(chrome.tabs.discard, logHead, this._tab.id).then(
-		function() {
-			this._log(logHead + "completed");
-		}.bind(this)
-	);
+	chromeUtils.discardTab(this._tab);
 },
 
 _actionCloseCb: function(ev) {

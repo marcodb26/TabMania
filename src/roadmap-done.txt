@@ -127,6 +127,11 @@ DONE 1.3
 - Disable the "suspend" tile dropdown menu item when a tab is already suspended or unloaded
   * It will be automatically unsuspended when opened
 
+- When performing the "suspend" action, if the tab being suspended is active, make some other
+  tab active before suspending/discarding the current tab
+  * Chrome has the bad habit of reactivating a suspended tab that's currently active, when
+    the user clicks on another tab in the window(!)
+
 
 DONE 1.2
 
