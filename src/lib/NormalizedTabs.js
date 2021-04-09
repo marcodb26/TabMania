@@ -321,7 +321,7 @@ updateSearchBadges: function(tab) {
 
 	if(tab.discarded) {
 		// Another discrepancy besides "loaded" instead of "complete", it seems
-		// like "discard" is a well known term than "suspend" for this action,
+		// like "discard" is not as well known a term as "suspend" for this action,
 		// even though "suspend" doesn't seem that accurate... anyway let's
 		// go with the flow
 		this._addNormalizedVisualBadge(tab, "suspended", false);
