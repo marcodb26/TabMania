@@ -177,6 +177,16 @@ setAction: function(fn) {
 	this._bodyElem.addEventListener("click", this._actionFn, false);
 },
 
+// Enable/disable the menu item, as controlled by "flag" (optional, default "enable")
+enable: function(flag) {
+	flag = optionalWithDefault(flag, true);
+	if(flag) {
+		this._bodyElem.classList.remove("disabled");
+	} else {
+		this._bodyElem.classList.add("disabled");
+	}
+}
+
 }); // Classes.MenuItemViewer
 
 // CLASS TileTabMenuViewer
@@ -265,6 +275,19 @@ _initMenuItems: function() {
 
 	this._highlightMenuItem = Classes.MenuItemViewer.create(this._tab.highlighted ? "Remove highlight" : "Highlight",
 								this._actionHighlightToggleCb.bind(this));
+	// The next check is commented out because actually you can remove highlight for
+	// an active tab. It only seems to take no action when there's only one highlighted
+	// tab, but if there are multiple highlighted tabs, then taking the action on the
+	// active+highlighted tab will switch the active tab to another tab in the remaining
+	// set of highlighted tabs. So disabling the menu item here would only make sense
+	// if we knew that there's only one highlighted tab in the current window, but that's
+	// a bit expensive to calculate for every tile, if we wanted to have that info we would
+	// need to store it per window, and track it separately from the menu rendering logic.
+//	if(this._tab.active) {
+//		// When a tab is "active", the "highlighted" property is automatically set and
+//		// it can't be unset
+//		this._highlightMenuItem.enable(false);
+//	}
 	this.append(this._highlightMenuItem);
 
 //	this._playMenuItem = Classes.MenuItemViewer.create("Toggle play",
@@ -277,6 +300,14 @@ _initMenuItems: function() {
 
 	this._suspendMenuItem = Classes.MenuItemViewer.create("Suspend (discard from memory)",
 								this._actionSuspendCb.bind(this));
+	if(this._tab.discarded || this._tab.status == "unloaded") {
+		// No point in offering an option to suspend a tab that's already suspended or unloaded.
+		// Note that we hide() this._unpinByBookmarkMenuItem, but we only disable this menu
+		// item instead. The difference is that this._unpinByBookmarkMenuItem is a lot more
+		// "stable" than this menu item, this menu item can change back and forth, so it's
+		// good to let users always be aware it exists, it's just not available right now.
+		this._suspendMenuItem.enable(false);
+	}
 	this.append(this._suspendMenuItem);
 
 	this._closeMenuItem = Classes.MenuItemViewer.create("Close", this._actionCloseCb.bind(this));
@@ -293,6 +324,13 @@ _updateMenuItems: function() {
 		this._unpinByBookmarkMenuItem.show();
 	} else {
 		this._unpinByBookmarkMenuItem.hide();
+	}
+
+	if(this._tab.discarded || this._tab.status == "unloaded") {
+		// No point in offering an option to suspend a tab that's already suspended or unloaded
+		this._suspendMenuItem.enable(false);
+	} else {
+		this._suspendMenuItem.enable();
 	}
 
 	this._muteMenuItem.setText(this._tab.mutedInfo.muted ? "Unmute" : "Mute");

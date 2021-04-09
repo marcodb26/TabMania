@@ -124,6 +124,9 @@ DONE 1.3
 - BUG: top level menu doesn't close when typing into search box
   * Either starting with searchbox closed, or already open
 
+- Disable the "suspend" tile dropdown menu item when a tab is already suspended or unloaded
+  * It will be automatically unsuspended when opened
+
 
 DONE 1.2
 
