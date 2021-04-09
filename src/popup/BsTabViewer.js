@@ -295,7 +295,7 @@ _bsTabActivatedCb: function(ev) {
 	// See _activateSearchCbBoundFn above for details on this._activateSearchCbBoundFn here.
 	window.addEventListener("keydown", this._activateSearchCbBoundFn, true);
 	if(this._searchActive) {
-		this._searchBoxElem.focus();
+		this._searchBoxElemFocus();
 	}
 },
 
@@ -320,6 +320,13 @@ _SearchableBsTabViewer_searchBoxInactiveInner: function() {
 	this._bodyElem.scrollTo(0, this._standardViewScrollTop);
 },
 
+_searchBoxElemFocus: function() {
+	// Besides calling focus(), we also need to simulate a click. The click() is needed
+	// to let Bootstrap dropdowns (e.g., the popup main menu) know that they need to close.
+	this._searchBoxElem.click();
+	this._searchBoxElem.focus();
+},
+
 // DO NOT CALL THIS FUNCTION DURING _init() of this class. Use _SearchableBsTabViewer_searchBoxInactiveInner()
 // instead, to avoid causing subclass overrides to be called before the subclass has
 // even been initialized.
@@ -341,7 +348,7 @@ _activateSearchBox: function(active) {
 		this._searchBoxContainerElem.classList.remove("tm-hide");
 		this._bodyElem.classList.add("tm-fit-after-search");
 		this._searchActive = true;
-		this._searchBoxElem.focus();
+		this._searchBoxElemFocus();
 	} else {
 		this._SearchableBsTabViewer_searchBoxInactiveInner();
 	}
@@ -396,7 +403,7 @@ _activateSearchCb: function(ev) {
 
 		// Make sure _searchBoxElem has focus
 		if(document.activeElement !== this._searchBoxElem) {
-			this._searchBoxElem.focus();
+			this._searchBoxElemFocus();
 		}
 
 		// Manage "Enter"
