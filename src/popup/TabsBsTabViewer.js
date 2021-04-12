@@ -479,33 +479,36 @@ _issue01Workaround: function() {
 _immediateTabUpdate: function(tabId, tab) {
 	const logHead = "TabsBsTabViewer::_immediateTabUpdate(" + tabId + "): ";
 
-	if(tabId in this._tilesByTabId) {
-		// Note that only "Classes.TabsBsTabViewer.CbType.UPDATED" includes "tab".
-		// All other types don't.
-		// Anyway TabTileViewer.update() is protected against "tab == null".
-
-		// First we want to normalize the updated tab (so there are no problems
-		// rendering it in the tile), and replace it in the list, so that search can
-		// find it with the right attributes.
-		// The normalization includes two steps:
-		// - First we extend the tab with pinned bookmark info, if needed
-		// - Then we run the standard NormalizedTabs logic
-		this._processPinnedBookmarks([ tab ], false);
-		this._normTabs.updateTab(tab);
-		// Then update the shortcuts info, if needed
-		settingsStore.getShortcutsManager().updateTabs(this._normTabs.getTabs());
-		// Then we update the tile with the normalized info in place.
-		// See also _setTabProp() for other considerations about calling
-		// TabTileViewer.update().
-		let tile = this._tilesByTabId[tabId];
-		if(tab.wantsAttention) {
-			// Push tab to the top of the tiles list
-			this._containerViewer.moveToTop(tile);
-		}
-		tile.update(tab);
-	} else {
+	if(!(tabId in this._tilesByTabId)) {
 		this._log(logHead + "skipping immediate processing, no tile for this tab");
+		return;
 	}
+
+	this.blink();
+
+	// Note that only "Classes.TabsBsTabViewer.CbType.UPDATED" includes "tab".
+	// All other types don't.
+	// Anyway TabTileViewer.update() is protected against "tab == null".
+
+	// First we want to normalize the updated tab (so there are no problems
+	// rendering it in the tile), and replace it in the list, so that search can
+	// find it with the right attributes.
+	// The normalization includes two steps:
+	// - First we extend the tab with pinned bookmark info, if needed
+	// - Then we run the standard NormalizedTabs logic
+	this._processPinnedBookmarks([ tab ], false);
+	this._normTabs.updateTab(tab);
+	// Then update the shortcuts info, if needed
+	settingsStore.getShortcutsManager().updateTabs(this._normTabs.getTabs());
+	// Then we update the tile with the normalized info in place.
+	// See also _setTabProp() for other considerations about calling
+	// TabTileViewer.update().
+	let tile = this._tilesByTabId[tabId];
+	if(tab.wantsAttention) {
+		// Push tab to the top of the tiles list
+		this._containerViewer.moveToTop(tile);
+	}
+	tile.update(tab);
 },
 
 // This function is responsible for resetting the "wantsAttention" rendering, and

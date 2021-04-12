@@ -144,6 +144,12 @@ DONE 1.3
 		no effect at all
 	- BUG: lowercase "g" gets cut in tile title
 
+- Pulse favIcon for tiles in "wantsAttention" state
+
+- Blink "Home" tab when updating a single tab (not only for full re-query/re-render)
+  * Needed to inform users about a "wantsAttention" tile when the popup is scrolled
+    away from top
+
 
 DONE 1.2
 

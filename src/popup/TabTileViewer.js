@@ -451,6 +451,9 @@ _renderBodyInner: function() {
 		if(specialIcon == "") {
 			favIconParentClasses.push("pe-2");
 		}
+		if(this._renderState.wantsAttention) {
+			favIconClasses.push("tm-favicon-pulse");
+		}
 	}
 
 	// See https://getbootstrap.com/docs/5.0/components/card/
@@ -701,6 +704,8 @@ _createRenderState: function(tab, tabGroup) {
 	// By tracking it in renderState, we can make sure the tile will try to re-render
 	// when the network state changes.
 	renderState.networkOnline = window.navigator.onLine;
+
+	renderState.wantsAttention = optionalWithDefault(tab.wantsAttention, false);
 
 	renderState.incognito = tab.incognito;
 

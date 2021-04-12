@@ -231,11 +231,29 @@
 	border-radius: 50%;
 	color:#397CE9;
 	background-color: transparent;
-	animation: throbber 0.9s linear infinite;
+	animation: favicon-throbber 0.9s linear infinite;
 }
 
-@keyframes throbber {
+@keyframes favicon-throbber {
 	100% { transform: rotate(360deg); }
+}
+
+.tm-favicon-pulse {
+	animation: favicon-pulse 1s linear infinite;
+}
+
+@keyframes favicon-pulse {
+	0% {
+		transform: scale(1, 1);
+	}
+
+	50% {
+		transform: scale(0.7, 0.7);
+	}
+
+	100% {
+		transform: scale(1, 1);
+	}
 }
 
 .tm-hide {
