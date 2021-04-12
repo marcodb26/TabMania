@@ -350,27 +350,12 @@ updateSearchBadges: function(tab) {
 		this._addNormalizedVisualBadge(tab, "muted", false);
 	}
 
-	if(tab.status != null) {
-		switch(tab.status) {
-			// "unloaded" and "complete" are hidden search badges, all other
-			// states are visible badges
-			case "unloaded":
-				this._addNormalizedVisualBadge(tab, tab.status, false);
-				break;
-
-			case "complete":
-				// We're making an exception here, we're translating "complete"
-				// to "loaded", because the symmetry unloaded/loaded seems to
-				// make more sense from a search perspective
-				this._addNormalizedVisualBadge(tab, "loaded", false);
-				break;
-
-			default:
-				// Right now this only means the "loading" status
-				this._addNormalizedVisualBadge(tab, tab.status);
-				break;
-		}
-	}
+	// All statuses are only hidden search badges, and visual clues are provided in the
+	// tile rendering logic:
+	// - "unloaded": tile in black&white
+	// - "loaded": no special clue, standard rendering
+	// - "loading": the favIcon is shrunk and surrounded by the throbber/spinner
+	this._addNormalizedVisualBadge(tab, tab.status, false);
 
 	if(tmUtils.isTabPinned(tab)) {
 		this._addNormalizedVisualBadge(tab, "pinned", false);

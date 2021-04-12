@@ -344,7 +344,8 @@ _renderBodyInner: function() {
 	let titleExtraClasses = [];
 	let textMuted = "text-muted";
 	const favIconContainerId = this._id + "-favicon";
-	let favIconClasses = [ "tm-favicon-16" ];
+	let favIconClasses = [ "align-text-bottom" ];
+	let favIconParentClasses = [];
 
 	switch(this._renderState.audio) {
 		case "audible-muted":
@@ -432,20 +433,48 @@ _renderBodyInner: function() {
 			break;
 	}
 
+	let throbberHtml = "";
+	if(this._renderState.status == "loading") {
+		// Note that "tm-favicon-16-shrunk" is not just a smaller scale of "tm-favicon-16",
+		// it uses completely different CSS to render the smaller icon. It uses position absolute
+		// to be well centered with the throbber. Unfortunately I could only figure out proper
+		// centering of icon and throbber without <img> in position absolute when favicon <span>
+		// was not using "align-text-bottom". With "align-text-bottom" they seem to be a bit off.
+		// On the other hand, they still seem to be a bit off with the absolute positioning, and
+		// that only goes away as you zoom in... maybe some challenges with managing the quantization
+		// needed to stay at pixel integers instead of pixel fractions? Who knows...
+		favIconClasses.push("tm-favicon-16-shrunk");
+		favIconParentClasses.push("tm-favicon-shrunk-parent");
+		throbberHtml = `<span class="tm-favicon-16-throbber"></span>`;
+	} else {
+		favIconClasses.push("tm-favicon-16");
+		if(specialIcon == "") {
+			favIconParentClasses.push("pe-2");
+		}
+	}
+
 	// See https://getbootstrap.com/docs/5.0/components/card/
-	// Do we need the attribute "width='16px'" in the <img> below, or are the min-width
-	// and max-width settings of tm-favicon-16 enough?
+	//
+	// "position: relative;" is needed to allow the throbber and the favicon to be centered
+	// on top of each other.
+	//
+	// DO NOT split on multiple lines the "</span>${specialIcon}<span [...]" sequence below.
+	// If you split them on multiple lines, for some reason Chrome decides to introduce an
+	// extra space, between the two <span>, but only when the first <span> is not empty (that
+	// is, when the first <span> is not using position "absolute" to render the icon and
+	// throbber). This creates a different position for the tab title in "loading" status.
+	// We need to make sure the position of the title remains the same in all tab statuses.
 	const bodyHtml = `
 		<p class="card-title text-truncate tm-tile-title mb-0">
-			<span id="${favIconContainerId}" class="pe-1"><!-- The favicon goes here --></span>
-			${specialIcon}
-			<span class="align-middle ${textMuted} ${titleExtraClasses.join(" ")}">${this._safeText(this._renderState.title)}</span>
+			<span id="${favIconContainerId}" class="${favIconParentClasses.join(" ")}" style="position: relative;">
+				${throbberHtml}
+				<!-- The favicon goes here -->
+			</span>${specialIcon}<span class="${textMuted} ${titleExtraClasses.join(" ")}">${this._safeText(this._renderState.title)}</span>
 		</p>
-		<div class="d-flex">
+		<div class="d-flex lh-1">
 			<p class="flex-grow-1 align-self-center text-truncate tm-tile-url">
-				<small class="${textMuted}">${this._safeText(urlLine)}</small>
+				<small class="lh-base ${textMuted}">${this._safeText(urlLine)}</small>
 			</p>
-			<p> </p>
 			<p class="align-self-center card-text small" style="text-align: right;">
 				${visibleBadgesHtml.join(" ")}
 			</p>
@@ -462,7 +491,7 @@ _renderBodyInner: function() {
 		extraClasses: favIconClasses,
 	};
 	let favIconViewer = Classes.ImageViewer.create(favIconOptions);
-	favIconViewer.attachToElement(favIconContainerElem);
+	favIconViewer.appendToElement(favIconContainerElem);
 
 	if(this._renderState.showCloseButton) {
 		this._closeElem.classList.remove("tm-hide");

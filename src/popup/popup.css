@@ -167,7 +167,6 @@
 .tm-tile-title {
 	/* Bootstrap "small" is still too big for our tiles */
 	font-size: .9em;
-	line-height: 1;
 	/* When an icon is missing, the vertical size of the title can get smaller than 16px... */
 	min-height: 16px;
 }
@@ -188,18 +187,63 @@
 	height: auto; 
 }
 
+/* Make the icon black&white */
+/* See https://developer.mozilla.org/en-US/docs/Web/CSS/filter */
+.tm-favicon-bw {
+	filter: grayscale(100%);
+}
+
+.tm-favicon-shrunk-parent {
+	/* When the favIcon is standard size, the parent <span> uses "pe-2", which
+	   pads on the right of the icon by 0.5rem. When we use absolute positioning
+	   for the icon (shrunk icon), we need to replicate the same exact amount of
+	   spacing to make sure the title doesn't move around when transitioning from
+	   loading to loaded and viceversa. So we pad by the same 0.5rem, and we add
+	   the extra space that would be taken by the icon (16x16 pixels). Left or right
+	   padding is irrelevant, since the <span> is "empty" from a standard positioning
+	   perspective (it only contains absolutely positioned elements).
+	*/
+	padding-left: calc(0.5rem + 16px);
+}
+
+.tm-favicon-16-shrunk {
+	width: 10px;
+	height: 10px;
+	position:absolute;
+	top: 6px;
+	left: 3px;
+	z-index: 1; /* Icon below throbber */
+}
+
+/* Throbber (spinner) inspired by https://codepen.io/louisbullock/pen/pJmGa/
+   See also https://dribbble.com/shots/703226-Google-Chrome-Throbber-CSS
+*/
+.tm-favicon-16-throbber {
+	display: block;
+	width: 16px;
+	height: 16px;
+	position:absolute;
+	top: 3px;
+	z-index: 2; /* Throbber above icon */
+	border: 2px solid;
+	border-top-color: transparent;
+	border-left-color: transparent;
+	border-radius: 50%;
+	color:#397CE9;
+	background-color: transparent;
+	animation: throbber 0.9s linear infinite;
+}
+
+@keyframes throbber {
+	100% { transform: rotate(360deg); }
+}
+
 .tm-hide {
 	display: none;
 }
 
 .tm-shaded {
 	box-shadow: 0 0 2px black;
-}
-
-/* Make the icon black&white */
-/* See https://developer.mozilla.org/en-US/docs/Web/CSS/filter */
-.tm-favicon-bw {
-	filter: grayscale(100%);
 }
 
 .tm-min-empty-container {
@@ -290,10 +334,10 @@
 }
 
 /* To be used in conjunction with Bootstrap's "badge" class.
-   Bootstrap's "badge" class is "vertical-align: baseline;", we prefer "middle".
+   Bootstrap's "badge" class is "vertical-align: baseline;", we prefer "text-top".
 */
 .tm-text-badge {
-	vertical-align: middle;
+	vertical-align: text-top;
 }
 
 .tm-number-badge {
