@@ -727,9 +727,7 @@ updateTab: function(newTab, tabIdx) {
 		this._log(logHead + "found tab in loading status", newTab);
 		this._tabsLoading[newTab.id] = newTab;
 	} else {
-		if(newTab.id in this._tabsLoading) {
-			delete this._tabsLoading[newTab.id];
-		}
+		this.removeTabsLoadingTab(newTab.id);
 	}
 
 	tabIdx = optionalWithDefault(tabIdx, this.getTabIndexByTabId(newTab.id));
@@ -747,6 +745,12 @@ updateTab: function(newTab, tabIdx) {
 getTabsLoading: function() {
 	return this._tabsLoading;
 },
+
+removeTabsLoadingTab: function(tabId) {
+	if(tabId in this._tabsLoading) {
+		delete this._tabsLoading[tabId];
+	}
+}
 
 }); // Classes.NormalizedTabs
 

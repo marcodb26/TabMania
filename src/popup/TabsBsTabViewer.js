@@ -569,7 +569,11 @@ _tabUpdatedCb: function(cbType, tabId, activeChangeRemoveInfo, tab) {
 			// full re-render immediately.
 			//
 			// No reason to update the _normTabs and the shortcutsManager if we don't
-			// have any delay before a full re-query/re-render
+			// have any delay before a full re-query/re-render. However, we want to at
+			// least clear the "_loadingTabs" in "_normTabs" to avoid unnecessary errors
+			// ("chrome.runtime.lastError = No tab with id: [xyz].") when the _issue01Workaround()
+			// runs.
+			this._normTabs.removeTabsLoadingTab(tabId);
 			tabsTitleMonitor.remove(tabId);
 			this._queryAndRenderJob.run();
 			break;
