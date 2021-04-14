@@ -135,7 +135,7 @@ DONE 1.3
 - Added a throbber around the favIcon of a tile to indicate the tab is in "loading" status
   * Very similar visual to that used by Chrome in the tab itself
 
-- Cleaned up sizing and vertical-alignment of tiles text
+- Cleaned up sizing and vertical-align of tiles text
   * These changes fixed a couple of known bugs:
     - BUG: the ellipsis of .text-truncate are not vertically align with the title of a tile
 	  now that the title of the tile uses Bootstrap's .align-middle (vertical-align: middle;)
@@ -143,6 +143,8 @@ DONE 1.3
 	  * .text-truncate is in the parent element, but setting .align-middle there too has
 		no effect at all
 	- BUG: lowercase "g" gets cut in tile title
+  * Also fixed vertical-align and spacing of bookmark/rcItem/hItem icons to stay aligned
+    with the new changes
 
 - Pulse favIcon for tiles in "wantsAttention" state
 

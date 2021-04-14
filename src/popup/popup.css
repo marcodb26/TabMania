@@ -106,7 +106,9 @@
 
 .tm-fa-bookmark {
 	width: 1em;
-    height: 1em;
+	height: 1em;
+	vertical-align: -.18em;
+	margin-right: 0.1em;
 	/* Bookmarks always show up in black and white, but we want this icon to
 	   stand out. Choosing a dark color to avoid it "standing out too much".
 	*/
@@ -115,7 +117,9 @@
 
 .tm-fa-history {
 	width: 1em;
-    height: 1em;
+	height: 1em;
+	vertical-align: -.18em;
+	margin-right: 0.1em;
 	/* History items always show up in black and white, but we want this
 	   icon to stand out. Choosing a dark color to avoid it "standing out too much".
 	   History items and recently closed tabs use the same icon, but history items
@@ -127,7 +131,9 @@
 
 .tm-fa-recently-closed {
 	width: 1em;
-    height: 1em;
+	height: 1em;
+	vertical-align: -.18em;
+	margin-right: 0.1em;
 	/* Recently closed tabs always show up in black and white, but we want this
 	   icon to stand out. Choosing a dark color to avoid it "standing out too much".
 	   For now let's use the same color as .tm-fa.bookmark, but later we should
@@ -138,15 +144,15 @@
 
 .tm-fa-thumbtack-tile {
 	width: 1em;
-    height: 1em;
-    vertical-align: -.3em;
+	height: 1em;
+	vertical-align: -.3em;
 }
 
 .tm-fa-thumbtack-group {
 	/* Keep it the same size of .tm-fa-thumbtack-tile, which is 1em in the context of a 0.875em font size */
 	width: 0.875em;
-    height: 0.875em;
-    vertical-align: -.1em;
+	height: 0.875em;
+	vertical-align: -.1em;
 }
 
 .tm-tile-small {
