@@ -173,7 +173,11 @@ DONE 1.3
   * Otherwise users could select the text in the bstabs heading by starting the selection mouse
     action in the popup menu
 
-- Fixed double horizontal scroll bars when undocked popup is very narrow
+- Fix double horizontal scroll bars when undocked popup is very narrow
+  * Tried "overflow-x: hidden" on the top heading <div class="d-flex...>, but that
+    causes the main menu to disappear at the height of the heading.
+	- Apparently "overflow-x" also sets "overflow-y"...
+  * The only working option seems to be to set "overflow-x" on the <body> tag :-|
 
 
 DONE 1.2

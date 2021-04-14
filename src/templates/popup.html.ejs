@@ -70,11 +70,14 @@ Note the use of the closing tag with the leading "-", indicating "trim-mode ('ne
 		<link rel="icon" href="<%- basePath + "images/icon-16.png" %>" type="image/png">
 	</head>
 
-	<%_ %><%# The "height" is needed for the docked popup, and will be ignored by the undocked popup.
-	   We're now setting width/height for docked in the popupDocker initialization.
-	<body style="width: 400px; height: 542px">
+	<%_ %><%# We need "overflow-x: hidden" at the body level to make the horizontal scrollbar
+			# of the BsTabs heading are to stay hidden when the popup is too narrow.
+			# Putting "overflow-x: hidden" on any other <body> child in the branch towards
+			# the haeding area causes "overflow-y" to get set as well, and that in turn
+			# causes the main menu to be clipped at the height of the heading area, instead
+			# of expanding over the tiles area.
 	-%>
-	<body>
+	<body style="overflow-x: hidden">
 
 		<%_ %><%# Note that the maximum width of an extension's popup is 800px, but we just need half of that.
 		  # See https://stackoverflow.com/questions/8983165/how-can-i-expand-the-popup-window-of-my-chrome-extension#:~:text=Chrome%20extension%20popups%20can%20have,and%20maximum%20width%20of%20800px.
