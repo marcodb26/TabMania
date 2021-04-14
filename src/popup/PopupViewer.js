@@ -30,11 +30,16 @@ _renderTabsContainer: function() {
 	const menuId = this._id + "-menu";
 	const bodyId = this._id + "-body";
 
+	// Using "overflow-hidden" in the heading becauseif the popup is very narrow and the
+	// main menu starts disappearing, we don't want an extra horizontal scrollbar to
+	// show up at the bottom of the window: there could then be two scrollbars there,
+	// one for the heading, and one for the tiles container...
+	//
 	// The <div id="${menuId}"> should always be last after the button bar, that's why
 	// we don't want it inside the button bar.
 	// The right margin for the button bar is not needed, the menu button takes care of that.
 	const headingHtml = `
-	<div class="d-flex tm-cursor-default tm-select-none">
+	<div class="d-flex tm-cursor-default tm-select-none overflow-hidden">
 		<div class="flex-grow-1">
 			<!-- https://getbootstrap.com/docs/5.0/components/navs-tabs/ -->
 			<ul class="nav nav-tabs nav-justified" id="${headingId}" role="tablist">

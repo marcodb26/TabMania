@@ -451,8 +451,6 @@ PUNTED TO NEXT RELEASE
 - Filter out of the the back/fwd history the tab about the undocked popup
   * This should probably be a configurable option
 
-- Fix double scroll bars when undocked popup has too little width (horizontally only)
-
 - Change the icon of the extension popup to red in dev mode when there's a this._err()
   or a console.error()
   * And send all errors also to the background page! (otherwise they get lost when the
