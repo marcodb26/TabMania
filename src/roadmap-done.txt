@@ -190,6 +190,9 @@ DONE 1.3
 	- And fixed the "options" pattern everywhere it's used to force a shallow copy of
 	  the "options" in input
 
+- Introduced a bug while refactoring the "options" pattern: the "options" parameter needs to
+  be optional
+
 
 DONE 1.2
 
