@@ -80,12 +80,12 @@ _onUpdatedCb: function(ev) {
 	this._eventManager.notifyListeners(Classes.EventManager.Events.UPDATED, { key: key });
 },
 
-getActiveBsTab: function() {
+getActiveBsTabId: function() {
 	return this._bootstrapTabs.get("activeTabId");
 },
 
-setActiveBsTab: function(bsTabName) {
-	return this._bootstrapTabs.set("activeTabId", bsTabName);
+setActiveBsTabId: function(bsTabId) {
+	return this._bootstrapTabs.set("activeTabId", bsTabId);
 },
 
 // Same name as popupDocker.isPopupDocked(), but this function returns the stored value,

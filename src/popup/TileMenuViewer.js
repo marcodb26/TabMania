@@ -94,6 +94,10 @@ _formatDate: function(dateData) {
 				dateObj.format("ddd, MMM D YYYY [at] h:mmA") + ")";
 },
 
+appendDivider: function() {
+	this.append(Classes.HtmlViewer.create(`<li><hr class="dropdown-divider"></li>`));
+},
+
 // hide() and show() are already taken to implement a different function in Viewer, so let's
 // use other verbs
 close: function() {
@@ -128,6 +132,7 @@ _init: function(text, actionFn) {
 	Classes.Viewer._init.call(this);
 
 	this.debug();
+
 	this._renderMenuItem(optionalWithDefault(text, ""));
 
 	this._actionFn = null;
@@ -140,7 +145,7 @@ _init: function(text, actionFn) {
 _renderMenuItem: function(text) {
 	const logHead = "MenuItemViewer::_renderMenuItem(): ";
 
-	const bodyId = this._id + "-item";
+	const bodyId = this._id;
 
 	// Bootstrap says the menu item should look like:
 	// <li><a class="dropdown-item" href="#">Action</a></li>
@@ -154,8 +159,11 @@ _renderMenuItem: function(text) {
 	// the menu to close, but only because we re-render, when you hover the menu
 	// is actually still open.
 	// Fixed the problem of menu staying open in MenuViewer._MenuViewer_render().
+	//
+	// "position-relative" is needed to support the checkmark of .tm-dropdown-item.tm-selected::before,
+	// which uses "position: absolute".
 	const rootHtml = `
-		<li id="${this._id}">
+		<li class="position-relative">
 			<div id="${bodyId}" class="dropdown-item tm-dropdown-item"></div>
 		</li>
 	`;
@@ -175,6 +183,17 @@ setAction: function(fn) {
 	}
 	this._actionFn = fn;
 	this._bodyElem.addEventListener("click", this._actionFn, false);
+},
+
+selected: function(flag) {
+	flag = optionalWithDefault(flag, true);
+	if(flag) {
+		this._bodyElem.classList.add("tm-selected");
+		this._bodyElem.setAttribute("aria-current", "true");
+	} else {
+		this._bodyElem.classList.remove("tm-selected");
+		this._bodyElem.removeAttribute("aria-current");
+	}
 },
 
 // Enable/disable the menu item, as controlled by "flag" (optional, default "enable")

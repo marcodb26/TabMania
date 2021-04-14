@@ -404,6 +404,23 @@
 	 */
 	white-space: normal;
 	font-size: 0.75em;
+	padding-left: 1.75em;
+}
+
+/* See "To-do list" example at https://developer.mozilla.org/en-US/docs/Web/CSS/::before */
+.tm-dropdown-item.tm-selected::before {
+	content: "";
+
+	position: absolute;
+	top: 0.6em;
+	left: 0.8em;
+
+	border-style: solid;
+	border-width: 0 0.15em 0.15em 0;
+	height: 0.9em;
+	width: 0.4em;
+
+	transform: rotate(35deg);
 }
 
 .tm-dropdown-menu {

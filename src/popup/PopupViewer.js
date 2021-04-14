@@ -34,7 +34,7 @@ _renderTabsContainer: function() {
 	// we don't want it inside the button bar.
 	// The right margin for the button bar is not needed, the menu button takes care of that.
 	const headingHtml = `
-	<div class="d-flex tm-cursor-default">
+	<div class="d-flex tm-cursor-default tm-select-none">
 		<div class="flex-grow-1">
 			<!-- https://getbootstrap.com/docs/5.0/components/navs-tabs/ -->
 			<ul class="nav nav-tabs nav-justified" id="${headingId}" role="tablist">
@@ -60,7 +60,11 @@ _renderTabsContainer: function() {
 	this._bodyElem = this.getElementById(bodyId);
 
 	this._menuElem = this.getElementById(menuId);
-	this._menuViewer = Classes.PopupMenuViewer.create();
+	this._menuViewer = null;
+},
+
+_attachMenu: function(menuViewer) {
+	this._menuViewer = menuViewer;
 	this._menuViewer.attachToElement(this._menuElem);
 },
 
@@ -111,27 +115,30 @@ _init: function(parentElem) {
 
 	this._initActiveTabId();
 
+	this._attachMenu(Classes.PopupMenuViewer.create(this));
+
 	// "tabsList" is a notification, we don't need to respond to it (last argument set to "false")
 	popupMsgServer.addCmd("tabsList", this._tabsListNotificationCb.bind(this), false);
 },
 
 _initActiveTabId: function(results) {
 	const logHead = "PopupViewer::_initActiveTabId(): ";
-	let activeTabId = localStore.getActiveBsTab()
 
-	this._activeBsTabId = this._id + "-home";
+	let activeBsTabId = localStore.getActiveBsTabId();
 
-	if(activeTabId != null) {
-		this._log(logHead + "initializing active Bootstrap tabId to stored " + activeTabId);
-		if(activeTabId in this._bsTabViewersDict) {
-			this._activeBsTabId = activeTabId;
+	if(activeBsTabId != null) {
+		this._log(logHead + "initializing active Bootstrap tabId to stored value:", activeBsTabId);
+		if(this.activateBsTabById(activeBsTabId)) {
+			return;
 		} else {
-			this._log(logHead + "Bootstrap tabId not found, initializing to default: " + this._activeBsTabId);
+			this._log(logHead + "stored Bootstrap tabId not found:", activeBsTabId);
+			// Proceed below as if "activeBsTabId == null"
 		}
 	}
 
-	this._log(logHead + "_activeBsTabId = " + this._activeBsTabId);
-	this.getBsTabViewerById(this._activeBsTabId).activate();
+	activeBsTabId = this.getBsTabId("home");
+	this._log(logHead + "initializing Bootstrap tabId to default:", activeBsTabId);
+	this.activateBsTabById(activeBsTabId)
 },
 
 _bsTabActivatedCb: function(ev) {
@@ -139,12 +146,16 @@ _bsTabActivatedCb: function(ev) {
 	this._log(logHead + "tab activated", ev);
 
 	this._activeBsTabId = ev.target.id;
-	localStore.setActiveBsTab(ev.target.id);
+	localStore.setActiveBsTabId(ev.target.id);
 },
 
-_createBsTab: function(suffix, htmlLabel, bsTabViewerSubclass) {
+getBsTabId: function(bsTabLabel) {
+	return this._id + "-" + bsTabLabel;
+},
+
+_createBsTab: function(bsTabLabel, htmlLabel, bsTabViewerSubclass) {
 	bsTabViewerSubclass = optionalWithDefault(bsTabViewerSubclass, Classes.BsTabViewer);
-	const bsTabId = this._id + "-" + suffix;
+	const bsTabId = this.getBsTabId(bsTabLabel);
 	
 	this._bsTabViewersDict[bsTabId] = bsTabViewerSubclass.createAs(bsTabId, htmlLabel);
 
@@ -174,6 +185,22 @@ attachToElement: function() {
 	// we've been attached to the window.document DOM)
 },
 
+activateBsTabById: function(bsTabId) {
+	if(!(bsTabId in this._bsTabViewersDict)) {
+		const logHead = "PopupViewer::activateBsTabById(" + bsTabId + "): ";
+		this._log(logHead + "Bootstrap tabId not found");
+		return false;
+	}
+
+	this._activeBsTabId = bsTabId;
+	this.getBsTabViewerById(this._activeBsTabId).activate();
+	return true;
+},
+
+activateBsTab: function(bsTabLabel) {
+	return this.activateBsTabById(this.getBsTabId(bsTabLabel));
+},
+
 getBsTabViewerById: function(bsTabId) {
 	return this._bsTabViewersDict[bsTabId];
 },
@@ -182,12 +209,8 @@ getActiveBsTabId: function() {
 	return this._activeBsTabId;
 },
 
-getHomeBsTabId: function() {
-	return this._id + "-home";
-},
-
 getHomeBsTab: function() {
-	let homeBsTabId = this.getHomeBsTabId();
+	let homeBsTabId = this.getBsTabId("home");
 	return this.getBsTabViewerById(homeBsTabId);
 },
 
@@ -195,7 +218,7 @@ getHomeBsTab: function() {
 // in search mode. If the settings tab is visible, this function returns false
 // regardless of the SearchableBsTabViewer.isSearchActive() response.
 isSearchActive: function() {
-	let homeBsTabId = this.getHomeBsTabId();
+	let homeBsTabId = this.getBsTabId("home");
 	if(this.getHomeBsTab().isSearchActive() && this.getActiveBsTabId() == homeBsTabId) {
 		return true;
 	}

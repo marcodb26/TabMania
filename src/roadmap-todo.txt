@@ -1,7 +1,9 @@
 TODO 1.3
 
-- Add a top level menu group to pick a different bstab
-  * Needed when the window is too narrow and only the active bstab is visible
+- Adjust .tm-dropdown-menu in MenuViewer to be used only by tile menu viewer, not
+  by PopupMenuViewer
+  * Also fix .tm-dropdown-item to avoid removing the "nowrap" all the time, in some
+    cases we do want "nowrap"
 
 - Remove vertical scrollbar and replace it with buttons at the top and bottom of the
   popup view
