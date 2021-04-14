@@ -256,12 +256,12 @@ Classes.ButtonViewer = Classes.HtmlViewer.subclass({
 	_options: null,
 
 _init: function(options) {
-	options = optionalWithDefault(options, {});
-	options.labelHtml = optionalWithDefault(options.labelHtml, "");
-	options.fullWidth = optionalWithDefault(options.fullWidth, false);
-	options.btnExtraClasses = optionalWithDefault(options.btnExtraClasses, []);
-
-	this._options = options;
+	// Don't store "options" as-is, create a copy (and while you're doing it, initialize all
+	// the fields you need)
+	this._options = {};
+	this._options.labelHtml = optionalWithDefault(options.labelHtml, "");
+	this._options.fullWidth = optionalWithDefault(options.fullWidth, false);
+	this._options.btnExtraClasses = optionalWithDefault(options.btnExtraClasses, []);
 
 	const logHead = "ButtonViewer::_init(): ";
 
@@ -318,18 +318,18 @@ Classes.ImageViewer = Classes.HtmlViewer.subclass({
 	_options: null,
 
 _init: function(options) {
-	options = optionalWithDefault(options, {});
-	options.src = optionalWithDefault(options.src, "");
-	options.srcBackup = optionalWithDefault(options.srcBackup, "");
-	options.extraClasses = optionalWithDefault(options.extraClasses, []);
-
-	this._options = options;
+	// Don't store "options" as-is, create a copy (and while you're doing it, initialize all
+	// the fields you need)
+	this._options = {};
+	this._options.src = optionalWithDefault(options.src, "");
+	this._options.srcBackup = optionalWithDefault(options.srcBackup, "");
+	this._options.extraClasses = optionalWithDefault(options.extraClasses, []);
 
 	// If the network is known to be offline, let's not even bother using options.src,
 	// and just use options.srcBackup instead, without waiting for a network error to
 	// make the switch.
 	// See https://developer.mozilla.org/en-US/docs/Web/API/NavigatorOnLine/onLine
-	let imgSrc = window.navigator.onLine ? options.src : options.srcBackup;
+	let imgSrc = window.navigator.onLine ? this._options.src : this._options.srcBackup;
 
 	let imgHtml = `
 	<img id="${this._id}" class="${this._options.extraClasses.join(" ")}" src="${imgSrc}">

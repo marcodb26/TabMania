@@ -50,7 +50,11 @@ _setDockToggleText: function() {
 
 _initBsTabMenuItem: function(menuText, bsTabLabel) {
 	let bsTabId = this._popupViewer.getBsTabId(bsTabLabel);
-	let menuItem = Classes.MenuItemViewer.create(menuText, this._actionActivateBsTab.bind(this, bsTabId));
+	let options = {
+		labelText: menuText,
+		actionFn: this._actionActivateBsTab.bind(this, bsTabId),
+	};
+	let menuItem = Classes.MenuItemViewer.create(options);
 	this.append(menuItem);
 	this._bsTabMenuItems[bsTabId] = menuItem;
 },
@@ -84,7 +88,7 @@ _initMenuItems: function() {
 		this.appendDivider();
 	}
 
-	this._dockToggleMenuItem = Classes.MenuItemViewer.create("", this._actionDockToggleCb.bind(this));
+	this._dockToggleMenuItem = Classes.MenuItemViewer.create({ actionFn: this._actionDockToggleCb.bind(this) });
 	this._setDockToggleText();
 	this.append(this._dockToggleMenuItem);
 },

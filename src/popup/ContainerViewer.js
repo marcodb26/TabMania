@@ -108,15 +108,13 @@ Classes.CollapsibleContainerViewer = Classes.ContainerViewer.subclass({
 //   and some margins (default "true")
 _init: function(options) {
 //	this.debug();
-//	const logHead = "CollapsibleContainerViewer::_init(): ";
-//	this._log(logHead, options);
-	options = optionalWithDefault(options, {});
-	options.startExpanded = optionalWithDefault(options.startExpanded, false);
-	options.htmlWhenEmpty = optionalWithDefault(options.htmlWhenEmpty, "");
-	options.border = optionalWithDefault(options.border, true);
 
-	this._options = options;
-//	this._log(logHead, this._options);
+	// Don't store "options" as-is, create a copy (and while you're doing it, initialize all
+	// the fields you need)
+	this._options = {};
+	this._options.startExpanded = optionalWithDefault(options.startExpanded, false);
+	this._options.htmlWhenEmpty = optionalWithDefault(options.htmlWhenEmpty, "");
+	this._options.border = optionalWithDefault(options.border, true);
 
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.ContainerViewer._init.call(this, this._options.htmlWhenEmpty);

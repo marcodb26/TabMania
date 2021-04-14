@@ -19,12 +19,13 @@ Classes.MenuViewer = Classes.Viewer.subclass({
 // - "btnExtraClasses", you can use it for example for the CSS class to use for the button coloring,
 //   and it default to "btn-secondary"
 _init: function(options) {
-	options = optionalWithDefault(options, {});
-	options.label = optionalWithDefault(options.label, "");
-	options.showToggle = optionalWithDefault(options.showToggle, true);
-	options.btnExtraClasses = optionalWithDefault(options.btnExtraClasses, [ "btn-secondary" ]);
-
-	this._options = options;
+	// Don't store "options" as-is, create a copy (and while you're doing it, initialize all
+	// the fields you need)
+	this._options = {};
+	this._options.label = optionalWithDefault(options.label, "");
+	this._options.showToggle = optionalWithDefault(options.showToggle, true);
+	this._options.btnExtraClasses = optionalWithDefault(options.btnExtraClasses, [ "btn-secondary" ]);
+	this._options.menuExtraClasses = optionalWithDefault(options.menuExtraClasses, []);
 
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.Viewer._init.call(this);
@@ -35,17 +36,19 @@ _MenuViewer_render: function() {
 	const menuId = this._id + "-menu";
 	const menuItemsContainerId = this._id + "-menuitems";
 
-	let dropdownExtraClasses = [];
+	let dropdownClasses = [ "btn" ];
+	let menuClasses = [ "dropdown-menu" ];
+
 	if(this._options.showToggle) {
 		if(this._options.label == "") {
-			dropdownExtraClasses.push("tm-dropdown-toggle");
+			dropdownClasses.push("tm-dropdown-toggle");
 		}
-		dropdownExtraClasses.push("dropdown-toggle");
+		dropdownClasses.push("dropdown-toggle");
 	}
-	if(this._options.btnExtraClasses.length > 0) {
-		// push() can take multiple arguments
-		dropdownExtraClasses.push(...this._options.btnExtraClasses);
-	}
+
+	// push() can take multiple arguments
+	dropdownClasses.push(...this._options.btnExtraClasses);
+	menuClasses.push(...this._options.menuExtraClasses);
 
 	// See https://stackoverflow.com/questions/43233421/changing-dropdown-icon-on-bootstrap-4
 	// if you want to replace the default caret symbol of the dropdown toggle with some other
@@ -59,11 +62,11 @@ _MenuViewer_render: function() {
 	// it's not hurting other uses of the menuButton, we'll use it everywhere...
 	let menuButtonHtml = `
 	<div class="dropdown h-100">
-		<a class="btn ${dropdownExtraClasses.join(" ")}" role="button"
+		<a class="${dropdownClasses.join(" ")}" role="button"
 				id="${menuId}" data-bs-toggle="dropdown" aria-expanded="false">
 			${this._options.label}
 		</a>
-		<ul id=${menuItemsContainerId} class="dropdown-menu tm-dropdown-menu" aria-labelledby="${menuId}">
+		<ul id=${menuItemsContainerId} class="${menuClasses.join(" ")}" aria-labelledby="${menuId}">
 		</ul>
 	</div>
 	`;
@@ -120,31 +123,37 @@ Classes.MenuItemViewer = Classes.Viewer.subclass({
 	// This class uses a body element different from the _rootElem
 	_bodyElem: null,
 
+	_options: null,
 	_actionFn: null,
 
-// "text" is optional, you can always call setText()/setHtml() later. Note that
-// the constructor will call setText() internally, so if you want to use HTML tags,
-// you'll need to pass an empty string in the constructor, then call setHtml()
-// later.
-// "actionFn" is optional, you can set it later with setAction().
-_init: function(text, actionFn) {
+// "options.label" accepts HTML, while "options.labelText" expects only text (and will escape
+// it using setText()). They should be mutually exclusive, if both are non-null/non-empty the
+// logic below prioritizes "options.label".
+// "options.actionFn" is optional, you can set it later with setAction().
+_init: function(options) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.Viewer._init.call(this);
 
 	this.debug();
 
-	this._renderMenuItem(optionalWithDefault(text, ""));
+	// Don't store "options" as-is, create a copy (and while you're doing it, initialize all
+	// the fields you need)
+	this._options = {};
+	this._options.label = optionalWithDefault(options.label, "");
+	this._options.labelText = optionalWithDefault(options.labelText, "");
+	this._options.actionFn = optionalWithDefault(options.actionFn, null);
+	this._options.extraClasses = optionalWithDefault(options.extraClasses, []);
+
+	this._renderMenuItem();
 
 	this._actionFn = null;
-	if(actionFn != null) {
+	if(this._options.actionFn != null) {
 		// Internally setAction() changes _actionFn
-		this.setAction(actionFn);
+		this.setAction(this._options.actionFn);
 	}
 },
 
-_renderMenuItem: function(text) {
-	const logHead = "MenuItemViewer::_renderMenuItem(): ";
-
+_renderMenuItem: function() {
 	const bodyId = this._id;
 
 	// Bootstrap says the menu item should look like:
@@ -159,22 +168,29 @@ _renderMenuItem: function(text) {
 	// the menu to close, but only because we re-render, when you hover the menu
 	// is actually still open.
 	// Fixed the problem of menu staying open in MenuViewer._MenuViewer_render().
-	//
+	let itemClasses = [ "dropdown-item", "tm-dropdown-item" ];
+	itemClasses.push(...this._options.extraClasses);
+
 	// "position-relative" is needed to support the checkmark of .tm-dropdown-item.tm-selected::before,
 	// which uses "position: absolute".
 	const rootHtml = `
 		<li class="position-relative">
-			<div id="${bodyId}" class="dropdown-item tm-dropdown-item"></div>
+			<div id="${bodyId}" class="${itemClasses.join(" ")}"></div>
 		</li>
 	`;
 
 	this._rootElem = this._elementGen(rootHtml);
 	this._bodyElem = this.getElementById(bodyId);
 
-	// Use setText() instead of inserting the text directly in the menu, to avoid the
-	// risk of HTML injection
-	this.setText(text);
-	//this._log(logHead, this._rootElem, this._bodyElem);
+	if(this._options.label != "") {
+		this.setHtml(this._options.label);
+	} else {
+		if(this._options.labelText != "") {
+			// Use setText() instead of inserting the label directly in the menu, to avoid the
+			// risk of HTML injection
+			this.setText(this._options.labelText);
+		}
+	}
 },
 
 setAction: function(fn) {
@@ -208,6 +224,7 @@ enable: function(flag) {
 
 }); // Classes.MenuItemViewer
 
+
 // CLASS TileTabMenuViewer
 //
 Classes.TileTabMenuViewer = Classes.MenuViewer.subclass({
@@ -231,6 +248,7 @@ _init: function(tab) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.MenuViewer._init.call(this, {
 		btnExtraClasses: [ tab.incognito ? "btn-light" : "btn-secondary" ],
+		menuExtraClasses: [ "tm-dropdown-tile-menu" ],
 	});
 
 	this.debug();
@@ -251,8 +269,11 @@ _setShortcutMenuItems: function() {
 
 	scKeys.forEach(
 		function(key) {
-			let item = Classes.MenuItemViewer.create("Move tab to match shortcut " +
-						sm.keyToUiString(key), this._actionSetCandidateCb.bind(this, key));
+			let options = {
+				labelText: "Move tab to match shortcut " + sm.keyToUiString(key),
+				actionFn: this._actionSetCandidateCb.bind(this, key),
+			};
+			let item = Classes.MenuItemViewer.create(options);
 			this._shortcutMenuItems.push(item);
 			this.append(item);
 		}.bind(this)
@@ -273,27 +294,44 @@ _updateShortcutMenuItems: function() {
 },
 
 _initMenuItems: function() {
-	this._titleMenuItem = Classes.MenuItemViewer.create("", this._actionActivateCb.bind(this));
+	let options = {
+		actionFn: this._actionActivateCb.bind(this),
+		// Override Bootstrap's "dropdown-item", which has "white-space: nowrap;" (i.e. "text-nowrap").
+		extraClasses: [ "text-wrap" ],
+	};
+	this._titleMenuItem = Classes.MenuItemViewer.create(options);
 	this._titleMenuItem.setHtml("<b>" + this._safeText(this._tab.title) + "</b>");
 	this.append(this._titleMenuItem);
 
-	this._pinMenuItem = Classes.MenuItemViewer.create(this._tab.pinned ? "Unpin" : "Pin",
-								this._actionPinToggleCb.bind(this));
+	options = {
+		labelText: this._tab.pinned ? "Unpin" : "Pin",
+		actionFn: this._actionPinToggleCb.bind(this),
+	};
+	this._pinMenuItem = Classes.MenuItemViewer.create(options);
 	this.append(this._pinMenuItem);
 
-	this._unpinByBookmarkMenuItem = Classes.MenuItemViewer.create("Unpin bookmark",
-									this._actionUnpinByBookmarkCb.bind(this));
+	options = {
+		labelText: "Unpin bookmark",
+		actionFn: this._actionUnpinByBookmarkCb.bind(this),
+	};
+	this._unpinByBookmarkMenuItem = Classes.MenuItemViewer.create(options);
 	if(this._tab.pinInherited == null) {
 		this._unpinByBookmarkMenuItem.hide();
 	}
 	this.append(this._unpinByBookmarkMenuItem);
 
-	this._muteMenuItem = Classes.MenuItemViewer.create(this._tab.mutedInfo.muted ? "Unmute" : "Mute",
-								this._actionMuteToggleCb.bind(this));
+	options = {
+		labelText: this._tab.mutedInfo.muted ? "Unmute" : "Mute",
+		actionFn: this._actionMuteToggleCb.bind(this),
+	};
+	this._muteMenuItem = Classes.MenuItemViewer.create(options);
 	this.append(this._muteMenuItem);
 
-	this._highlightMenuItem = Classes.MenuItemViewer.create(this._tab.highlighted ? "Remove highlight" : "Highlight",
-								this._actionHighlightToggleCb.bind(this));
+	options = {
+		labelText: this._tab.highlighted ? "Remove highlight" : "Highlight",
+		actionFn: this._actionHighlightToggleCb.bind(this),
+	};
+	this._highlightMenuItem = Classes.MenuItemViewer.create(options);
 	// The next check is commented out because actually you can remove highlight for
 	// an active tab. It only seems to take no action when there's only one highlighted
 	// tab, but if there are multiple highlighted tabs, then taking the action on the
@@ -309,16 +347,25 @@ _initMenuItems: function() {
 //	}
 	this.append(this._highlightMenuItem);
 
-//	this._playMenuItem = Classes.MenuItemViewer.create("Toggle play",
-//									this._actionPlayToggleCb.bind(this));
+//	options = {
+//		labelText: "Toggle play",
+//		actionFn: this._actionPlayToggleCb.bind(this),
+//	};
+//	this._playMenuItem = Classes.MenuItemViewer.create(options);
 //	this.append(this._playMenuItem);
 
-	this._moveToLeastTabbedMenuItem = Classes.MenuItemViewer.create("Move to least tabbed window",
-								this._actionMoveToLeastTabbedCb.bind(this));
+	options = {
+		labelText: "Move to least tabbed window",
+		actionFn: this._actionMoveToLeastTabbedCb.bind(this),
+	};
+	this._moveToLeastTabbedMenuItem = Classes.MenuItemViewer.create(options);
 	this.append(this._moveToLeastTabbedMenuItem);
 
-	this._suspendMenuItem = Classes.MenuItemViewer.create("Suspend (discard from memory)",
-								this._actionSuspendCb.bind(this));
+	options = {
+		labelText: "Suspend (discard from memory)",
+		actionFn: this._actionSuspendCb.bind(this),
+	};
+	this._suspendMenuItem = Classes.MenuItemViewer.create(options);
 	if(this._tab.discarded || this._tab.status == "unloaded") {
 		// No point in offering an option to suspend a tab that's already suspended or unloaded.
 		// Note that we hide() this._unpinByBookmarkMenuItem, but we only disable this menu
@@ -329,7 +376,11 @@ _initMenuItems: function() {
 	}
 	this.append(this._suspendMenuItem);
 
-	this._closeMenuItem = Classes.MenuItemViewer.create("Close", this._actionCloseCb.bind(this));
+	options = {
+		labelText: "Close",
+		actionFn: this._actionCloseCb.bind(this),
+	};
+	this._closeMenuItem = Classes.MenuItemViewer.create(options);
 	this.append(this._closeMenuItem);
 
 	this._setShortcutMenuItems();
@@ -524,7 +575,7 @@ _renderTitle: function() {
 		<div id="${subtitleId}"></div>
 	`;
 
-	this._titleMenuItem = Classes.MenuItemViewer.create("", this._actionActivateCb.bind(this));
+	this._titleMenuItem = Classes.MenuItemViewer.create({ actionFn: this._actionActivateCb.bind(this) });
 	this._titleMenuItem.setHtml(titleHtml);
 	this.append(this._titleMenuItem);
 
@@ -561,19 +612,31 @@ _updateTitleMenuItem: function() {
 _initMenuItems: function() {
 	this._renderTitle();
 
+	let options = null;
+
 	if(this._bm.parentId != null) {
-		this._openBookmarkManagerMenuItem = Classes.MenuItemViewer.create("Open folder in Chrome Bookmark manager",
-						this._actionBookmarkManagerCb.bind(this));
+		options = {
+			labelText: "Open folder in Chrome Bookmark manager",
+			actionFn: this._actionBookmarkManagerCb.bind(this),
+		};
+		this._openBookmarkManagerMenuItem = Classes.MenuItemViewer.create(options);
 		this.append(this._openBookmarkManagerMenuItem);
 	}
 
-	this._pinMenuItem = Classes.MenuItemViewer.create(this._bm.pinned ? "Unpin" : "Pin",
-								this._actionPinToggleCb.bind(this));
+	options = {
+		labelText: this._bm.pinned ? "Unpin" : "Pin",
+		actionFn: this._actionPinToggleCb.bind(this),
+	};
+	this._pinMenuItem = Classes.MenuItemViewer.create(options);
 	this.append(this._pinMenuItem);
 
 	// Can't delete an unmodifiable bookmark
 	if(this._bm.unmodifiable == null) {
-		this._deleteMenuItem = Classes.MenuItemViewer.create("Delete", this._actionDeleteCb.bind(this));
+		options = {
+			labelText: "Delete",
+			actionFn: this._actionDeleteCb.bind(this),
+		};
+		this._deleteMenuItem = Classes.MenuItemViewer.create(options);
 		this.append(this._deleteMenuItem);
 	}
 },
@@ -661,7 +724,7 @@ _renderTitle: function() {
 		<div id="${subtitleId}"></div>
 	`;
 
-	this._titleMenuItem = Classes.MenuItemViewer.create("", this._actionActivateCb.bind(this));
+	this._titleMenuItem = Classes.MenuItemViewer.create({ actionFn: this._actionActivateCb.bind(this) });
 	this._titleMenuItem.setHtml(titleHtml);
 	this.append(this._titleMenuItem);
 
@@ -686,7 +749,11 @@ _updateTitleMenuItem: function() {
 _initMenuItems: function() {
 	this._renderTitle();
 
-	this._deleteMenuItem = Classes.MenuItemViewer.create("Delete", this._actionDeleteCb.bind(this));
+	let options = {
+		labelText: "Delete",
+		actionFn: this._actionDeleteCb.bind(this),
+	};
+	this._deleteMenuItem = Classes.MenuItemViewer.create(options);
 	this.append(this._deleteMenuItem);
 },
 

@@ -398,11 +398,6 @@
 }
 
 .tm-dropdown-item {
-	/* Override Bootstrap's "dropdown-item", which has "white-space: nowrap;".
-	   "nowrap" is a better option for standard menu items, but we want to also
-	   visualize long things in a container fashion
-	 */
-	white-space: normal;
 	font-size: 0.75em;
 	padding-left: 1.75em;
 }
@@ -423,7 +418,7 @@
 	transform: rotate(35deg);
 }
 
-.tm-dropdown-menu {
+.tm-dropdown-tile-menu {
 	min-width: 20rem;
 }
 

@@ -1,10 +1,5 @@
 TODO 1.3
 
-- Adjust .tm-dropdown-menu in MenuViewer to be used only by tile menu viewer, not
-  by PopupMenuViewer
-  * Also fix .tm-dropdown-item to avoid removing the "nowrap" all the time, in some
-    cases we do want "nowrap"
-
 - Remove vertical scrollbar and replace it with buttons at the top and bottom of the
   popup view
   * Even if without full scrollbar, users should be able to scroll using modern

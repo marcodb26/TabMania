@@ -179,6 +179,17 @@ DONE 1.3
 	- Apparently "overflow-x" also sets "overflow-y"...
   * The only working option seems to be to set "overflow-x" on the <body> tag :-|
 
+- Adjusted .tm-dropdown-menu in MenuViewer to be used only by tile menu viewer, not
+  by PopupMenuViewer
+  * Now renamed ".tm-dropdown-tile-menu"
+
+- Fixed .tm-dropdown-item to avoid removing the "nowrap" all the time, as in most cases
+  we do want "nowrap"
+  * Triggered a bit of refactoring to switch the Classes.MenuItemViewer constructor to
+    use the "options" pattern
+	- And fixed the "options" pattern everywhere it's used to force a shallow copy of
+	  the "options" in input
+
 
 DONE 1.2
 
