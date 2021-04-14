@@ -120,11 +120,8 @@ normalizeLowerCaseTitle: function(lowerCaseTitle) {
 	return lowerCaseTitle.replace(Classes.NormalizedTabs._titleNormalizationPattern, "");
 },
 
-// Static function
-cleanupTitle: function(title, url) {
-	const logHead = "NormalizedTabs.cleanupTitle(" + url + "): ";
-
-	if(url == null || !url.startsWith("chrome://bookmarks/?id=")) {
+_cleanupChromeBookmarksManagerTitle: function(title, url) {
+	if(!url.startsWith("chrome://bookmarks/?id=")) {
 		return title;
 	}
 
@@ -172,6 +169,23 @@ cleanupTitle: function(title, url) {
 	}
 
 	return `${title} - ${type} "${bmNode.title}"`;
+},
+
+// Static function
+cleanupTitle: function(title, url) {
+	const logHead = "NormalizedTabs.cleanupTitle(" + url + "): ";
+
+	if(url == null) {
+		return title;
+	}
+
+	if(title == "") {
+		// Some browsing history items seem to have no title. When that happens, let's
+		// just set the URL as title.
+		return url;
+	}
+
+	return Classes.NormalizedTabs._cleanupChromeBookmarksManagerTitle(title, url);
 },
 
 

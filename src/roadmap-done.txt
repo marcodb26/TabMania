@@ -193,6 +193,9 @@ DONE 1.3
 - Introduced a bug while refactoring the "options" pattern: the "options" parameter needs to
   be optional
 
+- If a tab/bookmark/history doesn't have a title, use the URL as title of the tile
+  * Some browsing history items appear to have no title
+
 
 DONE 1.2
 
