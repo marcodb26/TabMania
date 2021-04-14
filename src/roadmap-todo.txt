@@ -35,7 +35,7 @@ PUNTED TO NEXT RELEASE
 
 - BUG: "Remove highlight" dropdown menu should be disabled on an "active" tab if
   the active tab is also the only highlighted tab in the window
-  * See TileTabMenuViewer._initMenuItems() for a comment describing the issue
+  * See TabTileMenuViewer._initMenuItems() for a comment describing the issue
     in more details
   * This requires tracking the count of highlighted tabs in each window, outside
     the menu rendering logic of each individual tile

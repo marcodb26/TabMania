@@ -70,8 +70,8 @@ DONE 1.3
   * Replaced <a> with <button> for nav-tab
   * Also removed the "cursor: pointer" for bstabs
 
-- Improved date visualization in TileBookmarkMenuViewer._renderSubtitleHtml() and
-  TileHistoryMenuViewer._updateTitleMenuItem()
+- Improved date visualization in BookmarkTileMenuViewer._renderSubtitleHtml() and
+  HistoryTileMenuViewer._updateTitleMenuItem()
   * Added day.js to display relative times
     - It should be much smaller than moment.js and offer similar functionality
 
@@ -257,7 +257,7 @@ DONE 1.2
   is too inadequate to support our search needs
   * Bookmarks now include the hidden search badge `bookmark`
 
-- Improved performance of TileBookmarkMenuViewer._updateTitleMenuItem() by providing a sync
+- Improved performance of BookmarkTileMenuViewer._updateTitleMenuItem() by providing a sync
   version of the folder path building logic leveraging the bookmark shadow data in bookmarksManager
 
 - For the tiles of open tabs representing bookmarks (e.g. chrome://bookmarks/?id=686),

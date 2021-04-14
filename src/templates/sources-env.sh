@@ -15,8 +15,8 @@ declare UNPACKED_POPUP_SOURCES=(
 	"SearchTokenizer.js" "SearchParser.js" "SearchOptimizer.js" "SearchQuery.js" "BookmarksManager.js"
 	"HistoryFinder.js" "PopupDocker.js" "PopupMsgServer.js" "icons.js" "Viewer.js" "BsTabViewer.js"
 	"GroupsBuilder.js" "ContainerViewer.js" "SettingsItemViewer.js" "SettingsCustomGroupViewer.js"
-	"SettingsBsTabViewer.js" "PopupViewer.js" "TabsTitleMonitor.js" "TabsBsTabViewer.js" "TabTileViewer.js"
-	"TileMenuViewer.js" "PopupMenuViewer.js" "NewTabAction.js" "popup.js"
+	"SettingsBsTabViewer.js" "PopupViewer.js" "TabsTitleMonitor.js" "TabsBsTabViewer.js" "MenuViewer.js"
+	"TabTileViewer.js" "TabTileMenuViewer.js" "PopupMenuViewer.js" "NewTabAction.js" "popup.js"
 )
 
 declare PACKED_POPUP_SOURCES=(

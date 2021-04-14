@@ -292,15 +292,15 @@ _addBadgesHtml: function(visibleBadgesHtml, badgesList, secondary) {
 _renderMenuInner: function() {
 	switch(this._renderState.tmType) {
 		case Classes.NormalizedTabs.type.TAB:
-			this._menuViewer = Classes.TileTabMenuViewer.create(this._tab);
+			this._menuViewer = Classes.TabTileMenuViewer.create(this._tab);
 			this._menuViewer.attachToElement(this._menuElem);
 			break;
 		case Classes.NormalizedTabs.type.BOOKMARK:
-			this._menuViewer = Classes.TileBookmarkMenuViewer.create(this._tab);
+			this._menuViewer = Classes.BookmarkTileMenuViewer.create(this._tab);
 			this._menuViewer.attachToElement(this._menuElem);
 			break;
 		case Classes.NormalizedTabs.type.HISTORY:
-			this._menuViewer = Classes.TileHistoryMenuViewer.create(this._tab);
+			this._menuViewer = Classes.HistoryTileMenuViewer.create(this._tab);
 			this._menuViewer.attachToElement(this._menuElem);
 			break;
 		default:
