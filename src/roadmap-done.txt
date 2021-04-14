@@ -169,7 +169,7 @@ DONE 1.3
   * Needed when the window is too narrow and only the active bstab is visible
   * The new group of menu items shows up only when the popup is undocked (never needed when docked)
 
-- Forced "sm-select-none" on the bstabs headings
+- Forced ".tm-select-none" on the bstabs headings
   * Otherwise users could select the text in the bstabs heading by starting the selection mouse
     action in the popup menu
 
