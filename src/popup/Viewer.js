@@ -258,6 +258,7 @@ Classes.ButtonViewer = Classes.HtmlViewer.subclass({
 _init: function(options) {
 	// Don't store "options" as-is, create a copy (and while you're doing it, initialize all
 	// the fields you need)
+	options = optionalWithDefault(options, {});
 	this._options = {};
 	this._options.labelHtml = optionalWithDefault(options.labelHtml, "");
 	this._options.fullWidth = optionalWithDefault(options.fullWidth, false);
@@ -320,6 +321,7 @@ Classes.ImageViewer = Classes.HtmlViewer.subclass({
 _init: function(options) {
 	// Don't store "options" as-is, create a copy (and while you're doing it, initialize all
 	// the fields you need)
+	options = optionalWithDefault(options, {});
 	this._options = {};
 	this._options.src = optionalWithDefault(options.src, "");
 	this._options.srcBackup = optionalWithDefault(options.srcBackup, "");

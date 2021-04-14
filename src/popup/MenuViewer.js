@@ -21,6 +21,7 @@ Classes.MenuViewer = Classes.Viewer.subclass({
 _init: function(options) {
 	// Don't store "options" as-is, create a copy (and while you're doing it, initialize all
 	// the fields you need)
+	options = optionalWithDefault(options, {});
 	this._options = {};
 	this._options.label = optionalWithDefault(options.label, "");
 	this._options.showToggle = optionalWithDefault(options.showToggle, true);
@@ -138,6 +139,7 @@ _init: function(options) {
 
 	// Don't store "options" as-is, create a copy (and while you're doing it, initialize all
 	// the fields you need)
+	options = optionalWithDefault(options, {});
 	this._options = {};
 	this._options.label = optionalWithDefault(options.label, "");
 	this._options.labelText = optionalWithDefault(options.labelText, "");

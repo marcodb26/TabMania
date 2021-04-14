@@ -111,6 +111,7 @@ _init: function(options) {
 
 	// Don't store "options" as-is, create a copy (and while you're doing it, initialize all
 	// the fields you need)
+	options = optionalWithDefault(options, {});
 	this._options = {};
 	this._options.startExpanded = optionalWithDefault(options.startExpanded, false);
 	this._options.htmlWhenEmpty = optionalWithDefault(options.htmlWhenEmpty, "");
