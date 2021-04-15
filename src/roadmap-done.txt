@@ -206,6 +206,11 @@ DONE 1.3
   * Make the custom group button fully rounded when expanded
 	- The default Bootstrap style has it only rounded in the two top corners
 
+- Use custom (tiny) scrollbars when the popup is very narrow
+  * Needed to make the undocked popup look slicker when very narrow and long
+    - The vertical scrollbar takes up precious real estate in that case, and forces
+	  the popup to be slightly wider to get the same amount of visible text
+
 
 DONE 1.2
 

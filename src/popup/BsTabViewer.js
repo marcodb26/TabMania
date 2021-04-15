@@ -251,7 +251,7 @@ _SearchableBsTabViewer_initBodyElem: function() {
 			</div>
 		</div>
 		<div id="${searchBoxErrorId}" class="tm-searchbox-msg tm-hide"></div>
-		<div class="tm-fit-bottom" id="${bodyId}" style="overflow: auto;">
+		<div class="tm-fit-bottom tm-home-bstab-scroll" id="${bodyId}">
 		</div>
 	`;
 

@@ -837,21 +837,6 @@ Encoded with https://www.base64encode.org/
 }
 
 
-/* Stupid test, tried to see what happens to a search box if you use
-   "pointer-events" to redirect the "x" pseudo-element clicks to the
-   <input> element by disabling the input clicks altogether.
-   Well, nothing good happens, you can't select the text box anymore :-)
-   https://stackoverflow.com/questions/7478336/only-detect-click-event-on-pseudo-element
-
-input[type="search"] {
-	pointer-events: none;
-}
-
-input[type="search"]::-webkit-search-cancel-button {
-	pointer-events: auto;
-}
-*/
-
 /* From Chris Coyier's codepen: https://codepen.io/chriscoyier/pen/XWKEVLy
    Codepen license is MIT: https://blog.codepen.io/documentation/licensing/
 */
@@ -893,6 +878,11 @@ input[type="search"]::-webkit-search-cancel-button {
   grid-area: 1 / 1 / 2 / 2;
 }
 
+.tm-home-bstab-scroll {
+	/* See at "@media (max-width: 240px)" where this class gets redefined to "overflow: overlay" */
+	overflow: auto;
+}
+
 @media (max-width: 240px) {
 	/* Kind of following Bootstrap conventions, but using "xxs" as "extra extra small", which is not
 	   a valid Bootstrap breakpoint. Bootstrap's "xs" is still too large for our needs.
@@ -902,5 +892,34 @@ input[type="search"]::-webkit-search-cancel-button {
 	*/
 	.tm-xxs-hide:not(.tm-active) {
 		display: none;
+	}
+
+	.tm-home-bstab-scroll {
+		overflow: overlay;
+	}
+
+	/* Scrollbar changes */
+	::-webkit-scrollbar {
+		/* "width" applies to the vertical scrollbar */
+		width: 6px;
+		/* "height" applies to the horizontal scrollbar */
+		height: 6px;
+	}
+
+	::-webkit-scrollbar-track {
+		display: none;
+	}
+
+	::-webkit-scrollbar-thumb {
+		background-color: #c1c1c1; /* RGB 193, 193, 193 */
+		border-radius: 3px;
+	}
+
+	::-webkit-scrollbar-thumb:hover {
+		background: #a8a8a8; /* RGB 168, 168, 168 */
+	}
+
+	::-webkit-scrollbar-thumb:active {
+		background: #787878; /* RGB 120, 120, 120 */
 	}
 }

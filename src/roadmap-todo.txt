@@ -1,20 +1,8 @@
 TODO 1.3
 
-- Remove vertical scrollbar and replace it with buttons at the top and bottom of the
-  popup view
-  * Even if without full scrollbar, users should be able to scroll using modern
-    wheels / gestures
-	- Doesn't work with "overflow: hidden;", but it should work with this:
-	  https://www.w3schools.com/howto/howto_css_custom_scrollbar.asp
-	  e.g.:
-		::-webkit-scrollbar {
-			width: 0px;
-		}
-  * Optional controlled by Settings?
-  * Only for undocked popup?
-  * Needed to make the undocked popup look slicker when very narrow and long
-    - The vertical scrollbar takes up precious real estate in that case, and forces
-	  the popup to be slightly wider to get the same amount of visible text
+- "popup-tabs-home" should be "popup-bstabs-home"
+
+- Remove bstabs completely when very very narrow and main menu disappears
 
 
 PREP FOR NEXT RELEASE
@@ -25,6 +13,8 @@ PREP FOR NEXT RELEASE
 
 
 PUNTED TO NEXT RELEASE
+
+- Add buttons on top and bottom of visible tiles area when the scrollbars are shrunk (narrow view)
 
 - Generate OS notification when tab wants attention
 
