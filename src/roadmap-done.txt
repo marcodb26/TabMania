@@ -147,7 +147,7 @@ DONE 1.3
 	- BUG: lowercase "g" gets cut in tile title
   * Also fixed vertical-align and spacing of bookmark/rcItem/hItem icons to stay aligned
     with the new changes
-	- And of thumbtack too
+	- And of thumbtack and volume icons too
 
 - Pulse favIcon for tiles in "wantsAttention" state
 
