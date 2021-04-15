@@ -178,7 +178,7 @@
 }
 
 .tm-indent-right {
-	padding: 0.1rem 0.1rem 0.1rem 0.5rem;
+	padding: 0 0.1rem 0 0.5rem;
 }
 
 .tm-favicon-16 {
@@ -323,14 +323,16 @@
 	z-index: 1;
 }
 
-/* Use this class in the same element where you use .accordion-button, as this class
-   resets some of the visual styles (focused, expanded) of .accordion-button
-*/
 .tm-customgroup-header {
 	line-height: 1.7;
 }
 
-.tm-customgroup-header:focus {
+/* Use .tm-accordion-button in the same element where you use .accordion-button, as this
+   class resets some of the visual styles (focused, expanded) of .accordion-button
+*/
+/* .tm-accordion-button {} */
+
+.tm-accordion-button:focus {
 	/* Reset the values from .accordion-button:focus, we don't want the blue aura.
 	   See also .tm-callout-* for the extra hoops we need to go through to make the
 	   callout colors stick. Make sure this class is defined before .tm-callout-*,
@@ -341,15 +343,20 @@
 	border-color: rgba(0, 0, 0, 0.125);
 }
 
-.tm-customgroup-header:not(.collapsed) {
+.tm-accordion-button:not(.collapsed) {
 	/* Reset the values from .accordion-button:not(.collapsed), by assigning
 	   the same values used in .accordion-button.
 	*/
 	color: #212529;
 	background-color: transparent;
+
+	/* Reset a value from .accordion-item:first-of-type .accordion-button, which defines
+	   the round border only for the top corners of the accordion header, not for the
+	   bottom corners, which we also want to be rounded */
+	border-radius: 0.25rem;
 }
 
-.tm-customgroup-header:not(.collapsed)::after {
+.tm-accordion-button:not(.collapsed)::after {
 	/* Reset the color of the caret from .accordion-button:not(.collapsed)::after to the
 	   color used by .accordion-button::after
 	   It's annoying that we need to copy over the whole SVG just to change its color.
@@ -740,7 +747,7 @@ Encoded with https://www.base64encode.org/
    Bootstrap 5, but then doesn't seem to exist in the actual CSS as of the
    alpha version of Bootstrap 5.
 
-   See .tm-customgroup-header:focus for the reasons why we need the ":focus"
+   See .tm-accordion-button:focus for the reasons why we need the ":focus"
    override here.
 */
 .tm-callout, .tm-callout:focus {
@@ -756,7 +763,7 @@ Encoded with https://www.base64encode.org/
 
 /* Matching the Bootstrap colors for consistency.
 
-   See .tm-customgroup-header:focus for the reasons why we need the ":focus"
+   See .tm-accordion-button:focus for the reasons why we need the ":focus"
    override here.
 */
 .tm-callout-grey, .tm-callout-grey:focus {

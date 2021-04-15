@@ -14,7 +14,8 @@ _init: function(tabGroup, expandedGroups) {
 	let options = {
 		startExpanded: this._expandedGroups.has(this._groupName),
 		htmlWhenEmpty: `<i class="text-muted small">No tabs</i>`,
-		border: true,
+		border: false,
+		bodyExtraClasses: [ "tm-indent-right" ],
 	};
 
 	// Overriding the parent class' _init(), but calling that original function first

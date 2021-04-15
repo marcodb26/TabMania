@@ -199,6 +199,14 @@ DONE 1.3
 - If a tab/bookmark/history doesn't have a title, use the URL as title of the tile
   * Some browsing history items appear to have no title
 
+- Custom group tiles rendering improvements
+  * Remove extra gap between custom group containers and other tiles
+  * Make the custom group button fully rounded when expanded
+	- The default Bootstrap style has it only rounded in the two top corners
+
+- Promoted style changes to expanded accordion buttons to all collapsible containers
+  * Before they were only available in custom group accordion buttons
+
 
 DONE 1.2
 

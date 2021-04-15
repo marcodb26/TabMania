@@ -116,6 +116,7 @@ _init: function(options) {
 	this._options.startExpanded = optionalWithDefault(options.startExpanded, false);
 	this._options.htmlWhenEmpty = optionalWithDefault(options.htmlWhenEmpty, "");
 	this._options.border = optionalWithDefault(options.border, true);
+	this._options.bodyExtraClasses = [].concat(optionalWithDefault(options.bodyExtraClasses, []));
 
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.ContainerViewer._init.call(this, this._options.htmlWhenEmpty);
@@ -126,45 +127,45 @@ _init: function(options) {
 _renderHeadingAndBody: function() {
 	const logHead = "CollapsibleContainerViewer::_renderHeadingAndBody(): ";
 
+	const headingOuterId = this._id + "-heading-outer";
 	const headingId = this._id + "-heading";
-	const headingInnerId = this._id + "-heading-inner";
+	const bodyOuterId = this._id + "-body-outer";
 	const bodyId = this._id + "-body";
-	const bodyInnerId = this._id + "-body-inner";
 
 	this._rootElem.classList.add("accordion");
 
-	var headingExtraClasses = [];
-	var bodyExtraClasses = [];
-	var bodyInnerExtraClasses = [];
+	let headingExtraClasses = [];
+	let bodyOuterExtraClasses = [];
 
 	if(this._options.border) {
 		// This class just seems to add a border to the accordion body.
 		// Strange name for that
-		bodyExtraClasses.push("accordion-collapse");
-		bodyInnerExtraClasses.push("tm-indent-right");
+		bodyOuterExtraClasses.push("accordion-collapse");
 	}
 	if(this._options.startExpanded) {
-		bodyExtraClasses.push("show");
+		bodyOuterExtraClasses.push("show");
 	} else {
 		headingExtraClasses.push("collapsed");
 	}
 
 	const headingHtml = `
-		<h2 class="accordion-header" id="${headingId}">
-			<button id=${headingInnerId} class="accordion-button ${headingExtraClasses.join(" ")} p-2" type="button" data-bs-toggle="collapse"
-						data-bs-target="#${bodyId}"	aria-expanded="true" aria-controls="${bodyId}">
+		<h2 class="accordion-header" id="${headingOuterId}">
+			<button id=${headingId} class="accordion-button tm-accordion-button ${headingExtraClasses.join(" ")} p-2"
+						type="button" data-bs-toggle="collapse" data-bs-target="#${bodyOuterId}" aria-expanded="true" aria-controls="${bodyOuterId}">
 			</button>
 		</h2>
 	`;
 
-	// The inner body of an accordion should be:
-	// <div id="${bodyInnerId}" class="tm-indent-right accordion-body">
+	// The body of an accordion should be:
+	// <div id="${bodyId}" class="tm-indent-right accordion-body">
 	// However, "accordion-body" seems to just be indentation, and overrides my desired indentation,
 	// so I got rid of it.
 	// "tm-min-empty-container" is needed to center properly the "_htmlWhenEmpty" text.
+	// "this._id" is used as the HTML ID of the _rootElem, as initialized by the parent
+	// class ContainerViewer.
 	const bodyHtml = `
-		<div id="${bodyId}" class="collapse tm-min-empty-container ${bodyExtraClasses.join(" ")}" aria-labelledby="${headingId}" data-bs-parent="#${this._id}">
-			<div id="${bodyInnerId}" class="${bodyInnerExtraClasses.join(" ")}">
+		<div id="${bodyOuterId}" class="collapse tm-min-empty-container ${bodyOuterExtraClasses.join(" ")}" aria-labelledby="${headingOuterId}" data-bs-parent="#${this._id}">
+			<div id="${bodyId}" class="${this._options.bodyExtraClasses.join(" ")}">
 			</div>
 		</div>
 	`;
@@ -179,9 +180,9 @@ _renderHeadingAndBody: function() {
 	// Note that starting from the end of this function, setHtml() will render
 	// inside the _bodyElem of the container, but right now _bodyElem is still null.
 	this.setHtml(outerHtml);
-	this._headingElem = this.getElementById(headingInnerId);
+	this._headingElem = this.getElementById(headingId);
 	//this._log(logHead + "_headingElem = ", this._headingElem, this);
-	this._bodyElem = this.getElementById(bodyInnerId);
+	this._bodyElem = this.getElementById(bodyId);
 
 	// Since we've overwritten the original DOM of our parent class, let's reset it
 	// into the new _bodyElem.
