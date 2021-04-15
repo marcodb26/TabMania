@@ -2,8 +2,6 @@ TODO 1.3
 
 - "popup-tabs-home" should be "popup-bstabs-home"
 
-- Remove bstabs completely when very very narrow and main menu disappears
-
 
 PREP FOR NEXT RELEASE
 

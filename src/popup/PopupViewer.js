@@ -42,7 +42,7 @@ _renderTabsContainer: function() {
 	<div class="d-flex tm-cursor-default tm-select-none">
 		<div class="flex-grow-1">
 			<!-- https://getbootstrap.com/docs/5.0/components/navs-tabs/ -->
-			<ul class="nav nav-tabs nav-justified" id="${headingId}" role="tablist">
+			<ul class="nav nav-tabs nav-justified tm-tiny-hide" id="${headingId}" role="tablist">
 			</ul>
 		</div>
 		<div id="${buttonBarId}" class="ms-2">

@@ -923,3 +923,22 @@ Encoded with https://www.base64encode.org/
 		background: #787878; /* RGB 120, 120, 120 */
 	}
 }
+
+@media (max-width: 155px) {
+	.tm-tiny-hide {
+		/* If we use "display: none;", the element disappears, and with it, the anchoring
+		   for the button bar at the mid-height of it. This pushes the button bar up.
+		   To work around that, we use "visibility: hidden;", which hides the element
+		   but let it keep taking space. If the element keeps on occupying space though,
+		   then it will continue to push out the button bar on the right of the visible
+		   screen area, so we also want to set a smaller max-width to avoid that.
+		   Note that if you keep "max-width: 0px;" when .tm-xxs-hide is not in effect
+		   (screen bigger than 240px), the element will include two tabs, and this will
+		   cause its height to double. This is not a concern as long as the breakpoint
+		   for .tm-tiny-hide is smaller than the breakpoint for .tm-xxs-hide, so in practice
+		   we'll always only have one visible tab to worry about, not two.
+		*/
+		max-width: 0px;
+		visibility: hidden;
+	}
+}
