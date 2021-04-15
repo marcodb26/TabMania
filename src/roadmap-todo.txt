@@ -1,7 +1,5 @@
 TODO 1.3
 
-- "popup-tabs-home" should be "popup-bstabs-home"
-
 
 PREP FOR NEXT RELEASE
 

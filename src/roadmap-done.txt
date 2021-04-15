@@ -214,6 +214,8 @@ DONE 1.3
 - Hide bstabs completely when popup very very narrow, to avoid main menu being pushed
   out on the right side of the screen
 
+- Renamed HTML IDs "popup-tabs-*" to "popup-bstabs-*"
+
 
 DONE 1.2
 

@@ -129,12 +129,12 @@ function init() {
 		//	popupMsgServer.debug();
 			popupMsgServer.start();
 
-			let rootElem = document.getElementById("popup-tabs-div");
+			let rootElem = document.getElementById("popup-bstabs-div");
 
 			Classes.Base.roDef(window, "bookmarksManager", Classes.BookmarksManager.create());
 
 			perfProf.mark("popupViewerStart");
-			Classes.Base.roDef(window, "popupViewer", Classes.PopupViewer.createAs("popup-tabs", rootElem));
+			Classes.Base.roDef(window, "popupViewer", Classes.PopupViewer.createAs("popup-bstabs", rootElem));
 
 			// Set the "+" button in the popup's button bar
 			Classes.NewTabAction.create();
