@@ -227,7 +227,7 @@ files are loaded (unless you want them to get built into `dist/popup.js`).
 
 - Installed csso-cli v.3.0.0 (https://www.npmjs.com/package/csso-cli)
   > `npm install csso-cli --save-dev`
-  * Really liked the documentation of cssnano (https://cssnano.co/docs/getting-started), but
+  * Really liked the [documentation of cssnano](https://cssnano.co/docs/getting-started), but
     decided to go with csso because it seemed to be more "independent" of other modules
 
 - Installed ejs v.3.1.6 (HTML templating)
@@ -239,3 +239,8 @@ files are loaded (unless you want them to get built into `dist/popup.js`).
 
 - Installed day.js v1.10.4 (replacement for moment.js)
   > `npm install dayjs --save`
+
+- Installed [Windows 10 Power Toys](https://github.com/microsoft/PowerToys) v.0.35.0
+  * Find installer on the [GitHub releases page](https://github.com/microsoft/PowerToys/releases/)
+  * Not necessary to run the project, just mentioning it because of the Color Picker tool,
+    which should be useful to manage some of the CSS colors
