@@ -1,5 +1,5 @@
 # Remove the comment to debug the script
-set -x
+#set -x
 
 # For tools installed locally via NPM, you need to use specify the full path of
 # the local version of the tool. We could call "npx [tool]", but calling "npx"
@@ -19,23 +19,9 @@ declare -r NPMROOT=`npm root`
 # - Minify `src/popup/popup.css` to `dist/popup.css`
 # - Run uglifyJs to generate `dist/background.js` and `dist/popup.js`
 
-
 declare -r SRC="src"
 declare -r TGT="dist"
 declare -r TEMPLATES="${SRC}/templates"
-
-# We need to prepend "lib/prod.js" for both background.js and popup.js to deactivate logs
-# and enable the isProd() function (see lib/Base.js) to return "true"
-declare COMMON_PROD_SOURCES=("lib/prod.js")
-
-
-mkdir -p "${TGT}"
-mkdir -p "${TGT}/lib"
-mkdir -p "${TGT}/images"
-
-
-# Create the JSON file we'll need to run against our templates to build manifest.json
-# and popup.html
 
 # ${TEMPLATES}/sources-env.sh includes the definition of UNPACKED_POPUP_SOURCES and UNPACKED_BACKGROUND_SOURCES,
 # which we use below in the uglifyJs section. It includes VERSION too.
@@ -44,15 +30,56 @@ mkdir -p "${TGT}/images"
 declare PROD_BUILD=""
 source "${TEMPLATES}/sources-env.sh"
 
+declare -r PACKTGT="past-releases/v${VERSION}"
+
+
+# We need to prepend "lib/prod.js" for both background.js and popup.js to deactivate logs
+# and enable the isProd() function (see lib/Base.js) to return "true"
+declare COMMON_PROD_SOURCES=("lib/prod.js")
+
+pressEnter() {
+  # Pause the terminal before closing
+  echo "Press RETURN to exit"
+  read
+}
+
+if [ -d "${TGT}" ]; then
+  echo "Existing /${TGT} folder found. Delete it manually to proceed."
+  echo "For safety, this script doesn't automatically delete existing /${TGT} folders."
+  ( pressEnter )
+  exit 1
+fi
+
+if [ -d "${PACKTGT}" ]; then
+  echo "Existing /${PACKTGT} folder found. Delete it manually to proceed."
+  echo "For safety, this script doesn't automatically delete existing /${PACKTGT} folders."
+  ( pressEnter )
+  exit 1
+fi
+
+
+mkdir -p "${TGT}"
+mkdir -p "${TGT}/lib"
+mkdir -p "${TGT}/images"
+mkdir -p "${PACKTGT}"
+
+
+# Create the JSON file we'll need to run against our templates to build manifest.json
+# and popup.html
+
+
+# createJsonFile() is defined in "${TEMPLATES}/sources-env.sh" (sourced above)
 declare TMPJSON="${TGT}/sources-prod.json"
 (createJsonFile) > "${TMPJSON}"
 
 
 # Create dist/manifest.json
+echo "Creating manifest.json"
 "${NPMBIN}/ejs" "${TEMPLATES}/manifest.json.ejs" -f "${TMPJSON}" -o "${TGT}/manifest.json"
 
 
 # Create dist/popup.html
+echo "Creating popup.html"
 "${NPMBIN}/ejs" "${TEMPLATES}/popup.html.ejs" -f "${TMPJSON}" -o "${TGT}/popup.html"
 
 
@@ -62,11 +89,13 @@ rm "${TMPJSON}"
 
 
 # Copy only the png files, not any other files that might be in the src/images folder
+echo "Copying icons"
 cp "${SRC}"/images/*.png "${TGT}/images"
 
 
 # Bootstrap stuff
 
+echo "Copying Bootstrap files"
 # We need to remove the sourcemap at the bottom of the files because we don't care to
 # be able to debug the internals of Bootstrap. If we don't remove the last line, the
 # browser complains: "DevTools failed to load SourceMap: Could not load content for ..."
@@ -89,6 +118,7 @@ cp "${NPMROOT}/dayjs/dayjs.min.js" "${TGT}/lib/dayjs.min.js"
 cp "${NPMROOT}/dayjs/plugin/relativeTime.js" "${TGT}/lib/relativeTime.js"
 
 # Minify CSS
+echo "Minifying CSS files"
 "${NPMBIN}/csso" "${SRC}/popup/popup.css" --output "${TGT}/popup.css"
 
 
@@ -157,24 +187,24 @@ runUglifyJs() {
 				--output "${outFile}" -- "$@"
 }
 
+echo "Minifying background.js"
 # The syntax "<array>[@]/#/<prefix>" prefixes all elements of the array (<array>[@]) with
 # the specified prefix (the last "/" below is part of the prefix).
 # Similarly, to add a suffix you need to replace "#" with "%".
 ( runUglifyJs dist/background.js "${COMMON_PROD_SOURCES[@]/#/${SRC}/}" "${UNPACKED_BACKGROUND_SOURCES[@]/#/${SRC}/}" )
 
+echo "Minifying popup.js"
 # Note that UNPACKED_BACKGROUND_SOURCES and UNPACKED_POPUP_SOURCES are relative to two different
 # starting paths, while obviously COMMON_PROD_SOURCES is the same for both
 ( runUglifyJs dist/popup.js "${COMMON_PROD_SOURCES[@]/#/${SRC}/}" "${UNPACKED_POPUP_SOURCES[@]/#/${SRC}/popup/}" )
 
 
 # Create ZIP file and place it in past-releases/vX.Y/
-mkdir -p "past-releases/v${VERSION}"
+echo "Zipping /${TGT} to /${PACKTGT}"
 # Per the 7Zip documentation, prefixing the sources with "./" causes the path
 # to be omitted from the generated ZIP file. See https://sevenzip.osdn.jp/chm/cmdline/commands/add.htm
-7z.exe a "past-releases/v${VERSION}/TabMania v${VERSION}.zip" ./dist/*
+7z.exe a "${PACKTGT}/TabMania v${VERSION}.zip" ./${TGT}/*
 
 
-# Pause the terminal before closing
-echo "Press RETURN to exit"
-read
+( pressEnter )
 exit 0
