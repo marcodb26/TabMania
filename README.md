@@ -24,9 +24,13 @@ tabs (new tab, new URL, new title, settings change impacting tiles grouping, etc
 TabMania lists Chrome tabs as tiles within the _Home_ view of the extension. Each tile includes
 a few visible bits of information about the state of a browser tab:
 * The first line of the tile includes the title of the page associated with the browser tab,
-  and its favicon, if the page has one.
-* The second line of the tile includes the URL of the page associated with the browser tab, and
-  some icons and badges providing some more info about the browser tab
+  and its favicon.
+  - If the tile represents a bookmark, a recently closed tab or a browsing history item, then
+    a second icon is displayed next to the favicon, to indicate the type of tile. Only standard
+	browser tabs don't have this second icon next to the favicon.
+* The second line of the tile includes the URL of the page associated with the browser tab (bookmarks
+  also list the bookmark folder here) and some icons and badges providing some more info about
+  the browser tab
 * If the URL starts with `https://`, TabMania omits the obvious to leave a tad more room to see
   the URL. Note that only `https://` is omitted, any other protocol will be displayed (including `http://`).
 * Browser tabs with an active audio source show an `audible` (search badge) icon.
@@ -45,12 +49,27 @@ a few visible bits of information about the state of a browser tab:
   shortcut (see __Keyboard shortcuts__ below for more details)
 * If you hover your pointer over a browser tab tile, the menu dropdown button and the close button
   appear. You can use the close button to close the tab without bringing it to the foreground.
-* If a tile displays in black&white and its title is italicized, then the browser tab is in state
-  `unloaded` (search badge). The tab exists, but Chrome has not fully loaded it yet. Note that
-  you can also explicitly unload a browser tab by using the menu action _Suspend_, and
-  you can search for all tabs you've suspended this way by searching for the search badge `suspended`.
-* A browser tab displays the `loading` (search badge) badge while it's loading a page, then the badge
-  disappears, indicating the tab is fully `loaded` (search badge)
+* The loading status of a tab is encoded with visual clues
+  - The tile of an `unloaded` (search badge) tab is rendered in black&white with italicized title. The tab
+    exists, but Chrome has not fully loaded it yet.
+	* You can also explicitly unload a browser tab by using the menu action _Suspend_, and
+      you can search for all tabs you've suspended this way by searching for the search badge `suspended`.
+	* Bookmarks, recently closed tabs and browsing history items are not loaded by definition,
+	  and will display like an `unloaded` tab.
+  - If a tab is `loading` (search badge), its tile displays a throbber around the favicon
+  - When the tab is fully `loaded` (search badge), the tile displays normally without any of
+    the visual clues listed above.
+* A tab in _Wants attention_ state has its tile's favicon pulsing, and gets temporarily pushed
+  to the top of the tiles list (see __The _Wants attention_ state__ below for more details).
+
+### The _Wants attention_ state
+Sometimes websites alternate their titles among a few different strings to get the user's attention.
+_Linkedin.com_ for example switches between its normal title and a title indicating new messages when a
+new message is received on the site. Unfortunately these indications are completely lost when you have
+too many tabs on a window and their titles are all but invisible, or when the window is hidden from view.
+TabMania monitors changes in tab titles, and when it notices this pattern on a tab, it pushes its tile
+to the top of the TabMania popup, and pulses its favicon. The title change also naturally triggers blinking
+of the TabMania popup _Home_ tab. Never again miss one of these title-based notifications!
 
 ## Custom groups
 Custom groups are a convenient way to keep related tabs grouped together. In the _Custom groups setting_
@@ -127,21 +146,21 @@ _Browsing history_ items don't support search badges, and can only be matched on
 ## Pinned tabs, bookmarks and groups
 You can pin tabs (either via the Chrome tab menu or the TabMania tile menu action), you can pin
 bookmarks (via the TabMania tile menu action), and you can pin custom groups (through the _Custom
-groups_ configuration). Bookmarks normally show up only in search mode, but pinned bookmarks are
-shown in standard view if there's no open tab matching their URL.
+groups_ configuration).
 Pinned tiles are always listed on top, before all other tiles.
+Bookmarks are normally displayed only in search mode, but pinned bookmarks are an exception, and
+they're visible in standard view when there's no open tab matching their URL. Similarly, empty
+custom groups are hidden from standard view, but pinned custom groups are always present in standard
+view, even if empty. An empty custom group can be easily identified by the fact that it doesn't have
+a counting badge on top of its icon.
 
 ### Pinning inheritance
 Open tabs and groups can be explicitly pinned, or can inherit pinning from other objects. Bookmarks
 never inherit pinning, and can only be explicitly pinned.
-Specifically, an unpinned open tab inherits pinning from a pinned bookmark with a matching URL,
-while a group (either hostname-based or custom) inherits pinning if at least one of its members
-is a pinned tab or bookmark. 
+An unpinned open tab inherits pinning from a pinned bookmark with a matching URL, while a group (either
+hostname-based or custom) inherits pinning if at least one of its members is a pinned tab or bookmark. 
 Objects that are explicitly pinned show their thumbtuck icon in black, while objects that inherit
 pinning show their thumbtuck icon in grey.
-Normally custom groups don't show up in standard view if they're empty, but pinned custom groups will
-be included even if empty. An empty custom group can be easily identified by the fact that it doesn't
-have a counting badge on top of its icon.
 
 ## The button toolbar
 ### The "open new tab" button

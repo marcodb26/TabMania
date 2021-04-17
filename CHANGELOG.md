@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added "Wants attention" feature
   * When a site changes title continuously, temporarily push its tile to the top of the popup,
     pulse its favIcon and blink the _Home_ tab
-- Using daj.js to display relative times in bookmark and browsing history tile menus (subtitle area)
+- Using day.js to display relative times in bookmark and browsing history tile menus (subtitle area)
 - Support for touch screens
   * Automatically open tile dropdown menus when tap-holding in place (no movement)
   * Prevent Chrome context menu from appearing when users tap-hold

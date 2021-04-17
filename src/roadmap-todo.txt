@@ -10,6 +10,9 @@ PREP FOR NEXT RELEASE
 
 PUNTED TO NEXT RELEASE
 
+- Can't search for "real tabs" except by negating badges "bookmark", "closed" and "history"
+  * It would be best to have a positive search badge to only include "real tabs"
+
 - Create default custom groups to advertise the feature
   * Complexity: these default groups should be set up the first time the user installs
     the product, and possibly reinstalled upon "reset", but otherwise should not interfere
