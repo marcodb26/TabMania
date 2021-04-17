@@ -10,6 +10,22 @@ PREP FOR NEXT RELEASE
 
 PUNTED TO NEXT RELEASE
 
+- Create default custom groups to advertise the feature
+  * Complexity: these default groups should be set up the first time the user installs
+    the product, and possibly reinstalled upon "reset", but otherwise should not interfere
+	with configuration changes made by end users 
+	- E.g. have a flag in configuration that gets set and disallows regenerating that
+	  config at boot time
+  * Default groups
+    - New tabs (empty)
+	- Search (google and friends (which friends?))
+
+- Monitor new tabs being created, and if a tab that's like an existing tab gets created,
+  automatically close the new tab and move to the foreground the existing tab
+
+- Move to manifest v3 and implement reading clipboard by leveraging the popup?
+  * Force opening the popup if it's closed (then leave it open)
+
 - Add buttons on top and bottom of visible tiles area when the scrollbars are shrunk (narrow view)
 
 - Generate OS notification when tab wants attention

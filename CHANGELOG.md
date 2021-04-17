@@ -4,13 +4,69 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 # [Unreleased]
 ## Added
+- Added "Wants attention" feature
+  * When a site changes title continuously, temporarily push its tile to the top of the popup,
+    pulse its favIcon and blink the _Home_ tab
+- Using daj.js to display relative times in bookmark and browsing history tile menus (subtitle area)
+- Support for touch screens
+  * Automatically open tile dropdown menus when tap-holding in place (no movement)
+  * Prevent Chrome context menu from appearing when users tap-hold
+- Added bookmark folder on tile's second line of text
+- Responsive layout to support narrow width for TabMania popup
+  * Hide inactive BsTabs, then hide active BsTab as well, as the window gets narrower
+    - To make sure the main menu remains visible at all times
+  * Support changing BsTabs from menu items in the main menu
+    - Needed when the BsTabs are hidden
+	- Only visible when the popup is undocked
+  * Style narrower scrollbars when real estate becomes precious
+  * Fixed double horizontal scroll bars when the undocked popup was very narrow
+- If a tab/bookmark/history-item doesn't have a title, use the URL as title of the tile
+  * Some browsing history items appear to have no title
 
 ## Changed
-- Updated Bootstrap to v.5.0.0-beta3
 - Updated uglify-js to v.3.13.2
+- TabMania tile now doesn't allow to close the popup from within the tile
+- The pin for a pinned bookmark is now inherited by all tabs matching the bookmark
+  * Before only the first matching tab was inheriting the pin
+- Changed styling of settings accordions and custom groups accordions
+  * Remove the blue tint from the accordion buttons when expanded
+  * Set the button to have all corners rounded
+  * Removed extra borders and spacing around the perimeter of the expanded accordion
+- Removed display of URL bar at the bottom of the popup when hovering over the _Home_
+  and _Settings_ BsTabs (Bootstrap Tabs)
+- Disabled use of TabMania context menus on any `chrome-extension://` page
+  * The main target was to disable the TabMania context menus on the TabMania popup itself 
+- _Home_ and _Settings_ BsTab titles are now unselectable
+- If the browser is offline, use the cached favicon without waiting for the <img> tag to trigger
+  the URL loading error logic
+- Disable the _Suspend_ tile dropdown menu item when a tab is already suspended or unloaded
+  * Tabs get automatically unsuspended when opened
+- Changed tile styling for tiles in `loading` state
+  * Replaced the `loading` badge with a throbber around the favIcon of the tile
+  * Very similar visual to what Chrome does in the tab itself
 
 ## Fixed
-
+- Missing `tmConsole` class in production build of background page
+- Forcing initial position of undocked popup the first time it gets undocked after installation
+  * Or any time the local storage gets deleted
+- Tile dropdown menus now close automatically when they become hidden
+  * They used to remain open while hidden and show up as open when hovering (inconsistent)
+- When we fail to load a favicon in a custom group accordion button, attempt to use the cached
+  favicon instead
+  * This logic was only implemented for standard tiles in v1.2, added support for custom group
+    accordion buttons now
+- When moving a bookmark to a new folder, search results with the "folder:" modifier were
+  not getting updated
+- When bookmark title or URL were edited on an existing bookmark, BookmarksManager wasn't updating
+  all the data structures supporting search
+- Pinned custom groups were not showing the color on their left border when they were empty
+- The main menu was not closing automatically when the user started typing into the search box
+  (either starting with searchbox closed, or already open)
+- Automatically switch to another tab when suspending the active tab
+  * If the active tab gets suspended, Chrome triggers the unsuspend logic when switching to
+    another tab
+- The ellipsis truncating the title in a tile were not properly vertically aligned with the title
+- Lowercase "g" gets clipped in tile titles
 
 
 # [1.2.0] - 2021-03-25
