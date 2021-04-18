@@ -2,7 +2,7 @@
 The format of this Changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-# [Unreleased]
+# [1.3.0] - 2021-04-18
 ## Added
 - Added "Wants attention" feature
   * When a site changes title continuously, temporarily push its tile to the top of the popup,
