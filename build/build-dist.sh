@@ -58,6 +58,12 @@ if [ -d "${PACKTGT}" ]; then
 fi
 
 
+if ! [ -x "$(command -v 7z.exe)" ]; then
+  echo "7z.exe is not in PATH. Add it to PATH to continue."
+  ( pressEnter )
+  exit 1
+fi
+
 mkdir -p "${TGT}"
 mkdir -p "${TGT}/lib"
 mkdir -p "${TGT}/images"
