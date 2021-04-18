@@ -133,8 +133,8 @@ files are loaded (unless you want them to get built into `dist/popup.js`).
   - Change title `# [Unreleased]` to `# [X.Y.0] - YYYY-MM-DD`
     * There should be no `# [Unreleased]` in the file until after the tag has been created
 
-* Commit `/dist` to github
-  * Use commit message `Pushing /dist for vX.Y`
+* Commit `/dist` and `/past-releases/vX.Y` to github
+  * Use commit message `Pushing /dist and /past-releases/vX.Y for vX.Y`
   * Then don't touch `/dist` until the next release cycle
 
 * `git push` all local changes before the next step on github
