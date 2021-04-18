@@ -137,6 +137,8 @@ files are loaded (unless you want them to get built into `dist/popup.js`).
   * Use commit message `Pushing /dist for vX.Y`
   * Then don't touch `/dist` until the next release cycle
 
+* `git push` all local changes before the next step on github
+
 * Tag commit by creating a release in github
   * https://docs.github.com/en/github/administering-a-repository/managing-releases-in-a-repository
     - Click on the "Releases" block on the right
@@ -144,7 +146,7 @@ files are loaded (unless you want them to get built into `dist/popup.js`).
     - The tag must have format `vX.Y`, where X.Y is the same version as the version in the `manifest.json` file
   * Use same _title_ as the tag name (`vX.Y`)
   * Don't add any _description_ yet, we'll need tagged files to be linked in the description.
-  * Add `TabMania.v[X.Y].distribution.zip` to the release assets
+  * Add `TabMania.v[X.Y].zip` to the release assets
   * Ideally also add new screenshots (those you use in the Chrome Web Store developer console) to the
     assets as well
 
@@ -158,7 +160,8 @@ files are loaded (unless you want them to get built into `dist/popup.js`).
     - Readme: https://github.com/marcodb26/TabMania/blob/v1.2/README.md
 	- Changelog: https://github.com/marcodb26/TabMania/blob/v1.2/CHANGELOG.md
   * Then edit the release object just created, and add:
-	 `See the documentation and changelog for this release.` with appropriate hyperlinks
+	- `See the documentation and changelog for this release.` with appropriate hyperlinks
+	  * E.g.: `See the [documentation](https://github.com/marcodb26/TabMania/blob/v1.2/README.md) and [changelog](https://github.com/marcodb26/TabMania/blob/v1.2/CHANGELOG.md) for this release`.
 
 * Post the new version on the Google developer console at https://chrome.google.com/webstore/devconsole
   * Use the same tagged link to the README.md
