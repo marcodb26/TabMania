@@ -56,7 +56,7 @@ a few visible bits of information about the state of a browser tab:
       you can search for all tabs you've suspended this way by searching for the search badge `suspended`.
 	* Bookmarks, recently closed tabs and browsing history items are not loaded by definition,
 	  and will display like an `unloaded` tab.
-  - If a tab is `loading` (search badge), its tile displays a throbber around the favicon
+  - If a tab is `loading` (search badge), its tile displays a throbber around the favicon.
   - When the tab is fully `loaded` (search badge), the tile displays normally without any of
     the visual clues listed above.
 * A tab in _Wants attention_ state has its tile's favicon pulsing, and gets temporarily pushed
