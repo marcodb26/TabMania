@@ -108,6 +108,9 @@ files are loaded (unless you want them to get built into `dist/popup.js`).
 
 # Release process
 * Delete /dist
+  - Unlikely, but in case /past-releases already includes a folder `vX.Y` of the version you're
+    trying to create, delete that as well
+  - `npm run dist` (see below) checks for both and refuses to proceed if one of them already exists
 
 * Run `npm run dist`
   * This creates the ZIP file `past-releases/vX.Y/TabMania vX.Y.zip`, where `X.Y` is the current
