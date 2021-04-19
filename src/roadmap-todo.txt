@@ -4,6 +4,9 @@ TODO 2.0
   * NormalizedTabs.js:688 [47] NormalizedTabs::normalizeAll(): found tab in loading status
   * Don't run the loading workaround logic in the background page
 
+- BUG: after opening the popup, it takes long before the dropdown menus start showing up,
+  especially for tabs below the top
+
 
 PREP FOR NEXT RELEASE
 

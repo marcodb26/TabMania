@@ -54,13 +54,15 @@ _init: function() {
 	this._fwdTabs = Classes.BoundArray.create(1000);
 	this._isActiveWindowIdNone = false;
 
-	this._updateScAllTabsJob = Classes.ScheduledJob.create(this._updateShortcutsAllTabs.bind(this));
+	this._updateScAllTabsJob = Classes.ScheduledJob.create(this._updateShortcutsAllTabs.bind(this),
+								this._id + ".updateScAllTabs");
 	this._updateScAllTabsJob.debug();
 
 	// Run job once now to initialize this._normTabs
 	this._updateScAllTabsJob.run();
 
-	this._windowFocusLossPoller = Classes.ScheduledJob.create(this._windowFocusLossCb.bind(this));
+	this._windowFocusLossPoller = Classes.ScheduledJob.create(this._windowFocusLossCb.bind(this),
+								this._id + ".windowFocusLossPoller");
 	this._windowFocusLossPoller.debug();
 
 	// Note that _setActiveTabId() is asynchronous, so it's possible (though unlikely) that this
@@ -82,7 +84,8 @@ _init: function() {
 	this._setTabsCount().then(
 		// Run periodically a debugging assertion that the count is accurate
 		function() {
-			this._tabsCountAssertPoller = Classes.ScheduledJob.create(this._tabsCountAssertCb.bind(this));
+			this._tabsCountAssertPoller = Classes.ScheduledJob.create(this._tabsCountAssertCb.bind(this),
+											"tabsCountAssertPoller");
 			// Let it run every 30 seconds
 			this._tabsCountAssertPoller.start(30*1000);
 		}.bind(this)

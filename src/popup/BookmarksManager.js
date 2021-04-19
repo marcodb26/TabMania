@@ -99,10 +99,11 @@ _init: function() {
 
 	this.resetStats();
 
-	this._loadBookmarksJob = Classes.ScheduledJob.create(this._loadBookmarks.bind(this));
+	this._loadBookmarksJob = Classes.ScheduledJob.create(this._loadBookmarks.bind(this), "BookmarksManager::loadBookmarks");
 	this._loadBookmarksJob.debug();
 
-	this._applyOptionsChangeJob = Classes.ScheduledJob.create(this._applyOptionsChange.bind(this));
+	this._applyOptionsChangeJob = Classes.ScheduledJob.create(this._applyOptionsChange.bind(this),
+									"BookmarksManager::applyOptionsChange");
 	this._applyOptionsChangeJob.debug();
 
 	settingsStore.getAllOptions().addEventListener(Classes.EventManager.Events.UPDATED, this._optionsUpdatedCb.bind(this));

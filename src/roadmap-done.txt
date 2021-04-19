@@ -4,6 +4,8 @@ DONE 2.0
 
 - Added automation for creation of GitHub releases (`npm run github-release`)
 
+- Added job name to all instances of ScheduledJob
+
 
 DONE 1.3
 

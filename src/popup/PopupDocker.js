@@ -19,7 +19,7 @@ _init: function() {
 
 	this.debug();
 
-	this._savePopupSizeJob = Classes.ScheduledJob.create(this._savePopupSize.bind(this));
+	this._savePopupSizeJob = Classes.ScheduledJob.createAs(this._id + ".savePopupSize", this._savePopupSize.bind(this));
 	this._savePopupSizeJob.debug();
 
 	window.addEventListener("load", this._loadCb.bind(this));
@@ -228,6 +228,6 @@ focus: function() {
 
 }); // Classes.PopupDocker
 
-Classes.Base.roDef(window, "popupDocker", Classes.PopupDocker.create());
+Classes.Base.roDef(window, "popupDocker", Classes.PopupDocker.createAs("popupDocker"));
 
 
