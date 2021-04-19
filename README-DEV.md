@@ -200,7 +200,7 @@ files are loaded (unless you want them to get built into `dist/popup.js`).
   * To see commits history
 	- https://github.com/marcodb26/TabMania/commits
 
-- Upgraded NPM to v.7.7.5
+- Upgraded NPM to v.7.10.0
   * To upgrade:
     - Run PowerShell as Administrator
       > `Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force`
