@@ -139,29 +139,27 @@ files are loaded (unless you want them to get built into `dist/popup.js`).
 
 * `git push` all local changes before the next step on github
 
-* Tag commit by creating a release in github
-  * https://docs.github.com/en/github/administering-a-repository/managing-releases-in-a-repository
-    - Click on the "Releases" block on the right
-  * Create a tag as part of the release creation process
-    - The tag must have format `vX.Y`, where X.Y is the same version as the version in the `manifest.json` file
-  * Use same _title_ as the tag name (`vX.Y`)
-  * Don't add any _description_ yet, we'll need tagged files to be linked in the description.
-  * Add `TabMania.v[X.Y].zip` to the release assets
-  * Ideally also add new screenshots (those you use in the Chrome Web Store developer console) to the
-    assets as well
-
-* Once the tag is available, navigate to the tagged sources and get a link to README.md in that tag
-  * `https://github.com/marcodb26/TabMania/tree/**<tag label>**`
-	- E.g. https://github.com/marcodb26/TabMania/tree/v1.2
-    - Before, used to do: https://github.com/marcodb26/TabMania/commits then click the `< >` button (_Browse the repository
-    at this point in the history_)
-	  * But the link would be too long
-  * Note down the link of README.md and CHANGELOG.md
-    - Readme: https://github.com/marcodb26/TabMania/blob/v1.2/README.md
-	- Changelog: https://github.com/marcodb26/TabMania/blob/v1.2/CHANGELOG.md
-  * Then edit the release object just created, and add:
-	- `See the documentation and changelog for this release.` with appropriate hyperlinks
-	  * E.g.: `See the [documentation](https://github.com/marcodb26/TabMania/blob/v1.2/README.md) and [changelog](https://github.com/marcodb26/TabMania/blob/v1.2/CHANGELOG.md) for this release`.
+* Run `npm run github-release` to create the current release on GitHub
+  - Alternatively, to do it manually
+	* Tag commit by creating a release in github
+	  - https://docs.github.com/en/github/administering-a-repository/managing-releases-in-a-repository
+		* Click on the "Releases" block on the right
+	  - Create a tag as part of the release creation process
+		* The tag must have format `vX.Y`, where X.Y is the same version as the version in the `manifest.json` file
+	  - Use same _title_ as the tag name (`vX.Y`)
+	  - Don't add any _description_ yet, we'll need tagged files to be linked in the description.
+	  - Add `TabMania.v[X.Y].zip` to the release assets
+	  - Ideally also add new screenshots (those you use in the Chrome Web Store developer console) to the
+		assets as well
+	* Once the tag is available, navigate to the tagged sources and get a link to README.md in that tag
+	  - `https://github.com/marcodb26/TabMania/tree/**<tag label>**`
+		* E.g. https://github.com/marcodb26/TabMania/tree/v1.2
+	  - Note down the link of README.md and CHANGELOG.md
+		* Readme: https://github.com/marcodb26/TabMania/blob/v1.2/README.md
+		* Changelog: https://github.com/marcodb26/TabMania/blob/v1.2/CHANGELOG.md
+	  - Then edit the release object just created, and add:
+		* `See the documentation and changelog for this release.` with appropriate hyperlinks
+		  - E.g.: `See the [documentation](https://github.com/marcodb26/TabMania/blob/v1.2/README.md) and [changelog](https://github.com/marcodb26/TabMania/blob/v1.2/CHANGELOG.md) for this release`.
 
 * Post the new version on the Google developer console at https://chrome.google.com/webstore/devconsole
   * Use the same tagged link to the README.md

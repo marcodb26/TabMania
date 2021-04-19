@@ -1,5 +1,9 @@
 DONE 2.0
 
+- Added github-release-cli v2.0.0
+
+- Added automation for creation of GitHub releases (`npm run github-release`)
+
 
 DONE 1.3
 
