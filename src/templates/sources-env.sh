@@ -1,11 +1,11 @@
 # This file sets a bunch of variables, and some of them are controlled by "PROD_BUILD"
 # being set when this file is sourced
 
-declare VERSION="2.0"
+declare -r VERSION="2.0"
 
 # List source files in UNPACKED_POPUP_SOURCES relative to src/popup/ (the same way you want them listed in
 # the auto-generated src/popup/popup.html for DEV)
-declare UNPACKED_POPUP_SOURCES=(						
+declare -r UNPACKED_POPUP_SOURCES=(						
 	"../lib/Base.js" "../lib/TmUtils.js" "../lib/TmConsole.js" "../lib/PersistentDict.js"
 	"../lib/utils.js" "../lib/PerfProfiler.js" "../lib/AsyncQueue.js" "../lib/SerialPromises.js" "../lib/chromeUtils.js"
 	"../lib/NormalizedTabs.js" "../lib/ShortcutsManager.js" "../lib/SettingsStore.js"
@@ -19,13 +19,13 @@ declare UNPACKED_POPUP_SOURCES=(
 	"TabTileViewer.js" "TabTileMenuViewer.js" "PopupMenuViewer.js" "NewTabAction.js" "popup.js"
 )
 
-declare PACKED_POPUP_SOURCES=(
+declare -r PACKED_POPUP_SOURCES=(
 	"popup.js"
 )
 
 # List source files in DEV_BACKGROUND_SOURCES relative to src/ (the same way you want them listed in
 # the auto-generated src/manifest.json)
-declare UNPACKED_BACKGROUND_SOURCES=(
+declare -r UNPACKED_BACKGROUND_SOURCES=(
 	"lib/Base.js" "lib/TmUtils.js" "lib/TmConsole.js" "lib/PersistentDict.js" "lib/utils.js" "lib/PerfProfiler.js"
 	"lib/AsyncQueue.js"	"lib/SerialPromises.js" "lib/chromeUtils.js" "lib/NormalizedTabs.js" "lib/ShortcutsManager.js"
 	"lib/SettingsStore.js" "lib/LocalStore.js" "lib/ScheduledJob.js" "lib/PopupDockerBase.js"
@@ -33,7 +33,7 @@ declare UNPACKED_BACKGROUND_SOURCES=(
 	"background.js"
 )
 
-declare PACKED_BACKGROUND_SOURCES=(
+declare -r PACKED_BACKGROUND_SOURCES=(
 	"background.js"
 )
 
