@@ -179,7 +179,7 @@ files are loaded (unless you want them to get built into `dist/popup.js`).
 * Replace the version number in `TODO X.Y` at the top of `src/roadmap-todo.txt`
 
 * Commit these changes with message `First commit for vX.Y`, where X.Y is the same version as the new
-  version you've just edited in the `manifest.json`, `package.json` and `CHANGELOG.md` files
+  version you've just edited in the `sources-dev.sh`, `package.json` and `CHANGELOG.md` files
 
 * Run `npm run build-dev` to pick the version changes into the dev environment (manifest.json)
 
@@ -245,6 +245,18 @@ files are loaded (unless you want them to get built into `dist/popup.js`).
 
 - Installed day.js v1.10.4 (replacement for moment.js)
   > `npm install dayjs --save`
+
+- Installed [github-release-cli](https://www.npmjs.com/package/github-release-cli) v2.0.0
+  > `npm install github-release-cli --save-dev`
+  * Per https://github.com/cheton/github-release-cli/issues/23, you also need to manually
+    install `npm install @babel/runtime --save-dev`
+  * Follow these steps to get an OAuth access token
+	- https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
+	- Or simply go to https://github.com/settings/tokens and get the token
+	  * Select scope "public_repo" instead of "repo"
+  * Then store the access token in the environment variable `export GITHUB_TOKEN="<token_value>"`
+    - E.g., with Windows git bash, in the `%HOMEPATH%/.bash_profile`, or wherever git bash
+	  sets your home directory
 
 - Installed [Windows 10 Power Toys](https://github.com/microsoft/PowerToys) v.0.35.0
   * Find installer on the [GitHub releases page](https://github.com/microsoft/PowerToys/releases/)

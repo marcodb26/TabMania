@@ -29,8 +29,10 @@
   },
   "homepage": "https://github.com/marcodb26/TabMania#readme",
   "devDependencies": {
+    "@babel/runtime": "^7.13.10",
     "csso-cli": "^3.0.0",
     "ejs": "^3.1.6",
+    "github-release-cli": "^2.0.0",
     "uglify-js": "^3.12.8"
   },
   "dependencies": {
