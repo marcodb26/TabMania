@@ -186,7 +186,7 @@ files are loaded (unless you want them to get built into `dist/popup.js`).
 
 * Find out if any NPM packages need updates using `npm outdated`
   - Then update them with `npm update` and update `CHANGELOG.md` accordingly
-  - List current versions in the __Environment__ sectoin below
+  - List current versions in the __Environment__ section below
 
 # Environment
 - Google developer console: https://chrome.google.com/webstore/devconsole
@@ -228,7 +228,7 @@ files are loaded (unless you want them to get built into `dist/popup.js`).
   * To update use `npm update bootstrap`
   * Call `npm run build-dev` when upgrading bootstrap again
 
-- Installed uglify-js v.3.13.2 (was v.3.13.0)
+- Installed uglify-js v.3.13.4 (was v.3.13.2)
   > `npm install uglify-js --save-dev`
   > `npm update uglify-js --save-dev`
 

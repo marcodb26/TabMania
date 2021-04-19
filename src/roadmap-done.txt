@@ -4,6 +4,8 @@ DONE 2.0
 
 - Added automation for creation of GitHub releases (`npm run github-release`)
 
+- Updated uglify-js from v.3.13.2 to v.3.13.4
+
 - Added job name to all instances of ScheduledJob
 
 
