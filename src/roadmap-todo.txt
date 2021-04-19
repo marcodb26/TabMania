@@ -1,5 +1,9 @@
 TODO 2.0
 
+- Background page normalizeAll:
+  * NormalizedTabs.js:688 [47] NormalizedTabs::normalizeAll(): found tab in loading status
+  * Don't run the loading workaround logic in the background page
+
 
 PREP FOR NEXT RELEASE
 
