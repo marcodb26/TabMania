@@ -161,6 +161,9 @@ files are loaded (unless you want them to get built into `dist/popup.js`).
 		* `See the documentation and changelog for this release.` with appropriate hyperlinks
 		  - E.g.: `See the [documentation](https://github.com/marcodb26/TabMania/blob/v1.2/README.md) and [changelog](https://github.com/marcodb26/TabMania/blob/v1.2/CHANGELOG.md) for this release`.
 
+* Add any extra assets (screenshots) to the GitHub release just created
+  - The ZIP file from the release is automatically added by the previous step
+
 * Post the new version on the Google developer console at https://chrome.google.com/webstore/devconsole
   * Use the same tagged link to the README.md
 
