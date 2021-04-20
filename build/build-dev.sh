@@ -55,7 +55,7 @@ declare TMPJSON="src/templates/sources-dev.json"
 
 # Create manifest.json
 echo "Creating manifest.json"
-"${NPMBIN}/ejs" src/templates/manifest.json.ejs -f "${TMPJSON}" -o src/manifest.json
+"${NPMBIN}/ejs" src/templates/manifest-v3.json.ejs -f "${TMPJSON}" -o src/manifest.json
 
 
 # Create of popup/popup.html

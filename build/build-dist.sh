@@ -81,7 +81,7 @@ declare TMPJSON="${TGT}/sources-prod.json"
 
 # Create dist/manifest.json
 echo "Creating manifest.json"
-"${NPMBIN}/ejs" "${TEMPLATES}/manifest.json.ejs" -f "${TMPJSON}" -o "${TGT}/manifest.json"
+"${NPMBIN}/ejs" "${TEMPLATES}/manifest-v3.json.ejs" -f "${TMPJSON}" -o "${TGT}/manifest.json"
 
 
 # Create dist/popup.html

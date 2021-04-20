@@ -1,0 +1,150 @@
+<%# This is a comment in EJS, see https://ejs.co/
+  # 
+  # We're using EJS for two reasons:
+  # 1. We need to supply a different set of Javascript scripts for dev and production
+  # 2. We need a way to strip comments out of the manifest.json
+  # 
+  # There are many ways to achieve (2), but since we needed (1), why not get both from the
+  # same tool...
+  # 
+  # This is not an auto-generated file, but please leave that HTML comment there...
+  # 
+  # Note the use of the closing tag with the leading "-", indicating "trim-mode ('newline slurp')"
+-%>
+<%# While releasing 1.2, discovered that the Chrome Web Store is not as premissive as
+  # Google Chrome itself when it comes to parsing JSON: CWS doesn't accept comments in
+  # the JSON file, so we need to restrict this "auto-generated" warning only to the
+  # dev version of manifest.json
+-%>
+<%- isProd ? "" : "// AUTO-GENERATED FILE, DO NOT EDIT, see src/templates/manifest-v3.json.ejs for details\n" -%>
+{
+	"name": "TabMania",
+	"version": "<%- version %>",
+	"description": "A simple tab manager with search across tabs, bookmarks and browsing history",
+	"permissions": [
+		"bookmarks",
+		"contextMenus",
+		"tabs",
+		"sessions", <%# https://developer.chrome.com/docs/extensions/reference/sessions/ %>
+		"storage",
+		"clipboardRead", <%# See: https://stackoverflow.com/questions/22702446/how-to-get-clipboard-data-in-chrome-extension %>
+
+		<%# For now, "tabGroups" and URL permissions are only tracked in DEV environment, we've
+		  # not written any production code for them yet.
+		  # URL permissions ("*://*/*") will be needed when we'll add logic for script injection.
+		%>
+		<%- isProd ? "" : "\"tabGroups\",\n" %> <%# https://developer.chrome.com/docs/extensions/reference/tabGroups/ -%>
+		<%- isProd ? "" : "\"*://*/*\",\n" %> <%# Needed to allow script injection in tabs (see chromeUtils.inject()) -%>
+
+		<%# We need to add permission "chrome://favicon/" to gain access to the favIcon cache, needed to have
+		  # an icon for the tiles displaying bokmarks. Some people say you also need to have "content_security_policy"
+		  # set to "img-src chrome://favicon;", but that seems to break loading other images, and not having
+		  # it doesn't seem to cause any side effects.
+		%>
+		"chrome://favicon/"
+	],
+	 "optional_permissions": [
+		"history" <%# https://developer.chrome.com/docs/extensions/reference/history/ %>
+	],
+	"background": {
+		"scripts": [ <%- "\"" + bgSources.join("\", \"") + "\"" %> ],
+		"persistent": true
+	},
+
+	<%# Define keyboard shortcuts
+	  # See https://developer.chrome.com/docs/extensions/reference/commands/
+	  # Use URL chrome://extensions/shortcuts to verify the active shortcuts, or to change them.
+	  # Note that per https://stackoverflow.com/questions/20721938/chrome-extension-commands-keyboard-shortcuts-not-working/20724071
+	  # changes to the "suggested_key" will not take effect unless you uninstall and reinstall
+	  # the extension. Just updating it won't do it (as I can painfully assess).
+	%>
+	"commands": {
+		<%# Prefixing keys with numbers to specify display ordering on Chrome's extension
+		  # shortcuts page (seems to sort them alphabetically)
+		%>
+		"00back": {
+			"suggested_key": {
+				"default": "Ctrl + Shift + Left"
+			},
+			"description": "Go back to the last active tab",
+			<%# "global" makes the shortcut available from anywhere in Windows. No reason
+			  # to do that, these shortcuts will be available only from within Chrome.
+			%>
+			"global": false
+		},
+		"01fwd": {
+			"suggested_key": {
+				"default": "Ctrl + Shift + Right"
+			},
+			"description": "Go forward to the next active tab",
+			"global": false
+		},
+		"02los":  { <%# "los" == "launch or search" %>
+			"suggested_key": {
+				"default": "Ctrl + Shift + Down"
+			},
+			"description": "Clipboard launch/search: open a new tab using the clipboard value as URL or search text",
+			"global": true
+		},
+		"03closeback": {
+<%# Sacrifice this shortcut because a manifest file can only have 4 "suggested_key". Users
+  # will need to go enable the other commands explicitly at chrome://extensions/shortcuts.
+  # It's also very hard to think about a good shortcut for this stuff, let's leave it up
+  # to the user to decide if they want to use these shortcuts, and what keys they want to assign.
+-%>
+			"description": "Close the current tab and go back to the last active tab",
+			"global": false
+		},
+		"04closefwd": {
+			"description": "Close the current tab and go forward to the next active tab",
+			"global": false
+		},
+		"90shortcut":  {
+			"description": "Custom shortcut 1: open a configured tab",
+			"global": true
+		},
+		"91shortcut":  {
+			"description": "Custom shortcut 2: open a configured tab",
+			"global": true
+		},
+		"92shortcut":  {
+			"description": "Custom shortcut 3: open a configured tab",
+			"global": true
+		},
+		"93shortcut":  {
+			"description": "Custom shortcut 4: open a configured tab",
+			"global": true
+		},
+		"94shortcut":  {
+			"description": "Custom shortcut 5: open a configured tab",
+			"global": true
+		}
+	},
+
+	"browser_action": {
+		"default_popup": "<%- isProd ? "popup.html" : "popup/popup.html" %>",
+
+		<%# Note that the icon could disappear from the extension toolbar if it's not pinned.
+		  # To pin it, see here: https://imgur.com/IOT6RJg (from https://support.google.com/chrome/thread/55345301?hl=en )
+		%>
+		"default_icon": {
+			"16": "images/icon-16.png",
+			"32": "images/icon-32.png",
+			"48": "images/icon-48.png",
+			"128": "images/icon-128.png"
+		}
+	},
+	"icons": {
+		"16": "images/icon-16.png",
+		"32": "images/icon-32.png",
+		"48": "images/icon-48.png",
+		"128": "images/icon-128.png"
+	},
+
+	<%# https://cdn.jsdelivr.net is needed to get Bootstrap (but we now store it locally.
+	  # See: https://stackoverflow.com/questions/34950009/chrome-extension-refused-to-load-the-script-because-it-violates-the-following-c
+	  # https://cdnjs.cloudflare.com is needed for Font Awesome
+	  # "content_security_policy": "script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; object-src 'self'",
+	%>
+	"manifest_version": 3
+}
