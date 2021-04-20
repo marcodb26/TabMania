@@ -57,7 +57,7 @@ declare TMPJSON="${TEMPLATES}/sources-dev.json"
 
 # Create manifest.json
 echo "Creating manifest.json"
-"${NPMBIN}/ejs" "${TEMPLATES}/manifest-v3.json.ejs" -f "${TMPJSON}" -o src/manifest.json
+"${NPMBIN}/ejs" "${TEMPLATES}/manifest-v2.json.ejs" -f "${TMPJSON}" -o src/manifest.json
 
 # Create backgroundLoader.js (only needed for manifest v3, ignore while using manifest v2)
 echo "Creating backgroundLoader.js"
