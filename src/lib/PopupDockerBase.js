@@ -92,9 +92,9 @@ _setDocked: function(docked) {
 		popupUrl = this.getPopupUrl();
 	}
 
-	chromeUtils.wrap(chrome.browserAction.setPopup, logHead, { popup: popupUrl }).then(
+	chromeUtils.wrap(chromeUtils.bAction.setPopup, logHead, { popup: popupUrl }).then(
 		function() {
-			this._log(logHead + "chrome.browserAction.setPopup() succeeded");
+			this._log(logHead + "chromeUtils.bAction.setPopup() succeeded");
 		}.bind(this)
 	);
 },
@@ -103,9 +103,9 @@ _setDocked: function(docked) {
 showState: function() {
 	const logHead = "PopupDockerBase::showState(): ";
 
-	chromeUtils.wrap(chrome.browserAction.getPopup, logHead, {} ).then(
+	chromeUtils.wrap(chromeUtils.bAction.getPopup, logHead, {} ).then(
 		function(result) {
-			this._log(logHead + "chrome.browserAction.getPopup() returned \"" + result +
+			this._log(logHead + "chromeUtils.bAction.getPopup() returned \"" + result +
 					"\" (empty means \"undocked\")");
 		}.bind(this)
 	);

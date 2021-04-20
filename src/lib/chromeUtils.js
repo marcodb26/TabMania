@@ -1,5 +1,12 @@
 // CLASS ChromeUtils
 Classes.ChromeUtils = Classes.Base.subclass({
+	// Switch between "chromeUtils.bAction" and "chrome.action" depending on whether
+	// you're using manifest v2 or manifest v3.
+	// Note that we're not using "chrome.pageAction", but if we did, we'd want to 
+	// have a "pAction: chrome.action" here as well...
+
+	// bAction: chrome.browserAction,  // manifest v2
+	bAction: chrome.action,  // manifest v3
 
 _init: function() {
 	// Overriding the parent class' _init(), but calling that original function first

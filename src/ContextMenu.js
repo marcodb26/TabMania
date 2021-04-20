@@ -23,8 +23,8 @@ _init: function() {
 _blinkPopupIconBadge: async function(tabId) {
 	const logHead = "ContextMenu::_blinkPopupIconBadge(" + tabId + ")";
 
-	let origColorArray = await chromeUtils.wrap(chrome.browserAction.getBadgeBackgroundColor, logHead, { tabId: tabId });
-	let setBadgeBgColor = chrome.browserAction.setBadgeBackgroundColor;
+	let origColorArray = await chromeUtils.wrap(chromeUtils.bAction.getBadgeBackgroundColor, logHead, { tabId: tabId });
+	let setBadgeBgColor = chromeUtils.bAction.setBadgeBackgroundColor;
 	for(let i = 0; i < 3; i++) {
 		await chromeUtils.wrap(setBadgeBgColor, logHead, { tabId: tabId, color: "#FF0000" });
 		await delay(150);

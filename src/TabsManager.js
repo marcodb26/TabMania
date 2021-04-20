@@ -190,7 +190,7 @@ _setPopupBadge: function(tabsCount) {
 
 	// Note that if you specify an integer for "text", the function fails, we need to cast
 	// the number to string explicitly.
-	return chromeUtils.wrap(chrome.browserAction.setBadgeText, logHead, { text: tabsCount.toString() });
+	return chromeUtils.wrap(chromeUtils.bAction.setBadgeText, logHead, { text: tabsCount.toString() });
 },
 
 // There seems to be a bug in Chrome that causes the event "onFocusChanged" to only fire

@@ -20,9 +20,9 @@ _init: function() {
 	this._eventManager = Classes.EventManager.create("popupDockerBg");
 	this._eventManager.attachRegistrationFunctions(this);
 
-	chrome.browserAction.onClicked.addListener(this._onClickedCb.bind(this));
+	chromeUtils.bAction.onClicked.addListener(this._onClickedCb.bind(this));
 
-	// Initialize state for the chrome.browserAction APIs
+	// Initialize state for the chromeUtils.bAction APIs
 	this._setDocked(localStore.isPopupDocked());
 },
 
@@ -38,7 +38,7 @@ sendEvent: function(cmd, data) {
 
 _onClickedCb: function() {
 	// Per https://developer.chrome.com/docs/extensions/reference/browserAction/#event-onClicked
-	// this callback will be called only if you used chrome.browserAction.setPopup({ popup: "" }),
+	// this callback will be called only if you used chromeUtils.bAction.setPopup({ popup: "" }),
 	// which is true only for undocked popups
 	this._openUndocked();
 },

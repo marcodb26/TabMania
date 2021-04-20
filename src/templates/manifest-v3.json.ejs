@@ -34,6 +34,11 @@
 		  # URL permissions ("*://*/*") will be needed when we'll add logic for script injection.
 		%>
 		<%- isProd ? "" : "\"tabGroups\",\n" %> <%# https://developer.chrome.com/docs/extensions/reference/tabGroups/ -%>
+	],
+	 "optional_permissions": [
+		"history" <%# https://developer.chrome.com/docs/extensions/reference/history/ %>
+	],
+	"host_permissions": [
 		<%- isProd ? "" : "\"*://*/*\",\n" %> <%# Needed to allow script injection in tabs (see chromeUtils.inject()) -%>
 
 		<%# We need to add permission "chrome://favicon/" to gain access to the favIcon cache, needed to have
@@ -42,9 +47,6 @@
 		  # it doesn't seem to cause any side effects.
 		%>
 		"chrome://favicon/"
-	],
-	 "optional_permissions": [
-		"history" <%# https://developer.chrome.com/docs/extensions/reference/history/ %>
 	],
 	"background": {
 		"scripts": [ <%- "\"" + bgSources.join("\", \"") + "\"" %> ],
@@ -121,7 +123,7 @@
 		}
 	},
 
-	"browser_action": {
+	"action": {
 		"default_popup": "<%- isProd ? "popup.html" : "popup/popup.html" %>",
 
 		<%# Note that the icon could disappear from the extension toolbar if it's not pinned.
