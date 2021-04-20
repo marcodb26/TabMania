@@ -636,6 +636,12 @@ PUNTED TO NEXT RELEASE
     - See https://stackoverflow.com/questions/65846725/i-cant-find-any-documentation-for-chrome-favicon-api
   * Another difference: manifest v3 doesn't seem to offer the "CTRL+ALT+ARROW UP" shortcut to
     open the popup (docked or undocked)
+  * To switch back to manifest v3 later:
+    - Edit chromeUtils.js and switch the "bAction" property to point to "chrome.action"
+	- Edit build-dev.sh and build-dist.sh to generate manifest.json from manifest-v3.json.ejs
+	- Use the isBg() function from backgroundLoader.js.ejs to conditionally remove access to DOM
+	  (that is "document" variable) in classes shared between background and popup
+	  * For example, the class EventManager needs to have that check
 
 - Display details about video
   * For Zoom video playback, you can use:
