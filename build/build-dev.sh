@@ -17,6 +17,8 @@ declare -r NPMBIN=`npm bin`
 declare -r NPMROOT=`npm root`
 
 declare -r LIB="src/lib/npm"
+declare -r TEMPLATES="src/templates"
+
 mkdir -p "${LIB}"
 
 # Bootstrap stuff
@@ -47,20 +49,23 @@ cp "${NPMROOT}/dayjs/plugin/relativeTime.js" "${LIB}/relativeTime.js"
 
 # Create the JSON file we'll need to run against our templates to build manifest.json
 # and popup.html
-source src/templates/sources-env.sh
+source "${TEMPLATES}/sources-env.sh"
 
-declare TMPJSON="src/templates/sources-dev.json"
+declare TMPJSON="${TEMPLATES}/sources-dev.json"
 (createJsonFile) > "${TMPJSON}"
 
 
 # Create manifest.json
 echo "Creating manifest.json"
-"${NPMBIN}/ejs" src/templates/manifest-v3.json.ejs -f "${TMPJSON}" -o src/manifest.json
+"${NPMBIN}/ejs" "${TEMPLATES}/manifest-v3.json.ejs" -f "${TMPJSON}" -o src/manifest.json
 
+# Create backgroundLoader.js (only needed for manifest v3, ignore while using manifest v2)
+echo "Creating backgroundLoader.js"
+"${NPMBIN}/ejs" "${TEMPLATES}/backgroundLoader.js.ejs" -f "${TMPJSON}" -o src/backgroundLoader.js
 
 # Create of popup/popup.html
 echo "Creating popup.html"
-"${NPMBIN}/ejs" src/templates/popup.html.ejs -f "${TMPJSON}" -o src/popup/popup.html
+"${NPMBIN}/ejs" "${TEMPLATES}/popup.html.ejs" -f "${TMPJSON}" -o src/popup/popup.html
 
 
 # Since we're done with both manifest.json and popup.html, we can now safely delete the JSON

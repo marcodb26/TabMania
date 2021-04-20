@@ -629,6 +629,13 @@ PUNTED TO NEXT RELEASE
   * Can't do this until clipboard-read is supported with service workers in manifest v3
     - See https://bugs.chromium.org/p/chromium/issues/detail?id=1160302
 	- See also https://groups.google.com/a/chromium.org/g/chromium-extensions/c/GD59r-FOeuQ
+  * Maybe more important, can't do it until the "chrome://favicon/" permission issue has
+    been addressed
+	- Chrome refuses to load "host_permissions": [ "chrome://favicon/" ], and there's supposed
+	  to be a new "chrome.favicon" API, but it's nowhere to be seen... :-|
+    - See https://stackoverflow.com/questions/65846725/i-cant-find-any-documentation-for-chrome-favicon-api
+  * Another difference: manifest v3 doesn't seem to offer the "CTRL+ALT+ARROW UP" shortcut to
+    open the popup (docked or undocked)
 
 - Display details about video
   * For Zoom video playback, you can use:

@@ -1,0 +1,53 @@
+<%# This is a comment in EJS, see https://ejs.co/
+  # 
+  # We're using EJS for two reasons:
+  # 1. We need to supply a different set of Javascript scripts for dev and production
+  # 2. We need a way to strip comments out of the manifest.json
+  # 
+  # There are many ways to achieve (2), but since we needed (1), why not get both from the
+  # same tool...
+  # 
+  # This is not an auto-generated file, but please leave that HTML comment there...
+  # 
+  # Note the use of the closing tag with the leading "-", indicating "trim-mode ('newline slurp')"
+-%>
+
+// AUTO-GENERATED FILE, DO NOT EDIT, see src/templates/backgroundLoader.js.ejs for details\n"
+
+// This is the manifest v3 background scripts loader. The loader is needed because unlike in
+// manifest v2, in manifest v3 "background.service_worker" accepts only one file.
+
+// Note that this file is only needed for DEV, in PROD we use uglifyJs to consolidate all
+// files into a single source file, so we don't need a loader of source files.
+
+// Manifest v3 service workers don't have the rich environment available to manifest v2 background
+// scripts. This is an ugly hack, but we need to have a "window" variable to attach some of our
+// read-only variables, so we create a dummy "window" here. Eventually we'll need to clean this
+// up, for now we're just trying to bring up our first manifest v3 extensions...
+// See also https://developer.mozilla.org/en-US/docs/Web/API/WorkerGlobalScope
+
+window = self;
+
+Object.defineProperty(window, "backgroundServiceWorker", {
+	value: true,
+	// You must use "configurable: true" to be able to change a property again by
+	// calling Object.defineProperty() multiple times on the same property (or to
+	// delete the property).
+	// See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
+	configurable: false,
+	enumerable: false,
+	writable: false
+});
+
+function isBg() {
+	return optionalWithDefault(window.backgroundServiceWorker, false);
+}
+
+// See https://stackoverflow.com/questions/66406672/chrome-extension-mv3-modularize-service-worker-js-file
+// for the syntax in this loader.
+
+try {
+	importScripts(<%- "\"" + bgSources.join("\", \"") + "\"" %>);
+} catch(e) {
+	console.error(e);
+}

@@ -83,6 +83,9 @@ declare TMPJSON="${TGT}/sources-prod.json"
 echo "Creating manifest.json"
 "${NPMBIN}/ejs" "${TEMPLATES}/manifest-v3.json.ejs" -f "${TMPJSON}" -o "${TGT}/manifest.json"
 
+## Create backgroundLoader.js
+#echo "Creating backgroundLoader.js"
+#"${NPMBIN}/ejs" "${TEMPLATES}/backgroundLoader.js.ejs" -f "${TMPJSON}" -o "${TGT}/backgroundLoader.js"
 
 # Create dist/popup.html
 echo "Creating popup.html"

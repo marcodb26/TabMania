@@ -19,21 +19,25 @@
 <%- isProd ? "" : "// AUTO-GENERATED FILE, DO NOT EDIT, see src/templates/manifest-v3.json.ejs for details\n" -%>
 {
 	"name": "TabMania",
+
 	"version": "<%- version %>",
+	"version_name": "<%- version + (isProd ? "" : "-DEV") %>",
+
 	"description": "A simple tab manager with search across tabs, bookmarks and browsing history",
 	"permissions": [
 		"bookmarks",
 		"contextMenus",
 		"tabs",
-		"sessions", <%# https://developer.chrome.com/docs/extensions/reference/sessions/ %>
-		"storage",
-		"clipboardRead", <%# See: https://stackoverflow.com/questions/22702446/how-to-get-clipboard-data-in-chrome-extension %>
 
 		<%# For now, "tabGroups" and URL permissions are only tracked in DEV environment, we've
 		  # not written any production code for them yet.
 		  # URL permissions ("*://*/*") will be needed when we'll add logic for script injection.
 		%>
 		<%- isProd ? "" : "\"tabGroups\",\n" %> <%# https://developer.chrome.com/docs/extensions/reference/tabGroups/ -%>
+
+		"sessions", <%# https://developer.chrome.com/docs/extensions/reference/sessions/ %>
+		"storage",
+		"clipboardRead" <%# See: https://stackoverflow.com/questions/22702446/how-to-get-clipboard-data-in-chrome-extension %>
 	],
 	 "optional_permissions": [
 		"history" <%# https://developer.chrome.com/docs/extensions/reference/history/ %>
@@ -49,8 +53,7 @@
 		"chrome://favicon/"
 	],
 	"background": {
-		"scripts": [ <%- "\"" + bgSources.join("\", \"") + "\"" %> ],
-		"persistent": true
+		"service_worker": "backgroundLoader.js"
 	},
 
 	<%# Define keyboard shortcuts

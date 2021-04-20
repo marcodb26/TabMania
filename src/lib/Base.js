@@ -153,9 +153,11 @@ createAs: function(id, ...restArgs) {
 	// the log prefix using the _id of retVal
 	this.debug.call(retVal, false);
 	this.roDef(retVal, "_err", this._genLogFn.call(retVal, console.error, true));
-	let bgConsoleObj = chrome.extension.getBackgroundPage().console;
-	// See debug() for details about _log.bg() and _err.bg().
-	this.roDef(retVal._err, "bg", this._genLogFn.call(retVal, bgConsoleObj.error, true, bgConsoleObj));
+
+// No more chrome.extension.getBackgroundPage() with manifest v3
+//	let bgConsoleObj = chrome.extension.getBackgroundPage().console;
+//	// See debug() for details about _log.bg() and _err.bg().
+//	this.roDef(retVal._err, "bg", this._genLogFn.call(retVal, bgConsoleObj.error, true, bgConsoleObj));
 
 	// We want the option to replace _assert() with an empty function in production.
 	// Don't use "setPrefix" (set it to "false" or omit it) for _genLogFn() of _assert(),
@@ -182,17 +184,18 @@ debug: function(flag) {
 		// something to consider later...
 	//	this.roDef(this._log, "info", this._genLogFn(console.info, true));
 
-		// _log.bg() sends the messages to the console of the background page.
-		// It should only be called from inside the popup (getBackgroundPage()
-		// doesn't seem to work from injected scripts).
-		let bgConsoleObj = chrome.extension.getBackgroundPage().console;
-		this.roDef(this._log, "bg", this._genLogFn(bgConsoleObj.log, true, bgConsoleObj));
+// No more chrome.extension.getBackgroundPage() with manifest v3
+//		// _log.bg() sends the messages to the console of the background page.
+//		// It should only be called from inside the popup (getBackgroundPage()
+//		// doesn't seem to work from injected scripts).
+//		let bgConsoleObj = chrome.extension.getBackgroundPage().console;
+//		this.roDef(this._log, "bg", this._genLogFn(bgConsoleObj.log, true, bgConsoleObj));
 	} else {
 		this.roDef(this, "_log", emptyFn);
 		this.roDef(this._log, "raw", emptyFn);
 		this.roDef(this._log, "trace", emptyFn);
 	//	this.roDef(this._log, "info", emptyFn);
-		this.roDef(this._log, "bg", emptyFn);
+//		this.roDef(this._log, "bg", emptyFn);
 	}
 },
 
@@ -282,6 +285,7 @@ Classes.EventManager = Classes.Base.subclass({
 _init: function(domId) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.Base._init.call(this);
+
 	this._elem = document.createElement("div");
 
 	if(domId != null) {

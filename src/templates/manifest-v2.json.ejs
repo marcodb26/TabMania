@@ -19,7 +19,10 @@
 <%- isProd ? "" : "// AUTO-GENERATED FILE, DO NOT EDIT, see src/templates/manifest-v2.json.ejs for details\n" -%>
 {
 	"name": "TabMania",
+
 	"version": "<%- version %>",
+	"version_name": "<%- version + (isProd ? "" : "-DEV") %>",
+
 	"description": "A simple tab manager with search across tabs, bookmarks and browsing history",
 	"permissions": [
 		"bookmarks",
