@@ -642,6 +642,9 @@ PUNTED TO NEXT RELEASE
 	- Use the isBg() function from backgroundLoader.js.ejs to conditionally remove access to DOM
 	  (that is "document" variable) in classes shared between background and popup
 	  * For example, the class EventManager needs to have that check
+	- Remember that backgroundLoader.js.ejs also redefines "window" to "WorkerGlobalScope.self"
+	  to keep some basic read-only variables from breaking at definition time
+	  * Eventually we should change that model and avoid having to create a dummy "window"
 
 - Display details about video
   * For Zoom video playback, you can use:
