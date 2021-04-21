@@ -388,6 +388,82 @@ _renderIncognitoInfo: function() {
 	);
 },
 
+// LTW = Least Tabbed Window
+_renderLTWOptions: function() {
+	let ltwGroup = Classes.CollapsibleContainerViewer.create({
+		startExpanded: true,
+		border: true
+	});
+	ltwGroup.setHeadingHtml(`<div class="fw-bold">Least tabbed window</div>`);
+	ltwGroup.addClasses("ms-2", "mt-3");
+	this._generalSettingsContainer.append(ltwGroup);
+
+	let newEmptyTabInLTW = Classes.SettingsCheckboxItemViewer.create({
+		setFn: settingsStore.setOptionNewEmptyTabInLTW.bind(settingsStore),
+		getFn: settingsStore.getOptionNewEmptyTabInLTW.bind(settingsStore),
+		label: "For Chrome new tabs",
+		updateKey: "options",
+	});
+	newEmptyTabInLTW.removeClasses("mt-3");
+	newEmptyTabInLTW.addClasses("pt-1");
+	ltwGroup.append(newEmptyTabInLTW);
+
+	let newTabWithOpenerInLTW = Classes.SettingsCheckboxItemViewer.create({
+		setFn: settingsStore.setOptionNewTabWithOpenerInLTW.bind(settingsStore),
+		getFn: settingsStore.getOptionNewTabWithOpenerInLTW.bind(settingsStore),
+		label: "For links from other tabs",
+		updateKey: "options",
+	});
+	ltwGroup.append(newTabWithOpenerInLTW);
+
+	let newTabNoOpenerInLTW = Classes.SettingsCheckboxItemViewer.create({
+		setFn: settingsStore.setOptionNewTabNoOpenerInLTW.bind(settingsStore),
+		getFn: settingsStore.getOptionNewTabNoOpenerInLTW.bind(settingsStore),
+		label: "For links from other applications",
+		updateKey: "options",
+	});
+	newTabNoOpenerInLTW.addClasses("pb-1");
+	ltwGroup.append(newTabNoOpenerInLTW);
+},
+
+_renderSearchOptions: function() {
+	let searchGroup = Classes.CollapsibleContainerViewer.create({
+		startExpanded: true,
+		border: true
+	});
+	searchGroup.setHeadingHtml(`<div class="fw-bold">Search</div>`);
+	searchGroup.addClasses("ms-2", "mt-3");
+	this._generalSettingsContainer.append(searchGroup);
+
+	let bookmarksInSearch = Classes.SettingsCheckboxItemViewer.create({
+		setFn: settingsStore.setOptionBookmarksInSearch.bind(settingsStore),
+		getFn: settingsStore.getOptionBookmarksInSearch.bind(settingsStore),
+		label: "Include bookmarks",
+		updateKey: "options",
+	});
+	bookmarksInSearch.removeClasses("mt-3");
+	bookmarksInSearch.addClasses("pt-1");
+	searchGroup.append(bookmarksInSearch);
+
+	let recentlyClosedInSearch = Classes.SettingsCheckboxItemViewer.create({
+		setFn: settingsStore.setOptionRecentlyClosedInSearch.bind(settingsStore),
+		getFn: settingsStore.getOptionRecentlyClosedInSearch.bind(settingsStore),
+		label: "Include recently closed tabs",
+		updateKey: "options",
+	});
+	searchGroup.append(recentlyClosedInSearch);
+
+	let historyInSearch = Classes.SettingsCheckboxPermViewer.create({
+		setFn: settingsStore.setOptionHistoryInSearch.bind(settingsStore),
+		getFn: settingsStore.getOptionHistoryInSearch.bind(settingsStore),
+		label: "Include browsing history",
+		updateKey: "options",
+		permission: "history"
+	});
+	historyInSearch.addClasses("pb-1");
+	searchGroup.append(historyInSearch);
+},
+
 _renderSettings: function() {
 	this._renderTitle();
 
@@ -396,37 +472,10 @@ _renderSettings: function() {
 		border: false
 	});
 	this._generalSettingsContainer.setHeadingHtml(`<div class="fw-bold">General settings</div>`);
-//	this._generalSettingsContainer.addExpandedStartListener(this._containerExpandedCb.bind(this));
-//	this._generalSettingsContainer.addCollapsedStartListener(this._containerCollapsedCb.bind(this));
 	this.append(this._generalSettingsContainer);
 
-	let recentlyClosedInSearch = Classes.SettingsCheckboxItemViewer.create({
-		setFn: settingsStore.setOptionRecentlyClosedInSearch.bind(settingsStore),
-		getFn: settingsStore.getOptionRecentlyClosedInSearch.bind(settingsStore),
-		label: "Include recently closed tabs in search results",
-		updateKey: "options",
-	});
-
-	this._generalSettingsContainer.append(recentlyClosedInSearch);
-
-	let bookmarksInSearch = Classes.SettingsCheckboxItemViewer.create({
-		setFn: settingsStore.setOptionBookmarksInSearch.bind(settingsStore),
-		getFn: settingsStore.getOptionBookmarksInSearch.bind(settingsStore),
-		label: "Include bookmarks in search results",
-		updateKey: "options",
-	});
-
-	this._generalSettingsContainer.append(bookmarksInSearch);
-
-	let historyInSearch = Classes.SettingsCheckboxPermViewer.create({
-		setFn: settingsStore.setOptionHistoryInSearch.bind(settingsStore),
-		getFn: settingsStore.getOptionHistoryInSearch.bind(settingsStore),
-		label: "Include browsing history in search results",
-		updateKey: "options",
-		permission: "history"
-	});
-
-	this._generalSettingsContainer.append(historyInSearch);
+	this._renderLTWOptions();
+	this._renderSearchOptions();
 
 	if(settingsStore.getOptionDevMode()) {
 		let showTabId = Classes.SettingsCheckboxItemViewer.create({

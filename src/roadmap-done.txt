@@ -10,6 +10,10 @@ DONE 2.0
 
 - Updated NPM from v.7.7.5 to v.7.10.0
 
+- Intercept new tabs creation and apply "least tabbed window" logic
+  * User configurable (tabs from other applications, tabs from other tabs, and new tabs)
+  * Excludes "chrome-extension:" tabs
+
 
 DONE 1.3
 

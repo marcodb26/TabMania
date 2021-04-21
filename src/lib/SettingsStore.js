@@ -211,10 +211,13 @@ Classes.SettingsStore = Classes.AsyncBase.subclass({
 	//   in search results
 	// - "bookmarksInSearch": whether or not bookmarks should be included in search results
 	// - "searchUrl": the custom search URL to use with "Clipboard launch/search".
+	//   * Make sure this URL includes "%s"
 	// - "devMode": enable/disable developer options (like the UI for "showTabId")
 	// - "showTabId": show the extended tab ID in the tiles
 	// - "advancedMenu": include advanced options in the tile dropdown menu
-	//   Make sure this URL includes "%s"
+	// - "newTabNoOpenerInLTW": (LTW = Least Tabbed Window)
+	// - "newTabWithOpenerInLTW": (LTW = Least Tabbed Window)
+	// - "newEmptyTabInLTW": tabs created with Chrome's "+" move to least tabbed window
 	_options: null,
 	_customGroups: null,
 
@@ -389,6 +392,33 @@ getOptionSearchUrl: function() {
 
 setOptionSearchUrl: function(value) {
 	return this._setOption("searchUrl", value);
+},
+
+getOptionNewTabNoOpenerInLTW: function() {
+	// Default "true"
+	return this._getBooleanOption("newTabNoOpenerInLTW", true);
+},
+
+setOptionNewTabNoOpenerInLTW: function(value) {
+	return this._setOption("newTabNoOpenerInLTW", value);
+},
+
+getOptionNewTabWithOpenerInLTW: function() {
+	// Default "false"
+	return this._getBooleanOption("newTabWithOpenerInLTW");
+},
+
+setOptionNewTabWithOpenerInLTW: function(value) {
+	return this._setOption("newTabWithOpenerInLTW", value);
+},
+
+getOptionNewEmptyTabInLTW: function() {
+	// Default "true"
+	return this._getBooleanOption("newEmptyTabInLTW", true);
+},
+
+setOptionNewEmptyTabInLTW: function(value) {
+	return this._setOption("newEmptyTabInLTW", value);
 },
 
 getPinnedGroups: function() {

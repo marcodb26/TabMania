@@ -1,5 +1,8 @@
 TODO 2.0
 
+- When opening a new tab with a URL, intercept the tab creation and determine if the
+  URL is already opened in another tab, in which case activate that tab
+
 - Background page normalizeAll:
   * NormalizedTabs.js:688 [47] NormalizedTabs::normalizeAll(): found tab in loading status
   * Don't run the loading workaround logic in the background page

@@ -229,6 +229,65 @@ _windowFocusLossCb: function() {
 	);
 },
 
+_moveToLeastTabbedWindow: async function(tab) {
+	const logHead = "TabsManager::_moveToLeastTabbedWindow(" + tab.id + "): ";
+
+	if(tab.tm.protocol == "chrome-extension:") {
+		// Don't take any action for any Chrome extension popup (especially TabMania's own!)
+		return;
+	}
+
+	if(!tab.active) {
+		// Move only tabs that are created in the foreground
+		return;
+	}
+
+	if(tab.openerTabId == null) {
+		if(!settingsStore.getOptionNewTabNoOpenerInLTW()) {
+			// Configured to not move new tabs opened with no opener
+			return;
+		}
+	} else {
+		if(tab.pendingUrl == "chrome://newtab/") {
+			if(!settingsStore.getOptionNewEmptyTabInLTW()) {
+				// Configured to not move new empty tabs
+				return;
+			}
+		} else {
+			if(!settingsStore.getOptionNewTabWithOpenerInLTW()) {
+				// Configured to not move new tabs opened with an opener (that is, opened from
+				// another tab).
+				// Note that this check happens after the check for tab.active, so we won't
+				// move new tabs starting inactive (e.g. CTRL + link-click).
+				return;
+			}
+		}
+	}
+
+	// Save the active tab ID before we try to move the newly created tab.
+	// Right now this._activeTabId is still pointing to the tab that was active before the
+	// new tab was created in that same window. It will change when the new tab gets activated,
+	// but "onCreated" happens before "onActivated". We need to store a copy because we can't
+	// be certain "onActivated" won't fire before chromeUtils.moveTabToLeastTabbedWindow()'s
+	// promise resolves.
+	let refActiveTabId = this._activeTabId;
+
+	// chromeUtils.moveTabToLeastTabbedWindow()'s promise returns "null" when the window
+	// doesn't change
+	let retVal = await chromeUtils.moveTabToLeastTabbedWindow(tab, true);
+	if(retVal == null) {
+		// Nothing happened
+		return;
+	}
+
+	// If we move the newly created tab to a different window, the old window needs to put
+	// back the active tab where it was before the new tab got created. Chrome doesn't do
+	// that, it will set as active the rightmost tab in the old window (the tab right before
+	// the new tab we moved). Let's fix it by activating again this._activeTabId, which should
+	// still pointing at the tab that was active
+	await chromeUtils.wrap(chrome.tabs.update, logHead, refActiveTabId, { active: true });
+},
+
 _onTabCreatedCb: function(tab) {
 	const logHead = "TabsManager::_onTabCreatedCb(tabId: " + tab.id + ", time: " + Date.now() + "): ";
 	this._log(logHead + "tab: ", tab);
@@ -241,6 +300,8 @@ _onTabCreatedCb: function(tab) {
 
 	// Keep track of the count for the popup icon badge
 	this._incrementTabsCount();
+
+	this._moveToLeastTabbedWindow(tab);
 },
 
 _onTabRemovedCb: function(tabId, removeInfo) {
