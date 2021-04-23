@@ -183,7 +183,7 @@ _updateMenuItems: function() {
 },
 
 _actionActivateCb: function(ev) {
-	chromeUtils.activateTab(this._tab.id);
+	Classes.TabsBsTabViewer.activateTab(this._tab);
 },
 
 _actionPinToggleCb: function(ev) {

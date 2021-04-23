@@ -1121,7 +1121,7 @@ _processTabGroupsCb: function(tabGroups) {
 activateTab: function(tab) {
 	const logHead = "Classes.TabsBsTabViewer.activateTab(): ";
 	if(tab.tm.type == Classes.NormalizedTabs.type.TAB) {
-		chromeUtils.activateTab(tab.id);
+		chromeUtils.activateTab(tab);
 		return;
 	}
 
@@ -1141,7 +1141,7 @@ activateTab: function(tab) {
 				chromeUtils.loadUrl(tab.url);
 			} else {
 				// Activate the first tab in the list with a matching URL
-				chromeUtils.activateTab(tabList[0].id);
+				chromeUtils.activateTab(tabList[0]);
 			}
 		} // Static function, don't "bind(this)"
 	);

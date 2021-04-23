@@ -221,8 +221,8 @@ focus: function() {
 	// This function is only applicable to the undocked popup, and getOwnTabId() takes
 	// care of checking for that
 	let tabId = this.getOwnTabId();
-	if(tabId >= 0) {		
-		chromeUtils.focusWindow(tabId);
+	if(tabId >= 0) {
+		chromeUtils.focusWindowByTabId(tabId);
 	}
 },
 

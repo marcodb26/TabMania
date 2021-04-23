@@ -70,7 +70,7 @@ _openUndocked: function() {
 				// This is just a warning message, but then we'll pick the first one in the list
 			}
 
-			chromeUtils.activateTab(tabs[0].id).then(
+			chromeUtils.activateTab(tabs[0]).then(
 				function() {
 					const extTabId = Classes.NormalizedTabs.formatExtendedId(tabs[0]);
 					this._log(logHead + "activated tab " + extTabId);

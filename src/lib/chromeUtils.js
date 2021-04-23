@@ -164,7 +164,7 @@ discardTab: async function(tab) {
 		// If neighborTabs.length == 0, that means the tab is alone in the window, so we
 		// can't activate any other tab
 		if(neighborTabs.length != 0) {
-			await this.activateTab(neighborTabs[0].id);
+			await this.activateTab(neighborTabs[0]);
 		}
 	}
 
@@ -176,23 +176,37 @@ discardTab: async function(tab) {
 // it's useless to try to store the windowId of the tabId in TabsManager._backTabs.
 // Best to just query Chrome, though that requires some async gymnastics.
 // This also allows us to generalize this function for both background.js and popup.
-focusWindow: function(tabId) {
+focusWindowByTabId: function(tabId) {
+	const logHead = "ChromeUtils::focusWindowByTabId(" + tabId + "): ";
 	// https://developer.chrome.com/docs/extensions/reference/tabs/#method-get
-	return this.wrap(chrome.tabs.get, "ChromeUtils::focusWindow(): ", tabId).then(
+	return this.wrap(chrome.tabs.get, logHead, tabId).then(
 		function(tab) {
-			const logHead = "ChromeUtils::focusWindow().then(): ";
 			this._log(logHead + tab.windowId, tab);
-			// https://developer.chrome.com/docs/extensions/reference/windows/#method-update
-			this.wrap(chrome.windows.update, logHead, tab.windowId, { focused: true });
+			return this.focusWindow(tab);
 		}.bind(this)
 	);
 },
 
-activateTab: function(tabId) {
+focusWindow: function(tab) {
+	const logHead = "ChromeUtils::focusWindow(): ";
+	// https://developer.chrome.com/docs/extensions/reference/windows/#method-update
+	return this.wrap(chrome.windows.update, logHead, tab.windowId, { focused: true });
+},
+
+activateTabByTabId: function(tabId) {
 	// https://developer.chrome.com/docs/extensions/reference/tabs/#method-update
-	let promiseA = this.wrap(chrome.tabs.update, "ChromeUtils::activateTab(): ", tabId, { active: true });
-	let promiseB = this.focusWindow(tabId);
-	return Promise.all([ promiseA, promiseB ]);
+	let activatePromise = this.wrap(chrome.tabs.update, "ChromeUtils::activateTabByTabId(): ", tabId, { active: true });
+	let focusPromise = this.focusWindowByTabId(tabId);
+	return Promise.all([ activatePromise, focusPromise ]);
+},
+
+activateTab: function(tab) {
+	const logHead = "ChromeUtils::activateTab(): ";
+
+	// https://developer.chrome.com/docs/extensions/reference/tabs/#method-update
+	let activatePromise = this.wrap(chrome.tabs.update, logHead, tab.id, { active: true });
+	let focusPromise = this.wrap(chrome.windows.update, logHead, tab.windowId, { focused: true });
+	return Promise.all([ activatePromise, focusPromise ]);
 },
 
 // Create a new tab in the current window.
@@ -270,7 +284,7 @@ loadUrl: function(url, tabId, winId) {
 	let promiseA = null;
 	let promiseB = null;
 
-	promiseA = this.activateTab(tabId);
+	promiseA = this.activateTabByTabId(tabId);
 	// Note that "url" could be undefined here (when we reuse an existing "new tab", recursive
 	// call coming from reuseOrCreateTab()), but that's ok
 	promiseB = this.wrap(chrome.tabs.update, logHead, tabId, { url: url });
@@ -311,6 +325,8 @@ moveTabToLeastTabbedWindow: function(tab, activate, oldWindowActiveTabId) {
 			let focusPromise = null;
 			let activatePromise = null;
 			if(activate) {
+				// Can't call ChromeUtils.activateTab() because we need the focus to go to
+				// a different window than the windowId currently stored in "tab"
 				focusPromise = this.wrap(chrome.windows.update, logHead, winId, { focused: true });
 				activatePromise = this.wrap(chrome.tabs.update, logHead, tab.id, { active: true });
 			} else {

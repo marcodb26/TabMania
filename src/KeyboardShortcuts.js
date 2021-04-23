@@ -156,10 +156,10 @@ _manageCustomShortcut: function(shortcutKey) {
 	}
 
 	// A "url" is not set (hostname case), but if there's a tab, we need to activate it.
-	if(tabId != null) {
+	if(scInfo.tab != null) {
 		// Need to open a tab
 		this._log(logHead + "opening tabId " + tabId + ", no URL change");
-		chromeUtils.activateTab(tabId);
+		chromeUtils.activateTab(scInfo.tab);
 		return;
 	}
 	

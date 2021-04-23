@@ -569,7 +569,7 @@ goBack: function(closeCurrentTab) {
 		// In this case we'll ignore the "closeCurrentTab" flag (consider it "false").
 		this._log(logHead + "special case: back from chrome.windows.WINDOW_ID_NONE");
 		this._isActiveWindowIdNone = false;
-		chromeUtils.activateTab(this._activeTabId);
+		chromeUtils.activateTabByTabId(this._activeTabId);
 		return;
 	}
 
@@ -587,7 +587,7 @@ goBack: function(closeCurrentTab) {
 			this._activeTabId = null;
 		}
 		this._log(logHead + "switching back to tab " + nextTabId);
-		chromeUtils.activateTab(nextTabId);
+		chromeUtils.activateTabByTabId(nextTabId);
 	} else {
 		this._log(logHead + "no previous tabs to go back to");
 	}
@@ -613,7 +613,7 @@ goFwd: function(closeCurrentTab) {
 		// Unike in _goBack(), here we don't want to erase _activeTabId, because the normal
 		// logic will store it in _backTabs, which is what we want
 		this._log(logHead + "switching forward to tab " + nextTabId);
-		chromeUtils.activateTab(nextTabId);
+		chromeUtils.activateTabByTabId(nextTabId);
 
 		// Note that this behavior is different from the behavior of _goBack().
 		// In _goBack() we close the old active tab even if there's no older tab
