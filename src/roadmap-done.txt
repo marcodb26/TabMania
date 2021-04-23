@@ -17,6 +17,8 @@ DONE 2.0
 - Auto-start undocked popup when starting Chrome
   * Configurable option (default "false")
 
+- Added support for "help" string in settings checkboxes (Classes.SettingsCheckboxItemViewer)
+
 
 DONE 1.3
 

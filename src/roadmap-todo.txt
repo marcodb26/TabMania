@@ -1,7 +1,5 @@
 TODO 2.0
 
-- Support "help" string for settings checkboxes (Classes.SettingsCheckboxItemViewer)
-
 - Improve sequence of LTW open tab
   * First set back active tab in old window, then move
 

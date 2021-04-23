@@ -15,6 +15,9 @@ Classes.SettingsItemViewer = Classes.HtmlViewer.subclass({
 	_setFn: null,
 	_getFn: null,
 
+	_label: null,
+	_helpHtml: null,
+
 	_rootHtml: `
 		<div class="mx-2 mt-3">
 		</div>
@@ -27,7 +30,7 @@ Classes.SettingsItemViewer = Classes.HtmlViewer.subclass({
 
 // Using ES6 destructuring syntax to help with the proliferation of optional parameters
 // in the settings logic...
-_init: function({ setFn, getFn, label, updateKey }) {
+_init: function({ setFn, getFn, label, helpHtml, updateKey }) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.HtmlViewer._init.call(this, this._rootHtml);
 	this.debug();
@@ -40,6 +43,8 @@ _init: function({ setFn, getFn, label, updateKey }) {
 	this._getFn = getFn;
 
 	this._label = label;
+	this._helpHtml = optionalWithDefault(helpHtml, "");
+
 	this._trackedUpdateKey = updateKey;
 	this._enabled = true;
 
@@ -65,6 +70,14 @@ _setAttributesHtml: function(extraAttrs) {
 	if(!this._enabled) {
 		extraAttrs.push(`disabled`);
 	}
+},
+
+_getHelpId: function() {
+	return this._id + "help";
+},
+
+_getHelpHtml: function() {
+	return `<div id="${this._getHelpId()}" class="form-text ms-2">${this._helpHtml}</div>`;
 },
 
 setEnabled: function(flag) {
@@ -104,15 +117,6 @@ Classes.SettingsTextItemViewer = Classes.SettingsItemViewer.subclass({
 	__idPrefix: "SettingsTextItemViewer",
 
 	_placeholderText: null,
-	_helpHtml: null,
-
-	_inputElem: null,
-	_helpElem: null,
-
-	// Functions to read and write the persistent state
-	// _setFn(<value>), _getFn() returns <value>
-	_setFn: null,
-	_getFn: null,
 
 _init: function({ setFn, getFn, label, placeholderText, helpHtml, updateKey }) {
 	// Overriding the parent class' _init(), but calling that original function first
@@ -130,8 +134,6 @@ _init: function({ setFn, getFn, label, placeholderText, helpHtml, updateKey }) {
 	} else {
 		this._placeholderText = this._safeText(placeholderText);
 	}
-
-	this._helpHtml = helpHtml;
 
 	this._renderTextItem();
 },
@@ -152,7 +154,7 @@ _setAttributesHtml: function(extraAttrs) {
 
 _renderTextItem: function() {
 	const inputId = this._id + "input";
-	const helpId = this._id + "help";
+	const helpId = this._getHelpId();
 
 	let extraAttrs = [];
 	this._setAttributesHtml(extraAttrs);
@@ -170,7 +172,7 @@ _renderTextItem: function() {
 				aria-describedby="${helpId}">
 		<label for="${inputId}" class="form-label pt-2 text-truncate w-100">${this._label}</label>
 	</div>
-    <div id="${helpId}" class="form-text ms-2">${this._helpHtml}</div>
+	${this._getHelpHtml()}
 	`;
 
 	this.setHtml(bodyHtml);
@@ -278,14 +280,6 @@ Classes.SettingsTextAreaItemViewer = Classes.SettingsItemViewer.subclass({
 	__idPrefix: "SettingsTextAreaItemViewer",
 
 	_placeholderText: null,
-	_helpHtml: null,
-
-	_inputElem: null,
-
-	// Functions to read and write the persistent state
-	// _setFn(<value>), _getFn() returns <value>
-	_setFn: null,
-	_getFn: null,
 
 _init: function({ setFn, getFn, label, placeholderText, helpHtml, updateKey }) {
 	// Overriding the parent class' _init(), but calling that original function first
@@ -304,8 +298,6 @@ _init: function({ setFn, getFn, label, placeholderText, helpHtml, updateKey }) {
 		this._placeholderText = this._safeText(placeholderText);
 	}
 
-	this._helpHtml = helpHtml;
-
 	this._renderTextAreaItem();
 },
 
@@ -322,7 +314,6 @@ _setAttributesHtml: function(extraAttrs) {
 
 _renderTextAreaItem: function() {
 	const inputId = this._id + "input";
-	const helpId = this._id + "help";
 
 	let currentText = this._getFn();
 	if(currentText == null) {
@@ -341,10 +332,10 @@ _renderTextAreaItem: function() {
 	const bodyHtml = `
 	<div class="tm-autosize form-floating" data-replicated-value="${this._safeText(currentText)}">
 		<textarea id="${inputId}" class="form-control" ${extraAttrs.join(" ")} style="height: auto;"
-				aria-describedby="${helpId}">${this._safeText(currentText)}</textarea>
+				aria-describedby="${this._getHelpId()}">${this._safeText(currentText)}</textarea>
 		<label for="${inputId}" class="form-label pt-2 text-truncate w-100">${this._label}</label>
 	</div>
-	<div id="${helpId}" class="form-text ms-2">${this._helpHtml}</div>
+	${this._getHelpHtml()}
 	`;
 
 	this.setHtml(bodyHtml);
@@ -380,14 +371,7 @@ _onInputCb: function(ev) {
 Classes.SettingsCheckboxItemViewer = Classes.SettingsItemViewer.subclass({
 	__idPrefix: "SettingsCheckboxItemViewer",
 
-	_inputElem: null,
-
-	// Functions to read and write the persistent state
-	// _setFn(<value>), _getFn() returns <value>
-	_setFn: null,
-	_getFn: null,
-
-_init: function({ setFn, getFn, label, updateKey }) {
+_init: function({ setFn, getFn, label, helpHtml, updateKey }) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.SettingsItemViewer._init.apply(this, arguments);
 	this.debug();
@@ -414,9 +398,11 @@ _renderCheckboxItem: function() {
 
 	const bodyHtml = `
 	<div class="form-check form-switch">
-	  <input class="form-check-input tm-align-checkbox" type="checkbox" id="${checkboxId}" ${extraAttrs}>
+	  <input class="form-check-input tm-align-checkbox" type="checkbox" id="${checkboxId}" ${extraAttrs}
+	  aria-describedby="${this._getHelpId()}">
 	  <label class="form-check-label" for="${checkboxId}">${this._label}</label>
 	</div>
+	${this._getHelpHtml()}
 	`;
 
 	this.setHtml(bodyHtml);
@@ -521,11 +507,6 @@ _onInputChangedCb: function(ev) {
 // set to { target: <this object>, color: <color name or "null"> }.
 Classes.SettingsColorsItemViewer = Classes.SettingsItemViewer.subclass({
 	__idPrefix: "SettingsColorsItemViewer",
-
-	// Functions to read and write the persistent state
-	// _setFn(<value>), _getFn() returns <value>
-	_setFn: null,
-	_getFn: null,
 
 	_eventManager: null,
 

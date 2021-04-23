@@ -491,7 +491,8 @@ _renderSettings: function() {
 	let startupOpenPopup = Classes.SettingsCheckboxItemViewer.create({
 		setFn: settingsStore.setOptionStartupOpenPopup.bind(settingsStore),
 		getFn: settingsStore.getOptionStartupOpenPopup.bind(settingsStore),
-		label: "Open TabMania popup on Chrome startup",
+		label: "Open TabMania on Chrome startup",
+		helpHtml: "Applies when the TabMania popup is undocked",
 		updateKey: "options",
 	});
 	this._generalSettingsContainer.append(startupOpenPopup);
