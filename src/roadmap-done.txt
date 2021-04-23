@@ -24,9 +24,12 @@ DONE 2.0
 
 - When opening a new tab with a URL, intercept the tab creation and determine if the
   URL is already opened in another tab, in which case activate that tab
+  * Configurable option (default "false")
   * We're matching the full URL (including fragment), we never switch an existing
     tab to a different fragment
-
+  * It works only for new tabs opened from other applications, because for new tabs
+    opened from other tabs, the URL field gets set only on the first "onUpdated", not
+	at "onCreated"
 
 DONE 1.3
 

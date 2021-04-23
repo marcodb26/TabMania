@@ -232,6 +232,11 @@ _windowFocusLossCb: function() {
 _findExistingUrlMatchTab: async function(tab) {
 	const logHead = "TabsManager::_findExistingUrlMatchTab(): ";
 
+	if(!settingsStore.getOptionNewTabDedup()) {
+		this._log(logHead + "newTabDedup configured off");
+		return null;
+	}
+
 	// Since the tab has already been normalized, we can rely on "tab.tm.url" to contain
 	// either tab.url or tab.pendingUrl.
 	if(tab.tm.url == "") {

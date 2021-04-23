@@ -218,6 +218,8 @@ Classes.SettingsStore = Classes.AsyncBase.subclass({
 	// - "newTabNoOpenerInLTW": (LTW = Least Tabbed Window)
 	// - "newTabWithOpenerInLTW": (LTW = Least Tabbed Window)
 	// - "newEmptyTabInLTW": tabs created with Chrome's "+" move to least tabbed window
+	// - "newTabDedup": attempt to reuse existing tab instead of creating a new tab
+	//   if the full URL (including fragment) matches
 	// - "startupOpenPopup": auto-open popup at Chrome startup (only if popup undocked)
 	_options: null,
 	_customGroups: null,
@@ -420,6 +422,15 @@ getOptionNewEmptyTabInLTW: function() {
 
 setOptionNewEmptyTabInLTW: function(value) {
 	return this._setOption("newEmptyTabInLTW", value);
+},
+
+getOptionNewTabDedup: function() {
+	// Default "false"
+	return this._getBooleanOption("newTabDedup", false);
+},
+
+setOptionNewTabDedup: function(value) {
+	return this._setOption("newTabDedup", value);
 },
 
 getOptionStartupOpenPopup: function() {

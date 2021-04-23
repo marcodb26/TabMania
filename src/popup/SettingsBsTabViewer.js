@@ -488,6 +488,14 @@ _renderSettings: function() {
 		this._generalSettingsContainer.append(showTabId);
 	}
 
+	let newTabDedup = Classes.SettingsCheckboxItemViewer.create({
+		setFn: settingsStore.setOptionNewTabDedup.bind(settingsStore),
+		getFn: settingsStore.getOptionNewTabDedup.bind(settingsStore),
+		label: "Deduplicate new tabs upon creation",
+		updateKey: "options",
+	});
+	this._generalSettingsContainer.append(newTabDedup);
+
 	let startupOpenPopup = Classes.SettingsCheckboxItemViewer.create({
 		setFn: settingsStore.setOptionStartupOpenPopup.bind(settingsStore),
 		getFn: settingsStore.getOptionStartupOpenPopup.bind(settingsStore),
