@@ -19,6 +19,9 @@ DONE 2.0
 
 - Added support for "help" string in settings checkboxes (Classes.SettingsCheckboxItemViewer)
 
+- Improve sequence of LTW open tab
+  * First set back active tab in old window, then move
+
 
 DONE 1.3
 

@@ -280,9 +280,12 @@ loadUrl: function(url, tabId, winId) {
 
 // "activate" is optional (default "false"), if "true", activate the tab in the new
 // window and focus it, otherwise stay where you are.
+// "oldWindowActiveTabId" is optional (default "null"). When specified, set that tabId
+// as the new active tabId in the window "tab" is moving from. No action is taken if
+// "tab" is not moving or if "tab" was not active in that old window.
 // Returns a Promise that resolves to an array of values if we've taken an action,
 // and "null" if we didn't need to take any action.
-moveTabToLeastTabbedWindow: function(tab, activate) {
+moveTabToLeastTabbedWindow: function(tab, activate, oldWindowActiveTabId) {
 	activate = optionalWithDefault(activate, false);
 	const logHead = "chromeUtils::moveTabToLeastTabbedWindow(activate: " + activate + "): ";
 
@@ -291,6 +294,13 @@ moveTabToLeastTabbedWindow: function(tab, activate) {
 			if(tab.windowId == winId) {
 				this._log(logHead + "tab " + tab.id + " is already in the least tabbed window " + winId);
 				return null;
+			}
+
+			if(oldWindowActiveTabId != null && tab.active) {
+				// Take this action first, so the following actions don't look too clunky.
+				//
+				// No reason to include this promise in the return value.
+				this.wrap(chrome.tabs.update, logHead, oldWindowActiveTabId, { active: true });
 			}
 
 			let moveProperties = {
