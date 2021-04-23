@@ -296,7 +296,40 @@ loadUrl: function(url, tabId, winId) {
 // window and focus it, otherwise stay where you are.
 // "oldWindowActiveTabId" is optional (default "null"). When specified, set that tabId
 // as the new active tabId in the window "tab" is moving from. No action is taken if
-// "tab" is not moving or if "tab" was not active in that old window.
+// "tab" was not active in that old window.
+// Returns a Promise that resolves to an array of values.
+moveTab: function(tab, newWindowId, activate, oldWindowActiveTabId) {
+	activate = optionalWithDefault(activate, false);
+	const logHead = "chromeUtils::moveTab(activate: " + activate + "): ";
+
+	if(oldWindowActiveTabId != null && tab.active) {
+		// Take this action first, so the following actions don't look too clunky.
+		//
+		// No reason to include this promise in the return value.
+		this.wrap(chrome.tabs.update, logHead, oldWindowActiveTabId, { active: true });
+	}
+
+	let moveProperties = {
+		index: -1,
+		windowId: newWindowId,
+	};
+
+	let movePromise = this.wrap(chrome.tabs.move, logHead, tab.id, moveProperties);
+	let focusPromise = null;
+	let activatePromise = null;
+	if(activate) {
+		// Can't call ChromeUtils.activateTab() because we need the focus to go to
+		// a different window than the windowId currently stored in "tab"
+		focusPromise = this.wrap(chrome.windows.update, logHead, newWindowId, { focused: true });
+		activatePromise = this.wrap(chrome.tabs.update, logHead, tab.id, { active: true });
+	} else {
+		focusPromise = Promise.resolve();
+		activatePromise = Promise.resolve();
+	}
+	return Promise.all([ movePromise, focusPromise, activatePromise ]);
+},
+
+// See moveTab() for the "activate" and "oldWindowActiveTabId" parameters.
 // Returns a Promise that resolves to an array of values if we've taken an action,
 // and "null" if we didn't need to take any action.
 moveTabToLeastTabbedWindow: function(tab, activate, oldWindowActiveTabId) {
@@ -310,30 +343,7 @@ moveTabToLeastTabbedWindow: function(tab, activate, oldWindowActiveTabId) {
 				return null;
 			}
 
-			if(oldWindowActiveTabId != null && tab.active) {
-				// Take this action first, so the following actions don't look too clunky.
-				//
-				// No reason to include this promise in the return value.
-				this.wrap(chrome.tabs.update, logHead, oldWindowActiveTabId, { active: true });
-			}
-
-			let moveProperties = {
-				index: -1,
-				windowId: winId,
-			};
-			let movePromise = this.wrap(chrome.tabs.move, logHead, tab.id, moveProperties);
-			let focusPromise = null;
-			let activatePromise = null;
-			if(activate) {
-				// Can't call ChromeUtils.activateTab() because we need the focus to go to
-				// a different window than the windowId currently stored in "tab"
-				focusPromise = this.wrap(chrome.windows.update, logHead, winId, { focused: true });
-				activatePromise = this.wrap(chrome.tabs.update, logHead, tab.id, { active: true });
-			} else {
-				focusPromise = Promise.resolve();
-				activatePromise = Promise.resolve();
-			}
-			return Promise.all([ movePromise, focusPromise, activatePromise ]);
+			return this.moveTab(tab, winId, activate, oldWindowActiveTabId);
 		}.bind(this)
 	);
 },
