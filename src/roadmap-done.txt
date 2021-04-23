@@ -22,6 +22,11 @@ DONE 2.0
 - Improve sequence of LTW open tab
   * First set back active tab in old window, then move
 
+- When opening a new tab with a URL, intercept the tab creation and determine if the
+  URL is already opened in another tab, in which case activate that tab
+  * We're matching the full URL (including fragment), we never switch an existing
+    tab to a different fragment
+
 
 DONE 1.3
 

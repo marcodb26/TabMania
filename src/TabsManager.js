@@ -229,29 +229,76 @@ _windowFocusLossCb: function() {
 	);
 },
 
-_moveToLeastTabbedWindow: function(tab) {
-//	const logHead = "TabsManager::_moveToLeastTabbedWindow(" + tab.id + "): ";
+_findExistingUrlMatchTab: async function(tab) {
+	const logHead = "TabsManager::_findExistingUrlMatchTab(): ";
 
-	if(tab.tm.protocol == "chrome-extension:") {
-		// Don't take any action for any Chrome extension popup (especially TabMania's own!)
-		return;
+	// Since the tab has already been normalized, we can rely on "tab.tm.url" to contain
+	// either tab.url or tab.pendingUrl.
+	if(tab.tm.url == "") {
+		// Can't deduplicate if there's no URL
+		this._log(logHead + "no URL", tab);
+		return null;
 	}
 
-	if(!tab.active) {
-		// Move only tabs that are created in the foreground
-		return;
+	// https://developer.chrome.com/docs/extensions/reference/tabs/#method-query
+	// As of 21.04.23, the documentation for the "url" field says "Fragment identifiers are not matched.",
+	// but based on my testing, that seems to mean "if you pass in a URL with a fragment, we'll return
+	// nothing" (I initially interpreted that text as "we'll ignore the fragment and match just the URL",
+	// but that's not the case). So we need to proactively remove fragments.
+	// Through testing, we also discovered that the field "url" in chrome.tabs.query() will match
+	// both "url" and "pendingUrl", so we need to make sure to track both below.
+	let cleanUrl = tab.tm.url.split("#")[0];
+
+	let tabListNoFragment = await chromeUtils.wrap(chrome.tabs.query, logHead, { url: cleanUrl });
+	this._log(logHead + "chrome.tabs.query() for " + cleanUrl + " returned:", tabListNoFragment, tab);
+
+	if(tabListNoFragment.length == 0) {
+		// Highly unlikely to get here, since by construction the results set should at least
+		// include "tab", but just in case...
+		return null;
 	}
 
+	// Now we have a list of tabs matching the URL without fragment, which subset matches the URL
+	// with fragment?
+	let tabList = [];
+	for(let i = 0; i < tabListNoFragment.length; i++) {
+		let currTab = tabListNoFragment[i];
+		// Note that we also need to filter out "tab" (this function's input), which should match by
+		// definition...
+		if(currTab.id != tab.id && (currTab.url == tab.tm.url || currTab.pendingUrl == tab.tm.url)) {
+			tabList.push(currTab);
+		}
+	}
+
+	if(tabList.length == 0) {
+		return null;
+	}
+
+	// Prefer returning a tab in the same window
+	for(let i = 0; i < tabList.length; i++) {
+		if(tabList[i].windowId == tab.windowId) {
+			return tabList[i];
+		}
+	}
+
+	// Not found in the same window, return the first found
+	return tabList[0];
+},
+
+// Returns "null" if there's any condition preventing the move (configuration, or the
+// tab is already in the least tabbed window). Otherwise returns the window ID of the
+// window this tab should be moved to.
+_getLtwIdForMove: async function(tab) {
 	if(tab.openerTabId == null) {
 		if(!settingsStore.getOptionNewTabNoOpenerInLTW()) {
 			// Configured to not move new tabs opened with no opener
-			return;
+			return null;
 		}
 	} else {
 		if(tab.pendingUrl == "chrome://newtab/") {
 			if(!settingsStore.getOptionNewEmptyTabInLTW()) {
 				// Configured to not move new empty tabs
-				return;
+				return null;
 			}
 		} else {
 			if(!settingsStore.getOptionNewTabWithOpenerInLTW()) {
@@ -259,23 +306,84 @@ _moveToLeastTabbedWindow: function(tab) {
 				// another tab).
 				// Note that this check happens after the check for tab.active, so we won't
 				// move new tabs starting inactive (e.g. CTRL + link-click).
-				return;
+				return null;
 			}
 		}
 	}
 
-	// Save the active tab ID before we try to move the newly created tab.
+	let moveWinId = await chromeUtils.getLeastTabbedWindowId(tab.windowId);
+
+	if(moveWinId == tab.windowId) {
+		return null;
+	}
+
+	return moveWinId;
+},
+
+// This function manages two potential actions:
+// - Avoid creating a new tab if there's already an existing tab for the same URL
+// - If the previous condition is not true, move the new tab to the least tabbed window (LTW)
+//
+// This two actions could be built as separate functions and called in the sequence listed
+// above. The problem is that if you do that, you'll have to wait for a lot of async functions
+// with serialized execution. This can make the transition appear very clunky. Instead, we
+// choose to run the initial precondition checks in parallel, then we take the most appropriate
+// branch and run to completion.
+_createdTabSpecialConditions: async function(tab) {
+	const logHead = "TabsManager::_createdTabSpecialConditions(): ";
+
+	if(tab.tm.protocol == "chrome-extension:") {
+		// Don't take any action for any Chrome extension popup (especially TabMania's own!)
+		return;
+	}
+
+	if(!tab.active) {
+		// Move/deduplicate only tabs that are created in the foreground
+		return;
+	}
+
 	// Right now this._activeTabId is still pointing to the tab that was active before the
 	// new tab was created in that same window. It will change when the new tab gets activated,
-	// but "onCreated" happens before "onActivated".
+	// but "onCreated" happens before "onActivated". We just need to store the value before
+	// we start the async dance, because it might change while we're waiting.
 	let refActiveTabId = this._activeTabId;
 
-	// If we move the newly created tab to a different window, the old window needs to put
-	// back the active tab where it was before the new tab got created. Chrome doesn't do
-	// that, it will set as active the rightmost tab in the old window (the tab right before
-	// the new tab we moved). Let's fix it by activating again this._activeTabId, which should
-	// still pointing at the tab that was active. That's what the last parameter does.
-	chromeUtils.moveTabToLeastTabbedWindow(tab, true, refActiveTabId);
+	let existingTabPromise = this._findExistingUrlMatchTab(tab);
+	let ltwIdPromise = this._getLtwIdForMove(tab);
+
+	let [ existingTab, ltwId ] = await Promise.all([ existingTabPromise, ltwIdPromise ]);
+
+	if(existingTab == null && ltwId == null) {
+		// None of the special conditions apply: no existing tab, and the new tab is already
+		// on the least tabbed window (or TabMania is configured to not move). Nothing to do.
+		this._log(logHead + "nothing to do");
+		return;
+	}
+
+	if(existingTab != null) {
+		this._log(logHead + "found existing tab (new, existing):", tab, existingTab);
+		if(existingTab.windowId != tab.windowId) {
+			// If we close the newly created tab to replace it with an existing tab in a different
+			// window, the old window needs to put back the active tab where it was before the new
+			// tab got created. Chrome doesn't do that, it will set as active the rightmost tab in
+			// the old window (the tab right before the new tab we moved). Let's fix it by activating
+			// again "refActiveTabId".
+			// The only exception is the case in which we found an existing tab and it's located
+			// in the same window as the tab that was just created.
+			// Note that it's important to take this action first, to avoid some clunkiness with the
+			// UX of the other dedup actions.
+			//
+			// No reason to include this promise in the return value.
+			chromeUtils.wrap(chrome.tabs.update, logHead, refActiveTabId, { active: true });
+		}
+		return Promise.all([ chromeUtils.activateTab(existingTab), chromeUtils.closeTab(tab.id) ]);
+	}
+
+	// If we get here, we need to move the tab to the least tabbed window. Note that the action
+	// with "refActiveTabId" is taken inside chromeUtils.moveTab() in this case, no need to make
+	// that extra call explicitly.
+	this._log(logHead + "moving tab to least tabbed window", ltwId, tab);
+	return chromeUtils.moveTab(tab, ltwId, true, refActiveTabId);
 },
 
 _onTabCreatedCb: function(tab) {
@@ -291,7 +399,7 @@ _onTabCreatedCb: function(tab) {
 	// Keep track of the count for the popup icon badge
 	this._incrementTabsCount();
 
-	this._moveToLeastTabbedWindow(tab);
+	this._createdTabSpecialConditions(tab);
 },
 
 _onTabRemovedCb: function(tabId, removeInfo) {
