@@ -14,6 +14,9 @@ DONE 2.0
   * User configurable (tabs from other applications, tabs from other tabs, and new tabs)
   * Excludes "chrome-extension:" tabs
 
+- Auto-start undocked popup when starting Chrome
+  * Configurable option (default "false")
+
 
 DONE 1.3
 

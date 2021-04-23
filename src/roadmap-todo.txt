@@ -1,5 +1,10 @@
 TODO 2.0
 
+- Support "help" string for settings checkboxes (Classes.SettingsCheckboxItemViewer)
+
+- Improve sequence of LTW open tab
+  * First set back active tab in old window, then move
+
 - When opening a new tab with a URL, intercept the tab creation and determine if the
   URL is already opened in another tab, in which case activate that tab
 
@@ -9,8 +14,6 @@ TODO 2.0
 
 - BUG: after opening the popup, it takes long before the dropdown menus start showing up,
   especially for tabs below the top
-
-- Auto-start undocked popup when starting Chrome
 
 
 PREP FOR NEXT RELEASE

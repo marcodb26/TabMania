@@ -24,6 +24,10 @@ _init: function() {
 
 	// Initialize state for the chromeUtils.bAction APIs
 	this._setDocked(localStore.isPopupDocked());
+
+	if(!localStore.isPopupDocked() && settingsStore.getOptionStartupOpenPopup()) {
+		this._launchUndocked();
+	}
 },
 
 runPopupSearch: function(searchQuery) {

@@ -218,6 +218,7 @@ Classes.SettingsStore = Classes.AsyncBase.subclass({
 	// - "newTabNoOpenerInLTW": (LTW = Least Tabbed Window)
 	// - "newTabWithOpenerInLTW": (LTW = Least Tabbed Window)
 	// - "newEmptyTabInLTW": tabs created with Chrome's "+" move to least tabbed window
+	// - "startupOpenPopup": auto-open popup at Chrome startup (only if popup undocked)
 	_options: null,
 	_customGroups: null,
 
@@ -419,6 +420,15 @@ getOptionNewEmptyTabInLTW: function() {
 
 setOptionNewEmptyTabInLTW: function(value) {
 	return this._setOption("newEmptyTabInLTW", value);
+},
+
+getOptionStartupOpenPopup: function() {
+	// Default "false"
+	return this._getBooleanOption("startupOpenPopup", false);
+},
+
+setOptionStartupOpenPopup: function(value) {
+	return this._setOption("startupOpenPopup", value);
 },
 
 getPinnedGroups: function() {
