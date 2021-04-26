@@ -1,5 +1,7 @@
 TODO 2.0
 
+- Use chrome.windows.update "drawAttention" flag?
+
 - When opening a new tab with a URL, intercept the tab creation and determine if the
   URL is already opened in another tab, in which case activate that tab
   * Track the first "onUpdated" if the URL is not available in the "onCreated"

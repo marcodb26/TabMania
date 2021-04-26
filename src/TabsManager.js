@@ -334,8 +334,8 @@ _getLtwIdForMove: async function(tab) {
 // with serialized execution. This can make the transition appear very clunky. Instead, we
 // choose to run the initial precondition checks in parallel, then we take the most appropriate
 // branch and run to completion.
-_createdTabSpecialConditions: async function(tab) {
-	const logHead = "TabsManager::_createdTabSpecialConditions(): ";
+_createdTabSpecialActions: async function(tab) {
+	const logHead = "TabsManager::_createdTabSpecialActions(): ";
 
 	if(tab.tm.protocol == "chrome-extension:") {
 		// Don't take any action for any Chrome extension popup (especially TabMania's own!)
@@ -353,13 +353,27 @@ _createdTabSpecialConditions: async function(tab) {
 	// we start the async dance, because it might change while we're waiting.
 	let refActiveTabId = this._activeTabId;
 
+	// Launching 3 parallel checks:
+	// - Are we configured for dedup and is there an existing URL matching the new tab's URL?
+	// - Are we configured to move to least tabbed window, and what's the LTW?
+	// - Is the new tab in a popup window?
+	//
+	// The last check should be done first, but we don't want to delay the other two checks by
+	// an extra event cycle, so running all of them in the same event cycle with Promise.all()
 	let existingTabPromise = this._findExistingUrlMatchTab(tab);
 	let ltwIdPromise = this._getLtwIdForMove(tab);
+	let winInfoPromise = chromeUtils.wrap(chrome.windows.get, logHead, tab.windowId);
 
-	let [ existingTab, ltwId ] = await Promise.all([ existingTabPromise, ltwIdPromise ]);
+	let [ existingTab, ltwId, winInfo ] = await Promise.all([ existingTabPromise, ltwIdPromise, winInfoPromise ]);
+
+	if(winInfo != null && winInfo.type == "popup") {
+		// No special actions are taken for popup windows
+		this._log(logHead + "popup window, ignoring", winInfo);
+		return;
+	}
 
 	if(existingTab == null && ltwId == null) {
-		// None of the special conditions apply: no existing tab, and the new tab is already
+		// None of the special actions apply: no existing tab, and the new tab is already
 		// on the least tabbed window (or TabMania is configured to not move). Nothing to do.
 		this._log(logHead + "nothing to do");
 		return;
@@ -404,7 +418,7 @@ _onTabCreatedCb: function(tab) {
 	// Keep track of the count for the popup icon badge
 	this._incrementTabsCount();
 
-	this._createdTabSpecialConditions(tab);
+	this._createdTabSpecialActions(tab);
 },
 
 _onTabRemovedCb: function(tabId, removeInfo) {

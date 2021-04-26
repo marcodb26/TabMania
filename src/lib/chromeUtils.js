@@ -76,12 +76,15 @@ getExtensionId: function() {
 //// Utils to work with tabs (chrome.tabs)
 
 // "preferredWinId" is an optional argument. It's possible multiple windows are all equally
-// least tabbed. There are two use cases for getLeastTabbedWindowId():
+// least tabbed windows (LTWs).
+// There are two use cases for getLeastTabbedWindowId():
 // - To create a new tab, any of those window at random will be ok (leave "preferredWinId"
 //   undefined)
 // - To move an existing tab. In this case, if the current window of the tab is a contender
 //   for least tabbed, then it makes no sense to pick a different window and move the tab
 //   there, we should instead let the tab stay where it is. That's what we call "preferredWinId"
+//   * Note that if "preferredWinId" refers to a window of type "popup", this function ignores
+//     "preferredWinId", as it only deals with windows of type "normal".
 getLeastTabbedWindowId: function(preferredWinId) {
 	const logHead = "ChromeUtils::getLeastTabbedWindowId(): ";
 	let options = {
@@ -115,7 +118,7 @@ getLeastTabbedWindowId: function(preferredWinId) {
 	return this.wrap(chrome.windows.getAll, logHead, options).then(
 		function(winList) {
 			if(winList.length == 0) {
-				// Can this really happen???
+				// Can this really happen??? If all open windows are of type "popup" maybe?
 				return null;
 			}
 			let minWin = winList.reduce(leastTabbedReducer, 0);

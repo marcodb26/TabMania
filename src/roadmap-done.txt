@@ -31,6 +31,9 @@ DONE 2.0
     opened from other tabs, the URL field gets set only on the first "onUpdated", not
 	at "onCreated"
 
+- BUG: popup windows get moved to the LTW, we should leave them alone
+
+
 DONE 1.3
 
 - Updated NPM from v.7.5.4 to v.7.7.5
