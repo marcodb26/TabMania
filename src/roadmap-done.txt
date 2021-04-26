@@ -33,6 +33,10 @@ DONE 2.0
 
 - BUG: popup windows get moved to the LTW, we should leave them alone
 
+- Changed default for "open in LTW" and "dedup new tab" (new features of this release) to be
+  disabled by default
+  * We don't want new users to observe "strange" behaviors when they install the extension
+
 
 DONE 1.3
 

@@ -398,8 +398,8 @@ setOptionSearchUrl: function(value) {
 },
 
 getOptionNewTabNoOpenerInLTW: function() {
-	// Default "true"
-	return this._getBooleanOption("newTabNoOpenerInLTW", true);
+	// Default "false"
+	return this._getBooleanOption("newTabNoOpenerInLTW", false);
 },
 
 setOptionNewTabNoOpenerInLTW: function(value) {
@@ -416,8 +416,8 @@ setOptionNewTabWithOpenerInLTW: function(value) {
 },
 
 getOptionNewEmptyTabInLTW: function() {
-	// Default "true"
-	return this._getBooleanOption("newEmptyTabInLTW", true);
+	// Default "false"
+	return this._getBooleanOption("newEmptyTabInLTW", false);
 },
 
 setOptionNewEmptyTabInLTW: function(value) {
