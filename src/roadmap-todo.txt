@@ -5,8 +5,6 @@ TODO 2.0
 - When opening a new tab with a URL, intercept the tab creation and determine if the
   URL is already opened in another tab, in which case activate that tab
   * Track the first "onUpdated" if the URL is not available in the "onCreated"
-  * Add configuration option to deduplicate Chrome new tabs on creation too
-    - It does by default, but some users might not want it to work that way
   * Any way to disable this feature by pressing a key while the tab is being created???
 
 - Background page normalizeAll:

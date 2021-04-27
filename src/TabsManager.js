@@ -229,11 +229,37 @@ _windowFocusLossCb: function() {
 	);
 },
 
+_isTabDedupActive: function(tab) {
+	if(tab.openerTabId == null) {
+		if(!settingsStore.getOptionNewTabNoOpenerDedup()) {
+			// Configured to not dedup new tabs opened with no opener
+			return false;
+		}
+	} else {
+		if(tab.pendingUrl == "chrome://newtab/") {
+			if(!settingsStore.getOptionNewEmptyTabDedup()) {
+				// Configured to not dedup new empty tabs
+				return false;
+			}
+		} else {
+			if(!settingsStore.getOptionNewTabWithOpenerDedup()) {
+				// Configured to not dedup new tabs opened with an opener (that is, opened from
+				// another tab).
+				// Note that this check happens after the check for tab.active, so we won't
+				// dedup new tabs starting inactive (e.g. CTRL + link-click).
+				return false;
+			}
+		}
+	}
+
+	return true;
+},
+
 _findExistingUrlMatchTab: async function(tab) {
 	const logHead = "TabsManager::_findExistingUrlMatchTab(): ";
 
-	if(!settingsStore.getOptionNewTabDedup()) {
-		this._log(logHead + "newTabDedup configured off");
+	if(!this._isTabDedupActive(tab)) {
+		this._log(logHead + "new tab deduplication configured off");
 		return null;
 	}
 

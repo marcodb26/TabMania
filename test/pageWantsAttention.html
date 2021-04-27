@@ -24,12 +24,25 @@
 				// just open another tab.
 				// See https://developer.mozilla.org/en-US/docs/Web/API/Window/open
 				let popup = window.open("", null, "resizable,scrollbars,status");
+				// "popup" should be non-null
+				console.log("The new popup is:", popup);
+			}
+
+			function onClickTabNoOpener() {
+				let tab = window.open("", null, "noopener");
+				// "tab" should be null
+				if(tab == null) {
+					console.log("The new tab is null, as expected");
+				} else {
+					console.error("Unexpected, the new tab is not null:", tab);
+				}
 			}
 
 
 			function init() {
 				toggleTitle();
 				document.getElementById("testPopup").addEventListener("click", onClickPopupCb);
+				document.getElementById("testNoOpener").addEventListener("click", onClickTabNoOpener);
 			}
 		</script>
 	</head>
@@ -58,6 +71,14 @@
 			If you enable the special actions on page creation (move to least tabbed window, dedup/reuse existing
 			tab for URL), TabMania must ignore popup windows. Test the behavior is correct by
 			<a href="" id="testPopup">launching a test popup</a>. 
+			<h2>Test 3</h2>
+			If you enable the special actions on page creation (move to least tabbed window, dedup/reuse existing
+			tab for URL), tabs with "noopener" are still expected to have a "tab.openerTabId". We use this property
+			to determine if a tab was opened from another tab or from a different application, so it's important to
+			continue to validate "tab.openerTabId" remains non-null when "noopener" is used (check the console of
+			the background page). Test the behavior is correct by <a href="" id="testNoOpener">launching a "noopener" tab</a>.
+			Also, check the console of this page to verify "window.open()" returns "null" (meaning "noopener" is
+			working as intended, and yet "tab.openerTabId" is set as needed).
 		</div>
 	</body>
 </html>

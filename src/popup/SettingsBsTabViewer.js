@@ -388,20 +388,57 @@ _renderIncognitoInfo: function() {
 	);
 },
 
+_renderDedupOptions: function() {
+	let dedupGroup = Classes.CollapsibleContainerViewer.create({
+		startExpanded: true,
+		border: true
+	});
+	dedupGroup.setHeadingHtml(`<div class="fw-bold">Deduplicate new tabs</div>`);
+	dedupGroup.addClasses("ms-2", "mt-3");
+	this._generalSettingsContainer.append(dedupGroup);
+
+	let newEmptyTabDedup = Classes.SettingsCheckboxItemViewer.create({
+		setFn: settingsStore.setOptionNewEmptyTabDedup.bind(settingsStore),
+		getFn: settingsStore.getOptionNewEmptyTabDedup.bind(settingsStore),
+		label: "Chrome new tabs",
+		updateKey: "options",
+	});
+	newEmptyTabDedup.removeClasses("mt-3");
+	newEmptyTabDedup.addClasses("pt-1");
+	dedupGroup.append(newEmptyTabDedup);
+
+	let newTabWithOpenerDedup = Classes.SettingsCheckboxItemViewer.create({
+		setFn: settingsStore.setOptionNewTabWithOpenerDedup.bind(settingsStore),
+		getFn: settingsStore.getOptionNewTabWithOpenerDedup.bind(settingsStore),
+		label: "Links from other tabs",
+		updateKey: "options",
+	});
+	dedupGroup.append(newTabWithOpenerDedup);
+
+	let newTabNoOpenerDedup = Classes.SettingsCheckboxItemViewer.create({
+		setFn: settingsStore.setOptionNewTabNoOpenerDedup.bind(settingsStore),
+		getFn: settingsStore.getOptionNewTabNoOpenerDedup.bind(settingsStore),
+		label: "Links from other applications",
+		updateKey: "options",
+	});
+	newTabNoOpenerDedup.addClasses("pb-1");
+	dedupGroup.append(newTabNoOpenerDedup);
+},
+
 // LTW = Least Tabbed Window
 _renderLTWOptions: function() {
 	let ltwGroup = Classes.CollapsibleContainerViewer.create({
 		startExpanded: true,
 		border: true
 	});
-	ltwGroup.setHeadingHtml(`<div class="fw-bold">Least tabbed window</div>`);
+	ltwGroup.setHeadingHtml(`<div class="fw-bold">Move new tabs to least tabbed window</div>`);
 	ltwGroup.addClasses("ms-2", "mt-3");
 	this._generalSettingsContainer.append(ltwGroup);
 
 	let newEmptyTabInLTW = Classes.SettingsCheckboxItemViewer.create({
 		setFn: settingsStore.setOptionNewEmptyTabInLTW.bind(settingsStore),
 		getFn: settingsStore.getOptionNewEmptyTabInLTW.bind(settingsStore),
-		label: "For Chrome new tabs",
+		label: "Chrome new tabs",
 		updateKey: "options",
 	});
 	newEmptyTabInLTW.removeClasses("mt-3");
@@ -411,7 +448,7 @@ _renderLTWOptions: function() {
 	let newTabWithOpenerInLTW = Classes.SettingsCheckboxItemViewer.create({
 		setFn: settingsStore.setOptionNewTabWithOpenerInLTW.bind(settingsStore),
 		getFn: settingsStore.getOptionNewTabWithOpenerInLTW.bind(settingsStore),
-		label: "For links from other tabs",
+		label: "Links from other tabs",
 		updateKey: "options",
 	});
 	ltwGroup.append(newTabWithOpenerInLTW);
@@ -419,7 +456,7 @@ _renderLTWOptions: function() {
 	let newTabNoOpenerInLTW = Classes.SettingsCheckboxItemViewer.create({
 		setFn: settingsStore.setOptionNewTabNoOpenerInLTW.bind(settingsStore),
 		getFn: settingsStore.getOptionNewTabNoOpenerInLTW.bind(settingsStore),
-		label: "For links from other applications",
+		label: "Links from other applications",
 		updateKey: "options",
 	});
 	newTabNoOpenerInLTW.addClasses("pb-1");
@@ -474,6 +511,7 @@ _renderSettings: function() {
 	this._generalSettingsContainer.setHeadingHtml(`<div class="fw-bold">General settings</div>`);
 	this.append(this._generalSettingsContainer);
 
+	this._renderDedupOptions();
 	this._renderLTWOptions();
 	this._renderSearchOptions();
 
@@ -487,14 +525,6 @@ _renderSettings: function() {
 
 		this._generalSettingsContainer.append(showTabId);
 	}
-
-	let newTabDedup = Classes.SettingsCheckboxItemViewer.create({
-		setFn: settingsStore.setOptionNewTabDedup.bind(settingsStore),
-		getFn: settingsStore.getOptionNewTabDedup.bind(settingsStore),
-		label: "Deduplicate new tabs upon creation",
-		updateKey: "options",
-	});
-	this._generalSettingsContainer.append(newTabDedup);
 
 	let startupOpenPopup = Classes.SettingsCheckboxItemViewer.create({
 		setFn: settingsStore.setOptionStartupOpenPopup.bind(settingsStore),

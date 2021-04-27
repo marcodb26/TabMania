@@ -10,9 +10,10 @@ DONE 2.0
 
 - Updated NPM from v.7.7.5 to v.7.10.0
 
-- Intercept new tabs creation and apply "least tabbed window" logic
+- Move new tabs to LTW: intercept new tabs creation and apply "least tabbed window" logic
   * User configurable (tabs from other applications, tabs from other tabs, and new tabs)
   * Excludes "chrome-extension:" tabs
+  * Excludes tabs opened in the background (e.g. CTRL+click)
 
 - Auto-start undocked popup when starting Chrome
   * Configurable option (default "false")
@@ -22,20 +23,28 @@ DONE 2.0
 - Improve sequence of LTW open tab
   * First set back active tab in old window, then move
 
-- When opening a new tab with a URL, intercept the tab creation and determine if the
-  URL is already opened in another tab, in which case activate that tab
-  * Configurable option (default "false")
+- New tab dedup: when opening a new tab with a URL, intercept the tab creation and determine if
+  the URL is already opened in another tab, in which case activate that tab
+  * User configurable
+	- For now not distinguishing between tabs from other applications, tabs from other tabs,
+	  and new tabs
   * We're matching the full URL (including fragment), we never switch an existing
     tab to a different fragment
-  * It works only for new tabs opened from other applications, because for new tabs
-    opened from other tabs, the URL field gets set only on the first "onUpdated", not
-	at "onCreated"
+  * It works only for new tabs opened from other applications or new empty tabs
+    - For new tabs opened from other tabs, the URL field gets set only on the first "onUpdated",
+	  not at "onCreated"
+  * Excludes "chrome-extension:" tabs
+  * Excludes tabs opened in the background (e.g. CTRL+click)
 
 - BUG: popup windows get moved to the LTW, we should leave them alone
 
 - Changed default for "open in LTW" and "dedup new tab" (new features of this release) to be
   disabled by default
   * We don't want new users to observe "strange" behaviors when they install the extension
+
+- New tab dedup: add configuration option to deduplicate classes of Chrome new tabs on creation
+  * Tabs from other applications, tabs from other tabs, and new tabs
+  * Default "false" for all
 
 
 DONE 1.3

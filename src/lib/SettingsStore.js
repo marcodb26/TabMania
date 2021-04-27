@@ -218,8 +218,10 @@ Classes.SettingsStore = Classes.AsyncBase.subclass({
 	// - "newTabNoOpenerInLTW": (LTW = Least Tabbed Window)
 	// - "newTabWithOpenerInLTW": (LTW = Least Tabbed Window)
 	// - "newEmptyTabInLTW": tabs created with Chrome's "+" move to least tabbed window
-	// - "newTabDedup": attempt to reuse existing tab instead of creating a new tab
+	// - "newTabNoOpenerDedup": attempt to reuse existing tab instead of creating a new tab
 	//   if the full URL (including fragment) matches
+	// - "newTabWithOpenerDedup"
+	// - "newEmptyTabDedup"
 	// - "startupOpenPopup": auto-open popup at Chrome startup (only if popup undocked)
 	_options: null,
 	_customGroups: null,
@@ -424,13 +426,31 @@ setOptionNewEmptyTabInLTW: function(value) {
 	return this._setOption("newEmptyTabInLTW", value);
 },
 
-getOptionNewTabDedup: function() {
+getOptionNewTabNoOpenerDedup: function() {
 	// Default "false"
-	return this._getBooleanOption("newTabDedup", false);
+	return this._getBooleanOption("newTabNoOpenerDedup", false);
 },
 
-setOptionNewTabDedup: function(value) {
-	return this._setOption("newTabDedup", value);
+setOptionNewTabNoOpenerDedup: function(value) {
+	return this._setOption("newTabNoOpenerDedup", value);
+},
+
+getOptionNewTabWithOpenerDedup: function() {
+	// Default "false"
+	return this._getBooleanOption("newTabWithOpenerDedup", false);
+},
+
+setOptionNewTabWithOpenerDedup: function(value) {
+	return this._setOption("newTabWithOpenerDedup", value);
+},
+
+getOptionNewEmptyTabDedup: function() {
+	// Default "false"
+	return this._getBooleanOption("newEmptyTabDedup", false);
+},
+
+setOptionNewEmptyTabDedup: function(value) {
+	return this._setOption("newEmptyTabDedup", value);
 },
 
 getOptionStartupOpenPopup: function() {
