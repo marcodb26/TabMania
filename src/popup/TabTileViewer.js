@@ -793,7 +793,7 @@ _isRenderCompleted: function() {
 update: function(tab, tabGroup, queuePriority) {
 	const logHead = "TabTileViewer::update(): ";
 	if(tab == null) {
-		// Events like Classes.TabUpdatesTracker.CbType.ACTIVATED trigger a tile
+		// Events like Classes.TabsManager.Events.ACTIVATED trigger a tile
 		// update, but there's no "tab" info to perform the actual update... what
 		// this means is that the tab has been activated, so let's simulate
 		// the availability of that update here...

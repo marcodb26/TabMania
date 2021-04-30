@@ -734,7 +734,9 @@ _applyPinnedUpdateCb: function() {
 	// both "added" and "deleted" for the event generated to our listeners,
 	// so both need to be accurate, and to be accurate, this._pinnedBookmarkIds
 	// must remain unchanged in this function until this point.
-	let [ added, deleted ] = tmUtils.arrayDiff(this._pinnedBookmarkIds, found);
+	// Note that "changed" should be an empty array given we're not passing specialized
+	// comparison functions to tmUtils.arrayDiff(), we'll just ignore it.
+	let [ added, deleted, changed ] = tmUtils.arrayDiff(this._pinnedBookmarkIds, found);
 
 	// Loop to remove from this._pinnedBookmarks any bookmark that is no longer pinned.
 	// That's what's in the "deleted" array. We also need to unset the "pinned" property

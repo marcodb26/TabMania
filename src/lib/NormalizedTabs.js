@@ -755,6 +755,45 @@ updateTab: function(newTab, tabIdx) {
 	}
 },
 
+// Returns the tab being removed if "tabId" was found and removed, "null" if not
+removeTabById: function(tabId) {
+	let tabIdx = this.getTabIndexByTabId(tabId);
+
+	if(tabIdx == -1) {
+		// Not found, nothing to remove
+		return null;
+	}
+
+	this.removeTabsLoadingTab(tabId);
+	let retVal = this._tabs[tabIdx];
+	this._tabs.splice(tabIdx, 1);
+
+	return retVal;
+},
+
+_tabsCmp: function(a, b) {
+	// For now let's just use tmUtils.isEqual(), though we know that many of the properties
+	// of a tab are actually just computed from other properties, and we could optimize the
+	// comparison by including only properties that are not derived from other properties.
+	// We start by having this separate function in case we want to add that optimization later.
+	return tmUtils.isEqual(a, b);
+},
+
+diff: function(oldNormTabs) {
+	let sortByIdFn = function(x, y) {
+		if(x.id == y.id) {
+			return 0;
+		}
+		if(x.id < y.id) {
+			return -1;
+		}
+		// It must be "x.id > y.id"
+		return 1;
+	}
+
+	return tmUtils.arrayDiff(oldNormTabs.getTabs(), this.getTabs(), sortByIdFn, this._tabsCmp.bind(this));
+},
+
 // Returns a dictionary of tabs with status == "loading", keyed by tab ID
 getTabsLoading: function() {
 	return this._tabsLoading;

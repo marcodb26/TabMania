@@ -16,7 +16,7 @@ declare -r UNPACKED_POPUP_SOURCES=(
 	"HistoryFinder.js" "PopupDocker.js" "PopupMsgServer.js" "icons.js" "Viewer.js" "BsTabViewer.js"
 	"GroupsBuilder.js" "ContainerViewer.js" "SettingsItemViewer.js" "SettingsCustomGroupViewer.js"
 	"SettingsBsTabViewer.js" "PopupViewer.js" "TabsTitleMonitor.js" "TilesGroupViewer.js"
-	"TabsBsTabViewer.js" "MenuViewer.js"
+	"TabsManager.js" "TabsBsTabViewer.js" "MenuViewer.js"
 	"TabTileViewer.js" "TabTileMenuViewer.js" "PopupMenuViewer.js" "NewTabAction.js" "popup.js"
 )
 

@@ -23,11 +23,6 @@ Classes.TabsBsTabViewer = Classes.SearchableBsTabViewer.subclass({
 
 	_searchQuery: null,
 
-	// This is a recurring job. We start it when we do a full refresh, and we stop it when
-	// we get to zero tabs in status "loading"
-	_issue01WorkaroundJob: null,
-	_issue01WorkaroundInterval: 5000,
-
 	_queryAndRenderJob: null,
 	// Delay before a full re-render happens. Use this to avoid causing too many re-renders
 	// if there are too many events.
@@ -55,12 +50,8 @@ Classes.TabsBsTabViewer = Classes.SearchableBsTabViewer.subclass({
 
 	_tilesAsyncQueue: null,
 
-	// Object containing all current known tabs
-	_normTabs: null,
-
+	_tabsManager: null,
 	_historyFinder: null,
-
-	_stats: null,
 
 _init: function(bsTabLabelHtml) {
 	// Overriding the parent class' _init(), but calling that original function first
@@ -72,17 +63,14 @@ _init: function(bsTabLabelHtml) {
 	this._assert(this._expandedGroups != null,
 				logHead + "subclasses must define _expandedGroups");
 
-	this._resetStats();
-
-	this._issue01WorkaroundJob = Classes.ScheduledJob.create(this._issue01Workaround.bind(this), "issue01Workaround");
-	this._issue01WorkaroundJob.debug();
-
+	this._tabsManager = Classes.TabsManager.createAs("allTabs", { standardTabs: true, incognitoTabs: true } );
 	this._queryAndRenderJob = Classes.ScheduledJob.create(this._queryAndRenderTabs.bind(this), "queryAndRender");
 	this._queryAndRenderJob.debug();
 
 	this._updateSearchResultsJob = Classes.ScheduledJob.create(this._updateSearchResults.bind(this), "updateSearchResults");
 	this._updateSearchResultsJob.debug();
 
+	this._registerTabsManagerCallbacks();
 	bookmarksManager.addEventListener(Classes.EventManager.Events.UPDATED, this._bookmarkUpdatedCb.bind(this));
 
 	this._historyFinder = Classes.HistoryFinder.create();
@@ -93,66 +81,19 @@ _init: function(bsTabLabelHtml) {
 	// would otherwise be null
 	this._TabsBsTabViewer_searchBoxInactiveInner();
 	this._TabsBsTabViewer_render();
-
-	this._registerChromeCallbacks();
-
-	settingsStore.addEventListener(Classes.EventManager.Events.UPDATED, this._settingsStoreUpdatedCb.bind(this));
 },
 
-_resetStats: function() {
-	this._stats = {
-		issue01Hit: 0,
-	};
+_registerTabsManagerCallbacks: function() {
+	this._tabsManager.addEventListener(Classes.TabsManager.Events.CREATED, this._tabCreatedCb.bind(this));
+	this._tabsManager.addEventListener(Classes.TabsManager.Events.REMOVED, this._tabRemovedCb.bind(this));
+	this._tabsManager.addEventListener(Classes.TabsManager.Events.UPDATED, this._tabUpdatedCb.bind(this));
 },
 
-// These Chrome callbacks are very incomplete, and the only reasonable action to take
-// on receiving them is to re-query/re-render everything. We tried to be smarter about
-// it, but the lack of information is too much:
-// - When you get onActivated for tab1, you don't know which tab2 has been deactivated
-// - When you get onHighlighted, you only know when a tab gained highlighted, not when
-//   it lost it
-// - When you get onMoved, you know the new index of the tab that was moved, but not the
-//   shifted indices of all the other tabs that have been pushed around because of the move
-// - Similarly, when you get onRemoved, all the indices of the tabs to the right of the
-//   removed tab change, but you don't get notified about it
-// - When you get onCreated, the tab is not completely ready, and you need to wait for
-//   onUpdated anyway.
-_registerChromeCallbacks: function() {
-	// https://developer.chrome.com/docs/extensions/reference/tabs/#event-onCreated
-	chrome.tabs.onCreated.addListener(this._tabCreatedCb.bind(this));
-
-	// https://developer.chrome.com/docs/extensions/reference/tabs/#event-onUpdated
-	// Note that chrome.tabs.onUpdated does NOT include updated to the "active" and
-	// "highlighted" property of a tab. For that you need to listen to chrome.tabs.onActivated
-	// and onHighlighted, though you'll only be able to learn which tabs are gaining
-	// "active" and "highlighted", not which tabs are losing them.
-	chrome.tabs.onUpdated.addListener(this._tabUpdatedCb.bind(this, Classes.TabsBsTabViewer.CbType.UPDATED));
-	// https://developer.chrome.com/docs/extensions/reference/tabs/#event-onActivated
-	chrome.tabs.onActivated.addListener(this._tabActivatedHighlightedCb.bind(this, Classes.TabsBsTabViewer.CbType.ACTIVATED));
-	// https://developer.chrome.com/docs/extensions/reference/tabs/#event-onHighlighted
-	chrome.tabs.onHighlighted.addListener(this._tabActivatedHighlightedCb.bind(this, Classes.TabsBsTabViewer.CbType.HIGHLIGHTED));
-	// Unfortunately closing a tab doesn't get considered an update to the tab, so we must
-	// register for this other event too...
-	// https://developer.chrome.com/docs/extensions/reference/tabs/#event-onRemoved
-	chrome.tabs.onRemoved.addListener(this._tabUpdatedCb.bind(this, Classes.TabsBsTabViewer.CbType.REMOVED));
-	// https://developer.chrome.com/docs/extensions/reference/tabs/#event-onAttached
-	chrome.tabs.onAttached.addListener(this._tabUpdatedCb.bind(this, Classes.TabsBsTabViewer.CbType.ATTACHED));
-	// https://developer.chrome.com/docs/extensions/reference/tabs/#event-onMoved
-	chrome.tabs.onMoved.addListener(this._tabUpdatedCb.bind(this, Classes.TabsBsTabViewer.CbType.MOVED));
-},
-
-_tabCreatedCb: function(tab) {
+_tabCreatedCb: function(ev) {
+	let tab = ev.detail.tab;
 	const logHead = "TabsBsTabViewer::_tabCreatedCb(tabId = " + tab.id + "): ";
 
-	// This check probably doesn't make sense, the _tabCreatedCb() for our own popup
-	// window should have already expired by the time we started running our logic...
-	// anyway, just in case...
-	if(tab.id == popupDocker.getOwnTabId()) {
-		this._log(logHead + "suppressing notification for our own tab ID");
-		return;
-	}
-
-	this._log(logHead + "entering");
+	this._log(logHead + "entering", ev.detail);
 	// Since there's a new tab, we need to do a full query again, and potentially trigger
 	// an update to the list of tabs we're tracking (since this tab ID could not possibly
 	// already be in that list).
@@ -170,6 +111,25 @@ _tabCreatedCb: function(tab) {
 	// No reason to update the _normTabs and the shortcutsManager if we don't
 	// have any delay before a full query/re-render.
 	this._queryAndRenderJob.run();
+},
+
+_tabRemovedCb: function(ev) {
+	const logHead = "TabsBsTabViewer::_tabRemovedCb(tabId = " + ev.detail.tabId + "): ";
+
+	this._log(logHead + "entering", ev.detail);
+},
+
+_tabUpdatedCb: function(ev) {
+	let tab = ev.detail.tab;
+
+	let tabId = "[multi]";
+	if(tab !== undefined) {
+		tabId = tab.id;
+	}
+
+	const logHead = "TabsBsTabViewer::_tabUpdatedCb(tabId = " + tabId + "): ";
+
+	this._log(logHead + "entering", ev.detail);
 },
 
 _tabActivatedHighlightedCb: function(cbType, activeHighlightInfo) {
@@ -221,7 +181,7 @@ _settingsStoreUpdatedCb: function(ev) {
 	// group, and that definitely can have an impact on group membership.
 	// So it's incorrect to say "group membership has not changed"
 	if(this.isSearchActive() || ev.detail.key == "customGroups" || ev.detail.key == "pinnedGroups") {
-		this._queryAndRenderJob.run(this._queryAndRenderDelay);		
+		this._queryAndRenderJob.run(this._queryAndRenderDelay);
 		return;
 	}
 	// Not a search case, just normalize the search badges (configuration changes
@@ -255,81 +215,6 @@ _setTabProp: function(prop, tabId) {
 	this._tilesByTabId[tabId].update(tab);
 },
 
-// Sometimes opening a new tab or reloading a tab causes the tab to stay in "loading"
-// status until some other event in the future triggers a full refresh.
-// During pinned bookmark testing we saw this sequence pretty consistently:
-// - UPDATE1: changeInfo: status = complete (and indeed the tab data shows that)
-// - UPDATE2: changeInfo: title = xyz (but the tab data show status = "loading",
-//   though status is not listed in changeInfo)
-// - chrome.tabs.get() triggered by UPDATE2: if done too soon after UPDATE2,
-//   the query says that status = "loading", while if you wait a little longer,
-//   it says that status = "complete"
-//   * Not clear what's the right amount of time we should wait, for some websites
-//     0.5s was enough, during a reload of Yahoo Mail 5s was not enough
-//     - But in both cases, you'd see a transition to "complete", then back to "loading"
-// The timing and sequencing is not fixed, most of the time the "complete" event
-// arrived before the "title" event, sometimes (not very often, and only when adding
-// code and chaing the timing of the sequence) we've seen them arrive in reverse order,
-// making "loading" go away appropriately.
-//
-// Decided to implement an ugly workaround: whenever we start a new full refresh cycle
-// we start a monitoring job running the function below. NormalizedTabs tracks which
-// tabs are in status "loading" when they get normalized, then this function calls
-// chrome.tabs.get() on each one of the loading tabs, and if at least one of them has
-// changed status, it triggers a full refresh again. We don't try to update the tab
-// and tile directly from this function, because who knows what has changed overall,
-// the function just monitors status. Note that the function is not guaranteed to be
-// catching only the bad case we're working around: in some cases it might just see
-// a status change before we had time to process the event that carried that information.
-// So don't take this._stats.issue01Hit too literally...
-_issue01Workaround: function() {
-	const logHead = "TabsBsTabViewer::_issue01Workaround(): ";
-
-	if(this._normTabs == null) {
-		this._log(logHead + "no _normTabs");
-		return;
-	}
-
-	let tabsLoading = this._normTabs.getTabsLoading();
-	let tabIdList = Object.keys(tabsLoading);
-
-	if(tabIdList.length == 0) {
-		this._log(logHead + "no tabs in \"loading\" status, nothing to do, stopping job");
-		this._issue01WorkaroundJob.stop();
-		return;
-	}
-
-	this._log(logHead + "checking " + tabIdList.length + " tabs in \"loading\" status", tabsLoading);
-
-	let tabPromises = new Array(tabIdList.length);
-	for(let i = 0; i < tabIdList.length; i++) {
-		// Note that we need to turn "tabIdList[i]" (a string) into an integer
-		tabPromises[i] = chromeUtils.wrap(chrome.tabs.get, logHead, +tabIdList[i]);
-	}
-
-	Promise.all(tabPromises).then(
-		function(tabs) {
-			this._log(logHead + "got these results:", tabs);
-			for(let i = 0; i < tabs.length; i++) {
-				let tab = tabs[i];
-				if(tab == null) {
-					this._log(logHead + "at least one tab disappeared, refreshing all", tab);
-					this._stats.issue01Hit++;
-					this._queryAndRenderJob.run(this._queryAndRenderDelay);
-					return;
-				}
-				if(tab.status != "loading") {
-					this._log(logHead + "at least one tab has changed status, refreshing all", tab);
-					this._stats.issue01Hit++;
-					this._queryAndRenderJob.run(this._queryAndRenderDelay);
-					return;
-				}
-				this._log(logHead + "all tabs are still in \"loading\" status");
-			}
-		}.bind(this)
-	);
-},
-
 _immediateTabUpdate: function(tabId, tab) {
 	const logHead = "TabsBsTabViewer::_immediateTabUpdate(" + tabId + "): ";
 
@@ -340,7 +225,7 @@ _immediateTabUpdate: function(tabId, tab) {
 
 	this.blink();
 
-	// Note that only "Classes.TabsBsTabViewer.CbType.UPDATED" includes "tab".
+	// Note that only "Classes.TabsManager.Events.UPDATED" includes "tab".
 	// All other types don't.
 	// Anyway TabTileViewer.update() is protected against "tab == null".
 
@@ -365,17 +250,7 @@ _immediateTabUpdate: function(tabId, tab) {
 	tile.update(tab);
 },
 
-// This function is responsible for resetting the "wantsAttention" rendering, and
-// gets called by tabsTitleMonitor when a "wantsAttention" situation expires
-_stopAttentionCb: function(tabId) {
-	const logHead = "TabsBsTabViewer::_stopAttentionCb(" + tabId + "): ";
-
-	this._log(logHead + "entering");
-	// As usual, whenever something change, the action is always the same, full re-render...
-	this._queryAndRenderJob.run(this._queryAndRenderDelay);
-},
-
-_tabUpdatedCb: function(cbType, tabId, activeChangeRemoveInfo, tab) {
+OLD_tabUpdatedCb: function(cbType, tabId, activeChangeRemoveInfo, tab) {
 	const logHead = "TabsBsTabViewer::_tabUpdatedCb(" + cbType + ", " + tabId + "): ";
 
 	// Terrible idea: our popup always shows as "loading" unless some other event
@@ -418,7 +293,7 @@ _tabUpdatedCb: function(cbType, tabId, activeChangeRemoveInfo, tab) {
 	this._log(logHead + "entering", activeChangeRemoveInfo, tab);
 
 	switch(cbType) {
-		case Classes.TabsBsTabViewer.CbType.REMOVED:
+		case Classes.TabsManager.Events.REMOVED:
 			// Like in the case of onCreated, when a tab is removed we want to run the
 			// full re-render immediately.
 			//
@@ -431,7 +306,7 @@ _tabUpdatedCb: function(cbType, tabId, activeChangeRemoveInfo, tab) {
 			tabsTitleMonitor.remove(tabId);
 			this._queryAndRenderJob.run();
 			break;
-		case Classes.TabsBsTabViewer.CbType.UPDATED:
+		case Classes.TabsManager.Events.UPDATED:
 			// tabsTitleMonitor.update() sets the "tab.wantsAttention" flag in "tab"
 			// when it returns "true". Can't put it in "tab.tm" because "tab.tm" will
 			// be added later.
@@ -450,20 +325,20 @@ _tabUpdatedCb: function(cbType, tabId, activeChangeRemoveInfo, tab) {
 				this._queryAndRenderJob.run(this._queryAndRenderDelay);
 			}
 			break;
-		case Classes.TabsBsTabViewer.CbType.ACTIVATED:
+		case Classes.TabsManager.Events.ACTIVATED:
 			if(this._queryAndRenderDelay != null && this._queryAndRenderDelay != 0) {
 				this._setTabProp("active", tabId);
 			}
 			this._queryAndRenderJob.run(this._queryAndRenderDelay);
 			break;
-		case Classes.TabsBsTabViewer.CbType.HIGHLIGHTED:
+		case Classes.TabsManager.Events.HIGHLIGHTED:
 			if(this._queryAndRenderDelay != null && this._queryAndRenderDelay != 0) {
 				activeChangeRemoveInfo.tabIds.forEach(this._setTabProp.bind(this, "highlighted"));
 			}
 			this._queryAndRenderJob.run(this._queryAndRenderDelay);
 			break;
-		case Classes.TabsBsTabViewer.CbType.MOVED:
-		case Classes.TabsBsTabViewer.CbType.ATTACHED:
+		case Classes.TabsManager.Events.MOVED:
+		case Classes.TabsManager.Events.ATTACHED:
 			// Adding a parenthesis to handle the "tab" redefinition (as it's also a function input
 			// parameter) inside without incurring in the error: 
 			//   Error in event handler: ReferenceError: Cannot access 'tab' before initialization
@@ -477,7 +352,7 @@ _tabUpdatedCb: function(cbType, tabId, activeChangeRemoveInfo, tab) {
 				// event, but in this case we won't have a tab for that window yet, because it's
 				// new, and we're still in the onCreated event...
 				if(tab != null && this._queryAndRenderDelay != null && this._queryAndRenderDelay != 0) {
-					if(cbType == Classes.TabsBsTabViewer.CbType.ATTACHED) {
+					if(cbType == Classes.TabsManager.Events.ATTACHED) {
 						tab.index = activeChangeRemoveInfo.newPosition;
 						tab.windowId = activeChangeRemoveInfo.newWindowId;
 					} else { // MOVED
@@ -597,122 +472,6 @@ _tabsAsyncQuery: function() {
 	// return chromeUtils.wrap(chrome.tabs.query, logHead, { pinned: true })
 	this._errorMustSubclass("TabsBsTabViewer::_tabsAsyncQuery()");
 	throw(new Error("must subclass"));
-},
-
-// Returns the count of tabs that have been processed
-_processOnePinnedBookmark: function(bmNode, tabs) {
-	function tabMatchesBookmark(tab) {
-		if(tab.url != null && tab.url != "") {
-			// If there's a "tab.url", don't even try "tab.pendingUrl"
-			return tab.url.startsWith(bmNode.url);
-		}
-		if(tab.pendingUrl != null && tab.pendingUrl != "") {
-			return tab.pendingUrl.startsWith(bmNode.url);
-		}
-		return false;
-	}
-
-	let foundCount = 0;
-
-	for(let i = 0; i < tabs.length; i++) {
-		let tab = tabs[i];
-		if(!tabMatchesBookmark(tab)) {
-			continue;
-		}
-
-		foundCount++;
-
-		// Unfortunately we can't add "pinInherited" to tabs[i].tm, because
-		// ".tm" has yet to be assigned by NormalizedTabs, but we can't wait to
-		// call this function after the call to NormalizedTabs (it would break
-		// at least staging if we added pinned bookmarks later).
-		// It's ok to add "pinInherited" at the top level within "tabs[i]".
-		tab.pinInherited = {
-			type: "bookmark",
-			id: bmNode.bookmarkId,
-		};
-
-		// A little trick here. When a tab loads, initially its title its set to
-		// its URL. Unfortunately that means that from a tile perspective, the tile
-		// of the tab will be sorted to a different location when the user clicks
-		// on the pinned bookmark to activate the tab. So it looks like the tile
-		// disappears for a while, then it comes back, and that is visually ugly.
-		// This little trick forces the "title" of a tab to be the same as the title
-		// of the pinned bookmark while the tab is loading and its title has not been
-		// settled yet. Once the title of the tab settles, we stop overwriting it with
-		// the title of the pinned bookmark. Note that there's no guarantee the tile
-		// will stick in place once you load the tab from the pinned bookmark, because
-		// the title of the pinned bookmark could have been edited by the user, or the
-		// title of the website could have changed since the time the bookmark was saved.
-		//
-		// Note the choice of "tab.url.includes(tab.title)" instead of "tab.url == tab.title",
-		// because when the tab is loading, if the URL is "https://www.google.com/", the
-		// title gets set to "https://www.google.com" without the trailing "/", just
-		// to make life a little more interesting...
-		// Note also that we tried to restrict this logic to 'tab.status == "loading"',
-		// but as it turns out when "tab.status" switches to "complete" the title is
-		// still bogus for a while...
-		if(tab.title == "" || tab.url.includes(tab.title) || tab.title == tab.pendingUrl) {
-			tab.title = bmNode.title;
-		}
-	}
-
-	return foundCount;
-},
-
-// Add pinInheritance information to tabs that are mapped to pinned bookmarks,
-// and possibly clean up the title of the tab when necessary (see inside the
-// function for details).
-// Optionally (controlled by "returnBookmarks"), also return pinned bookmarks,
-// filtering out those that have a corresponding tab present. For pinned bookmarks
-// mapped to one or more tabs (by URL match), we hide the bookmark and show only
-// the tab(s).
-//
-// As of right now, the two cases when "returnBookmarks" can be "false" are when
-// this.isSearchActive() is true and when we're calling this function from the
-// Chrome.tabs "onUpdate" event handler.
-//
-// Note that "returnBookmarks" is not an optional parameter, but if you set it
-// to false, the function always returns an empty array.
-//
-// "returnBookmarks" might be a very silly optimization, it only saves a bunch
-// of push() calls...
-_processPinnedBookmarks: function(tabs, returnBookmarks) {
-	const logHead = "TabsBsTabViewer::_processPinnedBookmarks(" + returnBookmarks + "): ";
-
-	let pinnedBookmarks = bookmarksManager.getPinnedBookmarks();
-	let filteredPinnedBookmarks = [];
-
-	if(pinnedBookmarks.length == 0) {
-		this._log(logHead + "no pinned bookmarks");
-		return [];
-	}
-
-	this._log(logHead + "processing pinned bookmarks", pinnedBookmarks);
-
-	// Note that we need to go through this loop in both standard and search mode,
-	// because in both cases we want to show the "inherited pin" on the regular tab.
-	// On the other hand, in search mode we never want to add the bookmark to the
-	// "tabs", otherwise the bookmark will show up twice (once through here, then
-	// through the standard search mechanism of bookmarksManager.find().
-	for(let i = 0; i < pinnedBookmarks.length; i++) {
-		let bmNode = pinnedBookmarks[i];
-		let tabsFoundCount = this._processOnePinnedBookmark(bmNode, tabs);
-		if(returnBookmarks) {
-			if(tabsFoundCount > 0) {
-				// We found one or more matching tabs, skip the bookmark
-				this._log(logHead + "found " + tabsFoundCount + " tab(s), skipping bookmark", bmNode);
-			} else {
-				// No matching tab and not in search mode, add the bookmark
-				filteredPinnedBookmarks.push(bmNode);
-			}
-		}
-	}
-
-	if(returnBookmarks) {
-		this._log(logHead + "pinned bookmarks added:", filteredPinnedBookmarks);
-	}
-	return filteredPinnedBookmarks;
 },
 
 _logCachedTilesStats: function(logHead) {
@@ -1249,13 +1008,6 @@ getSearchParserInfo: function() {
 
 }); // Classes.TabsBsTabViewer
 
-Classes.Base.roDef(Classes.TabsBsTabViewer, "CbType", {});
-Classes.Base.roDef(Classes.TabsBsTabViewer.CbType, "ACTIVATED", "activated");
-Classes.Base.roDef(Classes.TabsBsTabViewer.CbType, "HIGHLIGHTED", "highlighted");
-Classes.Base.roDef(Classes.TabsBsTabViewer.CbType, "UPDATED", "updated");
-Classes.Base.roDef(Classes.TabsBsTabViewer.CbType, "REMOVED", "removed");
-Classes.Base.roDef(Classes.TabsBsTabViewer.CbType, "ATTACHED", "attached");
-Classes.Base.roDef(Classes.TabsBsTabViewer.CbType, "MOVED", "moved");
 
 // CLASS AllTabsBsTabViewer
 //

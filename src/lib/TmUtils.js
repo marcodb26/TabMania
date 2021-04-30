@@ -154,13 +154,38 @@ deepCopy: function(obj) {
 	return retVal;
 },
 
-// This function only works for arrays of basic types, not arrays of complex objects.
 // Note that this function modifies "a" and "b" (it sorts them). If you don't
-// want your original arrays to be modified, please set "inPlace = false" (default "true").
+// want your original arrays to be modified, please set "inPlace = false" (default "true")
+// to perform a shallow copy of the arrays before the logic starts.
 // Returns two arrays [ added, deleted ], which represents the steps you need to take
 // on "a" to make it become like "b".
-arrayDiff: function(a, b, inPlace) {
+//
+// "sortCmpFn" is used to determine a sorting criterion based on a key known to "sortCmpFn".
+// It should return the customary "0", "-1" or "1". Leave it empty to use the default Array.sort()
+// behavior (convert to string, then compare).
+// "nodeCmpFm" is used to determine if a node of "a" and the corresponding node of "b" (already
+// marked as "same index" by "sortCmpFn") are identical or different. It should return "true" if
+/// they're identical, and "false" if they're different. Leave it empty to use a basic "==" comparison.
+arrayDiff: function(a, b, sortCmpFn, nodeCmpFn, inPlace) {
 	inPlace = optionalWithDefault(inPlace, true);
+
+	let basicSortCmpFn = function(x, y) {
+		if(x == y) {
+			return 0;
+		}
+		if(x < y) {
+			return -1;
+		}
+		// It must be "x > y"
+		return 1;
+	}
+
+	let basicNodeCmpFn = function(x, y) {
+		return x == y;
+	}
+
+	sortCmpFn = optionalWithDefault(sortCmpFn, basicSortCmpFn);
+	nodeCmpFn = optionalWithDefault(nodeCmpFn, basicNodeCmpFn);
 
 	if(!inPlace) {
 		// No need to call this.deepCopy(), we need to sort the array, we don't touch
@@ -169,23 +194,30 @@ arrayDiff: function(a, b, inPlace) {
 		b = [].concat(b);
 	}
 
-	a.sort();
-	b.sort();
+	a.sort(sortCmpFn);
+	b.sort(sortCmpFn);
 
 	let added = [];
 	let deleted = [];
+	let changed = [];
 
 	// I've seen while() loops being much slower than for() loops, but maybe this
 	// while-like for() syntax is too much... :-)
 	let aIdx = 0;
 	let bIdx = 0;
 	for(; aIdx < a.length && bIdx < b.length;) {
-		if(a[aIdx] == b[bIdx]) {
-			// They're the same
+		let sortCmpResult = sortCmpFn(a[aIdx], b[bIdx]);
+		if(sortCmpResult == 0) {
+			// They've the same index
 			aIdx++;
 			bIdx++;
+			// But are they also the same value?
+			if(!nodeCmpFn(a[aIdx], b[bIdx])) {
+				// Not the same value, the node has changed
+				changed.push(b[bIdx]);
+			}
 		} else {
-			if(a[aIdx] < b[bIdx]) {
+			if(sortCmpResult < 0) {
 				// a[aIdx] is smaller than b[bIdx], means "a" contains something that's not in "b"
 				deleted.push(a[aIdx]);
 				aIdx++;
@@ -209,7 +241,7 @@ arrayDiff: function(a, b, inPlace) {
 		added.push(b[bIdx]);
 	}
 
-	return [ added, deleted ];
+	return [ added, deleted, changed ];
 },
 
 // See https://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript
