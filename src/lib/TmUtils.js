@@ -208,14 +208,15 @@ arrayDiff: function(a, b, sortCmpFn, nodeCmpFn, inPlace) {
 	for(; aIdx < a.length && bIdx < b.length;) {
 		let sortCmpResult = sortCmpFn(a[aIdx], b[bIdx]);
 		if(sortCmpResult == 0) {
-			// They've the same index
-			aIdx++;
-			bIdx++;
-			// But are they also the same value?
+			// They've the same index, but are they also the same value?
 			if(!nodeCmpFn(a[aIdx], b[bIdx])) {
 				// Not the same value, the node has changed
 				changed.push(b[bIdx]);
 			}
+
+			// Regardless, we need to move ahead both indices
+			aIdx++;
+			bIdx++;
 		} else {
 			if(sortCmpResult < 0) {
 				// a[aIdx] is smaller than b[bIdx], means "a" contains something that's not in "b"
