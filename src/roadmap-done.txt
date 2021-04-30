@@ -46,6 +46,14 @@ DONE 2.0
   * Tabs from other applications, tabs from other tabs, and new tabs
   * Default "false" for all
 
+- Split chrome.tabs events processing from tiles rendering
+  * The new "TabsManager" offers a more uniform set of events downstream, and the new tiles
+    rendering logic should use that instead of the native chrome.tabs events
+  * Goals
+    - Reduce number of times a full tiles re-render is triggered
+	- Add support for partitioning events space between standard and incognito tabs
+	  * To later enable them to stream into two different classes and two different viewers
+
 
 DONE 1.3
 
