@@ -699,6 +699,10 @@ getTabs: function() {
 	return this._tabs;
 },
 
+cloneTabs: function() {
+	return tmUtils.deepCopy(this.getTabs());
+},
+
 // Returns -1 if the "searchTabId" can't be found, an index otherwise
 getTabIndexByTabId: function(searchTabId) {
 	return this._tabs.findIndex(
@@ -779,7 +783,7 @@ _tabsCmp: function(a, b) {
 	return tmUtils.isEqual(a, b);
 },
 
-diff: function(oldNormTabs) {
+diff: function(oldTabList) {
 	let sortByIdFn = function(x, y) {
 		if(x.id == y.id) {
 			return 0;
@@ -791,7 +795,7 @@ diff: function(oldNormTabs) {
 		return 1;
 	}
 
-	return tmUtils.arrayDiff(oldNormTabs.getTabs(), this.getTabs(), sortByIdFn, this._tabsCmp.bind(this));
+	return tmUtils.arrayDiff(oldTabList, this.getTabs(), sortByIdFn, this._tabsCmp.bind(this));
 },
 
 // Returns a dictionary of tabs with status == "loading", keyed by tab ID

@@ -158,11 +158,11 @@ getBsTabId: function(bsTabLabel) {
 	return this._id + "-" + bsTabLabel;
 },
 
-_createBsTab: function(bsTabLabel, htmlLabel, bsTabViewerSubclass) {
+_createBsTab: function(bsTabLabel, labelHtml, bsTabViewerSubclass) {
 	bsTabViewerSubclass = optionalWithDefault(bsTabViewerSubclass, Classes.BsTabViewer);
 	const bsTabId = this.getBsTabId(bsTabLabel);
-	
-	this._bsTabViewersDict[bsTabId] = bsTabViewerSubclass.createAs(bsTabId, htmlLabel);
+
+	this._bsTabViewersDict[bsTabId] = bsTabViewerSubclass.createAs(bsTabId, { labelHtml: labelHtml });
 
 	this._bsTabViewersDict[bsTabId].addBsTabActivationStartListener(this._bsTabActivatedCb.bind(this));
 	this.append(this._bsTabViewersDict[bsTabId]);
@@ -171,7 +171,7 @@ _createBsTab: function(bsTabLabel, htmlLabel, bsTabViewerSubclass) {
 },
 
 _populateTabs: function() {
-	this._createBsTab("home", "Home", Classes.AllTabsBsTabViewer);
+	this._createBsTab("home", "Home", Classes.TabsBsTabViewer);
 	this._createBsTab("settings", "Settings", Classes.SettingsBsTabViewer);
 },
 

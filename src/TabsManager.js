@@ -127,7 +127,7 @@ _tabsCountAssertCb: function() {
 },
 
 _queryTabs: function() {
-	return chromeUtils.wrap(chrome.tabs.query, "TabsManager::_queryTabs(): ", {});
+	return chromeUtils.queryTabs({}, "TabsManager::_queryTabs(): ");
 },
 
 _updateShortcutsAllTabs: function() {
@@ -271,49 +271,47 @@ _findExistingUrlMatchTab: async function(tab) {
 		return null;
 	}
 
-	// https://developer.chrome.com/docs/extensions/reference/tabs/#method-query
-	// As of 21.04.23, the documentation for the "url" field says "Fragment identifiers are not matched.",
-	// but based on my testing, that seems to mean "if you pass in a URL with a fragment, we'll return
-	// nothing" (I initially interpreted that text as "we'll ignore the fragment and match just the URL",
-	// but that's not the case). So we need to proactively remove fragments.
-	// Through testing, we also discovered that the field "url" in chrome.tabs.query() will match
-	// both "url" and "pendingUrl", so we need to make sure to track both below.
-	let cleanUrl = tab.tm.url.split("#")[0];
-
-	let tabListNoFragment = await chromeUtils.wrap(chrome.tabs.query, logHead, { url: cleanUrl });
-	this._log(logHead + "chrome.tabs.query() for " + cleanUrl + " returned:", tabListNoFragment, tab);
-
-	if(tabListNoFragment.length == 0) {
-		// Highly unlikely to get here, since by construction the results set should at least
-		// include "tab", but just in case...
-		return null;
-	}
-
-	// Now we have a list of tabs matching the URL without fragment, which subset matches the URL
-	// with fragment?
-	let tabList = [];
-	for(let i = 0; i < tabListNoFragment.length; i++) {
-		let currTab = tabListNoFragment[i];
-		// Note that we also need to filter out "tab" (this function's input), which should match by
-		// definition...
-		if(currTab.id != tab.id && (currTab.url == tab.tm.url || currTab.pendingUrl == tab.tm.url)) {
-			tabList.push(currTab);
-		}
-	}
+	let tabList = await chromeUtils.queryTabs({ url: tab.tm.url }, logHead);
 
 	if(tabList.length == 0) {
 		return null;
 	}
 
+	let thisTabIdx = -1;
 	// Prefer returning a tab in the same window
 	for(let i = 0; i < tabList.length; i++) {
+		// Note that we also need to filter out "tab" (this function's input), which should match by
+		// definition. We also want to remember which index it has, in case we can't find a match
+		// in this loop.
+		if(tabList[i].id == tab.id) {
+			if(thisTabIdx == -1) {
+				// There should only be one index matching "tab.id", but in case there's more
+				// than one, we want to pick the first, not the last (to support the logic
+				// after this loop)
+				thisTabIdx = i;
+			} else {
+				this._err(logHead + "more than one tab with same ID", tab.id, thisTabIdx, i, tabList);
+			}
+			continue;
+		}
 		if(tabList[i].windowId == tab.windowId) {
 			return tabList[i];
 		}
 	}
 
-	// Not found in the same window, return the first found
-	return tabList[0];
+	// Not found in the same window, return the first found that's not also "tab.id"
+	if(thisTabIdx != 0) {
+		// We only reach this point if tabList.length > 0
+		return tabList[0];
+	}
+
+	// tabList[0] is "tab.id", so we need to get to the next index, but we first need to
+	// check there's a next index. This check assumes that only one node in "tabList"
+	// matches "tab.id" (and it's at index 0).
+	if(tabList.length > 1) {
+		return tabList[1];
+	}
+	return null;
 },
 
 // Returns "null" if there's any condition preventing the move (configuration, or the
@@ -656,7 +654,7 @@ _onWindowFocusChangeCb: function(windowId, simulated) {
 },
 
 _getChromeActiveTab: function() {
-	return chromeUtils.wrap(chrome.tabs.query, "TabsManager::_getChromeActiveTab(): ", {active: true, currentWindow: true});
+	return chromeUtils.queryTabs({ active: true, currentWindow: true }, "TabsManager::_getChromeActiveTab(): ");
 },
 
 // Sets the _activeTabId to the current Chrome active tab

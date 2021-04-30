@@ -276,7 +276,7 @@ Classes.SettingsBsTabViewer = Classes.BsTabViewer.subclass({
 
 	_msgClient: null,
 
-_init: function(bsTabLabelHtml) {
+_init: function({ labelHtml }) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.BsTabViewer._init.apply(this, arguments);
 

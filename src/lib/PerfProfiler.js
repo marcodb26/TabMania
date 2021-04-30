@@ -168,7 +168,7 @@ showAsyncQueues: function() {
 
 // This function is intended to be called from the Chrome dev tools console
 showStats: function() {
-	chromeUtils.wrap(chrome.tabs.query, "PerfProfiler::tmStats(): ", {}).then(
+	chromeUtils.queryTabs({}, "PerfProfiler::tmStats(): ").then(
 		function(tabs) {
 			console.log("Total tabs count: " + tabs.length);
 			// This works if invoked directly from the console by calling "tmStats()", it

@@ -45,7 +45,7 @@ Classes.BookmarksManager = Classes.Base.subclass({
 	// Note that _bookmarksDict contains everything, while _bookmarks excludes folders
 	_bookmarksDict: null,
 	// _bookmarks is an array of bookmarks, structured like the tabsList returned by
-	// chrome.tabs.query(), so that the SearchQuery can be applied to it as well
+	// chromeUtils.queryTabs(), so that the SearchQuery can be applied to it as well
 	_bookmarks: null,
 	// The bookmarksManager runtime doesn't really need "_folders", but we need it to
 	// debug the folders logic

@@ -1,6 +1,14 @@
 // CLASS TabsManager
-
-Classes.TabsManager = Classes.Base.subclass({
+//
+// This class generates 3 events:
+// - TabsManager.Events.CREATED: event.detail = { target, tab }
+//   Unlike chrome.tabs.onCreated, "tab" always has at least "pendingUrl" set when it gets generated
+// - TabsManager.Events.REMOVED: event.detail = { target, tab, removeInfo (optional) }
+//   "removeInfo" is optional because in some cases we might not have the removeInfo.isWindowClosing
+//   information (though that should never really happen)
+// - TabsManager.Events.UPDATED: event.detail = { target, tabs }
+//   Note that the UPDATED event always includes an array of tabs, not a single tab
+Classes.TabsManager = Classes.AsyncBase.subclass({
 
 	_eventManager: null,
 
@@ -24,8 +32,9 @@ Classes.TabsManager = Classes.Base.subclass({
 	_stats: null,
 
 _init: function({ standardTabs, incognitoTabs }) {
-	// Overriding the parent class' _init(), but calling that original function first
-	Classes.Base._init.call(this);
+	// Set these properties before calling the parent _init(), because the
+	// parent _init() will trigger _asyncInit(), and when _asyncInit() runs,
+	// it needs to have these values available
 	this.debug();
 
 	this._options = {};
@@ -44,17 +53,25 @@ _init: function({ standardTabs, incognitoTabs }) {
 																this._id + ".issue01Workaround");
 	this._issue01WorkaroundJob.debug();
 
+	// Overriding the parent class' _init(), but calling that original function too
+	Classes.AsyncBase._init.apply(this, arguments);
+},
+
+_asyncInit: function() {
+	// Overriding the parent class' _asyncInit(), but calling that original function first
+	let parentPromise = Classes.AsyncBase._asyncInit();
+
 	// Initialize the _normTabs and _filteredPinnedBookmarks data structures before registering
 	// all the callbacks, since the callbacks need this data
-	this._queryTabs().then(
+	let thisPromise = this._queryTabs().then(
 		function() {
 			bookmarksManager.addEventListener(Classes.EventManager.Events.UPDATED, this._bookmarkUpdatedCb.bind(this));
-
 			this._registerChromeCallbacks();
-
 			settingsStore.addEventListener(Classes.EventManager.Events.UPDATED, this._settingsStoreUpdatedCb.bind(this));
 		}.bind(this)
 	);
+
+	return Promise.all([ parentPromise, thisPromise ]);
 },
 
 _resetStats: function() {
@@ -189,7 +206,7 @@ _issue01Workaround: function() {
 	);
 },
 
-_processTabUpdateInner: function(tab, eventId) {
+_processTabUpdateInner: function(tab) {
 	// First we want to normalize the updated tab, and replace it in the list.
 	// The normalization includes two steps:
 	// - First we extend the tab with pinned bookmark info, if needed
@@ -202,8 +219,6 @@ _processTabUpdateInner: function(tab, eventId) {
 	if(this._options.standardTabs) {
 		settingsStore.getShortcutsManager().updateTabs(this._normTabs.getTabs());
 	}
-
-	this._eventManager.notifyListeners(eventId, { tab: tab });
 },
 
 _processTabCreation: function(tab) {
@@ -228,7 +243,8 @@ _processTabCreation: function(tab) {
 	}
 
 	this._log(logHead + "entering", tab);
-	this._processTabUpdateInner(tab, Classes.TabsManager.Events.CREATED);
+	this._processTabUpdateInner(tab);
+	this._eventManager.notifyListeners(Classes.TabsManager.Events.CREATED, { tab: tab });
 },
 
 // This function is responsible for resetting the "wantsAttention" rendering, and
@@ -250,7 +266,8 @@ _stopAttentionCb: function(tabId) {
 	// before the callback was invoked. Anyway we need the "tab" for the event.
 	tab.wantsAttention = false;
 
-	this._eventManager.notifyListeners(Classes.TabsManager.Events.UPDATED, { tab: tab });
+	// Single event for all the changes, unlike for CREATED and REMOVED above
+	this._eventManager.notifyListeners(Classes.TabsManager.Events.UPDATED, { tabs: [ tab ] });
 },
 
 _processTabUpdate: function(tabId, tab) {
@@ -262,7 +279,8 @@ _processTabUpdate: function(tabId, tab) {
 	// Note that we take this action only for updates, not for creation cases.
 	tabsTitleMonitor.update(tab, this._stopAttentionCb.bind(this));
 
-	this._processTabUpdateInner(tab, Classes.TabsManager.Events.UPDATED);
+	this._processTabUpdateInner(tab);
+	this._eventManager.notifyListeners(Classes.TabsManager.Events.UPDATED, { tabs: [ tab ] });
 },
 
 _tabCreatedCb: function(tab) {
@@ -347,8 +365,7 @@ _tabRemovedCb: function(tabId, removeInfo) {
 		settingsStore.getShortcutsManager().updateTabs(this._normTabs.getTabs());
 	}
 
-	this._eventManager.notifyListeners(Classes.TabsManager.Events.REMOVED,
-										{ tabId: tabId, tab: tabRemoved, removeInfo: removeInfo });
+	this._eventManager.notifyListeners(Classes.TabsManager.Events.REMOVED, { tab: tabRemoved, removeInfo: removeInfo });
 
 	// Removing a tab can cause other tabs to change their position in the window.
 	// These changes don't trigger onUpdated from Chrome, but for completeness we
@@ -428,32 +445,47 @@ _bookmarkUpdatedCb: function(ev) {
 	this._queryJob.run(this._queryDelay);
 },
 
+_generateDiffEvents: function(oldTabList) {
+	const logHead = "TabsManager::_generateDiffEvents(): "
+	let [ added, deleted, changed ] = this._normTabs.diff(oldTabList);
+
+	this._log(logHead, added, deleted, changed);
+
+	for(let i = 0 ; i < added.length; i++) {
+		this._eventManager.notifyListeners(Classes.TabsManager.Events.CREATED, { tab: added[i] });
+	}
+	for(let i = 0 ; i < deleted.length; i++) {
+		// No "removeInfo" in this case, since we don't know if "removeInfo.isWindowClosing" anymore,
+		// and the rest of the info is in "tab" anyway
+		this._eventManager.notifyListeners(Classes.TabsManager.Events.REMOVED, { tab: deleted[i] });
+	}
+
+	if(changed.length > 0) {
+		// Single event for all the changes, unlike for CREATED and REMOVED above
+		this._eventManager.notifyListeners(Classes.TabsManager.Events.UPDATED, { tabs: changed });
+	}
+},
+
 _settingsStoreUpdatedCb: function(ev) {
 	const logHead = "TabsManager::_settingsStoreUpdatedCb(" + ev.detail.key + "): ";
 
-	this._log(logHead + "entering");
 
-	// The answer to all events is always the same, re-render everything.
-	// In this case though, we can skip the re-query, since there's no
-	// indication that the tabs have changed. We just need to trigger
-	// a re-render of the tiles bodies (their titles have not changed, so
-	// their sorting order or group membership has not changed). The only
-	// exception is search mode, because an update to configuration can
-	// change the composition of the search results.
-	//
-	// UPDATE: the previous comment is incorrect. When a change happens
-	// to the settings, it could be a change in the definition of custom
-	// group, and that definitely can have an impact on group membership.
-	// So it's incorrect to say "group membership has not changed".
-	if(ev.detail.key == "customGroups" || ev.detail.key == "pinnedGroups") {
-		this._queryJob.run(this._queryDelay);
+	if(ev.detail.key == "pinnedGroups") {
+		// Changes to "pinnedGroups" don't impact badges of tabs, so they're not of
+		// interest for this class
+		this._log(logHead + "ignoring key");
 		return;
 	}
-	// Not a search case, just normalize the search badges (configuration changes
-	// can cause changes to the visible badges) and then render the tiles
-	this._normTabs.normalizeAll();
-},
 
+	this._log(logHead + "entering");
+
+	// In this case we can skip the re-query, since the set of tabs has not
+	// changed. We just need to trigger a rebuild of the search badges.
+	let oldTabList = this._normTabs.cloneTabs();
+	this._normTabs.normalizeAll();
+
+	this._generateDiffEvents(oldTabList);
+},
 
 // Returns the count of tabs that have been processed
 _processOnePinnedBookmark: function(bmNode, tabs) {
@@ -558,14 +590,14 @@ _tabsAsyncQuery: function() {
 	const logHead = "TabsManager::_tabsAsyncQuery(): ";
 
 	// Use an empty dictionary to query for all tabs
-	return chromeUtils.wrap(chrome.tabs.query, logHead, {}).then(
+	return chromeUtils.queryTabs({}, logHead).then(
 		function(tabs) {
 			if(window.tmStaging !== undefined) {
 				// This code path should only be entered when staging TabMania to take
 				// screenshots for publishing on the Chrome Web Store. Let's generate
 				// an error so it's clear/obvious we've entered this path.
 				this._err(logHead + "entering staging path");
-				// Ignore actual response from chrome.tabs.query() and replace it with
+				// Ignore actual response from chromeUtils.queryTabs() and replace it with
 				// a fictictious set of tabs. Edit the tabs as much as you'd like, just
 				// make sure the tab IDs remain unique.
 				tabs = tmStaging.tabList;
@@ -590,38 +622,6 @@ _tabsAsyncQuery: function() {
 	);
 },
 
-_generateDiffEvents: function(oldNormTabs) {
-	const logHead = "TabsManager::_generateDiffEvents(): "
-	let [ added, deleted, changed ] = this._normTabs.diff(oldNormTabs);
-
-	this._log(logHead, added, deleted, changed);
-
-	for(let i = 0 ; i < added.length; i++) {
-		this._eventManager.notifyListeners(Classes.TabsManager.Events.CREATED, { tab: added[i] });
-	}
-	for(let i = 0 ; i < deleted.length; i++) {
-		let eventData = {
-			tabId: deleted[i].id,
-			tab: deleted[i],
-			removeInfo: {
-				// We don't have this info anymore...
-				isWindowClosing: false,
-				windowId: deleted[i].windowId
-			}
-		};
-		this._eventManager.notifyListeners(Classes.TabsManager.Events.REMOVED, eventData);
-	}
-
-	if(changed.length > 0) {
-		if(changed.length == 1) {
-			this._eventManager.notifyListeners(Classes.TabsManager.Events.UPDATED, { tab: changed[0] });
-		} else {
-			// Single event for all the changes, unlike for CREATED and REMOVED above
-			this._eventManager.notifyListeners(Classes.TabsManager.Events.UPDATED, { tabList: changed });
-		}
-	}
-},
-
 _queryTabs: function() {
 	const logHead = "TabsManager::_queryTabs(): ";
 	this._log(logHead + "entering");
@@ -633,14 +633,22 @@ _queryTabs: function() {
 
 			this._log(logHead + "tabs received, processing");
 
-			this._filteredPinnedBookmarks = this._processPinnedBookmarks(tabs);
+			if(this._options.standardTabs) {
+				this._filteredPinnedBookmarks = this._processPinnedBookmarks(tabs);
+				this._log(logHead + "pinned bookmarks done", tabs, this._filteredPinnedBookmarks);
+			} else {
+				// Pinned bookmarks are not used by an instance managing only incognito tabs
+				this._filteredPinnedBookmarks = [];
+			}
 			perfProf.mark("pinnedBookmarksEnd");
-
-			this._log(logHead + "pinned bookmarks done", tabs, this._filteredPinnedBookmarks);
 
 			this._issue01WorkaroundJob.start(this._issue01WorkaroundInterval, false);
 
-			let oldNormTabs = this._normTabs;
+			let oldTabList = null;
+			if(this._normTabs != null) {
+				oldTabList = this._normTabs.getTabs();
+			}
+
 			try {
 				// Normalize the incoming tabs. Note that the normalization
 				// and sorting happens in place in "tabs", so after create()
@@ -700,11 +708,11 @@ _queryTabs: function() {
 				// the "pinnedBookmarks" only when calling _renderTabs() we're safe from
 				// that potential problem.
 
-				if(oldNormTabs != null) {
-					this._log(logHead + "comparing with oldNormTabs");
-					this._generateDiffEvents(oldNormTabs);
+				if(oldTabList != null) {
+					this._log(logHead + "comparing with oldTabList");
+					this._generateDiffEvents(oldTabList);
 				} else {
-					this._log(logHead + "no oldNormTabs, nothing to compare (popup just bootstrapped?)");
+					this._log(logHead + "no oldTabList, nothing to compare (popup just bootstrapped?)");
 				}
 				perfProf.mark("diffEventsEnd");
 
@@ -722,6 +730,14 @@ _queryTabs: function() {
 			}
 		}.bind(this)
 	);
+},
+
+getTabs: function() {
+	return this._normTabs.getTabs();
+},
+
+getTabsAndPinnedBookmarks: function() {
+	return this.getTabs().concat(this._filteredPinnedBookmarks);
 },
 
 }); // Classes.TabsManager

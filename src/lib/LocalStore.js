@@ -21,7 +21,8 @@
 //
 // Current settings list
 //
-// - allTabsTab_expanded: list of expanded tabs for the "allTabs" tab
+// - standardTabsBsTab_expanded: list of expanded tab groups for "standardTabsBsTab"
+// - incognitoTabsBsTab_expanded: list of expanded tab groups for "incognitoTabsBsTab"
 // - bootstrapTabs: persistent properties for Bootstrap tabs
 //
 Classes.LocalStore = Classes.AsyncBase.subclass({
@@ -29,7 +30,8 @@ Classes.LocalStore = Classes.AsyncBase.subclass({
 
 	// Giving a very specific name, because different Bootstrap tabs
 	// might need to remember different sets of expanded groups.
-	allTabsTabExpandedGroups: null,
+	standardTabsBsTabExpandedGroups: null,
+	incognitoTabsBsTabExpandedGroups: null,
 
 	// _bootstrapTabs contains:
 	// - "activeTabId": the name of the Boostrap tab that's currently active
@@ -58,11 +60,14 @@ _asyncInit: function() {
 	// to wait for.
 	let promiseArray = [ Classes.AsyncBase._asyncInit() ];
 
-	this.allTabsTabExpandedGroups = Classes.PersistentSet.createAs("allTabsTab_expanded");
-	promiseArray.push(this.allTabsTabExpandedGroups.getInitPromise());
+	this.standardTabsBsTabExpandedGroups = Classes.PersistentSet.createAs("standardTabsBsTab_expanded");
+	promiseArray.push(this.standardTabsBsTabExpandedGroups.getInitPromise());
 	// We currently don't want to have uniformity in expanded groups across all open
 	// popups, so no need to listen to these events
-//	this.allTabsTabExpandedGroups.addEventListener(Classes.EventManager.Events.UPDATED, this._onUpdatedCb.bind(this));
+//	this.standardTabsBsTabExpandedGroups.addEventListener(Classes.EventManager.Events.UPDATED, this._onUpdatedCb.bind(this));
+
+	this.incognitoTabsBsTabExpandedGroups = Classes.PersistentSet.createAs("incognitoTabsBsTab_expanded");
+	promiseArray.push(this.incognitoTabsBsTabExpandedGroups.getInitPromise());
 
 	this._bootstrapTabs = Classes.PersistentDict.createAs("bootstrapTabs");
 	promiseArray.push(this._bootstrapTabs.getInitPromise());

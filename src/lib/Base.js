@@ -234,15 +234,13 @@ _errorMustSubclass: function() {
 }; // Classes.Base
 
 // CLASS AsyncBase
-// This class defines a version of Array that automatically forces its size to a
-// max of "maxElements"
 Classes.AsyncBase = Classes.Base.subclass({
 	_initPromise: null,
 	_initialized: null,
 
-_init: function(maxElements) {
+_init: function() {
 	// Overriding the parent class' _init(), but calling that original function first
-	Classes.Base._init.apply(this, arguments);
+	Classes.Base._init.call(this);
 
 	this._initialized = false;
 	this._initPromise = this._asyncInit().then(

@@ -18,11 +18,11 @@ Classes.BsTabViewer = Classes.Viewer.subclass({
 	// body, almost nothing should ever happen to its header after initialization.
 	_rootElem: null,
 
-_init: function(bsTabLabelHtml) {
+_init: function({ labelHtml }) {
 	// Overriding the parent class' _init(), but calling that original function first
-	Classes.Viewer._init.apply(this, arguments);
+	Classes.Viewer._init.call(this);
 
-	this._createBsTab(bsTabLabelHtml);
+	this._createBsTab(labelHtml);
 },
 
 _setParentActiveClass: function(active) {
@@ -194,7 +194,7 @@ Classes.SearchableBsTabViewer = Classes.BsTabViewer.subclass({
 	// to have it at all time.
 	_activateSearchCbBoundFn: null,
 
-_init: function(bsTabLabelHtml) {
+_init: function({ labelHtml }) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.BsTabViewer._init.apply(this, arguments);
 

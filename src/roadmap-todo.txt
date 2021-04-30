@@ -1,5 +1,30 @@
 TODO 2.0
 
+- BUG: empty hostname in custom group attracts all tabs
+  * Create a custom group
+  * Add a hostname
+  * Remove the hostname
+    - All tabs now match the custom group
+
+- customGroup color doesn't get updated in left-border of tiles (only in group title
+  and in badge)
+  * The problem is that tiles are cached, but customGroup color is not part of the
+    tile rendering state, so we don't notice the change
+	- Need to make the customGroup color part of the rendering state
+	- But then, why does the badge color get updated???
+
+- BUG: If customGroup has "bg-light" color, the text must use a dark color, otherwise it's
+  invisible
+
+- popup/TabsManager.js must generate updates also when pinned bookmarks get updated
+  * How do we do that? We only compare _normTabs, which doesn't include _filteredPinnedBookmarks
+    - Who manages diffs for _filteredPinnedBookmarks?
+
+- Some customGroup changes affect TabsManager (different search badges on a tile), some
+  other affect only rendering (different color for a custom group)
+  * We should make sure each class (TabsManager and TabsBsTabViewer) only react for the
+    properties they care about
+
 - Use chrome.windows.update "drawAttention" flag?
 
 - When opening a new tab with a URL, intercept the tab creation and determine if the
@@ -607,7 +632,7 @@ PUNTED TO NEXT RELEASE
 	- Actually it's here: https://developer.chrome.com/docs/extensions/reference/tabGroups/
 	  * But only available to the dev channel as of 21.01.24
 
-- Stop querying chrome.tabs.query in the popup, and do the querying only in the backgrond
+- Stop querying chrome.tabs.query in the popup, and do the querying only in the background
   * The background should manage the "normalization" step too, and just notify the
     popup with the pre-normalized tabs list
 	- This should save some time at popup opening time, since the popup won't have

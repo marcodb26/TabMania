@@ -1,7 +1,6 @@
 // Properties stored in chrome.storage.local by this extension:
 //
-// popupActiveTabId: the active bootstrap tab of the popup window
-// allTabsTab_expanded: the set of expanded tabs for the AllTabsBsTabViewer
+// - See lib/LocalStore.js
 //
 // Properties stored in chrome.storage.sync by this extension:
 //

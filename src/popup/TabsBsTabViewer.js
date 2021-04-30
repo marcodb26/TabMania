@@ -1,6 +1,5 @@
 // CLASS TabsBsTabViewer
 //
-// Abstract class, parent of all Viewers of tab lists
 Classes.TabsBsTabViewer = Classes.SearchableBsTabViewer.subclass({
 
 	_containerViewer: null,
@@ -11,15 +10,14 @@ Classes.TabsBsTabViewer = Classes.SearchableBsTabViewer.subclass({
 	// event) will re-collapse all groups.
 	// We also want to store these expanded groups in storage, so we can remember which
 	// groups are expanded when the popup is closed and then reopened.
-	// _expandedGroups is a PersistentSet, and it needs to be set by the subclass,
-	// since different subclasses might need to track a different set of groups.
+	// _expandedGroups is a PersistentSet.
 	_expandedGroups: null,
 
 	// This is a sorted list of tabs, as they appear in the search results
 	_currentSearchResults: null,
 
 	// String to show when the container is empty
-	_emptyContainerString: null,
+	_emptyContainerString: "No tabs",
 
 	_searchQuery: null,
 
@@ -35,6 +33,10 @@ Classes.TabsBsTabViewer = Classes.SearchableBsTabViewer.subclass({
 	// extra rate-limiting, worst case you'll have one _updateSearchResults() running because
 	// of a query change and one running because of a rate-limited bookmarks/history event.
 	_updateSearchResultsDelay: 200, //2000,
+
+	// If there are more than "_maxUpdatedTabs" in a single UPDATED event, don't even perform
+	// the updates one-by-one, just trigger a full refresh
+	_maxUpdatedTabs: 50,
 
 	// Dictionary tracking all the tab tiles, in case we need to update their contents.
 	// Also used to track if a first rendering cycle has been completed...
@@ -53,33 +55,66 @@ Classes.TabsBsTabViewer = Classes.SearchableBsTabViewer.subclass({
 	_tabsManager: null,
 	_historyFinder: null,
 
-_init: function(bsTabLabelHtml) {
+_init: function({ labelHtml, standardTabs, incognitoTabs }) {
+	this._options = {};
+	this._options.labelHtml = labelHtml
+	this._options.standardTabs = optionalWithDefault(standardTabs, true);
+	this._options.incognitoTabs = optionalWithDefault(incognitoTabs, true);
+
 	// Overriding the parent class' _init(), but calling that original function first
-	Classes.SearchableBsTabViewer._init.apply(this, arguments);
+	Classes.SearchableBsTabViewer._init.call(this, { labelHtml: this._options.labelHtml });
 
 	const logHead = "TabsBsTabViewer::_init(): ";
 	this.debug();
 
-	this._assert(this._expandedGroups != null,
-				logHead + "subclasses must define _expandedGroups");
+	// "this._expandedGroups" is initialized to only one localStore persistent set.
+	// If this instance manages standard tabs, it gets initialized to "localStore.standardTabsBsTabExpandedGroups",
+	// and "localStore.incognitoTabsBsTabExpandedGroups" is ignored, even if the instance also
+	// manages incognito tabs.
+	// "localStore.incognitoTabsBsTabExpandedGroups" is used only if the instance manages
+	// only incognito tabs.
+	if(this._options.standardTabs) {
+		this._expandedGroups = localStore.standardTabsBsTabExpandedGroups;
+	} else {
+		if(this._options.incognitoTabs) {
+			// Change the _emptyContainerString in case this instance is managing
+			// only incognito tabs
+			this._emptyContainerString = "No incognito tabs"
+			this._expandedGroups = localStore.incognitoTabsBsTabExpandedGroups;
+		} else {
+			this._err(logHead + "neither standard nor incognito tabs to render, invalid configuration");
+		}
+	}
 
-	this._tabsManager = Classes.TabsManager.createAs("allTabs", { standardTabs: true, incognitoTabs: true } );
+	let tabsManagerOptions = {
+		standardTabs: this._options.standardTabs,
+		incognitoTabs: this._options.incognitoTabs
+	};
+	this._tabsManager = Classes.TabsManager.createAs(this._id + "-tabsManager", tabsManagerOptions);
+
 	this._queryAndRenderJob = Classes.ScheduledJob.create(this._queryAndRenderTabs.bind(this), "queryAndRender");
 	this._queryAndRenderJob.debug();
 
 	this._updateSearchResultsJob = Classes.ScheduledJob.create(this._updateSearchResults.bind(this), "updateSearchResults");
 	this._updateSearchResultsJob.debug();
 
-	this._registerTabsManagerCallbacks();
-	bookmarksManager.addEventListener(Classes.EventManager.Events.UPDATED, this._bookmarkUpdatedCb.bind(this));
-
 	this._historyFinder = Classes.HistoryFinder.create();
-	this._historyFinder.addEventListener(Classes.EventManager.Events.UPDATED, this._historyUpdatedCb.bind(this));
 
 	this._groupsBuilder = Classes.GroupsBuilder.create();
 	// Call this function before rendering, because it sets _renderTabs(), which
 	// would otherwise be null
 	this._TabsBsTabViewer_searchBoxInactiveInner();
+
+	this._tabsManager.getInitPromise().then(this._asyncInitCb.bind(this));
+},
+
+_asyncInitCb: function() {
+	this._registerTabsManagerCallbacks();
+	bookmarksManager.addEventListener(Classes.EventManager.Events.UPDATED, this._bookmarkUpdatedCb.bind(this));
+	this._historyFinder.addEventListener(Classes.EventManager.Events.UPDATED, this._historyUpdatedCb.bind(this));
+
+	settingsStore.addEventListener(Classes.EventManager.Events.UPDATED, this._settingsStoreUpdatedCb.bind(this));
+
 	this._TabsBsTabViewer_render();
 },
 
@@ -117,26 +152,41 @@ _tabRemovedCb: function(ev) {
 	const logHead = "TabsBsTabViewer::_tabRemovedCb(tabId = " + ev.detail.tabId + "): ";
 
 	this._log(logHead + "entering", ev.detail);
+	this._queryAndRenderJob.run(this._queryAndRenderDelay);
+},
+
+_processTabUpdate: function(tab) {
+	const logHead = "TabsBsTabViewer::_processTabUpdate(tabId = " + tab.id + "): ";
+	this._log(logHead + "entering", tab);
+	// Note that internally TabTileViewer.update() enqueues the heavy processing
+	// inside this._tilesAsyncQueue, so the tile re-rendering is sequenced
+	// correctly against other calls on the same tile (though if there was
+	// another queued call for the same tile, having multiple calls queued
+	// would be a waste of cycles).
+//	this._tilesByTabId[tab.id].update(tab);
+
+	this._queryAndRenderJob.run(this._queryAndRenderDelay);
 },
 
 _tabUpdatedCb: function(ev) {
-	let tab = ev.detail.tab;
-
 	let tabId = "[multi]";
-	if(tab !== undefined) {
-		tabId = tab.id;
+	if(ev.detail.tabs.length == 1) {
+		tabId = ev.detail.tabs[0].id;
 	}
 
 	const logHead = "TabsBsTabViewer::_tabUpdatedCb(tabId = " + tabId + "): ";
 
-	this._log(logHead + "entering", ev.detail);
-},
+	if(ev.detail.tabs.length > this._maxUpdatedTabs) {
+		this._log(logHead + "many changes, just doing full refresh", ev.detail);
+		this._queryAndRenderJob.run(this._queryAndRenderDelay);
+		return;
+	}
 
-_tabActivatedHighlightedCb: function(cbType, activeHighlightInfo) {
-	// We want to reintroduce the initial "tabId" to make the callbacks of this class
-	// more uniform. Note that only "onActivated" has "activeHighlightInfo.tabId", while
-	// "onHighlighted" will set the field to "undefined" (which is ok).
-	this._tabUpdatedCb(cbType, activeHighlightInfo.tabId, activeHighlightInfo);
+	this._log(logHead + "entering", ev.detail);
+
+	for(let i = 0; i < ev.detail.tabs.length; i++) {
+		this._processTabUpdate(ev.detail.tabs[i]);
+	}
 },
 
 _renderTileBodies: function() {
@@ -161,12 +211,6 @@ _renderTileBodies: function() {
 
 _settingsStoreUpdatedCb: function(ev) {
 	const logHead = "TabsBsTabViewer::_settingsStoreUpdatedCb(" + ev.detail.key + "): ";
-	if(this._normTabs == null) {
-		this._log(logHead + "_normTabs not initialized ye, skipping event");
-		return;
-	}
-
-	this._log(logHead + "entering");
 
 	// The answer to all events is always the same, re-render everything.
 	// In this case though, we can skip the re-query, since there's no
@@ -179,15 +223,19 @@ _settingsStoreUpdatedCb: function(ev) {
 	// UPDATE: the previous comment is incorrect. When a change happens
 	// to the settings, it could be a change in the definition of custom
 	// group, and that definitely can have an impact on group membership.
-	// So it's incorrect to say "group membership has not changed"
-	if(this.isSearchActive() || ev.detail.key == "customGroups" || ev.detail.key == "pinnedGroups") {
-		this._queryAndRenderJob.run(this._queryAndRenderDelay);
+	// So it's incorrect to say "group membership has not changed".
+	//
+	// We need to track "customGroups" changes because they could be about
+	// custom group colors.
+	if(!this.isSearchActive() && !([ "pinnedGroups", "customGroups" ].includes(ev.detail.key))) {
+		// Nothing to do, all other cases are managed by TabsManager and
+		// converted to UPDATED events
+		this._log(logHead + "ignoring key", ev.detail);
 		return;
 	}
-	// Not a search case, just normalize the search badges (configuration changes
-	// can cause changes to the visible badges) and then render the tiles
-	this._normTabs.normalizeAll()
-	this._renderTileBodies();
+
+	this._log(logHead + "entering");
+	this._queryAndRenderJob.run(this._queryAndRenderDelay);
 },
 
 _setTabProp: function(prop, tabId) {
@@ -207,12 +255,7 @@ _setTabProp: function(prop, tabId) {
 	// a property that affects the search badges, we need to re-normalize
 	// the tab to get the change reflected in the search badges
 	this._normTabs.updateTab(tab, tabIdx);
-	// Note that internally TabTileViewer.update() enqueues the heavy processing
-	// inside this._tilesAsyncQueue, so the tile re-rendering is sequenced
-	// correctly against other calls on the same tile (though if there was
-	// another queued call for the same tile, having multiple calls queued
-	// would be a waste of cycles).
-	this._tilesByTabId[tabId].update(tab);
+
 },
 
 _immediateTabUpdate: function(tabId, tab) {
@@ -279,7 +322,7 @@ OLD_tabUpdatedCb: function(cbType, tabId, activeChangeRemoveInfo, tab) {
 		//
 		// Note that this check is also possibly inaccurate unless all tiles get populated
 		// in _tilesByTabId without any event cycle interfering, which is currently the
-		// case because we loop through all the results of chrome.tabs.query() without
+		// case because we loop through all the results of chromeUtils.queryTabs() without
 		// any interruption, but might not be the case in general later, if that loop
 		// becomes too expensive. It would be better to track this with some other
 		// dedicated flag, but if we land in that case, the race condition described above
@@ -454,24 +497,13 @@ _TabsBsTabViewer_render: function() {
 	this._disableContextMenuOnTouchEnd();
 
 	this._containerViewer = Classes.ContainerViewer.create(this._emptyContainerString);
-	this._queryAndRenderTabs().then(
-		function() {
-			perfProf.mark("attachContainerStart");
-			//this._containerViewer.attachToElement(this.getBodyElement());
-			this.append(this._containerViewer);
-			perfProf.mark("attachContainerEnd");
-			perfProf.measure("Attach tiles cont.", "attachContainerStart", "attachContainerEnd");
-		}.bind(this)
-	);
-},
+	this._queryAndRenderTabs();
 
-// Subclasses must override this function. This function is expected to return
-// a Promise that resolves to a function(tabs){}.
-_tabsAsyncQuery: function() {
-	// e.g. for pinned tabs:
-	// return chromeUtils.wrap(chrome.tabs.query, logHead, { pinned: true })
-	this._errorMustSubclass("TabsBsTabViewer::_tabsAsyncQuery()");
-	throw(new Error("must subclass"));
+	perfProf.mark("attachContainerStart");
+	//this._containerViewer.attachToElement(this.getBodyElement());
+	this.append(this._containerViewer);
+	perfProf.mark("attachContainerEnd");
+	perfProf.measure("Attach tiles cont.", "attachContainerStart", "attachContainerEnd");
 },
 
 _logCachedTilesStats: function(logHead) {
@@ -503,93 +535,28 @@ _queryAndRenderTabs: function() {
 	const logHead = "TabsBsTabViewer::_queryAndRenderTabs(): ";
 	this._log(logHead + "entering");
 	this.blink();
-	perfProf.mark("queryStart");
-	return this._tabsAsyncQuery().then(
-		function(tabs) {
-			perfProf.mark("queryEnd");
 
-			let pinnedBookmarks = this._processPinnedBookmarks(tabs, !this.isSearchActive());
-			perfProf.mark("pinnedBookmarksEnd");
+	this._prepareForNewCycle();
 
-			if(window.tmStaging !== undefined) {
-				// This code path should only be entered when staging TabMania to take
-				// screenshots for publishing on the Chrome Web Store. Let's generate
-				// an error so it's clear/obvious we've entered this path.
-				this._err(logHead + "entering staging path");
-				// Ignore actual response from chrome.tabs.query() and replace it with
-				// a fictictious set of tabs. Edit the tabs as much as you'd like, just
-				// make sure the tab IDs remain unique.
-				tabs = tmStaging.tabList;
-			}
-//			this._log(logHead + "tabs received, processing", JSON.stringify(tabs));
-			this._log(logHead + "tabs received, processing");
-			this._prepareForNewCycle();
+	let tabs = this._tabsManager.getTabsAndPinnedBookmarks();
 
-			this._issue01WorkaroundJob.start(this._issue01WorkaroundInterval, false);
-			try {
-				// Normalize the incoming tabs. Note that the normalization
-				// and sorting happens in place in "tabs", so after create()
-				// we can just ignore the "normTabs" object... but to be
-				// good future-proof citizens, let's call the right interface...
-				//
-				// "pinnedBookmarks" are already fully normalized by bookmarksManager,
-				// no reason for them to be normalized again.
-				this._normTabs = Classes.NormalizedTabs.create(tabs);
+	perfProf.mark("renderStart");
+	// Never merge "pinnedBookmarks within the tabs managed by this._normTabs,
+	// because if you do, when search starts the pinned bookmarks might show
+	// up twice. "pinnedBookmarks" are an empty array in search mode, but when
+	// starting a search we blindly take whatever is in ths._normTabs from when
+	// we were in standard mode (because we assume that starting a search doesn't
+	// change the tabs, so no need to trigger another full query). By concatenating
+	// the "pinnedBookmarks" only when calling _renderTabs() we're safe from
+	// that potential problem.
+	this._renderTabs(tabs);
+	perfProf.mark("renderEnd");
 
-				perfProf.mark("shortcutsStart");
-				// Note that we need to make this call only when the tabs change,
-				// not when the settingsStore configuration changes (in that case
-				// updateTabs() is done automatically inside the shortcutManager)
-				settingsStore.getShortcutsManager().updateTabs(this._normTabs.getTabs());
-				// Classes.NormalizedTabs.create() automatically normalizes the tabs,
-				// but when it's done, the ShortcutsManager is not configured, so
-				// the tabs are normalized without accurate shortcut badges. This
-				// means that we update ShortcutsManager, we must update the normalization
-				// to make sure it reflets the potentially updated shortcut badges.
-				// Note that we can't normalize only once, because ShortcutManager
-				// needs some elements of normalization in order to prepare the
-				// shortcut information correctly. Calling normalization twice is
-				// unavoidable, though if this was really a performance problem
-				// (it doesn't seem to be) we could add a flag to normalizeAll()
-				// to instruct it to skip shortcut badges, or to only do shortcut
-				// badges, and that way, each normalizeAll() would actually normalize
-				// disjoint subsets of information, and we'd have no duplication.
-				// Given the profiling results, this optimization doesn't seem to
-				// be worth the effort... though it's tempting, as it would be
-				// a cleaner solution. The real effort would be in the fact that
-				// when we update the shortcut badges we also need to update the
-				// hidden search badges, and to keep them "clean" (no duplications)
-				// we'd always need to refresh all search badges from scratch (or
-				// do some proper diffs of the hidden search badges)... too much
-				// work.
-				this._normTabs.normalizeAll();
+	perfProf.measure("Rendering", "renderStart", "renderEnd");
 
-				perfProf.mark("renderStart");
-				// Never merge "pinnedBookmarks within the tabs managed by this._normTabs,
-				// because if you do, when search starts the pinned bookmarks might show
-				// up twice. "pinnedBookmarks" are an empty array in search mode, but when
-				// starting a search we blindly take whatever is in ths._normTabs from when
-				// we were in standard mode (because we assume that starting a search doesn't
-				// change the tabs, so no need to trigger another full query). By concatenating
-				// the "pinnedBookmarks" only when calling _renderTabs() we're safe from
-				// that potential problem.
-				this._renderTabs(this._normTabs.getTabs().concat(pinnedBookmarks));
-				perfProf.mark("renderEnd");
-				
-				perfProf.measure("Query", "queryStart", "queryEnd");
-				perfProf.measure("Pinned bookmarks", "queryEnd", "pinnedBookmarksEnd");
-				perfProf.measure("Shortcuts", "shortcutsStart", "renderStart");
-				perfProf.measure("Rendering", "renderStart", "renderEnd");
-
-				// This piece of logic will need to be added when "chrome tab groups"
-				// APIs become available.
-				//this._getAllTabGroups().then(this._processTabGroupsCb.bind(this));
-				
-			} catch(e) {
-				this._err(e);
-			}
-		}.bind(this)
-	);
+	// This piece of logic will need to be added when "chrome tab groups"
+	// APIs become available.
+	//this._getAllTabGroups().then(this._processTabGroupsCb.bind(this));
 },
 
 // This function gets assigned to either _standardRenderTabs() or _searchRenderTabs()
@@ -747,7 +714,7 @@ activateTab: function(tab) {
 
 	// The tile is a bookmark or history item, not a tab/rcTab, we need to find an existing
 	// tab already loaded with the current url, or open a new tab to handle the Enter/click
-	chromeUtils.wrap(chrome.tabs.query, logHead, { url: tab.url }).then(
+	chromeUtils.queryTabs({ url: tab.url }, logHead).then(
 		function(tabList) {
 			if(tabList.length == 0) {
 				chromeUtils.loadUrl(tab.url);
@@ -911,7 +878,7 @@ _searchRenderTabs: function(tabs, newSearch) {
 		// Sometimes users can enter search mode while this class is going through a
 		// TabsBsTabViewer::_queryAndRenderTabs() for standard tabs. If that happens
 		// while _queryAndRenderTabs() is waiting for the response from
-		// chrome.tabs.query(), the transition to search mode will "hijack" the
+		// chromeUtils.queryTabs(), the transition to search mode will "hijack" the
 		// _queryAndRenderTabs() cycle, by switching the pointer this._renderTabs to
 		// this._searchRenderTabs() instead of this._standardRenderTabs().
 		// Normally, when in search mode, this._searchRenderTabs() would be called
@@ -920,16 +887,16 @@ _searchRenderTabs: function(tabs, newSearch) {
 		// _searchBoxProcessData()) sets the _searchQuery to the value in the input
 		// box before calling this._searchRenderTabs(). Since instead we have hijacked
 		// a standart rendering cycle, this._searchRenderTabs() will be called when
-		// chrome.tabs.query() (which was invoked for a standard render, not a search)
+		// chromeUtils.queryTabs() (which was invoked for a standard render, not a search)
 		// returns, and that can be before the input callback has time to run.
 		// In that case the sequence is:
 		// - Start _queryAndRenderTabs() for standard mode
 		// - _activateSearchBox() gets called as part of the processing of the "keydown"
 		//   event (which runs before the "input" event)
 		// - this._renderTabs is switched to this._searchRenderTabs() inside _activateSearchBox()
-		// - chrome.tabs.query() returns inside _queryAndRenderTabs()
+		// - chromeUtils.queryTabs() returns inside _queryAndRenderTabs()
 		// - this._renderTabs() (and therefore this._searchRenderTabs()) is invoked to
-		//   process the data from chrome.tabs.query()
+		//   process the data from chromeUtils.queryTabs()
 		//   **** This check protects at this point in the sequence
 		// - Finally the "input" event is triggered, and _searchBoxProcessData()
 		//   sets the searchbox input value to the _searchQuery
@@ -1007,28 +974,3 @@ getSearchParserInfo: function() {
 },
 
 }); // Classes.TabsBsTabViewer
-
-
-// CLASS AllTabsBsTabViewer
-//
-Classes.AllTabsBsTabViewer = Classes.TabsBsTabViewer.subclass({
-
-	_emptyContainerString: "No tabs",
-
-_init: function(bsTabLabelHtml) {
-	// Define _expandedGroups before calling the parent's _init(), as it might
-	// need to do some rendering, which requires _expandedGroups to be known
-	this._expandedGroups = localStore.allTabsTabExpandedGroups;
-	// Overriding the parent class' _init(), but calling that original function first
-	Classes.TabsBsTabViewer._init.apply(this, arguments);
-},
-
-// Override TabsBsTabViewer._tabsAsyncQuery()
-_tabsAsyncQuery: function() {
-	const logHead = "AllTabsBsTabViewer::_tabsAsyncQuery(): ";
-	// Use an empty dictionary to query for all tabs
-	return chromeUtils.wrap(chrome.tabs.query, logHead, {})
-},
-
-}); // Classes.AllTabsBsTabViewer
-

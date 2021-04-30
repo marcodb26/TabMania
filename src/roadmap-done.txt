@@ -54,6 +54,8 @@ DONE 2.0
 	- Add support for partitioning events space between standard and incognito tabs
 	  * To later enable them to stream into two different classes and two different viewers
 
+- BUG: activating a bookmark or history item fails to reuse an existing tab if the URL has a fragment
+
 
 DONE 1.3
 

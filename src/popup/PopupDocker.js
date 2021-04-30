@@ -28,10 +28,10 @@ _init: function() {
 	this._addBackgroundCommandsListener();
 
 	if(!this.isPopupDocked()) {
-		chromeUtils.wrap(chrome.tabs.query, logHead, { currentWindow: true }).then(
+		chromeUtils.queryTabs({ currentWindow: true }, logHead).then(
 			function(tabs) {
 				this._assert(tabs.length == 1);
-				this._log(logHead + "chrome.tabs.query() returned:", tabs);
+				this._log(logHead + "chromeUtils.queryTabs() returned:", tabs);
 				this._ownTabId = tabs[0].id;
 				this._ownWindowId = tabs[0].windowId;
 				// https://developer.chrome.com/docs/extensions/reference/tabs/#event-onCreated

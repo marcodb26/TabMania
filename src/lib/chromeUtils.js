@@ -75,6 +75,50 @@ getExtensionId: function() {
 
 //// Utils to work with tabs (chrome.tabs)
 
+// "queryInfo" is the same as defined in https://developer.chrome.com/docs/extensions/reference/tabs/#method-query
+// This wrapper is needed only if you're querying with queryInfo.url, because there's some special
+// handling to be done in that case. However, you can always call it.
+queryTabs: async function(queryInfo, callerLogHead) {
+	const logHead = "ChromeUtils::queryTabs(): ";
+	callerLogHead = optionalWithDefault(callerLogHead, logHead);
+
+	if(queryInfo.url == null) {
+		// No url, no special handling needed
+		return await chromeUtils.wrap(chrome.tabs.query, callerLogHead, queryInfo);
+	}
+
+	// https://developer.chrome.com/docs/extensions/reference/tabs/#method-query
+	// As of 21.04.23, the documentation for the "url" field says "Fragment identifiers are not matched.",
+	// but based on my testing, that seems to mean "if you pass in a URL with a fragment, we'll return
+	// nothing" (I initially interpreted that text as "we'll ignore the fragment and match just the URL",
+	// but that's not the case). So we need to proactively remove fragments.
+	// Through testing, we also discovered that the field "url" in chrome.tabs.query() will match
+	// both "url" and "pendingUrl", so we need to make sure to track both below.
+	let fragmentOffset = queryInfo.url.indexOf("#");
+	if(fragmentOffset == -1) {
+		// No fragment in url, no special handling needed
+		return await chromeUtils.wrap(chrome.tabs.query, callerLogHead, queryInfo);
+	}
+
+	let origUrl = queryInfo.url;
+	queryInfo.url = queryInfo.url.substring(0, fragmentOffset);
+
+	let tabListNoFragment = await chromeUtils.wrap(chrome.tabs.query, callerLogHead, queryInfo);
+	this._log(logHead + "chrome.tabs.query() for " + queryInfo.url + " returned:", tabListNoFragment);
+
+	// Now we have a list of tabs matching the URL without fragment, which subset matches the URL
+	// with fragment? (includes the "tabListNoFragment.length == 0" case)
+	let tabList = [];
+	for(let i = 0; i < tabListNoFragment.length; i++) {
+		let currTab = tabListNoFragment[i];
+		if(currTab.url == origUrl || currTab.pendingUrl == origUrl) {
+			tabList.push(currTab);
+		}
+	}
+
+	return tabList;
+},
+
 // "preferredWinId" is an optional argument. It's possible multiple windows are all equally
 // least tabbed windows (LTWs).
 // There are two use cases for getLeastTabbedWindowId():
@@ -141,8 +185,7 @@ getLeastTabbedWindowId: function(preferredWinId) {
 
 getEmptyTabsList: function() {
 	const logHead = "ChromeUtils::getEmptyTabsList(): ";
-
-	return this.wrap(chrome.tabs.query, logHead, { url: "chrome://newtab/" });
+	return this.queryTabs({ url: "chrome://newtab/" }, logHead);
 },
 
 discardTab: async function(tab) {
@@ -161,7 +204,7 @@ discardTab: async function(tab) {
 			activateIndex = 1;
 		}
 
-		let neighborTabs = await this.wrap(chrome.tabs.query, logHead, { index: activateIndex, windowId: tab.windowId });
+		let neighborTabs = await this.queryTabs({ index: activateIndex, windowId: tab.windowId }, logHead);
 		this._log(logHead + "tabs.query for index " + activateIndex + " returned: ", neighborTabs);
 
 		// If neighborTabs.length == 0, that means the tab is alone in the window, so we

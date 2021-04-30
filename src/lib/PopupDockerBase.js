@@ -57,7 +57,7 @@ _openUndocked: function() {
 	const logHead = "PopupDockerBase::_openUndocked(): ";
 	this._log(logHead + "entering");
 
-	chromeUtils.wrap(chrome.tabs.query, logHead, { url: this.getPopupUrl(true) }).then(
+	chromeUtils.queryTabs({ url: this.getPopupUrl(true) }, logHead).then(
 		function(tabs) {
 			if(tabs.length == 0) {
 				this._log(logHead + "undocked tab not found, launching it");

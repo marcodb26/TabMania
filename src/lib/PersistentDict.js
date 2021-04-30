@@ -40,8 +40,8 @@ _init: function(storageObj) {
 
 	chrome.storage.onChanged.addListener(this._onStorageChangedCb.bind(this));
 
-	// Overriding the parent class' _init(), but calling that original function first
-	Classes.AsyncBase._init.apply(this, arguments);
+	// Overriding the parent class' _init(), but calling that original function too
+	Classes.AsyncBase._init.call(this);
 },
 
 _asyncInit: function() {
