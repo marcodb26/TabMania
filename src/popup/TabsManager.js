@@ -24,8 +24,6 @@ Classes.TabsManager = Classes.AsyncBase.subclass({
 
 	// Object containing all current known tabs
 	_normTabs: null,
-	// Object containing all known pinned bookmarks not matching a tab in _normTabs
-	_filteredPinnedBookmarks: null,
 
 	_options: null,
 
@@ -61,7 +59,7 @@ _asyncInit: function() {
 	// Overriding the parent class' _asyncInit(), but calling that original function first
 	let parentPromise = Classes.AsyncBase._asyncInit();
 
-	// Initialize the _normTabs and _filteredPinnedBookmarks data structures before registering
+	// Initialize the _normTabs data structure before registering
 	// all the callbacks, since the callbacks need this data
 	let thisPromise = this._queryTabs().then(
 		function() {
@@ -207,13 +205,6 @@ _issue01Workaround: function() {
 },
 
 _processTabUpdateInner: function(tab) {
-	// First we want to normalize the updated tab, and replace it in the list.
-	// The normalization includes two steps:
-	// - First we extend the tab with pinned bookmark info, if needed
-	// - Then we run the standard NormalizedTabs logic
-	//
-	// TODO TBD: we need to update this._filteredPinnedBookmarks when we make these changes
-//	this._processPinnedBookmarks([ tab ]);
 	this._normTabs.updateTab(tab);
 	// Then update the shortcuts info, if needed
 	if(this._options.standardTabs) {
@@ -350,7 +341,6 @@ _tabUpdatedCb: function(tabId, changeInfo, tab) {
 _tabRemovedCb: function(tabId, removeInfo) {
 	const logHead = "TabsManager::_tabRemovedCb(" + tabId + "): ";
 
-	// TODO TBD: we need to update this._filteredPinnedBookmarks when we make these changes
 	let tabRemoved = this._normTabs.removeTabById(tabId);
 	if(tabRemoved == null) {
 		this._log(logHead + "tab not tracked")
@@ -633,15 +623,6 @@ _queryTabs: function() {
 
 			this._log(logHead + "tabs received, processing");
 
-//			if(this._options.standardTabs) {
-//				this._filteredPinnedBookmarks = this._processPinnedBookmarks(tabs);
-//				this._log(logHead + "pinned bookmarks done", tabs, this._filteredPinnedBookmarks);
-//			} else {
-//				// Pinned bookmarks are not used by an instance managing only incognito tabs
-				this._filteredPinnedBookmarks = [];
-//			}
-			perfProf.mark("pinnedBookmarksEnd");
-
 			this._issue01WorkaroundJob.start(this._issue01WorkaroundInterval, false);
 
 			let oldTabList = null;
@@ -654,9 +635,7 @@ _queryTabs: function() {
 				// and sorting happens in place in "tabs", so after create()
 				// we can just ignore the "normTabs" object... but to be
 				// good future-proof citizens, let's call the right interface...
-				//
-				// "this._filteredPinnedBookmarks" are already fully normalized by
-				// bookmarksManager, no reason for them to be normalized again.
+				perfProf.mark("normalizeStart");
 				this._normTabs = Classes.NormalizedTabs.create(tabs);
 
 				perfProf.mark("shortcutsStart");
@@ -699,15 +678,6 @@ _queryTabs: function() {
 
 				perfProf.mark("shortcutsEnd");
 
-				// Never merge "this._filteredPinnedBookmarks" within the tabs managed by
-				// this._normTabs, because if you do, when search starts the pinned bookmarks
-				// might show up twice. "pinnedBookmarks" are an empty array in search mode,
-				// but when starting a search we blindly take whatever is in ths._normTabs from
-				// when we were in standard mode (because we assume that starting a search doesn't
-				// change the tabs, so no need to trigger another full query). By concatenating
-				// the "pinnedBookmarks" only when calling _renderTabs() we're safe from
-				// that potential problem.
-
 				if(oldTabList != null) {
 					this._log(logHead + "comparing with oldTabList");
 					this._generateDiffEvents(oldTabList);
@@ -717,7 +687,7 @@ _queryTabs: function() {
 				perfProf.mark("diffEventsEnd");
 
 				perfProf.measure("Query", "queryStart", "queryEnd");
-				perfProf.measure("Pinned bookmarks", "queryEnd", "pinnedBookmarksEnd");
+				perfProf.measure("Normalize", "normalizeStart", "shortcutsStart");
 				perfProf.measure("Shortcuts", "shortcutsStart", "shortcutsEnd");
 				perfProf.measure("DiffEvents", "shortcutsEnd", "diffEventsEnd");
 
@@ -740,10 +710,6 @@ getTabs: function() {
 // to guarantee uniqueness.
 getPinnedBookmarkIdsFromTabs: function() {
 	return this._normTabs.getPinnedBookmarkIdsFromTabs();
-},
-
-getTabsAndPinnedBookmarks: function() {
-	return this.getTabs().concat(this._filteredPinnedBookmarks);
 },
 
 }); // Classes.TabsManager
