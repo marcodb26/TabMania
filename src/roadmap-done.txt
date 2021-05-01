@@ -56,6 +56,14 @@ DONE 2.0
 
 - BUG: activating a bookmark or history item fails to reuse an existing tab if the URL has a fragment
 
+- Cleaned up relationship between pinned bookmarks and tabs inheriting pins from pinned bookmarks
+  * TabsManager manages only standard tabs, some of which might have inherited pins from pinned bookmarks,
+    and can tell the list of bookmark IDs matching the tabs' pin inheritance
+  * BookmarksManager manages only pinned bookmarks, but getPinnedBookmarks() can now filter out
+    an array of bookmark IDs
+  * TabsBsTabViewer puts the information together
+    - The filtering is just a rendering feature
+
 
 DONE 1.3
 
