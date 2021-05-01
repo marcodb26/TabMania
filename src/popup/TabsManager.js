@@ -213,7 +213,7 @@ _processTabUpdateInner: function(tab) {
 	// - Then we run the standard NormalizedTabs logic
 	//
 	// TODO TBD: we need to update this._filteredPinnedBookmarks when we make these changes
-	this._processPinnedBookmarks([ tab ]);
+//	this._processPinnedBookmarks([ tab ]);
 	this._normTabs.updateTab(tab);
 	// Then update the shortcuts info, if needed
 	if(this._options.standardTabs) {
@@ -488,7 +488,7 @@ _settingsStoreUpdatedCb: function(ev) {
 },
 
 // Returns the count of tabs that have been processed
-_processOnePinnedBookmark: function(bmNode, tabs) {
+OLD_processOnePinnedBookmark: function(bmNode, tabs) {
 	function tabMatchesBookmark(tab) {
 		if(tab.url != null && tab.url != "") {
 			// If there's a "tab.url", don't even try "tab.pendingUrl"
@@ -552,7 +552,7 @@ _processOnePinnedBookmark: function(bmNode, tabs) {
 // and possibly clean up the title of the tab when necessary (see inside the
 // function for details).
 // Returns the subset of pinned bookmarks that don't have a matching tab in "tabs".
-_processPinnedBookmarks: function(tabs, returnBookmarks) {
+OLD_processPinnedBookmarks: function(tabs) {
 	const logHead = "TabsManager::_processPinnedBookmarks(): ";
 
 	let pinnedBookmarks = bookmarksManager.getPinnedBookmarks();
@@ -633,13 +633,13 @@ _queryTabs: function() {
 
 			this._log(logHead + "tabs received, processing");
 
-			if(this._options.standardTabs) {
-				this._filteredPinnedBookmarks = this._processPinnedBookmarks(tabs);
-				this._log(logHead + "pinned bookmarks done", tabs, this._filteredPinnedBookmarks);
-			} else {
-				// Pinned bookmarks are not used by an instance managing only incognito tabs
+//			if(this._options.standardTabs) {
+//				this._filteredPinnedBookmarks = this._processPinnedBookmarks(tabs);
+//				this._log(logHead + "pinned bookmarks done", tabs, this._filteredPinnedBookmarks);
+//			} else {
+//				// Pinned bookmarks are not used by an instance managing only incognito tabs
 				this._filteredPinnedBookmarks = [];
-			}
+//			}
 			perfProf.mark("pinnedBookmarksEnd");
 
 			this._issue01WorkaroundJob.start(this._issue01WorkaroundInterval, false);

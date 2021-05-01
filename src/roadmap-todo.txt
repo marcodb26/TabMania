@@ -1,5 +1,16 @@
 TODO 2.0
 
+- BUG: "wantsAttention" doesn't seem to work anymore
+
+- popup/TabsManager.js must generate updates also when pinned bookmarks get updated
+  * How do we do that? We only compare _normTabs, which doesn't include _filteredPinnedBookmarks
+    - Who manages diffs for _filteredPinnedBookmarks?
+
+- Some customGroup changes affect TabsManager (different search badges on a tile), some
+  other affect only rendering (different color for a custom group)
+  * We should make sure each class (TabsManager and TabsBsTabViewer) only react for the
+    properties they care about
+
 - BUG: empty hostname in custom group attracts all tabs
   * Create a custom group
   * Add a hostname
@@ -15,15 +26,6 @@ TODO 2.0
 
 - BUG: If customGroup has "bg-light" color, the text must use a dark color, otherwise it's
   invisible
-
-- popup/TabsManager.js must generate updates also when pinned bookmarks get updated
-  * How do we do that? We only compare _normTabs, which doesn't include _filteredPinnedBookmarks
-    - Who manages diffs for _filteredPinnedBookmarks?
-
-- Some customGroup changes affect TabsManager (different search badges on a tile), some
-  other affect only rendering (different color for a custom group)
-  * We should make sure each class (TabsManager and TabsBsTabViewer) only react for the
-    properties they care about
 
 - Use chrome.windows.update "drawAttention" flag?
 

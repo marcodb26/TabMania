@@ -440,6 +440,81 @@ isCachedFavIconUrl: function(favIconUrl) {
 },
 
 // Static function
+isTabMatchingBookmark: function(tab, bmNode) {
+	// By construction (see updateUrl()), "tab.tm.url" is always the best URL (either
+	// tab.url or tab.pendingUrl), and worst case it's an empty string, but never null.
+	if(tab.tm.url != "") {
+		return tab.tm.url.startsWith(bmNode.url);
+	}
+	return false;
+},
+
+// Static function
+setPinInheritance: function(tab, bmNode) {
+	tab.tm.pinInherited = {
+		type: "bookmark",
+		id: bmNode.bookmarkId,
+	};
+
+	// A little trick here. When a tab loads, initially its title its set to
+	// its URL. Unfortunately that means that from a tile perspective, the tile
+	// of the tab will be sorted to a different location when the user clicks
+	// on the pinned bookmark to activate the tab. So it looks like the tile
+	// disappears for a while, then it comes back, and that is visually ugly.
+	// This little trick forces the "title" of a tab to be the same as the title
+	// of the pinned bookmark while the tab is loading and its title has not been
+	// settled yet. Once the title of the tab settles, we stop overwriting it with
+	// the title of the pinned bookmark. Note that there's no guarantee the tile
+	// will stick in place once you load the tab from the pinned bookmark, because
+	// the title of the pinned bookmark could have been edited by the user, or the
+	// title of the website could have changed since the time the bookmark was saved.
+	//
+	// Note the choice of "tab.url.includes(tab.title)" instead of "tab.url == tab.title",
+	// because when the tab is loading, if the URL is "https://www.google.com/", the
+	// title gets set to "https://www.google.com" without the trailing "/", just
+	// to make life a little more interesting...
+	// Note also that we tried to restrict this logic to 'tab.status == "loading"',
+	// but as it turns out when "tab.status" switches to "complete" the title is
+	// still bogus for a while...
+	if(tab.title == "" || tab.url.includes(tab.title) || tab.title == tab.pendingUrl) {
+		tab.title = bmNode.title;
+	}
+},
+
+// Static function
+// Add pinInheritance information to tabs that are mapped to pinned bookmarks,
+// and possibly clean up the title of the tab when necessary (see setPinInheritance()
+// for details).
+updatePinInheritance: function(tab) {
+	let thisObj = Classes.NormalizedTabs;
+
+	let pinnedBookmarks = bookmarksManager.getPinnedBookmarks();
+
+	if(pinnedBookmarks.length == 0) {
+		// No pinned bookmarks
+		return;
+	}
+
+	// Note that we need to go through this loop in both standard and search mode,
+	// because in both cases we want to show the "inherited pin" on the regular tab.
+	// On the other hand, in search mode we never want to add the bookmark to the
+	// "tabs", otherwise the bookmark will show up twice (once through here, then
+	// through the standard search mechanism of bookmarksManager.find().
+	for(let i = 0; i < pinnedBookmarks.length; i++) {
+		let bmNode = pinnedBookmarks[i];
+
+		if(!thisObj.isTabMatchingBookmark(tab, bmNode)) {
+			continue;
+		}
+		thisObj.setPinInheritance(tab, bmNode);
+		// A tab might match multiple (pinned) bookmarks, but we stop this loop
+		// at the first match, and ignore the others. Keeping single inheritance
+		// makes the rest of the code a bit easier.
+		return;
+	}
+},
+
+// Static function
 normalizeBookmarkId : function(id) {
 	return "b" + id;
 },
@@ -595,6 +670,7 @@ normalizeTab: function(tab, objType) {
 		url: null,
 		protocol: null,
 		hostname: null,
+		pinInherited: null,
 		customGroupName: null,
 		lowerCaseUrl: null,
 		lowerCaseTitle: null,
@@ -637,8 +713,16 @@ normalizeTab: function(tab, objType) {
 		secondaryShortcutBadges: [],
 	};
 
-	// updateTitle() and updateFavIcon() require updateUrl() to be called first
+	// updatePinInheritance(), updateTitle() and updateFavIcon() require updateUrl() to
+	// be called first
 	thisObj.updateUrl(tab);
+
+	if(objType == Classes.NormalizedTabs.type.TAB) {
+		// Call updatePinInheritance() before updateTitle(), because in some cases
+		// updatePinInheritance can change the title
+		thisObj.updatePinInheritance(tab);
+	}
+
 	thisObj.updateTitle(tab);
 	// Bookmarks and history have no favIconUrl, but sometimes recently closed and
 	// standard tabs also don't have favIconUrl, so let's just try the cache here
@@ -647,9 +731,7 @@ normalizeTab: function(tab, objType) {
 
 	switch(objType) {
 		case Classes.NormalizedTabs.type.TAB:
-			// Bookmarks don't need search badges, because they're inserted in the flow
-			// through chrome.bookmarks.search() (that is, post search).
-			// Bookmarks also don't need shortcut badges because they can't be invoked
+			// Bookmarks don't need shortcut badges because they can't be invoked
 			// via custom shortcuts (though the URL in a custom shortcut could match
 			// the URL of a bookmark, they're slightly different things, let's not mix
 			// them up).

@@ -300,9 +300,9 @@ toUpperCaseInitial: function(str) {
 
 isTabPinned: function(tab) {
 	// A tab can be pinned explicitly, or it can inherit it's pinning from
-	// other sources. "pinInherited", when not undefined, describes the reason
+	// other sources. "tm.pinInherited", when not undefined, describes the reason
 	// why the tab inherited pinning.
-	return tab.pinned || tab.pinInherited != null;
+	return tab.pinned || tab.tm.pinInherited != null;
 },
 
 }); // Classes.TmUtils

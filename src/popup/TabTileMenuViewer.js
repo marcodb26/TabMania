@@ -88,7 +88,7 @@ _initMenuItems: function() {
 		actionFn: this._actionUnpinByBookmarkCb.bind(this),
 	};
 	this._unpinByBookmarkMenuItem = Classes.MenuItemViewer.create(options);
-	if(this._tab.pinInherited == null) {
+	if(this._tab.tm.pinInherited == null) {
 		this._unpinByBookmarkMenuItem.hide();
 	}
 	this.append(this._unpinByBookmarkMenuItem);
@@ -163,7 +163,7 @@ _updateMenuItems: function() {
 	this._titleMenuItem.setHtml("<b>" + this._safeText(this._tab.title) + "</b>");
 	this._pinMenuItem.setText(this._tab.pinned ? "Unpin" : "Pin");
 
-	if(this._tab.pinInherited != null) {
+	if(this._tab.tm.pinInherited != null) {
 		this._unpinByBookmarkMenuItem.show();
 	} else {
 		this._unpinByBookmarkMenuItem.hide();
@@ -198,7 +198,7 @@ _actionPinToggleCb: function(ev) {
 
 _actionUnpinByBookmarkCb: function(ev) {
 	const logHead = "TabTileMenuViewer::_actionUnpinByBookmarkCb(" + this._tab.id + "): ";
-	settingsStore.unpinBookmark(this._tab.pinInherited.id);
+	settingsStore.unpinBookmark(this._tab.tm.pinInherited.id);
 	this._log(logHead + "completed");
 },
 

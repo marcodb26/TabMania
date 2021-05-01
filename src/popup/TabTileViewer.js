@@ -748,7 +748,7 @@ _createRenderState: function(tab, tabGroup) {
 	renderState.visualBadges = tmUtils.deepCopy(tab.tm.visualBadges);
 
 	renderState.pinned = tab.pinned;
-	renderState.pinInherited = (tab.pinInherited != null);
+	renderState.pinInherited = (tab.tm.pinInherited != null);
 	renderState.status = tab.status;
 
 	renderState.showMenu = true;

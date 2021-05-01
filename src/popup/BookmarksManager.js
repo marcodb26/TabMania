@@ -764,7 +764,7 @@ _applyPinnedUpdateCb: function() {
 	}
 
 	this._pinnedBookmarkIds = found;
-	
+
 	this._eventManager.notifyListeners(Classes.EventManager.Events.UPDATED, { pinned : { added: added, deleted: deleted } });
 },
 
