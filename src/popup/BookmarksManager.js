@@ -905,11 +905,24 @@ getBmFolderAsync: async function(bmNode) {
 	return pathList.join("/");
 },
 
-getPinnedBookmarks: function() {
+getPinnedBookmarks: function(filterOutIds) {
 	if(!this.isActive()) {
 		return [];
 	}
-	return this._pinnedBookmarks;
+
+	if(filterOutIds == null) {
+		return this._pinnedBookmarks;
+	}
+
+	// Need to filter out some bookmark IDs
+	let retVal = [];
+	for(let i = 0; i < this._pinnedBookmarks.length; i++) {
+		let bmNode = this._pinnedBookmarks[i];
+		if(!filterOutIds.includes(bmNode.bookmarkId)) {
+			retVal.push(bmNode);
+		}
+	}
+	return retVal;
 },
 
 getStats: function() {

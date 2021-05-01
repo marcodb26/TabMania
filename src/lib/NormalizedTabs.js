@@ -18,11 +18,17 @@ Classes.NormalizedTabs = Classes.Base.subclass({
 	// "_tabsLoading" is a dictionary of all tabs in status "loading", keyed by tab ID
 	_tabsLoading: null,
 
+	// "_tabsPinnedFromBookmarks" is a dictionary of all tabs that have inherited pinning from
+	// a bookmark
+	_tabsPinnedFromBookmarks: null,
+
 _init: function(tabs) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.Base._init.call(this);
 	this._tabs = optionalWithDefault(tabs, []);
-	this._tabsLoading = {};
+
+	this._tabsLoading = Classes.TabsStore.create();
+	this._tabsPinnedFromBookmarks = Classes.TabsStore.create();
 
 	this.debug();
 
@@ -482,7 +488,7 @@ setPinInheritance: function(tab, bmNode) {
 },
 
 // Static function
-// Add pinInheritance information to tabs that are mapped to pinned bookmarks,
+// Add pin inheritance information to tabs that are mapped to pinned bookmarks,
 // and possibly clean up the title of the tab when necessary (see setPinInheritance()
 // for details).
 updatePinInheritance: function(tab) {
@@ -761,14 +767,18 @@ normalizeAll: function() {
 	const logHead = "NormalizedTabs::normalizeAll(): ";
 	perfProf.mark("normalizeStart");
 
-	this._tabsLoading = {};
+	this._tabsLoading.reset();
+	this._tabsPinnedFromBookmarks.reset();
 
 	for(let i = 0; i < this._tabs.length; i++) {
 		let tab = this._tabs[i];
 		this.normalizeTab(tab);
 		if(tab.status == "loading") {
 			this._log(logHead + "found tab in loading status", tab);
-			this._tabsLoading[tab.id] = tab;
+			this._tabsLoading.add(tab);
+		}
+		if(tab.tm.pinInherited != null) {
+			this._tabsPinnedFromBookmarks.add(tab, tab.tm.pinInherited.id);
 		}
 	}
 	perfProf.mark("normalizeEnd");
@@ -825,9 +835,15 @@ updateTab: function(newTab, tabIdx) {
 
 	if(newTab.status == "loading") {
 		this._log(logHead + "found tab in loading status", newTab);
-		this._tabsLoading[newTab.id] = newTab;
+		this._tabsLoading.add(newTab);
 	} else {
 		this.removeTabsLoadingTab(newTab.id);
+	}
+
+	if(newTab.tm.pinInherited != null) {
+		this._tabsPinnedFromBookmarks.add(newTab, newTab.tm.pinInherited.id);
+	} else {
+		this._tabsPinnedFromBookmarks.removeById(newTab.id);
 	}
 
 	tabIdx = optionalWithDefault(tabIdx, this.getTabIndexByTabId(newTab.id));
@@ -851,6 +867,7 @@ removeTabById: function(tabId) {
 	}
 
 	this.removeTabsLoadingTab(tabId);
+	this._tabsPinnedFromBookmarks.removeById(tabId);
 	let retVal = this._tabs[tabIdx];
 	this._tabs.splice(tabIdx, 1);
 
@@ -882,13 +899,17 @@ diff: function(oldTabList) {
 
 // Returns a dictionary of tabs with status == "loading", keyed by tab ID
 getTabsLoading: function() {
-	return this._tabsLoading;
+	return this._tabsLoading.get();
+},
+
+// The same bookmark ID could appear multiple times, this function doesn't try
+// to guarantee uniqueness.
+getPinnedBookmarkIdsFromTabs: function() {
+	return this._tabsPinnedFromBookmarks.getTabValueList();
 },
 
 removeTabsLoadingTab: function(tabId) {
-	if(tabId in this._tabsLoading) {
-		delete this._tabsLoading[tabId];
-	}
+	this._tabsLoading.removeById(tabId);
 }
 
 }); // Classes.NormalizedTabs
@@ -899,3 +920,46 @@ Classes.Base.roDef(Classes.NormalizedTabs.type, "TAB", "tab" );
 Classes.Base.roDef(Classes.NormalizedTabs.type, "RCTAB", "rctab" );
 Classes.Base.roDef(Classes.NormalizedTabs.type, "BOOKMARK", "bookmark" );
 Classes.Base.roDef(Classes.NormalizedTabs.type, "HISTORY", "history" );
+
+
+// CLASS TabsStore
+Classes.TabsStore = Classes.Base.subclass({
+
+	_dict: null,
+
+_init: function() {
+	// Overriding the parent class' _init(), but calling that original function first
+	Classes.Base._init.call(this);
+	this.debug();
+
+	this.reset();
+},
+
+reset: function() {
+	this._dict = {};
+},
+
+// "value" defaults to "tab"
+add: function(tab, value) {
+	this._dict[tab.id] = optionalWithDefault(value, tab);
+},
+
+removeById: function(tabId) {
+	if(tabId in this._dict) {
+		delete this._dict[tabId];
+	}
+},
+
+get: function() {
+	return this._dict;
+},
+
+getTabIdList: function() {
+	return Object.keys(this._dict);
+},
+
+getTabValueList: function() {
+	return Object.values(this._dict);
+},
+
+}); // Classes.TabsStore

@@ -736,6 +736,12 @@ getTabs: function() {
 	return this._normTabs.getTabs();
 },
 
+// The same bookmark ID could appear multiple times, this function doesn't try
+// to guarantee uniqueness.
+getPinnedBookmarkIdsFromTabs: function() {
+	return this._normTabs.getPinnedBookmarkIdsFromTabs();
+},
+
 getTabsAndPinnedBookmarks: function() {
 	return this.getTabs().concat(this._filteredPinnedBookmarks);
 },

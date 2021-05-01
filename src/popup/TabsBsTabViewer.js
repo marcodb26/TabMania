@@ -538,10 +538,14 @@ _queryAndRenderTabs: function() {
 
 	this._prepareForNewCycle();
 
-	let tabs = this._tabsManager.getTabsAndPinnedBookmarks();
+	let tabs = this._tabsManager.getTabs();
+	let pinnedBookmarksIdsFromTabs = this._tabsManager.getPinnedBookmarkIdsFromTabs();
+	// Get only the pinned bookmarks that are not already marked as pinInherited by a
+	// standard tab
+	let pinnedBookmarks = bookmarksManager.getPinnedBookmarks(pinnedBookmarksIdsFromTabs);
 
 	perfProf.mark("renderStart");
-	// Never merge "pinnedBookmarks within the tabs managed by this._normTabs,
+	// Never merge "pinnedBookmarks" within the tabs managed by this._normTabs,
 	// because if you do, when search starts the pinned bookmarks might show
 	// up twice. "pinnedBookmarks" are an empty array in search mode, but when
 	// starting a search we blindly take whatever is in ths._normTabs from when
@@ -549,7 +553,7 @@ _queryAndRenderTabs: function() {
 	// change the tabs, so no need to trigger another full query). By concatenating
 	// the "pinnedBookmarks" only when calling _renderTabs() we're safe from
 	// that potential problem.
-	this._renderTabs(tabs);
+	this._renderTabs(tabs.concat(pinnedBookmarks));
 	perfProf.mark("renderEnd");
 
 	perfProf.measure("Rendering", "renderStart", "renderEnd");
