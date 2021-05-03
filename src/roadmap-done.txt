@@ -66,6 +66,9 @@ DONE 2.0
 
 - Search works again (continuation of refactoring of the previous bullet)
 
+- Trying to reduce reliance on full re-rendering during updates (no performance profiling done
+  yet after refactoring though)
+
 
 DONE 1.3
 
