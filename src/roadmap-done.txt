@@ -77,6 +77,16 @@ DONE 2.0
 - BUG: in search mode, some tabs from _tabUpdatedCb() don't have a tile, and we need to validate
   if a tile actually exists
 
+- Improved debuggability of tmUtils.isEqual()
+
+- "wantsAttention" flag was interfering with the tmUtils.isEqual() function because we used to treat
+  [ "wantsAttention" missing ] == [ "wantsAttention" set to "false" ]
+  * Now always forcing it to have a value, no more "default to false if missing" to make sure the
+    "tab" object comparison can always succeed
+	- Also moved "wantsAttention" from top level to inside "tab.tm"
+  * Experienced as: BUG: the extension's tab sometimes has "wantsAttention", sometimes doesn't, and shows
+    up as changed when you make any other tab active
+
 
 DONE 1.3
 

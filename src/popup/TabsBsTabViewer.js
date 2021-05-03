@@ -540,7 +540,7 @@ _renderTile: function(containerViewer, tabGroup, tab) {
 		tile = Classes.TabTileViewer.create(tab, tabGroup, this._tilesAsyncQueue);
 	}
 
-	if(tab.wantsAttention) {
+	if(tab.tm.wantsAttention) {
 		// Push tab to the top of the tiles list.
 		// Note that in this case we must use "this._containerViewer", not "containerViewer",
 		// because we need to move the tile to the top of the outermost container.

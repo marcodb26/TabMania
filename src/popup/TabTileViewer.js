@@ -714,7 +714,7 @@ _createRenderState: function(tab, tabGroup) {
 	// when the network state changes.
 	renderState.networkOnline = window.navigator.onLine;
 
-	renderState.wantsAttention = optionalWithDefault(tab.wantsAttention, false);
+	renderState.wantsAttention = tab.tm.wantsAttention;
 
 	renderState.incognito = tab.incognito;
 

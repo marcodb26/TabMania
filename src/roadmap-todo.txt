@@ -1,8 +1,5 @@
 TODO 2.0
 
-- BUG: the extension's tab sometimes has "wantsAttention", sometimes doesn't, and shows up as
-  changed when you make any other tab active
-
 - BUG: open in least tabbed doesn't work from OneNote
 
 - Let NormalizedTabs remember the last title in "loaded" state while the tab is in

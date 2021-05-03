@@ -687,6 +687,7 @@ normalizeTab: function(tab, objType) {
 		// logic easier, we want to make it non-null for all tabs
 		folder: "",
 		lowerCaseFolder: "",
+		wantsAttention: false,
 		// Bookmarks have extended IDs too
 		extId: thisObj.formatExtendedId(tab, objType),
 
@@ -879,7 +880,13 @@ _tabsCmp: function(a, b) {
 	// of a tab are actually just computed from other properties, and we could optimize the
 	// comparison by including only properties that are not derived from other properties.
 	// We start by having this separate function in case we want to add that optimization later.
-	return tmUtils.isEqual(a, b);
+
+	return tmUtils.isEqual(a, b, true);
+//	let retVal = tmUtils.isEqual(a, b);
+//	if(!retVal) {
+//		this._log("NormalizedTabs::_tabsCmp(): a and b are different", a, b);
+//	}
+//	return retVal;
 },
 
 diff: function(oldTabList) {

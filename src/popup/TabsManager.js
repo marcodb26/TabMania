@@ -255,7 +255,7 @@ _stopAttentionCb: function(tabId) {
 	let tab = this._normTabs.getTabByTabIndex(tabIdx);
 	// The next action is probably redundant, it's already been taken by tabsTitleMonitor
 	// before the callback was invoked. Anyway we need the "tab" for the event.
-	tab.wantsAttention = false;
+	tab.tm.wantsAttention = false;
 
 	// Single event for all the changes, unlike for CREATED and REMOVED above
 	this._eventManager.notifyListeners(Classes.TabsManager.Events.UPDATED, { tabs: [ tab ] });
@@ -264,13 +264,13 @@ _stopAttentionCb: function(tabId) {
 _processTabUpdate: function(tabId, tab) {
 //	const logHead = "TabsManager::_processTabUpdate(" + tabId + "): ";
 
-	// tabsTitleMonitor.update() sets the "tab.wantsAttention" flag in "tab"
-	// when it returns "true". Can't put it in "tab.tm" because "tab.tm" will
-	// be added later.
+	this._processTabUpdateInner(tab);
+
+	// tabsTitleMonitor.update() sets the "tab.tm.wantsAttention" flag in "tab"
+	// when it returns "true".
 	// Note that we take this action only for updates, not for creation cases.
 	tabsTitleMonitor.update(tab, this._stopAttentionCb.bind(this));
 
-	this._processTabUpdateInner(tab);
 	this._eventManager.notifyListeners(Classes.TabsManager.Events.UPDATED, { tabs: [ tab ] });
 },
 

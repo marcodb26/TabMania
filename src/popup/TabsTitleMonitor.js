@@ -66,8 +66,8 @@ _timeoutCb: function(ctxTitleObj) {
 // "stopFn" is a callback stopFn(tabId) that will be called if "wantsAttention"
 // expires (of course it will be active only in case this function returns "true").
 // Returns "true" if the tab is changing title frequently, "false" otherwise.
-// As a side effect, it sets the "tab.wantsAttention" flag in "tab" when it
-// returns "true". Can't put it in "tab.tm" because "tab.tm" will be added later.
+// As a side effect, it sets the "tab.tm.wantsAttention" flag in "tab" when it
+// returns "true".
 update: function(tab, stopFn) {
 	let newTitleObj = {
 		tabId: tab.id,
@@ -82,7 +82,7 @@ update: function(tab, stopFn) {
 
 	if(tabTitles == null) {
 		this._titlesDict[tab.id] = [ newTitleObj ];
-		tab.wantsAttention = false;
+		tab.tm.wantsAttention = false;
 		return false;
 	}
 
@@ -94,7 +94,7 @@ update: function(tab, stopFn) {
 		// Alternatively, if the URL has changed, also drop everything and start tracking
 		// again from scratch.
 		this._titlesDict[tab.id] = [ newTitleObj ];
-		tab.wantsAttention = false;
+		tab.tm.wantsAttention = false;
 		return false;
 	}
 
@@ -107,17 +107,17 @@ update: function(tab, stopFn) {
 		newTitleObj = null;
 	}
 
-	tab.wantsAttention = this.wantsAttention(tab.id);
+	tab.tm.wantsAttention = this._wantsAttention(tab.id);
 
-	if(tab.wantsAttention && newTitleObj != null) {
+	if(tab.tm.wantsAttention && newTitleObj != null) {
 		newTitleObj.stopFn = stopFn;
 		newTitleObj.timerHandle = setTimeout(this._timeoutCb.bind(this, newTitleObj), this._timeSensitivity);
 	}
-	return tab.wantsAttention;
+	return tab.tm.wantsAttention;
 },
 
 // Returns "true" if the tab is changing title frequently, "false" otherwise 
-wantsAttention: function(tabId) {
+_wantsAttention: function(tabId) {
 	let tabTitles = this._titlesDict[tabId];
 
 	if(tabTitles == null) {
