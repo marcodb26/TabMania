@@ -1,9 +1,13 @@
 TODO 2.0
 
-- BUG: generateDiffEvents() shows 177 tabs changed when changing active tab of a window
-  from TabMania
-  * Search "gmail", then click on the tile
-  * If gmail was not active in the window, it gets activated, but you get 177 changes (???)
+- BUG: the extension's tab sometimes has "wantsAttention", sometimes doesn't, and shows up as
+  changed when you make any other tab active
+
+- BUG: open in least tabbed doesn't work from OneNote
+
+- Let NormalizedTabs remember the last title in "loaded" state while the tab is in
+  loading state
+  * Then sort based on "last title" if the tab is in "loading" state
 
 - Test _queryCycleNo
 

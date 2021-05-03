@@ -163,6 +163,17 @@ _processTabUpdate: function(tab, scheduledFullRender) {
 	this._log(logHead + "entering", tab);
 
 	let tile = this._tilesByTabId[tab.id];
+	if(tile == null) {
+		// If we're in search mode, this._tilesByTabId[] includes only tiles for the
+		// tabs that are in the search results, while _tabUpdatedCb() receives events
+		// for all tabs known to this._tabsManager. If we don't find a tile, it just
+		// means the tab is not in the search results. On the other hand, if we're
+		// not in search mode, all tabs should have a corresponding tile.
+		if(!this.isSearchActive()) {
+			this._err(logHead + "tile not found and not in search mode", tab, this._tilesByTabId[tab.id]);
+		}
+		return false;
+	}
 	let oldRenderState = tile.getRenderState();
 
 	// Note that internally TabTileViewer.update() enqueues the heavy processing

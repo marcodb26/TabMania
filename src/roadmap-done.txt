@@ -69,8 +69,13 @@ DONE 2.0
 - Trying to reduce reliance on full re-rendering during updates (no performance profiling done
   yet after refactoring though)
 
-- tab.tm must not include "searchStats" and "unoptimizedSearchStats"
+- SearchQuery.search() must not change "tab.tm" to include "searchStats" and "unoptimizedSearchStats"
   * It causes tmUtils.isEqual() to identify tabs as "changed" when they in fact have not changed
+  * Experienced as: BUG: generateDiffEvents() shows 177 tabs changed when changing active tab of a window
+    from TabMania in search mode
+
+- BUG: in search mode, some tabs from _tabUpdatedCb() don't have a tile, and we need to validate
+  if a tile actually exists
 
 
 DONE 1.3
