@@ -348,22 +348,6 @@ search: function(inputTabs, statsSource, maxResults) {
 		}
 	}
 
-// Reduce is overrated, this is simple enough for a classic for() loop...
-//
-//	let filteredTabs = inputTabs.reduce(
-//		function(result, tab) {
-//			//this._log(logHead + "inside tab ", tab);
-//			if(this.isTabInSearch(tab)) {
-//				result.push(tab);
-//				return result;
-//			}
-//
-//			// Not added
-//			return result;
-//		}.bind(this),
-//		[] // Initial value for reducer
-//	);
-
 	let interrupted = false;
 	if(maxReached(filteredTabs) && i < inputTabs.length) {
 		this._log(logHead + "max (" + maxResults + ") reached, interrupting search for " + statsSource);
