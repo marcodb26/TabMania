@@ -148,7 +148,7 @@ showSearch: function() {
 		"chrome.history.search()": [ "historySearchStart", "historySearchEnd" ],
 		"history reduce": [ "historyReduceStart", "historyReduceEnd" ],
 		"filter bookmarks": [ "bookmarksSearchStart", "bookmarksSearchEnd" ],
-		"filter tabs + rcTabs + hItems": [ "searchFilterStart", "searchSortStart" ],
+		"filter tabs + rcTabs + hItems": [ "searchFilterStart", "searchFilterEnd" ],
 		"sort search results": [ "searchSortStart", "searchSortEnd" ],
 		"render": [ "searchRenderStart", "searchRenderEnd" ],
 	}

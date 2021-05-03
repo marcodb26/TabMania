@@ -43,7 +43,7 @@ _init: function(value) {
 },
 
 isInitialized: function() {
-	// Don;t use "this._parsedQuery != null" here, because if the user types a string
+	// Don't use "this._parsedQuery != null" here, because if the user types a string
 	// of only whitespaces, no tokens can be generated, so _parsedQuery must remain
 	// "null", but the search is "active", and we can use _searchQuery to find out.
 	return this._searchQuery.length != 0;

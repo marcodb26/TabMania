@@ -46,7 +46,7 @@ _init: function(storageObj) {
 
 _asyncInit: function() {
 	// Overriding the parent class' _asyncInit(), but calling that original function first
-	let parentPromise = Classes.AsyncBase._asyncInit();
+	let parentPromise = Classes.AsyncBase._asyncInit.call(this);
 
 	let thisPromise = chromeUtils.storageGet(this._id, this._storageObj).then(
 		function(results) {

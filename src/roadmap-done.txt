@@ -64,6 +64,8 @@ DONE 2.0
   * TabsBsTabViewer puts the information together
     - The filtering is just a rendering feature
 
+- Search works again (continuation of refactoring of the previous bullet)
+
 
 DONE 1.3
 

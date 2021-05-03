@@ -682,6 +682,15 @@ _createRenderState: function(tab, tabGroup) {
 	renderState.title = tab.title;
 	renderState.url = this._cleanupUrl(tab);
 
+	// "renderState.tabGroupTitle" is not strictly needed by the tile rendering,
+	// but we're storing it as a convenience to the TabsBsTabViewer to know if
+	// a tile is part of a group or not
+	if(tabGroup != null) {
+		renderState.tabGroupTitle = tabGroup.title;
+	} else {
+		renderState.tabGroupTitle = null;
+	}
+
 	if(tab.favIconUrl != null) {
 		renderState.imgUrl = tab.favIconUrl;
 		renderState.imgUrlBackup = tab.tm.cachedFavIconUrl;
@@ -878,6 +887,10 @@ getTabId: function() {
 
 getTabInfo: function() {
 	return this._tab;
+},
+
+getRenderState: function() {
+	return this._renderState;
 },
 
 setClickCloseHandler: function(fn) {

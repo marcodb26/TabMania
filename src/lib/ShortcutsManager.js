@@ -123,7 +123,7 @@ _asyncInit: function() {
 	// We know that AsyncBase doesn't need to take any action, but let's use the right
 	// pattern and include the parent class' promise as part of the list of promises
 	// to wait for.
-	let promiseArray = [ Classes.AsyncBase._asyncInit() ];
+	let promiseArray = [ Classes.AsyncBase._asyncInit.call(this) ];
 
 	// Chose to keep the 5 shortcuts in 5 separate variables to allow faster syncing at
 	// runtime. Will it cause slower boot up???

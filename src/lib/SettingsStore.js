@@ -34,7 +34,7 @@ _asyncInit: function() {
 	// We know that AsyncBase doesn't need to take any action, but let's use the right
 	// pattern and include the parent class' promise as part of the list of promises
 	// to wait for.
-	let promiseArray = [ Classes.AsyncBase._asyncInit() ];
+	let promiseArray = [ Classes.AsyncBase._asyncInit.call(this) ];
 
 	this._customGroupsStore = Classes.PersistentDict.createAs(this._storageKeyPrefix + "customGroups", chrome.storage.sync);
 
@@ -255,7 +255,7 @@ _asyncInit: function() {
 	// We know that AsyncBase doesn't need to take any action, but let's use the right
 	// pattern and include the parent class' promise as part of the list of promises
 	// to wait for.
-	let promiseArray = [ Classes.AsyncBase._asyncInit() ];
+	let promiseArray = [ Classes.AsyncBase._asyncInit.call(this) ];
 
 	this._options = Classes.PersistentDict.createAs(this._storageKeyPrefix + "options", chrome.storage.sync);
 	promiseArray.push(this._options.getInitPromise());

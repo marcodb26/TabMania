@@ -57,7 +57,7 @@ _init: function({ standardTabs, incognitoTabs }) {
 
 _asyncInit: function() {
 	// Overriding the parent class' _asyncInit(), but calling that original function first
-	let parentPromise = Classes.AsyncBase._asyncInit();
+	let parentPromise = Classes.AsyncBase._asyncInit.call(this);
 
 	// Initialize the _normTabs data structure before registering
 	// all the callbacks, since the callbacks need this data
@@ -364,7 +364,7 @@ _tabRemovedCb: function(tabId, removeInfo) {
 	// surviving tabs will be updated by the _queryJob.run() call made during the
 	// onActivate event on the tab being activated as a result of the removal of
 	// the active tab. Anyway, an extra call to _queryJob.run() doesn't hurt thanks
-	// to the debouncing logic in place (only one actual run will happen).
+	// to the rate-limiting logic in place (only one actual run will happen).
 	this._log(logHead + "triggering a full refresh");
 	this._queryJob.run(this._queryDelay);
 },
@@ -404,7 +404,7 @@ _tabActivatedCb: function(activeInfo) {
 },
 
 _tabActivatedHighlightedMovedAttachedCb: function(eventId, tabId, activeHighlightMoveAttachInfo) {
-	const logHead = "TabsManager::_tabMovedAttachedCb(" + eventId + ", " + tabId + "): ";
+	const logHead = "TabsManager::_tabActivatedHighlightedMovedAttachedCb(" + eventId + ", " + tabId + "): ";
 
 	// For the onHighlighted event we might not have a "tabId"
 	if(tabId != null) {
@@ -424,7 +424,7 @@ _tabActivatedHighlightedMovedAttachedCb: function(eventId, tabId, activeHighligh
 	// We're not generating an event, because we don't have the full picture.
 	// We'll instead just run a full refresh and let generate an UPDATED event for all tabs
 	// affected by the move.
-	this._log(logHead + "triggering a full refresh", activeHighlightMoveAttachInfo);
+	this._log(logHead + "scheduling a full refresh", activeHighlightMoveAttachInfo);
 	this._queryJob.run(this._queryDelay);
 },
 
