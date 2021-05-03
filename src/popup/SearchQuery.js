@@ -303,7 +303,7 @@ _evaluate: function(tab, queryNode, stats, modifier) {
 	return false;
 },
 
-isTabInSearch: function(tab) {
+isTabInSearch: function(tab, tabsStats) {
 	const logHead = "SearchQuery::isTabInSearch(): ";
 	if(this._parsedQuery == null) {
 		// The user typed a string of only whitespaces, with no tokens. Arbitrarily,
@@ -311,14 +311,18 @@ isTabInSearch: function(tab) {
 		// very expensive proposition, and we want to minimize those cases.
 		return false;
 	}
-	tab.tm.searchStats = { evaluated: 0, evaluatedText: 0 };
-	let optimizedResult = this._evaluate(tab, this._parsedQuery, tab.tm.searchStats);
+
+	let stats = {};
+	tabsStats.push(stats);
+
+	stats.searchStats = { evaluated: 0, evaluatedText: 0 };
+	let optimizedResult = this._evaluate(tab, this._parsedQuery, stats.searchStats);
 
 	if(!isProd()) {
 		// Only in dev, we run the query twice, once optimized and once unoptimized
 		// to validate that the optimizations keey the two queries equivalent
-		tab.tm.unoptimizedSearchStats = { evaluated: 0, evaluatedText: 0 }
-		let unoptimizedResult = this._evaluate(tab, this._unoptimizedParsedQuery, tab.tm.unoptimizedSearchStats);
+		stats.unoptimizedSearchStats = { evaluated: 0, evaluatedText: 0 }
+		let unoptimizedResult = this._evaluate(tab, this._unoptimizedParsedQuery, stats.unoptimizedSearchStats);
 		this._assert(optimizedResult === unoptimizedResult,
 					logHead + "inconsistent results between unoptimized (" + unoptimizedResult +
 					") and optimized (" + optimizedResult + ") evaluation", tab);
@@ -338,12 +342,13 @@ search: function(inputTabs, statsSource, maxResults) {
 		}
 		return results.length >= maxResults;
 	}
-		
+
+	let tabsStats = [];
 	let filteredTabs = [];
 	let i = 0; // Initializing here because we need it after the for() loop
 	for(let i = 0; i < inputTabs.length && !maxReached(filteredTabs); i++) {
 		let tab = inputTabs[i];
-		if(this.isTabInSearch(tab)) {
+		if(this.isTabInSearch(tab, tabsStats)) {
 			filteredTabs.push(tab);
 		}
 	}
@@ -354,19 +359,19 @@ search: function(inputTabs, statsSource, maxResults) {
 		interrupted = true;
 	}
 
-	this._aggregateStats(inputTabs, statsSource, maxResults, interrupted);
+	this._aggregateStats(tabsStats, statsSource, maxResults, interrupted);
 
 	return filteredTabs;
 },
 
-_aggregateStats: function(tabs, statsSource, maxResults, maxReached) {
+_aggregateStats: function(tabsStats, statsSource, maxResults, maxReached) {
 	const logHead = " SearchQuery::_aggregateStats(): ";
 
 	let optimizedStats = {
 		source: statsSource,
 		totalEvaluated: 0,
 		totalEvaluatedText: 0,
-		totalTabsEvaluated: maxReached ? maxResults : tabs.length,
+		totalTabsEvaluated: maxReached ? maxResults : tabsStats.length,
 		maxResults: maxResults,
 		maxReached: maxReached
 	};
@@ -378,24 +383,21 @@ _aggregateStats: function(tabs, statsSource, maxResults, maxReached) {
 			source: statsSource,
 			totalEvaluated: 0,
 			totalEvaluatedText: 0,
-			totalTabsEvaluated: maxReached ? maxResults : tabs.length,
+			totalTabsEvaluated: maxReached ? maxResults : tabsStats.length,
 			maxResults: maxResults,
 			maxReached: maxReached
 		};
 	}
 
-	for(let i = 0; i < tabs.length; i++) {
-		// "tabs[i].tm.searchStats" could be "null" if the search was interrupted
-		// due to reaching "maxResults" (see SearchQuery.search())
-		if(tabs[i].tm.searchStats != null) {
-			optimizedStats.totalEvaluated += tabs[i].tm.searchStats.evaluated;
-			optimizedStats.totalEvaluatedText += tabs[i].tm.searchStats.evaluatedText;
-		}
+	// Note that tabsStats.length might be shorter than the original tabs.length,
+	// in case the search was interrupted due to reaching "maxResults" (see SearchQuery.search())
+	for(let i = 0; i < tabsStats.length; i++) {
+		optimizedStats.totalEvaluated += tabsStats[i].searchStats.evaluated;
+		optimizedStats.totalEvaluatedText += tabsStats[i].searchStats.evaluatedText;
+
 		if(!isProd()) {
-			if(tabs[i].tm.unoptimizedSearchStats != null) {
-				unoptimizedStats.totalEvaluated += tabs[i].tm.unoptimizedSearchStats.evaluated;
-				unoptimizedStats.totalEvaluatedText += tabs[i].tm.unoptimizedSearchStats.evaluatedText;
-			}
+			unoptimizedStats.totalEvaluated += tabsStats[i].unoptimizedSearchStats.evaluated;
+			unoptimizedStats.totalEvaluatedText += tabsStats[i].unoptimizedSearchStats.evaluatedText;
 		}
 	}
 

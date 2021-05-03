@@ -69,6 +69,9 @@ DONE 2.0
 - Trying to reduce reliance on full re-rendering during updates (no performance profiling done
   yet after refactoring though)
 
+- tab.tm must not include "searchStats" and "unoptimizedSearchStats"
+  * It causes tmUtils.isEqual() to identify tabs as "changed" when they in fact have not changed
+
 
 DONE 1.3
 
