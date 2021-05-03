@@ -45,9 +45,18 @@ log: null,
 // This is not a general purpose version of objects equality comparison, no support
 // for functions or symbols. Support for Arrays assumes the array is not sparse
 // (it might work, but very inefficient, if the array is sparse).
-isEqual: function(objA, objB) {
+// "verbose" is to enable debugging of what the function is doing (default "false").
+isEqual: function(objA, objB, verbose) {
+	verbose = optionalWithDefault(verbose, false);
 	const logHead = "TmUtils::isEqual(): ";
+
+	let debugFn = this._log;
+	if(!verbose) {
+		debugFn = emptyFn;
+	}
+
 	if(typeof objA != typeof objB) {
+		debugFn(logHead + "different types", objA, objB);
 		return false;
 	}
 
@@ -66,15 +75,18 @@ isEqual: function(objA, objB) {
 		// Process equality between two arrays
 		if(Array.isArray(objB)) {
 			if(objA.length != objB.length) {
+				debugFn(logHead + "different array length", objA, objB);
 				return false;
 			}
 			for(let i = 0; i < objA.length; i++) {
 				if(!this.isEqual(objA[i], objB[i])) {
+					debugFn(logHead + "different array value at index " + i, objA, objB);
 					return false;
 				}
 			}
 			return true;
 		} else {
+			debugFn(logHead + "objA is an Array, objB is not", objA, objB);
 			return false;
 		}
 	}
@@ -88,14 +100,17 @@ isEqual: function(objA, objB) {
 	let keysB = Object.keys(objB).sort();
 
 	if(keysA.length != keysB.length) {
+		debugFn(logHead + "different object key counts", keysA, keysB);
 		return false;
 	}
 
 	for(let i = 0; i < keysA.length; i++) {
 		if(keysA[i] != keysB[i]) {
+			debugFn(logHead + "different keys: " + keysA[i] + " / " + keysB[i]);
 			return false;
 		}
 		if(!this.isEqual(objA[keysA[i]], objB[keysB[i]])) {
+			debugFn(logHead + "different values for key: " + keysA[i]);
 			return false;
 		}
 	}
