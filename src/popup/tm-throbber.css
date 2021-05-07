@@ -1,0 +1,122 @@
+/*
+   Usage:
+	<div class="tm-throbber tm-throbber-params">
+		<div class="tm-throbber-arc-mask">
+			<div class="tm-throbber-arc"></div>
+		</div>
+		<div class="tm-throbber-arc-mask tm-throbber-arc-mask-mirrored">
+			<div class="tm-throbber-arc"></div>
+		</div>
+	</div>
+
+	The throbber requires 2 "tm-throbber-arc-mask", one mirror of the other
+*/
+
+.tm-throbber-params {
+	/* "--diameter" is used to determine the diameter of the throbber, as well
+	   as the relative thichness of the throbber's border (set to 10% of the diameter).
+	   "--min-arc" and "--max-arc" are used to establish the minimum and maximum
+	   size of visible arc.
+	   This is the only mandatory parameter to specify.
+	*/
+	--diameter: 50px;
+
+	/* Optional parameters */
+	--min-arc: 0deg;
+	--max-arc: 270deg;
+	--duration: 1s;
+	--border-color: #1A73E8;
+}
+
+.tm-throbber {
+	/* Computing some derived values */
+	--max-void: calc(360deg - var(--min-arc, 0deg));
+
+	/* "--min-arc" and "--max-arc" refer to the full circle, but in the inner animation
+	   we merge two half circles, so we need to divide those values by 2 before applying
+	   them to the animation of each half circle.
+	*/
+	/* The all-visible half-circle case is rotated -45deg */
+	--end-angle: calc(-45deg + var(--max-void) / 2);
+	/* The all-hidden half-circle case is rotated 135deg */
+	--start-angle: calc(135deg - var(--max-arc, 360deg) / 2);
+
+	width: var(--diameter);
+	height: var(--diameter);
+	position: absolute;
+	animation: tm-throbber-spin var(--duration, 1s) linear infinite;
+}
+
+.tm-throbber-arc {
+	/* We need to include the border in the sizing of the .tm-throbber-arc, otherwise
+	   it becomes harder to set up the size of the .tm-throbber-arc-mask relative to
+	   the "--diameter" from .tm-throbber
+	*/
+	box-sizing: border-box;
+
+	/* Since .tm-throbber-arc is inside a half-circle .tm-throbber-arc-mask, we need to double
+	   the width to go back to a full-circle (squared) sizing
+	*/
+	width: 200%;
+	height: 100%;
+	border-radius: 50%;
+
+	/* Unfortunately you can't set a border width as a % relative size, so
+	   we have to use calc(). We set it to 10% of the diameter of the throbber.
+	*/
+	border: calc(var(--diameter)/10) solid;
+
+	/* Hide right and bottom border */
+	border-color: var(--border-color, #1A73E8) transparent transparent var(--border-color, #1A73E8);
+
+	/* To get the half-circle fully visible, rotate it by -45 degrees. We don't
+	   need to do that because we have the animation setting the right endpoints
+	*/
+	/* transform: rotate(-45deg); */
+
+	/* The speed of the shrinking arc animation needs to be proportional to
+	   the speed of the main spinning, but not the same speed, unless you want
+	   both to end in the same place all the time. 3/4 duration makes the inner
+	   shrinking complete at two opposite ends of the outer spin.
+	*/
+	animation: tm-throbber-expand-arc calc(var(--duration, 1s) * 0.75) linear infinite alternate
+
+}
+
+.tm-throbber-arc-mask-mirrored {
+	/* The shrinking circle is the merge of two shrinking half circles.
+	   The second half circle needs to be flipped, so they together
+	   appear as one full circle.
+	*/
+	transform: scale(-1, 1);
+	left: 50%;
+}
+
+.tm-throbber-arc-mask {
+	/* We need absolute positioning to allow the two half circles to overlap
+	   and merge to look like a single circle
+	*/
+	position: absolute;
+
+	/* The mask needs to match the size of half a circle, and let the .tm-throbber-arc
+	   disappear behind it as it rotates
+	*/
+	width: 50%;
+	height: 100%;
+	overflow: hidden;
+}
+
+@keyframes tm-throbber-expand-arc {
+	from {
+		/* This is the minimum arc visible */
+		transform: rotate(var(--start-angle));
+	}
+	to {
+		/* The is the maximum arc visible */
+		transform: rotate(var(--end-angle));
+	}
+}
+
+@keyframes tm-throbber-spin {
+	100% { transform: rotate(360deg); }
+}

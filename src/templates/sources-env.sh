@@ -24,6 +24,16 @@ declare -r PACKED_POPUP_SOURCES=(
 	"popup.js"
 )
 
+
+declare -r UNPACKED_POPUP_CSS=(
+	"popup.css" "tm-throbber.css"
+)
+
+declare -r PACKED_POPUP_CSS=(
+	"popup.css"
+)
+
+
 # List source files in DEV_BACKGROUND_SOURCES relative to src/ (the same way you want them listed in
 # the auto-generated src/manifest.json)
 declare -r UNPACKED_BACKGROUND_SOURCES=(
@@ -45,9 +55,11 @@ if [ -z ${PROD_BUILD+x} ]; then
 	# copied the array again instead of trying to be fancy, but since it works...
 	# See https://unix.stackexchange.com/questions/390757/referencing-bash-array-variables-from-another-array
 	declare -n POPUP_SOURCES=UNPACKED_POPUP_SOURCES
+	declare -n POPUP_CSS=UNPACKED_POPUP_CSS
 	declare -n BACKGROUND_SOURCES=UNPACKED_BACKGROUND_SOURCES
 else
 	declare -n POPUP_SOURCES=PACKED_POPUP_SOURCES
+	declare -n POPUP_CSS=PACKED_POPUP_CSS
 	declare -n BACKGROUND_SOURCES=PACKED_BACKGROUND_SOURCES
 fi
 
@@ -97,6 +109,7 @@ createJsonFile() {
 	echo -e "{\n" \
 		"${VERSION_JSON} \n" \
 		"\"popupSources\": [ $(createOneJsonList "${POPUP_SOURCES[@]}") ], \n" \
+		"\"popupCss\": [ $(createOneJsonList "${POPUP_CSS[@]}") ], \n" \
 		"\"bgSources\": [ $(createOneJsonList "${BACKGROUND_SOURCES[@]}") ], \n" \
 		"${IS_PROD_JSON} \n" \
 	"}"

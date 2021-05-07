@@ -49,7 +49,9 @@ Note the use of the closing tag with the leading "-", indicating "trim-mode ('ne
 		  # Put our CSS *after* the Bootstrap CSS, to make sure we get priority for any rules overlap
 		  # See: https://stackoverflow.com/questions/15670631/does-the-order-of-classes-listed-on-an-item-affect-the-css
 		-%>
-		<link href="popup.css" rel="stylesheet">
+		<%_ for(let i = 0; i < popupCss.length; i++) { -%>
+		<link href="<%- popupCss[i]%>" rel="stylesheet">
+		<%_ } -%>
 
 		<%_ for(let i = 0; i < popupSources.length; i++) { -%>
 		<script src="<%- popupSources[i]%>"></script>
