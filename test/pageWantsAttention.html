@@ -45,9 +45,25 @@
 				document.getElementById("testNoOpener").addEventListener("click", onClickTabNoOpener);
 			}
 		</script>
+
+		<style>
+		</style>
+		<link href="../src/popup/tm-throbber.css" rel="stylesheet">
+
 	</head>
 	<body>
 		<div>
+			<h2>Test 0</h2>
+			Make sure the throbber behaves as expected:
+			<div class="tm-throbber tm-throbber-params">
+				<div class="tm-throbber-arc-mask">
+					<div class="tm-throbber-arc"></div>
+				</div>
+				<div class="tm-throbber-arc-mask tm-throbber-arc-mask-mirrored">
+					<div class="tm-throbber-arc"></div>
+				</div>
+			</div>
+
 			<h2>Test 1</h2>
 			This page runs a script that changes the title of the page every second 10 times, then stops.<br>
 			The tabsTitleMonitor "wantsAttention" logic should make the tile of the page go to the top of
