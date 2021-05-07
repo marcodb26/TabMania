@@ -128,7 +128,9 @@ cp "${NPMROOT}/dayjs/plugin/relativeTime.js" "${TGT}/lib/relativeTime.js"
 
 # Minify CSS
 echo "Minifying CSS files"
-"${NPMBIN}/csso" "${SRC}/popup/popup.css" --output "${TGT}/popup.css"
+# The syntax "<array>[@]/#/<prefix>" prefixes all elements of the array (<array>[@]) with
+# the specified prefix (the last "/" below is part of the prefix).
+"${NPMBIN}/csso" "${UNPACKED_POPUP_CSS[@]/#/${SRC}/popup/}" --output "${TGT}/popup.css"
 
 
 # uglifyJs business starts here
