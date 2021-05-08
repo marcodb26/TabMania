@@ -5,12 +5,11 @@ TODO 2.0
 
 - BUG: hostname-based groups have empty titles when grouping file:///C:/...
 
-- BUG: wantsAttention pulsating icon broken (when throbber active (artificially))
-
 - BUG: can't use tile contextMenu while wantsAttention is active
   * The tile closes the context menu again every time there's a title update
 
 - BUG: open in least tabbed doesn't work from OneNote
+  * Probably just a fluke since there was a bug in NormalizedTabs.js for the background page
 
 - Let NormalizedTabs remember the last title in "loaded" state while the tab is in
   loading state
@@ -490,6 +489,12 @@ PUNTED TO NEXT RELEASE
 	  to another group
 	- Eventually group B shows up again (weird)
   * Towards the end of 1.1, can't reproduce anymore
+
+- BUG: wantsAttention pulsating icon not pulsating when throbber active
+  * But it should never activate when the throbber is active, so this is only an
+    artificial condition
+
+- Should the wantsAttention logic only get activated when the tile is not loading?
 
 - BUG: chrome.tabs.update(tabId, { url: url }) loads a new "url" but sometimes replaces the
   existing URL instead of adding it to the tab navigation history
