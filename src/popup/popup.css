@@ -221,29 +221,6 @@
 	z-index: 1; /* Icon below throbber */
 }
 
-/* Throbber (spinner) inspired by https://codepen.io/louisbullock/pen/pJmGa/
-   See also https://dribbble.com/shots/703226-Google-Chrome-Throbber-CSS
-*/
-.tm-favicon-16-throbber-old {
-	display: block;
-	width: 16px;
-	height: 16px;
-	position:absolute;
-	top: 3px;
-	z-index: 2; /* Throbber above icon */
-	border: 2px solid;
-	border-top-color: transparent;
-	border-left-color: transparent;
-	border-radius: 50%;
-	color:#397CE9;
-	background-color: transparent;
-	animation: favicon-throbber-old 0.9s linear infinite;
-}
-
-@keyframes favicon-throbber-old {
-	100% { transform: rotate(360deg); }
-}
-
 .tm-favicon-pulse {
 	animation: favicon-pulse 1s linear infinite;
 }
