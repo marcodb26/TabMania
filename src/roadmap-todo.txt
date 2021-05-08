@@ -1,5 +1,10 @@
 TODO 2.0
 
+- Cleanup pin inheritance to avoid the ugly check "window.bookmarksManager == null"
+  in NormalizedTabs.js to check if the code is running in the background page
+
+- BUG: hostname-based groups have empty titles when grouping file:///C:/...
+
 - BUG: wantsAttention pulsating icon broken (when throbber active (artificially))
 
 - BUG: can't use tile contextMenu while wantsAttention is active

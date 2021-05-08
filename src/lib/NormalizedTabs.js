@@ -492,6 +492,12 @@ setPinInheritance: function(tab, bmNode) {
 // and possibly clean up the title of the tab when necessary (see setPinInheritance()
 // for details).
 updatePinInheritance: function(tab) {
+	if(window.bookmarksManager == null) {
+		// The background page doesn't have a bookmarksManager, and can't call
+		// this function
+		return;
+	}
+
 	let thisObj = Classes.NormalizedTabs;
 
 	let pinnedBookmarks = bookmarksManager.getPinnedBookmarks();

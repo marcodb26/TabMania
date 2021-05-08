@@ -87,6 +87,9 @@ DONE 2.0
   * Experienced as: BUG: the extension's tab sometimes has "wantsAttention", sometimes doesn't, and shows
     up as changed when you make any other tab active
 
+- BUG: refactoring of NormalizedTabs.js caused errors in background pages
+  * Requiring "bookmarksManager", but background pages don't have a boomarksManager
+
 
 DONE 1.3
 
