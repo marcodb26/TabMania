@@ -434,7 +434,7 @@ _renderBodyInner: function() {
 	}
 
 	let throbberHtml = "";
-	if(this._renderState.status != "loading") {
+	if(this._renderState.status == "loading") {
 		// Note that "tm-favicon-16-shrunk" is not just a smaller scale of "tm-favicon-16",
 		// it uses completely different CSS to render the smaller icon. It uses position absolute
 		// to be well centered with the throbber. Unfortunately I could only figure out proper
