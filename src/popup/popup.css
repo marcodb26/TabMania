@@ -224,7 +224,7 @@
 /* Throbber (spinner) inspired by https://codepen.io/louisbullock/pen/pJmGa/
    See also https://dribbble.com/shots/703226-Google-Chrome-Throbber-CSS
 */
-.tm-favicon-16-throbber {
+.tm-favicon-16-throbber-old {
 	display: block;
 	width: 16px;
 	height: 16px;
@@ -237,10 +237,10 @@
 	border-radius: 50%;
 	color:#397CE9;
 	background-color: transparent;
-	animation: favicon-throbber 0.9s linear infinite;
+	animation: favicon-throbber-old 0.9s linear infinite;
 }
 
-@keyframes favicon-throbber {
+@keyframes favicon-throbber-old {
 	100% { transform: rotate(360deg); }
 }
 

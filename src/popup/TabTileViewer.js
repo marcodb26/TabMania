@@ -434,7 +434,7 @@ _renderBodyInner: function() {
 	}
 
 	let throbberHtml = "";
-	if(this._renderState.status == "loading") {
+	if(this._renderState.status != "loading") {
 		// Note that "tm-favicon-16-shrunk" is not just a smaller scale of "tm-favicon-16",
 		// it uses completely different CSS to render the smaller icon. It uses position absolute
 		// to be well centered with the throbber. Unfortunately I could only figure out proper
@@ -445,7 +445,19 @@ _renderBodyInner: function() {
 		// needed to stay at pixel integers instead of pixel fractions? Who knows...
 		favIconClasses.push("tm-favicon-16-shrunk");
 		favIconParentClasses.push("tm-favicon-shrunk-parent");
-		throbberHtml = `<span class="tm-favicon-16-throbber"></span>`;
+
+//		throbberHtml = `<span class="tm-favicon-16-throbber-old"></span>`;
+		throbberHtml = `
+		<span class="position-absolute" style="top: 3px; left: 0px; z-index:2;">
+			<span class="tm-throbber tm-throbber-params">
+				<span class="tm-throbber-arc-mask">
+					<span class="tm-throbber-arc"></span>
+				</span>
+				<span class="tm-throbber-arc-mask tm-throbber-arc-mask-mirrored">
+					<span class="tm-throbber-arc"></span>
+				</span>
+			</span>
+		</span>`;
 	} else {
 		favIconClasses.push("tm-favicon-16");
 		if(specialIcon == "") {

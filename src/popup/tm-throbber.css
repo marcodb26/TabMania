@@ -19,7 +19,7 @@
 	   size of visible arc.
 	   This is the only mandatory parameter to specify.
 	*/
-	--diameter: 50px;
+	--diameter: 16px;
 
 	/* Optional parameters */
 	--min-arc: 0deg;
@@ -27,6 +27,7 @@
 	--duration: 1s;
 	--border-color: #1A73E8;
 }
+
 
 .tm-throbber {
 	/* Computing some derived values */
@@ -41,13 +42,19 @@
 	/* The all-hidden half-circle case is rotated 135deg */
 	--start-angle: calc(135deg - var(--max-arc, 360deg) / 2);
 
+	/* Animations don't work for <span>, unless you change the display mode */
+	display: inline-block;
+	position: absolute;
+
 	width: var(--diameter);
 	height: var(--diameter);
-	position: absolute;
 	animation: tm-throbber-spin var(--duration, 1s) linear infinite;
 }
 
 .tm-throbber-arc {
+	/* Animations don't work for <span>, unless you change the display mode */
+	display: inline-block;
+
 	/* We need to include the border in the sizing of the .tm-throbber-arc, otherwise
 	   it becomes harder to set up the size of the .tm-throbber-arc-mask relative to
 	   the "--diameter" from .tm-throbber
@@ -64,7 +71,7 @@
 	/* Unfortunately you can't set a border width as a % relative size, so
 	   we have to use calc(). We set it to 10% of the diameter of the throbber.
 	*/
-	border: calc(var(--diameter)/10) solid;
+	border: calc(var(--diameter)*0.1) solid;
 
 	/* Hide right and bottom border */
 	border-color: var(--border-color, #1A73E8) transparent transparent var(--border-color, #1A73E8);
@@ -80,7 +87,6 @@
 	   shrinking complete at two opposite ends of the outer spin.
 	*/
 	animation: tm-throbber-expand-arc calc(var(--duration, 1s) * 0.75) linear infinite alternate
-
 }
 
 .tm-throbber-arc-mask-mirrored {
@@ -104,6 +110,11 @@
 	width: 50%;
 	height: 100%;
 	overflow: hidden;
+
+	/* Without the property below, the "line-height: 1.5" of the tiles can mess up the
+	   top position of the arcs, causing them to be clipped at the bottom
+	*/
+	line-height: 1;
 }
 
 @keyframes tm-throbber-expand-arc {

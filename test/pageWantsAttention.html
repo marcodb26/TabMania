@@ -48,6 +48,11 @@
 
 		<style>
 		</style>
+
+		<link href="../src/lib/npm/bootstrap.min.css" rel="stylesheet">
+
+		<!-- These are needed to test the tile -->
+		<link href="../src/popup/popup.css" rel="stylesheet">
 		<link href="../src/popup/tm-throbber.css" rel="stylesheet">
 
 	</head>
@@ -55,14 +60,61 @@
 		<div>
 			<h2>Test 0</h2>
 			Make sure the throbber behaves as expected:
-			<div class="tm-throbber tm-throbber-params">
-				<div class="tm-throbber-arc-mask">
-					<div class="tm-throbber-arc"></div>
-				</div>
-				<div class="tm-throbber-arc-mask tm-throbber-arc-mask-mirrored">
-					<div class="tm-throbber-arc"></div>
+			<div style="height:30px;">
+				<span class="tm-throbber tm-throbber-params">
+					<span class="tm-throbber-arc-mask">
+						<span class="tm-throbber-arc"></span>
+					</span>
+					<span class="tm-throbber-arc-mask tm-throbber-arc-mask-mirrored">
+						<span class="tm-throbber-arc"></span>
+					</span>
+				</span>
+				
+				<div class="tm-throbber tm-throbber-params" style="left:50px;">
+					<div class="tm-throbber-arc-mask">
+						<div class="tm-throbber-arc"></div>
+					</div>
+					<div class="tm-throbber-arc-mask tm-throbber-arc-mask-mirrored">
+						<div class="tm-throbber-arc"></div>
+					</div>
 				</div>
 			</div>
+
+
+			<!-- One tile from the extension, with spinner -->
+
+			<div style="min-height: 3em;" class="card tm-hover tm-cursor-default">
+				<div id="TabTileViewer-211-body" class="card-body px-2 py-1 text-nowrap tm-stacked-below">
+					<p class="card-title text-truncate tm-tile-title mb-0">
+						<span id="TabTileViewer-211-favicon" class="tm-favicon-shrunk-parent" style="position: relative;">
+							<span class="position-absolute" style="top: 3px; left: 0px; z-index:2;">
+								<span class="tm-throbber tm-throbber-params">
+									<span class="tm-throbber-arc-mask">
+										<span class="tm-throbber-arc"></span>
+									</span>
+									<span class="tm-throbber-arc-mask tm-throbber-arc-mask-mirrored">
+										<span class="tm-throbber-arc"></span>
+									</span>
+								</span>
+							</span>
+							<!-- The favicon goes here -->
+							<img id="img-624" class="align-text-bottom tm-favicon-bw tm-favicon-16-shrunk" src="https://github.githubassets.com/favicons/favicon.svg">
+						</span>
+						<span class="text-muted fst-italic">Confirm your account recovery settings</span>
+					</p>
+					<div class="d-flex lh-1">
+						<p class="flex-grow-1 align-self-center text-truncate tm-tile-url">
+							<small class="lh-base text-muted">github.com/marcodb26/TabMania</small>
+						</p>
+						<p class="align-self-center card-text small" style="text-align: right;">
+							<svg class="tm-fa-thumbtack-tile" aria-hidden="true" focusable="false" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path fill="currentColor" d="M298.028 214.267L285.793 96H328c13.255 0 24-10.745 24-24V24c0-13.255-10.745-24-24-24H56C42.745 0 32 10.745 32 24v48c0 13.255 10.745 24 24 24h42.207L85.972 214.267C37.465 236.82 0 277.261 0 328c0 13.255 10.745 24 24 24h136v104.007c0 1.242.289 2.467.845 3.578l24 48c2.941 5.882 11.364 5.893 14.311 0l24-48a8.008 8.008 0 0 0 .845-3.578V352h136c13.255 0 24-10.745 24-24-.001-51.183-37.983-91.42-85.973-113.733z"></path></svg>
+						</p>
+					</div>
+				</div>
+			</div>
+
+			<!-- End of tile -->
+
 
 			<h2>Test 1</h2>
 			This page runs a script that changes the title of the page every second 10 times, then stops.<br>

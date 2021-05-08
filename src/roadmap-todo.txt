@@ -1,5 +1,10 @@
 TODO 2.0
 
+- BUG: wantsAttention pulsating icon broken (when throbber active (artificially))
+
+- BUG: can't use tile contextMenu while wantsAttention is active
+  * The tile closes the context menu again every time there's a title update
+
 - BUG: open in least tabbed doesn't work from OneNote
 
 - Let NormalizedTabs remember the last title in "loaded" state while the tab is in
@@ -7,8 +12,6 @@ TODO 2.0
   * Then sort based on "last title" if the tab is in "loading" state
 
 - Test _queryCycleNo
-
-- BUG: "wantsAttention" doesn't seem to work anymore
 
 - popup/TabsManager.js must generate updates also when pinned bookmarks get updated
   * How do we do that? We only compare _normTabs, which doesn't include _filteredPinnedBookmarks
