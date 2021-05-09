@@ -55,7 +55,11 @@ _init: function(tab, tabGroup, asyncQueue) {
 	this._tab = tab;
 	this._asyncQueue = asyncQueue;
 
-	this._renderEmptyTile(this._tab.tm.extId);
+	// Don't use this._tab.tm.extId here, because the "extended tab ID" can change any time
+	// a tab changes index or is moved to a different window, but _renderEmptyTile is called
+	// only once in the life of the tile, and that extra info could be outdated (and that would
+	// cause confusion).
+	this._renderEmptyTile(this._tab.id);
 	this.update(tab, tabGroup);
 },
 
@@ -194,11 +198,13 @@ _hoverTransitionEndCb: function(ev) {
 	}
 },
 
-// "extTabId" is only used to add an extra data attribute to the tile (for debugging), but since
-// this call is made only at the initialization of the tile, it assumes the "extTabId" is immutable.
+// "tabId" is only used to add an extra data attribute to the tile (for debugging), but since
+// this call is made only at the initialization of the tile, it assumes the "tabId" is immutable.
 // Then again, since the value is used only for debugging, it's not necessarily a big deal if
-// the value changes
-_renderEmptyTile: function(extTabId) {
+// the value changes.
+// Once you see a "data-tab-id", you can see info about the corresponding tab in the Chrome console
+// by using "tmConsole.showTabInfo(<tabId>)".
+_renderEmptyTile: function(tabId) {
 	const bodyId = this._id + "-body";
 	const menuId = this._id + "-menu";
 	const closeId = this._id + "-close";
@@ -214,7 +220,7 @@ _renderEmptyTile: function(extTabId) {
 	//
 	// For attributes "data-*" see https://html.spec.whatwg.org/#embedding-custom-non-visible-data-with-the-data-*-attributes
 	const rootHtml = `
-	<div style="min-height: 3em;" class="card tm-hover tm-cursor-default" data-tab-id="${extTabId}">
+	<div style="min-height: 3em;" class="card tm-hover tm-cursor-default" data-tab-id="${tabId}">
 		<div id="${bodyId}" class="card-body px-2 py-1 text-nowrap tm-stacked-below">
 		</div>
 		<div class="tm-overlay tm-full-size tm-hover-target">
