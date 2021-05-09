@@ -100,6 +100,13 @@ DONE 2.0
 - BUG: tmConsole.showTabInfo(<tabId>) fails in devtools console
   * This function should have been refactored when we did the split of some code into TabsManager.js
 
+- Hostname-based groups now have custom group titles for special cases
+  * "[ Pages on this device ]" for protocol "file:" (no hostname)
+  * "[ New tabs ]" for "chrome://newtab/"
+  * "[ No hostname ]" in general when a hostname is missing
+    - Before we would just end up with a group with an empty name, including for local files,
+	  since we didn't treat "file:" as a special case
+
 
 DONE 1.3
 

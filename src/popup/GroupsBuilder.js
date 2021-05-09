@@ -23,6 +23,20 @@ _init: function() {
 
 // Returns null if a hostname could not be parsed
 _getHostname: function(tab) {
+	switch(tab.tm.protocol) {
+		case "file:":
+			return "[ Pages on this device ]";
+
+		case "chrome:":
+			if(tab.tm.hostname == "newtab") {
+				return "[ New tabs ]"
+			}
+	}
+
+	// default:
+	if(tab.tm.hostname == "" || tab.tm.hostname == null) {
+		return "[ No hostname ]"
+	}
 	return tab.tm.hostname;
 },
 
