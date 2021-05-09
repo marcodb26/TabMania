@@ -55,7 +55,7 @@ _init: function(tab, tabGroup, asyncQueue) {
 	this._tab = tab;
 	this._asyncQueue = asyncQueue;
 
-	this._renderEmptyTile();
+	this._renderEmptyTile(this._tab.tm.extId);
 	this.update(tab, tabGroup);
 },
 
@@ -194,7 +194,11 @@ _hoverTransitionEndCb: function(ev) {
 	}
 },
 
-_renderEmptyTile: function() {
+// "extTabId" is only used to add an extra data attribute to the tile (for debugging), but since
+// this call is made only at the initialization of the tile, it assumes the "extTabId" is immutable.
+// Then again, since the value is used only for debugging, it's not necessarily a big deal if
+// the value changes
+_renderEmptyTile: function(extTabId) {
 	const bodyId = this._id + "-body";
 	const menuId = this._id + "-menu";
 	const closeId = this._id + "-close";
@@ -207,8 +211,10 @@ _renderEmptyTile: function() {
 	// scrolled to the bottom, it might take a while to get to render the body of
 	// of those tiles. While you wait, it's better to see a full-sized empty tile
 	// than a bunch of super-thin tiles that later disappear.
+	//
+	// For attributes "data-*" see https://html.spec.whatwg.org/#embedding-custom-non-visible-data-with-the-data-*-attributes
 	const rootHtml = `
-	<div style="min-height: 3em;" class="card tm-hover tm-cursor-default">
+	<div style="min-height: 3em;" class="card tm-hover tm-cursor-default" data-tab-id="${extTabId}">
 		<div id="${bodyId}" class="card-body px-2 py-1 text-nowrap tm-stacked-below">
 		</div>
 		<div class="tm-overlay tm-full-size tm-hover-target">
