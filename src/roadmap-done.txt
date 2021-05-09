@@ -90,6 +90,13 @@ DONE 2.0
 - BUG: refactoring of NormalizedTabs.js caused errors in background pages
   * Requiring "bookmarksManager", but background pages don't have a boomarksManager
 
+- BUG: open in least tabbed doesn't work from OneNote
+  * Not reproducible now
+  * Probably just a fluke since there was a bug in NormalizedTabs.js for the background page
+
+- Added custom HTML attribute "data-tab-id" to each tile to simplify debugging by supporting easily mapping
+  each tile to a tab ID when inspecting the HTML
+
 
 DONE 1.3
 
