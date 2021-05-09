@@ -143,9 +143,6 @@ _tabCreatedCb: function(ev) {
 
 	// Very crude...
 	// Unlike _tabUpdatedByTabCb(), we want this action to run immediately.
-	//
-	// No reason to update the _normTabs and the shortcutsManager if we don't
-	// have any delay before a full query/re-render.
 	this._queryAndRenderJob.run();
 },
 
@@ -650,7 +647,7 @@ _renderSearchTabs: function(tabs, newSearch) {
 
 // Used for debugging by tmUtils.showTabInfo()
 getTabInfo: function(tabId) {
-	return [ this._normTabs.getTabByTabId(tabId), this._tilesByTabId[tabId] ];
+	return [ this._tabsManager.getTabByTabId(tabId), this._tilesByTabId[tabId] ];
 },
 
 // This is a static function, because we need it both in the "Enter" handler as
@@ -713,10 +710,7 @@ _activateSearchBox: function(active) {
 		this._log(logHead, "switching to standard render");
 		// Switch back to the standard view
 		this._TabsBsTabViewer_searchBoxInactiveInner();
-		// Since we're exiting the search, we need to re-render the standard view:
-		// since we didn't have tiles for some of the tabs, some updates have not
-		// been processed in the _normTabs info, and we can't rely on what we have
-		// there to be updated.
+		// Since we're exiting the search, we need to re-render the standard view
 		this._queryAndRenderTabs();
 	} else {
 		this._log(logHead, "switching to search render");

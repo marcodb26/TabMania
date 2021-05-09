@@ -607,6 +607,10 @@ getTabs: function() {
 	return this._normTabs.getTabs();
 },
 
+getTabByTabId: function(tabId) {
+	return this._normTabs.getTabByTabId(tabId);
+},
+
 // The same bookmark ID could appear multiple times, this function doesn't try
 // to guarantee uniqueness.
 getPinnedBookmarkIdsFromTabs: function() {

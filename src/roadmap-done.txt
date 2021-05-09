@@ -97,6 +97,9 @@ DONE 2.0
 - Added custom HTML attribute "data-tab-id" to each tile to simplify debugging by supporting easily mapping
   each tile to a tab ID when inspecting the HTML
 
+- BUG: tmConsole.showTabInfo(<tabId>) fails in devtools console
+  * This function should have been refactored when we did the split of some code into TabsManager.js
+
 
 DONE 1.3
 
