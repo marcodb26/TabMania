@@ -41,8 +41,8 @@ _init: function(tabs) {
 // Call this function if you need a full refresh of all search/shortcut badges due
 // to a configuration change.
 //
-// "addShortcutBadges" defaults to "true", see TabNormalizer::normalizeTab().
-// If you explicitly set it to "false", use NormalizedTabs::addShortcutBadges() to
+// "addShortcutBadges" defaults to "true", see TabNormalizer.normalize().
+// If you explicitly set it to "false", use NormalizedTabs.addShortcutBadges() to
 // add the shortcut badges later.
 normalizeAll: function(addShortcutBadges) {
 	const logHead = "NormalizedTabs::normalizeAll(): ";
@@ -53,7 +53,7 @@ normalizeAll: function(addShortcutBadges) {
 
 	for(let i = 0; i < this._tabs.length; i++) {
 		let tab = this._tabs[i];
-		tabNormalizer.normalizeTab(tab, null, addShortcutBadges);
+		tabNormalizer.normalize(tab, null, addShortcutBadges);
 		if(tab.status == "loading") {
 			this._log(logHead + "found tab in loading status", tab);
 			this._tabsLoading.add(tab);
@@ -117,8 +117,8 @@ getTabByTabIndex: function(tabIdx) {
 // if you already know it because you called getTabIndexByTabId() before,
 // and avoid another linear search again in this function.
 updateTab: function(newTab, tabIdx) {
-	const logHead = "NormalizedTabs:: updatetab(): ";
-	tabNormalizer.normalizeTab(newTab);
+	const logHead = "NormalizedTabs::updatetab(): ";
+	tabNormalizer.normalize(newTab);
 
 	if(newTab.status == "loading") {
 		this._log(logHead + "found tab in loading status", newTab);

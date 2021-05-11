@@ -271,7 +271,7 @@ _addNormalizedShortcutBadges: function(tab, secondary) {
 	scKeys.forEach(
 		function(key) {
 			let keyAsString = sm.keyToUiString(key);
-			// See description in normalizeTab() for why we add these badges
+			// See description in normalize() for why we add these badges
 			// in two places
 			array.push(keyAsString);
 			tab.tm.searchBadges.push(keyAsString.toLowerCase());
@@ -292,7 +292,7 @@ addShortcutBadges: function(tab) {
 	}
 
 	if(tab.tm.primaryShortcutBadges.length != 0 || tab.tm.secondaryShortcutBadges.length != 0) {
-		this._err(logHead + "this function can only be called once after normalizeTab()");
+		this._err(logHead + "this function can only be called once after normalize()");
 		// Shortcut badges need to be updated visually in "tab.tm.primary/secondaryShortcutBadges",
 		// and lowercase to aid search in "searchBadges". The current logic could easily replace
 		// "tab.tm.primary/secondaryShortcutBadges", but it can't easily replace pieces of
@@ -310,7 +310,7 @@ addShortcutBadges: function(tab) {
 // The badges need to be normalized to lower case to properly support
 // case insensitive search.
 // "visible" determines whether the search badge will be visible or hidden,
-// see normalizeTab() for details.
+// see normalize() for details.
 _addNormalizedVisualBadge: function(tab, badge, visible) {
 	visible = optionalWithDefault(visible, true);
 
@@ -523,7 +523,7 @@ _initBookmarkAsTab: function(tab) {
 	// type (either string or number) anyway during processing...).
 	// We want to add favIconUrl, a compatible "status" to render the bookmarks in
 	// black&while like we render unloaded tabs, and some of the other things we get
-	// from TabNormalizer.normalizeTab().
+	// from TabNormalizer.normalize().
 
 	// Add a prefix to the id. This is safe because we never need to map this id back to
 	// its original value to work with chrome.bookmarks events. We also want to save the
@@ -559,7 +559,7 @@ _initHistoryItemAsTab: function(tab) {
 	// the space used by tabs.
 	// We want to add favIconUrl, a compatible "status" to render the history item in
 	// black&while like we render unloaded tabs, and some of the other things we get
-	// from TabNormalizer.normalizeTab().
+	// from TabNormalizer.normalize().
 
 	// Add a prefix to the id. This is safe because we never need to map this id back to
 	// its original value to work with chrome.history events. We also want to save the
@@ -601,10 +601,10 @@ _initRecentlyClosedAsTab: function(tab) {
 // By default, this function sets all that's needed about a tab, including shortcut badges.
 // You can choose to leave shortcut badges out by setting "addShortcutBadges" to "false"
 // (default "true"). See TabsManager::_queryTabs() for a use case for that.
-normalizeTab: function(tab, objType, addShortcutBadges) {
+normalize: function(tab, objType, addShortcutBadges) {
 	addShortcutBadges = optionalWithDefault(addShortcutBadges, true);
 
-	const logHead = "TabNormalizer::normalizeTab(): ";
+	const logHead = "TabNormalizer::normalize(): ";
 
 	objType = optionalWithDefault(objType, Classes.TabNormalizer.type.TAB);
 
@@ -637,7 +637,7 @@ normalizeTab: function(tab, objType, addShortcutBadges) {
 				break;
 		}
 	} else {
-		// We don't support objType changes, every call to normalizeTab() must use
+		// We don't support objType changes, every call to normalize() must use
 		// the same consistent objType
 		this._assert(tab.tm.type == objType, tab, objType);
 	}

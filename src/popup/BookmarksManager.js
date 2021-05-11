@@ -196,7 +196,7 @@ _appendOrReplaceNode: function(nodeToAdd, replace, targetList, debugName) {
 _loadBookmarkTreeNode: function(node) {
 	const logHead = "BookmarksManager::_loadBookmarkTreeNode(): ";
 
-	// Make sure to do this before calling tabNormalizer.normalizeTab(), we want
+	// Make sure to do this before calling tabNormalizer.normalize(), we want
 	// original chrome-API-style IDs as keys, since we use these keys to work
 	// events from chrome APIs, or to create folder paths
 	let bmAlreadyTracked = false;
@@ -228,7 +228,7 @@ _loadBookmarkTreeNode: function(node) {
 
 	// The following actions are only for non-folders.
 
-	// Check for pinned bookmarks before the "node.id" gets modified by normalizeTab().
+	// Check for pinned bookmarks before the "node.id" gets modified by tabNormalizer.normalize().
 	node.pinned = settingsStore.isBookmarkPinned(node.id);
 	if(!bmAlreadyTracked && node.pinned) {
 		// If a bookmark is already tracked, its pinned state is already accurate in _pinnedBookmarkIds,
@@ -237,7 +237,7 @@ _loadBookmarkTreeNode: function(node) {
 		this._pinnedBookmarkIds.push(node.id);
 	}
 
-	tabNormalizer.normalizeTab(node, Classes.TabNormalizer.type.BOOKMARK);
+	tabNormalizer.normalize(node, Classes.TabNormalizer.type.BOOKMARK);
 
 	this._appendOrReplaceNode(node, bmAlreadyTracked, this._bookmarks, "bookmark");
 	if(node.pinned) {

@@ -1,5 +1,8 @@
 TODO 2.0
 
+- Add file system pages (at least two) to staging tabs
+  * To test the hostname-based grouping of "pages on this device"
+
 - Cleanup pin inheritance to avoid the ugly check "window.bookmarksManager == null"
   in NormalizedTabs.js to check if the code is running in the background page
 
@@ -238,7 +241,7 @@ PUNTED TO NEXT RELEASE
 
 - Support merging the tabs of two windows
 
-- Re-merge the normalizeTab() for tabs and bookmarks
+- Re-merge the tabNormalizer.normalize() for tabs and bookmarks
   * We've seen too many search bugs due to discrepancies in the treatment of bookmarks vs. tabs
 
 - Add option to control whether a pinned bookmark should be an exact match or a prefix match

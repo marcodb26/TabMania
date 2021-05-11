@@ -662,7 +662,7 @@ activateTab: function(tab) {
 
 	if(tab.tm.type == Classes.TabNormalizer.type.RCTAB) {
 		// Use "tab.sessionId", not "tab.id", because "tab.id" has been modified by
-		// tabNormalizer.normalizeTab(), and it would not be recognized by chrome.sessions
+		// tabNormalizer.normalize(), and it would not be recognized by chrome.sessions
 		// anymore
 		chromeUtils.wrap(chrome.sessions.restore, logHead, tab.sessionId);
 		return;
