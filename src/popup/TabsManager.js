@@ -147,7 +147,7 @@ _ignoreTab: function(tab) {
 // making "loading" go away appropriately.
 //
 // Decided to implement an ugly workaround: whenever we start a new full refresh cycle
-// we start a monitoring job running the function below. NormalizedTabs tracks which
+// we start a monitoring job running the function below. TabsStore tracks which
 // tabs are in status "loading" when they get normalized, then this function calls
 // chrome.tabs.get() on each one of the loading tabs, and if at least one of them has
 // changed status, it triggers a full refresh again. We don't try to update the tab
@@ -205,10 +205,10 @@ _issue01Workaround: function() {
 },
 
 _processTabUpdateInner: function(tab) {
-	this._normTabs.updateTab(tab);
+	this._normTabs.update(tab);
 	// Then update the shortcuts info, if needed
 	if(this._options.standardTabs) {
-		settingsStore.getShortcutsManager().updateTabs(this._normTabs.getTabs());
+		settingsStore.getShortcutsManager().updateTabs(this._normTabs.get());
 	}
 },
 
@@ -220,7 +220,7 @@ _processTabCreation: function(tab) {
 		return;
 	}
 
-	if(this._normTabs.getTabIndexByTabId(tab.id) != -1) {
+	if(this._normTabs.getById(tab.id) != null) {
 		// _processTabCreation() can be called by _tabCreatedCb() or by _tabUpdatedCb().
 		// In _tabCreatedCb() it can be called synchronously or asynchronously, and in
 		// the async case, there's a potential race between that call and the following
@@ -243,8 +243,8 @@ _processTabCreation: function(tab) {
 _stopAttentionCb: function(tabId) {
 	const logHead = "TabsManager::_stopAttentionCb(" + tabId + "): ";
 
-	let tabIdx = this._normTabs.getTabIndexByTabId(tabId);
-	if(tabIdx == -1) {
+	let tab = this._normTabs.getById(tabId);
+	if(tab == null) {
 		// This should never happen, but just in case...
 		this._log(logHead + "tab not found, ignoring event");
 		return;
@@ -252,7 +252,6 @@ _stopAttentionCb: function(tabId) {
 
 	this._log(logHead + "entering");
 
-	let tab = this._normTabs.getTabByTabIndex(tabIdx);
 	// The next action is probably redundant, it's already been taken by tabsTitleMonitor
 	// before the callback was invoked. Anyway we need the "tab" for the event.
 	tab.tm.wantsAttention = false;
@@ -316,7 +315,7 @@ _tabUpdatedCb: function(tabId, changeInfo, tab) {
 		return;
 	}
 
-	if(this._normTabs.getTabIndexByTabId(tabId) == -1) {
+	if(this._normTabs.getById(tabId) == null) {
 		this._log(logHead + "tab not found, simulating onCreated event", tab);
 		this._processTabCreation(tab);
 		return;
@@ -341,7 +340,7 @@ _tabUpdatedCb: function(tabId, changeInfo, tab) {
 _tabRemovedCb: function(tabId, removeInfo) {
 	const logHead = "TabsManager::_tabRemovedCb(" + tabId + "): ";
 
-	let tabRemoved = this._normTabs.removeTabById(tabId);
+	let tabRemoved = this._normTabs.removeById(tabId);
 	if(tabRemoved == null) {
 		this._log(logHead + "tab not tracked")
 		return;
@@ -352,7 +351,7 @@ _tabRemovedCb: function(tabId, removeInfo) {
 	tabsTitleMonitor.remove(tabId);
 
 	if(this._options.standardTabs) {
-		settingsStore.getShortcutsManager().updateTabs(this._normTabs.getTabs());
+		settingsStore.getShortcutsManager().updateTabs(this._normTabs.get());
 	}
 
 	this._eventManager.notifyListeners(Classes.TabsManager.Events.REMOVED, { tab: tabRemoved, removeInfo: removeInfo });
@@ -382,7 +381,7 @@ _tabHighlightedCb: function(highlightInfo) {
 		// Only in this case we can track a tabId here...
 		tabId = highlightInfo.tabIds[0];
 
-		let tab = this._normTabs.getTabByTabId(tabId);
+		let tab = this._normTabs.getById(tabId);
 		if(tab != null && tab.highlighted) {
 			const logHead = "TabsManager::_tabHighlightedCb(" + tabId + "): ";
 			// For some reason, Chrome generates these bogus onHighlighted events as
@@ -408,8 +407,7 @@ _tabActivatedHighlightedMovedAttachedCb: function(eventId, tabId, activeHighligh
 
 	// For the onHighlighted event we might not have a "tabId"
 	if(tabId != null) {
-		let tabIdx = this._normTabs.getTabIndexByTabId(tabId);
-		if(tabIdx == -1) {
+		if(this._normTabs.getById(tabId) == null) {
 			// When a tab moves, other tabs move in the same window, but no event is generated
 			// by Chrome for them (similar problem for the onAttached event, as it affects many
 			// tabs in the old and new window). This logic assumes that if we don't know about
@@ -528,7 +526,7 @@ _queryTabs: function() {
 
 			let oldTabList = null;
 			if(this._normTabs != null) {
-				oldTabList = this._normTabs.getTabs();
+				oldTabList = this._normTabs.get();
 			}
 
 			try {
@@ -537,7 +535,7 @@ _queryTabs: function() {
 				// we can just ignore the "normTabs" object... but to be
 				// good future-proof citizens, let's call the right interface...
 				perfProf.mark("normalizeStart");
-				this._normTabs = Classes.NormalizedTabs.create(tabs);
+				this._normTabs = Classes.TabsStore.create(tabs);
 
 				perfProf.mark("shortcutsStart");
 				// Note that we need to make this call only when the tabs change,
@@ -551,16 +549,16 @@ _queryTabs: function() {
 					// call, so we must allow only calls from the same set of tabs.
 					// updateTabs() needs to be improved to support calls from two sets
 					// of tabs (standard and incognito).
-					settingsStore.getShortcutsManager().updateTabs(this._normTabs.getTabs());
+					settingsStore.getShortcutsManager().updateTabs(this._normTabs.get());
 
-					// Classes.NormalizedTabs.create() automatically normalizes the tabs,
+					// Classes.TabsStore.create() automatically normalizes the tabs,
 					// but when it runs, the ShortcutsManager is not configured yet, so
 					// the tabs are normalized without shortcut badges. This means that
 					// as we update ShortcutsManager, we must update the normalization
 					// to make sure it reflets the potentially updated shortcut badges.
 					// Note that ShortcutManager needs some info from the normalized tabs
 					// in order to prepare the shortcut information correctly, so the split
-					// between Classes.NormalizedTabs.create() and this._normTabs.addShortcutBadges()
+					// between Classes.TabsStore.create() and this._normTabs.addShortcutBadges()
 					// is inevitable.
 					this._normTabs.addShortcutBadges();
 				}
@@ -592,11 +590,11 @@ _queryTabs: function() {
 },
 
 getTabs: function() {
-	return this._normTabs.getTabs();
+	return this._normTabs.get();
 },
 
 getTabByTabId: function(tabId) {
-	return this._normTabs.getTabByTabId(tabId);
+	return this._normTabs.getById(tabId);
 },
 
 // The same bookmark ID could appear multiple times, this function doesn't try

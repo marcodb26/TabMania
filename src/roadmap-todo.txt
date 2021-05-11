@@ -1,15 +1,18 @@
 TODO 2.0
 
+- Fix "deduplicate links from other tabs" based on the functionality
+  implemented in the popup TabsManager.js
+
 - Add file system pages (at least two) to staging tabs
   * To test the hostname-based grouping of "pages on this device"
 
 - Cleanup pin inheritance to avoid the ugly check "window.bookmarksManager == null"
-  in NormalizedTabs.js to check if the code is running in the background page
+  in TabsStore.js to check if the code is running in the background page
 
 - BUG: can't use tile contextMenu while wantsAttention is active
   * The tile closes the context menu again every time there's a title update
 
-- Let NormalizedTabs remember the last title in "loaded" state while the tab is in
+- Let TabsStore remember the last title in "loaded" state while the tab is in
   loading state
   * Then sort based on "last title" if the tab is in "loading" state
 
@@ -51,6 +54,7 @@ TODO 2.0
 
 - Background page normalizeAll:
   * NormalizedTabs.js:688 [47] NormalizedTabs::normalizeAll(): found tab in loading status
+    - Now TabsStore::normalizeAll()
   * Don't run the loading workaround logic in the background page
 
 - BUG: after opening the popup, it takes long before the dropdown menus start showing up,
@@ -230,10 +234,6 @@ PUNTED TO NEXT RELEASE
 
 - Search: how does the new multi-token model work with history?
   * Do we need the simplified query string (purged of operators?) to pass to HistoryFinder?
-
-- Improve performance of this._normTabs.getTabByTabId()
-  * We should add a side dictionary structure to get tabId
-    - We should not always have to do linear searches...
 
 - Add logic to let "www.google.com" be recognized as a valid URL, even though new URL()
   won't consider it valid
@@ -551,8 +551,8 @@ PUNTED TO NEXT RELEASE
   * As of 21.03.09 it seems to be working fine again
 
 - Remove from SettingsStore.js the stuff that doesn't belong there
-  * See comment at top of file. Dose background.js really need the
-    "NormalizedTabs" class or the "ShortcutManager" class?
+  * See comment at top of file. Does background.js really need the
+    "TabsStore" class or the "ShortcutManager" class?
 	- Yes to both (see TabsManager)
 
 - BUG: when closing and reopening docked popup, the scroll goes back to the top, we should

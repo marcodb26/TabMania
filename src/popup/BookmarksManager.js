@@ -425,7 +425,7 @@ _loadBookmarks: function(sendEvent) {
 				perfProf.mark("bookmarksTreeToListStart");
 				let nodes = this._treeToList(rootNodes);
 				// We need to move the folders to the beginning of the list so they can
-				// get processed first, otherwise NormalizedTabs can't assign a folder to
+				// get processed first, otherwise TabsStore can't assign a folder to
 				// the bookmarks when their folders have not been processed yet. By choosing
 				// this logic we'll still be unable to assign folders to folders, but that
 				// should not be a big problem.
@@ -789,7 +789,7 @@ find: function(searchQuery) {
 	return Promise.resolve(searchResults);
 },
 
-// This function uses the "Chrome bookmark ID" (not the modified ID defined in NormalizedTabs),
+// This function uses the "Chrome bookmark ID" (not the modified ID defined in TabsStore),
 // since its main use case right now is to navigate through folders for getBmPathList()
 getBmNode: function(bmNodeId) {
 	let bmNode = this._bookmarksDict[bmNodeId];

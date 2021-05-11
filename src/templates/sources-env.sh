@@ -9,7 +9,7 @@ declare -r UNPACKED_POPUP_SOURCES=(
 	"../lib/Base.js" "../lib/TmUtils.js" "../lib/TmConsole.js" "../lib/PersistentDict.js"
 	"../lib/utils.js" "../lib/PerfProfiler.js" "../lib/AsyncQueue.js" "../lib/SerialPromises.js"
 	"../lib/chromeUtils.js" "../lib/TabNormalizer.js"
-	"../lib/NormalizedTabs.js" "../lib/ShortcutsManager.js" "../lib/SettingsStore.js"
+	"../lib/TabsStore.js" "../lib/ShortcutsManager.js" "../lib/SettingsStore.js"
 	"../lib/ScheduledJob.js" "../lib/PopupDockerBase.js" "../lib/LocalStore.js"
 	# Don't include staging/staging.js unless you'r taking screenshots of TabMania for publishing
 	#	"../staging/TmStaging.js"																	
@@ -39,7 +39,7 @@ declare -r PACKED_POPUP_CSS=(
 # the auto-generated src/manifest.json)
 declare -r UNPACKED_BACKGROUND_SOURCES=(
 	"lib/Base.js" "lib/TmUtils.js" "lib/TmConsole.js" "lib/PersistentDict.js" "lib/utils.js" "lib/PerfProfiler.js"
-	"lib/AsyncQueue.js"	"lib/SerialPromises.js" "lib/chromeUtils.js" "lib/TabNormalizer.js" "lib/NormalizedTabs.js"
+	"lib/AsyncQueue.js"	"lib/SerialPromises.js" "lib/chromeUtils.js" "lib/TabNormalizer.js" "lib/TabsStore.js"
 	"lib/ShortcutsManager.js"
 	"lib/SettingsStore.js" "lib/LocalStore.js" "lib/ScheduledJob.js" "lib/PopupDockerBase.js"
 	"PopupDockerBg.js" "TabsManager.js" "KeyboardShortcuts.js" "ContextMenu.js" "messaging.js"

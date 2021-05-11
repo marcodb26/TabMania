@@ -135,8 +135,8 @@ _updateShortcutsAllTabs: function() {
 	return this._queryTabs().then(
 		function(tabs) {
 			this._log(logHead + "query completed, updating shortcuts");
-			this._normTabs = Classes.NormalizedTabs.create(tabs);
-			settingsStore.getShortcutsManager().updateTabs(this._normTabs.getTabs());
+			this._normTabs = Classes.TabsStore.create(tabs);
+			settingsStore.getShortcutsManager().updateTabs(this._normTabs.get());
 			this._normTabs.addShortcutBadges();
 		}.bind(this)
 	);
@@ -145,8 +145,8 @@ _updateShortcutsAllTabs: function() {
 _updateShortcutsOneTab: function(tab) {
 	const logHead = "TabsManager::_updateShortcutsOneTab(" + tab.id + "): "
 	this._log(logHead + "updating shortcuts with ", tab);
-	this._normTabs.updateTab(tab);
-	settingsStore.getShortcutsManager().updateTabs(this._normTabs.getTabs());
+	this._normTabs.update(tab);
+	settingsStore.getShortcutsManager().updateTabs(this._normTabs.get());
 },
 
 // Returns a Promise that resolves to the tabs count. Also store the tabs count in "_tabsCount".

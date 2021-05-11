@@ -115,6 +115,10 @@ DONE 2.0
   * Cleaned up normalizeTab() initialization to cleanly support multiple calls on the same tab
   * Added option to separate normalization from adding shortcut badges
 
+- Refactored "NormalizedTabs" into "TabsStore" and improved tab lookup performance by
+  avoiding linear searches every time
+  * Using a combo dict+list now
+
 
 DONE 1.3
 
