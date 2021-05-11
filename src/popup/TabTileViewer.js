@@ -303,15 +303,15 @@ _addBadgesHtml: function(visibleBadgesHtml, badgesList, secondary) {
 
 _renderMenuInner: function() {
 	switch(this._renderState.tmType) {
-		case Classes.NormalizedTabs.type.TAB:
+		case Classes.TabNormalizer.type.TAB:
 			this._menuViewer = Classes.TabTileMenuViewer.create(this._tab);
 			this._menuViewer.attachToElement(this._menuElem);
 			break;
-		case Classes.NormalizedTabs.type.BOOKMARK:
+		case Classes.TabNormalizer.type.BOOKMARK:
 			this._menuViewer = Classes.BookmarkTileMenuViewer.create(this._tab);
 			this._menuViewer.attachToElement(this._menuElem);
 			break;
-		case Classes.NormalizedTabs.type.HISTORY:
+		case Classes.TabNormalizer.type.HISTORY:
 			this._menuViewer = Classes.HistoryTileMenuViewer.create(this._tab);
 			this._menuViewer.attachToElement(this._menuElem);
 			break;
@@ -425,19 +425,19 @@ _renderBodyInner: function() {
 	let specialIcon = "";
 	let urlLine = this._renderState.url;
 	switch(this._renderState.tmType) {
-		case Classes.NormalizedTabs.type.BOOKMARK:
+		case Classes.TabNormalizer.type.BOOKMARK:
 			specialIcon = icons.bookmark;
 			if(this._renderState.folder != "") {
 				urlLine = this._renderState.folder + " | " + urlLine;
 			}
 			break;
-		case Classes.NormalizedTabs.type.RCTAB:
+		case Classes.TabNormalizer.type.RCTAB:
 			specialIcon = icons.history("tm-fa-recently-closed");
 			break;
-		case Classes.NormalizedTabs.type.HISTORY:
+		case Classes.TabNormalizer.type.HISTORY:
 			specialIcon = icons.history("tm-fa-history");
 			break;
-		case Classes.NormalizedTabs.type.TAB:
+		case Classes.TabNormalizer.type.TAB:
 			// No extra visual clue for standard tabs
 			break;
 		default:
@@ -641,23 +641,23 @@ _onTileCloseCb: function(ev) {
 	let completionMsg = "completed";
 
 	switch(this._tab.tm.type) {
-		case Classes.NormalizedTabs.type.BOOKMARK:
+		case Classes.TabNormalizer.type.BOOKMARK:
 			removeFn = chrome.bookmarks.remove;
 			// Remember, "this._tab.id" would be incorrect for bookmarks
 			fnParam = this._tab.bookmarkId;
 			completionMsg = "bookmark deleted";
 			break;
-		case Classes.NormalizedTabs.type.HISTORY:
+		case Classes.TabNormalizer.type.HISTORY:
 			removeFn = chrome.history.deleteUrl;
 			fnParam = { url: this._tab.url };
 			completionMsg = "history item deleted";
 			break;
-		case Classes.NormalizedTabs.type.TAB:
+		case Classes.TabNormalizer.type.TAB:
 			// All the variables have already been initialized correctly
 			break;
 		default:
 			// Note that we don't have a "close" button for rcTabs, so
-			// we don't need to check for Classes.NormalizedTabs.type.RCTAB
+			// we don't need to check for Classes.TabNormalizer.type.RCTAB
 			this._err(logHead + "unknown tab type", this_tab.tm.type);
 			break;
 	}
@@ -725,7 +725,7 @@ _createRenderState: function(tab, tabGroup) {
 		} else {
 			// See GroupBuilder._findFavIconUrl() for an explanation for this
 			// "last resort URL"
-			renderState.imgUrl = Classes.NormalizedTabs.buildCachedFavIconUrl("");
+			renderState.imgUrl = tabNormalizer.buildCachedFavIconUrl("");
 			renderState.imgUrlBackup = renderState.imgUrl;
 		}
 	}
@@ -757,7 +757,7 @@ _createRenderState: function(tab, tabGroup) {
 		}
 	} else {
 		// We need to add the check "tab.mutedInfo != null" because "tab" could
-		// actually be a tab.tm.type == Classes.NormalizedTabs.type.BOOKMARK/HISTORY/RCTAB,
+		// actually be a tab.tm.type == Classes.TabNormalizer.type.BOOKMARK/HISTORY/RCTAB,
 		// which doesn't have "mutedInfo". The cleaner thing would be to check for
 		// type, but the current check seems to be a bit less verbose.
 		if(tab.mutedInfo != null && tab.mutedInfo.muted) {
@@ -787,7 +787,7 @@ _createRenderState: function(tab, tabGroup) {
 	renderState.showMenu = true;
 	renderState.showCloseButton = true;
 
-	if(this._isThisPopupTab(tab) || tab.tm.type == Classes.NormalizedTabs.type.RCTAB) {
+	if(this._isThisPopupTab(tab) || tab.tm.type == Classes.TabNormalizer.type.RCTAB) {
 		// We're disabling all actions on the tile representing this TabMania popup because none
 		// of them make sense on the popup. We could leave the close action, but you can close it
 		// with the standard close button of the popup window you're on.
@@ -797,7 +797,7 @@ _createRenderState: function(tab, tabGroup) {
 		renderState.showCloseButton = false;
 	}
 
-	if(tab.tm.type == Classes.NormalizedTabs.type.BOOKMARK) {
+	if(tab.tm.type == Classes.TabNormalizer.type.BOOKMARK) {
 		renderState.folder = tab.tm.folder;
 		if(tab.unmodifiable != null) {
 			// You also can't delete a bookmark if it's marked "unmodifiable".

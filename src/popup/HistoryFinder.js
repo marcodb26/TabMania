@@ -137,7 +137,7 @@ _processHistoryItems: function(items) {
 	let retVal = items.reduce(
 		function(result, tab) {
 			if(tab.url != popupUrl) {
-				Classes.NormalizedTabs.normalizeTab(tab, Classes.NormalizedTabs.type.HISTORY);
+				tabNormalizer.normalizeTab(tab, Classes.TabNormalizer.type.HISTORY);
 				result.push(tab);
 			}
 			return result;
@@ -148,11 +148,11 @@ _processHistoryItems: function(items) {
 
 	// Don't sort here. In the "merge with tabs" case, we'll need to re-sort anyway, so
 	// let's just sort once in the caller
-	//retVal = retVal.sort(Classes.NormalizedTabs.compareTabsFn);
+	//retVal = retVal.sort(Classes.TabNormalizer.compareTabsFn);
 	return retVal;
 },
 
-// Returns an unsorted list of history items, normalized with NormalizedTabs.normalizeTabs()
+// Returns an unsorted list of history items, normalized with tabNormalizer.normalizeTabs()
 find: function(searchQuery) {
 	const logHead = "HistoryFinder::find(\"" + searchQuery.getSimplifiedQuery() + "\"): ";
 	if(!settingsStore.getOptionHistoryInSearch()) {
@@ -234,7 +234,7 @@ _processRecentlyClosedTabs: function(sessions) {
 				// Also filter out any tab that identifies a previous instance of the TabMania popup.
 				if(tab.url != popupUrl && tab.index != -1) {
 					this._assert(!tab.active, logHead + "recently closed tabs can't be active", tab);
-					Classes.NormalizedTabs.normalizeTab(tab, Classes.NormalizedTabs.type.RCTAB);
+					tabNormalizer.normalizeTab(tab, Classes.TabNormalizer.type.RCTAB);
 					// Let's remember which window this tab is coming from. As a minimum, this
 					// can give us a hint that this tab might be trouble. We only know for sure
 					// that recently closed tabs without a "tab.tm.windowSessionId" are not trouble,
@@ -251,7 +251,7 @@ _processRecentlyClosedTabs: function(sessions) {
 				// (a closed tab can't be active), and definitely not something we want to show to
 				// our end users
 				this._assert(!tab.active, logHead + "recently closed tabs can't be active", tab);
-				Classes.NormalizedTabs.normalizeTab(tab, Classes.NormalizedTabs.type.RCTAB);
+				tabNormalizer.normalizeTab(tab, Classes.TabNormalizer.type.RCTAB);
 				tabs.push(tab);
 			}
 		}

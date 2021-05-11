@@ -27,7 +27,7 @@ _init: function(tab) {
 	this.debug();
 	this._tab = tab;
 
-	this._assert(this._tab.tm.type == Classes.NormalizedTabs.type.TAB);
+	this._assert(this._tab.tm.type == Classes.TabNormalizer.type.TAB);
 	
 	this._initMenuItems();
 },
@@ -321,7 +321,7 @@ _init: function(bm) {
 	this.debug();
 	this._bm = bm;
 
-	this._assert(this._bm.tm.type == Classes.NormalizedTabs.type.BOOKMARK);
+	this._assert(this._bm.tm.type == Classes.TabNormalizer.type.BOOKMARK);
 	
 	this._initMenuItems();
 },
@@ -483,7 +483,7 @@ _init: function(item) {
 	this.debug();
 	this._item = item;
 
-	this._assert(this._item.tm.type == Classes.NormalizedTabs.type.HISTORY);
+	this._assert(this._item.tm.type == Classes.TabNormalizer.type.HISTORY);
 	
 	this._initMenuItems();
 },

@@ -196,8 +196,8 @@ _appendOrReplaceNode: function(nodeToAdd, replace, targetList, debugName) {
 _loadBookmarkTreeNode: function(node) {
 	const logHead = "BookmarksManager::_loadBookmarkTreeNode(): ";
 
-	// Make sure to do this before calling Classes.NormalizedTabs.normalizeTab(), we
-	// want original chrome-API-style IDs as keys, since we use these keys to work
+	// Make sure to do this before calling tabNormalizer.normalizeTab(), we want
+	// original chrome-API-style IDs as keys, since we use these keys to work
 	// events from chrome APIs, or to create folder paths
 	let bmAlreadyTracked = false;
 	if(this._bookmarksDict[node.id] != null) {
@@ -237,7 +237,7 @@ _loadBookmarkTreeNode: function(node) {
 		this._pinnedBookmarkIds.push(node.id);
 	}
 
-	Classes.NormalizedTabs.normalizeTab(node, Classes.NormalizedTabs.type.BOOKMARK);
+	tabNormalizer.normalizeTab(node, Classes.TabNormalizer.type.BOOKMARK);
 
 	this._appendOrReplaceNode(node, bmAlreadyTracked, this._bookmarks, "bookmark");
 	if(node.pinned) {
@@ -545,10 +545,10 @@ _applyBookmarkChangeCb: function(id, changeInfo) {
 	bm.url = changeInfo.url;
 
 	// updateTitle() requires updateUrl() to be called first
-	Classes.NormalizedTabs.updateUrl(bm);
-	Classes.NormalizedTabs.updateTitle(bm);
+	tabNormalizer.updateUrl(bm);
+	tabNormalizer.updateTitle(bm);
 
-	this._eventManager.notifyListeners(Classes.EventManager.Events.UPDATED, { id: Classes.NormalizedTabs.normalizeBookmarkId(id) });
+	this._eventManager.notifyListeners(Classes.EventManager.Events.UPDATED, { id: tabNormalizer.normalizeBookmarkId(id) });
 },
 
 _applyBookmarkRemoveCb: function(id, removeInfo) {
@@ -590,7 +590,7 @@ _applyBookmarkMoveCb: function(id, moveInfo) {
 	this._assert(bm.parentId == moveInfo.oldParentId);
 	bm.parentId = moveInfo.parentId;
 	// Once we update the parentId, we also need to update the searchable folder info
-	Classes.NormalizedTabs.updateBookmarkFolder(bm);
+	tabNormalizer.updateBookmarkFolder(bm);
 
 	// We don't really care about the index of the bookmark within its parent folder, but
 	// since we got the data, let's take it...
@@ -608,7 +608,7 @@ _applyBookmarkMoveCb: function(id, moveInfo) {
 	//this._assert(bm.index == moveInfo.oldIndex);
 	bm.index = moveInfo.index;
 
-	this._eventManager.notifyListeners(Classes.EventManager.Events.UPDATED, { id: Classes.NormalizedTabs.normalizeBookmarkId(id) });
+	this._eventManager.notifyListeners(Classes.EventManager.Events.UPDATED, { id: tabNormalizer.normalizeBookmarkId(id) });
 },
 
 _bookmarkImportBeganCb: function() {

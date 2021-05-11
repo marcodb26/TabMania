@@ -110,6 +110,11 @@ DONE 2.0
     - Before we would just end up with a group with an empty name, including for local files,
 	  since we didn't treat "file:" as a special case
 
+- NormalizedTabs.js code cleanup
+  * Split "TabNormalizer" from "NormalizedTabs" and removed all the ugly static functions
+  * Cleaned up normalizeTab() initialization to cleanly support multiple calls on the same tab
+  * Added option to separate normalization from adding shortcut badges
+
 
 DONE 1.3
 

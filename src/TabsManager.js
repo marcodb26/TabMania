@@ -137,6 +137,7 @@ _updateShortcutsAllTabs: function() {
 			this._log(logHead + "query completed, updating shortcuts");
 			this._normTabs = Classes.NormalizedTabs.create(tabs);
 			settingsStore.getShortcutsManager().updateTabs(this._normTabs.getTabs());
+			this._normTabs.addShortcutBadges();
 		}.bind(this)
 	);
 },

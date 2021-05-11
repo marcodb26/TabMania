@@ -178,7 +178,7 @@ _propertySearch: function(key, value) {
 		},
 		[] // The initial value of "res"
 	);
-	return retVal.sort(Classes.NormalizedTabs.comparePositionFn);
+	return retVal.sort(Classes.TabNormalizer.comparePositionFn);
 },
 
 // "hostname" is assumed to be already normalized to lower case
@@ -239,7 +239,7 @@ _computeByUrl: function(sc) {
 	// and the clipboard pasted into the search URL), then we want to
 	// at least hint which tab we'll use by hostname from the search URL.
 	let retVal = { searchUrl: sc.get("url") };
-	let [ protocol, hostname ] = Classes.NormalizedTabs.getProtocolHostname(retVal.searchUrl);
+	let [ protocol, hostname ] = tabNormalizer.getProtocolHostname(retVal.searchUrl);
 	let tabs = this._propertySearch("hostname", hostname);
 	if(tabs.length != 0) {
 		retVal.candidateTabs = tabs;

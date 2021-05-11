@@ -72,7 +72,7 @@ _openUndocked: function() {
 
 			chromeUtils.activateTab(tabs[0]).then(
 				function() {
-					const extTabId = Classes.NormalizedTabs.formatExtendedId(tabs[0]);
+					const extTabId = tabNormalizer.formatExtendedId(tabs[0]);
 					this._log(logHead + "activated tab " + extTabId);
 				}.bind(this)
 			);

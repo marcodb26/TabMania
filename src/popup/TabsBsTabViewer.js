@@ -625,7 +625,7 @@ _renderSearchTabs: function(tabs, newSearch) {
 	const logHead = "TabsBsTabViewer::_renderSearchTabs(): ";
 
 	perfProf.mark("searchSortStart");
-	tabs = tabs.sort(Classes.NormalizedTabs.compareTabsFn);
+	tabs = tabs.sort(Classes.TabNormalizer.compareTabsFn);
 	perfProf.mark("searchSortEnd");
 
 	// This logic is very crude, ideally we should have a more seamless transition from
@@ -655,14 +655,14 @@ getTabInfo: function(tabId) {
 // to make this code available in both
 activateTab: function(tab) {
 	const logHead = "Classes.TabsBsTabViewer.activateTab(): ";
-	if(tab.tm.type == Classes.NormalizedTabs.type.TAB) {
+	if(tab.tm.type == Classes.TabNormalizer.type.TAB) {
 		chromeUtils.activateTab(tab);
 		return;
 	}
 
-	if(tab.tm.type == Classes.NormalizedTabs.type.RCTAB) {
+	if(tab.tm.type == Classes.TabNormalizer.type.RCTAB) {
 		// Use "tab.sessionId", not "tab.id", because "tab.id" has been modified by
-		// NormalizedTabs.normalizeTab(), and it would not be recognized by chrome.sessions
+		// tabNormalizer.normalizeTab(), and it would not be recognized by chrome.sessions
 		// anymore
 		chromeUtils.wrap(chrome.sessions.restore, logHead, tab.sessionId);
 		return;

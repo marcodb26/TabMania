@@ -10,6 +10,8 @@ TODO 2.0
   loading state
   * Then sort based on "last title" if the tab is in "loading" state
 
+- Create "Incognito" bstab
+
 - Test _queryCycleNo
 
 - popup/TabsManager.js must generate updates also when pinned bookmarks get updated

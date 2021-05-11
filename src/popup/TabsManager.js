@@ -554,27 +554,15 @@ _queryTabs: function() {
 					settingsStore.getShortcutsManager().updateTabs(this._normTabs.getTabs());
 
 					// Classes.NormalizedTabs.create() automatically normalizes the tabs,
-					// but when it's done, the ShortcutsManager is not configured, so
-					// the tabs are normalized without accurate shortcut badges. This
-					// means that we update ShortcutsManager, we must update the normalization
+					// but when it runs, the ShortcutsManager is not configured yet, so
+					// the tabs are normalized without shortcut badges. This means that
+					// as we update ShortcutsManager, we must update the normalization
 					// to make sure it reflets the potentially updated shortcut badges.
-					// Note that we can't normalize only once, because ShortcutManager
-					// needs some elements of normalization in order to prepare the
-					// shortcut information correctly. Calling normalization twice is
-					// unavoidable, though if this was really a performance problem
-					// (it doesn't seem to be) we could add a flag to normalizeAll()
-					// to instruct it to skip shortcut badges, or to only do shortcut
-					// badges, and that way, each normalizeAll() would actually normalize
-					// disjoint subsets of information, and we'd have no duplication.
-					// Given the profiling results, this optimization doesn't seem to
-					// be worth the effort... though it's tempting, as it would be
-					// a cleaner solution. The real effort would be in the fact that
-					// when we update the shortcut badges we also need to update the
-					// hidden search badges, and to keep them "clean" (no duplications)
-					// we'd always need to refresh all search badges from scratch (or
-					// do some proper diffs of the hidden search badges)... too much
-					// work.
-					this._normTabs.normalizeAll();
+					// Note that ShortcutManager needs some info from the normalized tabs
+					// in order to prepare the shortcut information correctly, so the split
+					// between Classes.NormalizedTabs.create() and this._normTabs.addShortcutBadges()
+					// is inevitable.
+					this._normTabs.addShortcutBadges();
 				}
 
 				perfProf.mark("shortcutsEnd");

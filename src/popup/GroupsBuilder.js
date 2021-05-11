@@ -52,7 +52,7 @@ _findFavIconUrl: function(groupName, tabs) {
 	// Note that we construct the last resort URL without an actual URL, hoping Chrome
 	// returns its default favicon in that case. So far it's working, but who knows if
 	// it'll continue to work in future...
-	const lastResortUrl = Classes.NormalizedTabs.buildCachedFavIconUrl("");
+	const lastResortUrl = tabNormalizer.buildCachedFavIconUrl("");
 
 	if(favIconUrl != null) {
 		return [ favIconUrl, lastResortUrl ];
@@ -89,8 +89,8 @@ _tabGroupEntryToObj: function(groupName, data, pinned) {
 
 	let retVal = {
 		// Sort the tabs array as you store it
-		tabs: data.tabs.sort(Classes.NormalizedTabs.compareTabsFn),
-		// "tm" is for the normalized data (see Classes.NormalizedTabs)
+		tabs: data.tabs.sort(Classes.TabNormalizer.compareTabsFn),
+		// "tm" is for the normalized data (see Classes.TabNormalizer)
 		tm: {},
 	};
 
@@ -113,7 +113,7 @@ _tabGroupEntryToObj: function(groupName, data, pinned) {
 	// the tm.normTitle to the tabs, now we need to add it to the tabGroup
 	// objects we're about to return
 	retVal.tm.lowerCaseTitle = retVal.title.toLowerCase();
-	retVal.tm.normTitle = Classes.NormalizedTabs.normalizeLowerCaseTitle(retVal.tm.lowerCaseTitle);
+	retVal.tm.normTitle = tabNormalizer.normalizeLowerCaseTitle(retVal.tm.lowerCaseTitle);
 	retVal.tm.pinned = pinned;
 
 	return retVal;
@@ -172,8 +172,8 @@ _tabGroupsToArrays: function(tabGroups) {
 
 	this._log(logHead + "pinned = ", pinned);
 	this._log(logHead + "unpinned = ", unpinned);
-	return [ pinned.sort(Classes.NormalizedTabs.compareTitlesFn),
-			unpinned.sort(Classes.NormalizedTabs.compareTitlesFn) ];
+	return [ pinned.sort(Classes.TabNormalizer.compareTitlesFn),
+			unpinned.sort(Classes.TabNormalizer.compareTitlesFn) ];
 },
 
 // criterionFn(tab) is a function that returns a key to use for grouping the current
@@ -296,7 +296,7 @@ _addEmptyPinnedGroups: function(tabGroups) {
 
 // Returns a two-elements array, array[0] with an array of pinned tabGroups and tabs,
 // array[1] with an array of unpinned tabGroups and tabs.
-// The tabs are assumed to have been normalized with Classes.NormalizedTabs.
+// The tabs are assumed to have been normalized with Classes.TabNormalizer.
 groupByHostname: function(tabs) {
 	let tabGroups = this._groupByCriterion(tabs, this._getHostname.bind(this), Classes.GroupsBuilder.Type.HOSTNAME);
 
