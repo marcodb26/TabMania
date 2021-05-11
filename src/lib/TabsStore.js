@@ -4,14 +4,23 @@ Classes.TabsStoreBase = Classes.Base.subclass({
 	_dict: null,
 	_list: null,
 
+	_useList: null,
+
 // "tabs" is an optional list of initial tabs to add
-_init: function(tabs) {
+// "useList" is optional, default to "true". Set it to "false" if you call update()
+// with a "value" different from "tab" and can't override _findTabIndexById() easily.
+_init: function(tabs, useList) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.Base._init.call(this);
+
+	this._useList = optionalWithDefault(useList, true);
+
 	this.reset();
 
 	if(tabs != null) {
-		this._list = tabs;
+		if(this._useList) {
+			this._list = tabs;
+		}
 		for(let i = 0; i < tabs.length; i++) {
 			this._dict[tabs[i].id] = tabs[i];
 		}
@@ -20,14 +29,22 @@ _init: function(tabs) {
 
 reset: function() {
 	this._dict = {};
-	this._list = [];
+
+	if(this._useList) {
+		this._list = [];
+	}
 },
 
-// Find a list index for a tab. Returns -1 if the "searchTabId" can't be found,
-// an index otherwise.
+// Find a list index for a tab. Returns -1 if the "searchTabId" can't be found, or
+// if the instance was created with the _useList set to "false". Otherwise it returns
+// an index in this._list.
 // Override this function if you need update() to work with a "value" different
 // from "tab".
 _findTabIndexById: function(searchTabId) {
+	if(!this._useList) {
+		return -1;
+	}
+
 	return this._list.findIndex(
 		function(tab) {
 			if(tab.id == searchTabId) {
@@ -42,23 +59,22 @@ _findTabIndexById: function(searchTabId) {
 add: function(tab, value) {
 	value = optionalWithDefault(value, tab);
 	this._dict[tab.id] = value;
-	this._list.push(value);
+
+	if(this._useList) {
+		this._list.push(value);
+	}
 },
 
 // "value" defaults to "tab", but if you need to use a "value" different from
 // "tab", you must override _findTabIndexById() to support searching the "_list"
-// to replace the value.
+// to replace the value (or disable use of _list by initializing with "useList = false").
 // tabIdx is optional, defaults to "search it". Use it to pass in the tabIdx
 // if you already know it because you called _findTabIndexById() before,
 // and avoid another linear search again in this function.
 update: function(tab, value, tabIdx) {
 	value = optionalWithDefault(value, tab);
 
-	if(tabIdx == null) {
-		tabIdx = this._findTabIndexById(tab.id);
-	}
-
-	if(tabIdx == -1) {
+	if(!(tab.id in this._dict)) {
 		// Add new tab at the end.
 		// Explicitly calling the "add()" of this class, in case children classes
 		// override both update() and add().
@@ -66,9 +82,20 @@ update: function(tab, value, tabIdx) {
 		return;
 	}
 
+	if(tabIdx == null) {
+		tabIdx = this._findTabIndexById(tab.id);
+	}
+
+	if(this._useList) {
+		this._assert(tabIdx != -1);
+	}
+
 	// Replace current entry with new info
 	this._dict[tab.id] = value;
-	this._list[tabIdx] = value;
+
+	if(tabIdx != -1) {
+		this._list[tabIdx] = value;
+	}
 },
 
 // Returns the tab being removed if "tabId" was found and removed, "null" if not
@@ -78,13 +105,21 @@ removeById: function(tabId) {
 	}
 
 	let tabIdx = this._findTabIndexById(tabId);
-	// "tabIdx" should exist, otherwise we would not have got here
-	this._assert(tabIdx != -1);
+
+	if(this._useList) {
+		// "tabIdx" should exist, otherwise we would not have got here
+		this._assert(tabIdx != -1, tabId, this._dict[tabId], this._list);
+	}
 
 	let retVal = this._dict[tabId];
 
 	delete this._dict[tabId];
-	this._list.splice(tabIdx, 1);
+
+	// tabIdx should not be "-1", but if it is, we don't want that to cause .splice()
+	// to mess up the data structure...
+	if(tabIdx != -1) {
+		this._list.splice(tabIdx, 1);
+	}
 
 	return retVal;
 },
@@ -96,11 +131,14 @@ getById: function(searchTabId) {
 
 // get() returns the "_list", getDict() returns the "_dict"
 get: function() {
-	// We could have used Object.values() instead of tracking a separate "_list",
-	// but we need to call get() (to iterate) more often than we need to call update(),
-	// so we chose to make update() more expensive (linear search to find the "_list"
-	// element to be updated).
-	// return Object.values(this._dict);
+	// We can use Object.values() instead of tracking a separate "_list", but if the instance
+	// needs to perform more calls to get() (to iterate) than calls to update(), then using
+	// the supporting "_list" data structure is useful.
+
+	if(!this._useList) {
+		return Object.values(this._dict);
+	}
+
 	return this._list;
 },
 
@@ -142,7 +180,7 @@ Classes.TabsStore = Classes.TabsStoreBase.subclass({
 // See TabsManager._queryTabs() for the reasons why.
 _init: function(tabs) {
 	this._tabsLoading = Classes.TabsStoreBase.create();
-	this._tabsPinnedFromBookmarks = Classes.TabsStoreBase.create();
+	this._tabsPinnedFromBookmarks = Classes.TabsStoreBase.create(null, false);
 
 	// Overriding the parent class' _init(), but calling that original function first.
 	// We must allocate this._tabsLoading and this._tabsPinnedFromBookmarks first because
