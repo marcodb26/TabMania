@@ -137,7 +137,7 @@ _processHistoryItems: function(items) {
 	let retVal = items.reduce(
 		function(result, tab) {
 			if(tab.url != popupUrl) {
-				tabNormalizer.normalize(tab, Classes.TabNormalizer.type.HISTORY);
+				tabNormalizer.normalize(tab, { type: Classes.TabNormalizer.type.HISTORY });
 				result.push(tab);
 			}
 			return result;
@@ -234,7 +234,7 @@ _processRecentlyClosedTabs: function(sessions) {
 				// Also filter out any tab that identifies a previous instance of the TabMania popup.
 				if(tab.url != popupUrl && tab.index != -1) {
 					this._assert(!tab.active, logHead + "recently closed tabs can't be active", tab);
-					tabNormalizer.normalize(tab, Classes.TabNormalizer.type.RCTAB);
+					tabNormalizer.normalize(tab, { type: Classes.TabNormalizer.type.RCTAB });
 					// Let's remember which window this tab is coming from. As a minimum, this
 					// can give us a hint that this tab might be trouble. We only know for sure
 					// that recently closed tabs without a "tab.tm.windowSessionId" are not trouble,
@@ -251,7 +251,7 @@ _processRecentlyClosedTabs: function(sessions) {
 				// (a closed tab can't be active), and definitely not something we want to show to
 				// our end users
 				this._assert(!tab.active, logHead + "recently closed tabs can't be active", tab);
-				tabNormalizer.normalize(tab, Classes.TabNormalizer.type.RCTAB);
+				tabNormalizer.normalize(tab, { type: Classes.TabNormalizer.type.RCTAB });
 				tabs.push(tab);
 			}
 		}

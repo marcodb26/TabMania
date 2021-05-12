@@ -237,7 +237,7 @@ _loadBookmarkTreeNode: function(node) {
 		this._pinnedBookmarkIds.push(node.id);
 	}
 
-	tabNormalizer.normalize(node, Classes.TabNormalizer.type.BOOKMARK);
+	tabNormalizer.normalize(node, { type: Classes.TabNormalizer.type.BOOKMARK });
 
 	this._appendOrReplaceNode(node, bmAlreadyTracked, this._bookmarks, "bookmark");
 	if(node.pinned) {

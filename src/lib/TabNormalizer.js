@@ -10,7 +10,7 @@
 // normalized title, and extended tab ID (which includes the window ID).
 // This class adds those extra properties once, making them available to all uses later.
 // They're added to a "tm" dictionary, to avoid polluting too much the original object.
-// tm = { hostname: , lowerCaseUrl: , lowerCaseTitle: , normTitle: , extId: }
+// tm = { hostname: , lowerCaseUrl: , lowerCaseTitle: , sortTitle: , extId: }
 Classes.TabNormalizer = Classes.Base.subclass({
 
 _init: function() {
@@ -28,7 +28,7 @@ _init: function() {
 compareTitlesFn: function(a, b) {
 	// See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare
 	// Eventually we should also specify the locale configured for the browser, but not now...
-	return a.tm.normTitle.localeCompare(b.tm.normTitle);
+	return a.tm.sortTitle.localeCompare(b.tm.sortTitle);
 },
 
 // Static function
@@ -196,12 +196,26 @@ updateUrl: function(tab) {
 
 // If you're updating both title and URL, make sure to call updateUrl() first, as this
 // function depends on the right URL being in place.
-updateTitle: function(tab) {
+updateTitle: function(tab, oldTab) {
 	tab.title = this._cleanupTitle(tab.title, tab.tm.url);
 	let lowerCaseTitle = tab.title.toLowerCase();
 
 	tab.tm.lowerCaseTitle = lowerCaseTitle;
-	tab.tm.normTitle = this.normalizeLowerCaseTitle(lowerCaseTitle);
+
+	// Note we're not putting the extra check for "tm.url": if a tab is loading a new URL,
+	// we want the sorting to change only at the end of the loading cycle, so the user watching
+	// the tile can be informed of what the new title is before the tile moves (and can search
+	// for it again).
+	// Change the check (uncomment the commented check) to let new pages move immediately to
+	// their new location in the tile list.
+//	if(oldTab != null && tab.status == "loading" && tab.tm.url == oldTab.tm.url) {
+	if(oldTab != null && tab.status == "loading") {
+		// As long as tab.status == "loading", let's keep tm.sortTitle set to the last
+		// title before we entered "loading" status.
+		tab.tm.sortTitle = oldTab.tm.sortTitle;
+	} else {
+		tab.tm.sortTitle = this.normalizeLowerCaseTitle(lowerCaseTitle);
+	}
 },
 
 // If you're updating both favIcon and URL, make sure to call updateUrl() first, as this
@@ -218,15 +232,15 @@ _updateFavIcon: function(tab) {
 	tab.tm.cachedFavIconUrl = cachedFavIconUrl;
 },
 
-formatExtendedId: function(tab, objType) {
+formatExtendedId: function(tab, type) {
 	if(tab.tm != null) {
-		objType = optionalWithDefault(objType, tab.tm.type);
+		type = optionalWithDefault(type, tab.tm.type);
 	}
 	// Even if "tab.tm != null", tab.tm.type could still be undefined, and the next
 	// iteration of optionalWithDefault() will correct that
-	objType = optionalWithDefault(objType, Classes.TabNormalizer.type.TAB);
+	type = optionalWithDefault(type, Classes.TabNormalizer.type.TAB);
 
-	switch(objType) {
+	switch(type) {
 		case Classes.TabNormalizer.type.TAB:
 			return tab.windowId + ":" + tab.id + "/" + tab.index;
 
@@ -250,7 +264,7 @@ formatExtendedId: function(tab, objType) {
 
 		default:
 			const logHead = "TabNormalizer::formatExtendedId(): ";
-			this._err(logHead + "unknown objType", objType, tab);
+			this._err(logHead + "unknown type", type, tab);
 			break;
 	}
 
@@ -591,22 +605,26 @@ _initRecentlyClosedAsTab: function(tab) {
 	tab.status = "unloaded";
 },
 
-// "tab" can be either a tab object or a bookmark node object, determined by "objType".
-// "objType" is one of Classes.TabNormalizer.type, default to Classes.TabNormalizer.type.TAB.
+// "tab" can be either a tab object or a bookmark node object, determined by "options.type".
+// "options.type" is one of Classes.TabNormalizer.type, default to Classes.TabNormalizer.type.TAB.
 //
 // Changes the contents of "tab" as an output parameter. Call this function as many times
 // as needed, but the first time can be a bit "special" and initialization actions are taken
 // only once.
 //
 // By default, this function sets all that's needed about a tab, including shortcut badges.
-// You can choose to leave shortcut badges out by setting "addShortcutBadges" to "false"
+// You can choose to leave shortcut badges out by setting "options.addShortcutBadges" to "false"
 // (default "true"). See TabsManager::_queryTabs() for a use case for that.
-normalize: function(tab, objType, addShortcutBadges) {
-	addShortcutBadges = optionalWithDefault(addShortcutBadges, true);
+//
+// "options.oldTab" allows the normalization to take into account a past state of the
+// tab, which can be used in one case (setting tm.sortingTitle)
+normalize: function(tab, options) {
+	options = optionalWithDefault(options, {});
+	let addShortcutBadges = optionalWithDefault(options.addShortcutBadges, true);
+	let type = optionalWithDefault(options.type, Classes.TabNormalizer.type.TAB);
+	let oldTab = options.oldTab;
 
 	const logHead = "TabNormalizer::normalize(): ";
-
-	objType = optionalWithDefault(objType, Classes.TabNormalizer.type.TAB);
 
 	// We need a "switch()" both at the beginning and at the end of this function.
 	// At the beginning, we need to make sure all fields used by the logic in the
@@ -617,7 +635,7 @@ normalize: function(tab, objType, addShortcutBadges) {
 	// can be executed multiple times, as needed. "tab.tm == null" is only true the
 	// first time a "tab" goes through this function.
 	if(tab.tm == null) {
-		switch(objType) {
+		switch(type) {
 			case Classes.TabNormalizer.type.TAB:
 				// Standard tabs are the main stars of this show, and they're already
 				// initialized correctly. Everything else needs to be initialized to
@@ -633,17 +651,17 @@ normalize: function(tab, objType, addShortcutBadges) {
 				this._initHistoryItemAsTab(tab);
 				break;
 			default:
-				this._err(logHead + "unknown objType", objType);
+				this._err(logHead + "unknown type", type);
 				break;
 		}
 	} else {
-		// We don't support objType changes, every call to normalize() must use
-		// the same consistent objType
-		this._assert(tab.tm.type == objType, tab, objType);
+		// We don't support type changes, every call to normalize() must use
+		// the same consistent type
+		this._assert(tab.tm.type == type, tab, type);
 	}
 
 	tab.tm = {
-		type: objType,
+		type: type,
 
 		// All the properties initialized to "null", empty strings or empty arrays are just
 		// listed for completeness, and are actually initialized later in this function via
@@ -655,7 +673,7 @@ normalize: function(tab, objType, addShortcutBadges) {
 		customGroupName: null,
 		lowerCaseUrl: null,
 		lowerCaseTitle: null,
-		normTitle: null,
+		sortTitle: null,
 		useCachedFavIcon: null,
 		cachedFavIconUrl: null,
 		// "folder" is non empty only for bookmarks, but to make the search
@@ -664,7 +682,7 @@ normalize: function(tab, objType, addShortcutBadges) {
 		lowerCaseFolder: "",
 		wantsAttention: false,
 		// Bookmarks have extended IDs too
-		extId: this.formatExtendedId(tab, objType),
+		extId: this.formatExtendedId(tab, type),
 
 		// "visualBadges" are the badges displayed by the tiles, and are case
 		// sensitive. "searchBadges" can repeat the "visualBadges" as case
@@ -700,19 +718,19 @@ normalize: function(tab, objType, addShortcutBadges) {
 	// be called first
 	this.updateUrl(tab);
 
-	if(objType == Classes.TabNormalizer.type.TAB) {
+	if(type == Classes.TabNormalizer.type.TAB) {
 		// Call _updatePinInheritance() before updateTitle(), because in some cases
 		// _updatePinInheritance can change the title
 		this._updatePinInheritance(tab);
 	}
 
-	this.updateTitle(tab);
+	this.updateTitle(tab, oldTab);
 	// Bookmarks and history have no favIconUrl, but sometimes recently closed and
 	// standard tabs also don't have favIconUrl, so let's just try the cache here
 	// for all these cases...
 	this._updateFavIcon(tab);
 
-	switch(objType) {
+	switch(type) {
 		case Classes.TabNormalizer.type.TAB:
 			// Bookmarks don't need shortcut badges because they can't be invoked
 			// via custom shortcuts (though the URL in a custom shortcut could match
@@ -735,7 +753,7 @@ normalize: function(tab, objType, addShortcutBadges) {
 			this._updateHistoryBadges(tab);
 			break;
 		default:
-			this._err(logHead + "unknown objType", objType);
+			this._err(logHead + "unknown type", type);
 			break;
 	}
 },

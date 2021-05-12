@@ -704,6 +704,11 @@ _createRenderState: function(tab, tabGroup) {
 	renderState.id = tab.id;
 	renderState.tmType = tab.tm.type;
 	renderState.title = tab.title;
+	// "title" is what we show, but "sortTitle" is what we use to determine the
+	// relative ordering of the tiles. Though it doesn't explicitly affect the
+	// tile visualization, we want to track it here so TabsBsTabViewer can use
+	// the information to trigger a re-sort when necessary.
+	renderState.sortTitle = tab.tm.sortTitle;
 	renderState.url = this._cleanupUrl(tab);
 
 	// "renderState.tabGroupTitle" is not strictly needed by the tile rendering,

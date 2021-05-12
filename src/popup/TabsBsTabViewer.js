@@ -221,19 +221,31 @@ _processTabUpdate: function(tab, scheduledFullRender) {
 		}
 	}
 
-	// Case 2: title change. Title changes always require re-sorting the tile in the
+	// Case 2: sortTitle change. sortTitle changes always require re-sorting the tile in the
 	// list, and we deal with that via full re-rendering.
-	if(oldRenderState.title != renderState.title) {
+	if(oldRenderState.sortTitle != renderState.sortTitle) {
 		this._queryAndRenderJob.run(this._queryAndRenderDelay);
 		return true;
 	}
+	// Case 2.5: title change. when we show all tabs, we only care about sortTitle changes,
+	// but when we're in search mode, we also care about title changes, because a title change
+	// could trigger a tab to stop being part of a search results set
+	if(this.isSearchActive()) {
+		if(oldRenderState.title != renderState.title) {
+			this._queryAndRenderJob.run(this._queryAndRenderDelay);
+			return true;
+		}
+	}
 
-	// Case 3: url change: URL changes are a problem only if the URL is used for grouping.
+	// Case 3: url change: URL changes are a problem only if the URL is used for grouping,
+	// or if we're in search mode.
 	// The tile's renderState doesn't have explicit data about grouping, but we know that
 	// hostname-based grouping kicks in only if the tab is not part of a custom group.
-	if(oldRenderState.url != renderState.url && renderState.tabGroupTitle != null && renderState.customGroupName == null) {
-		this._queryAndRenderJob.run(this._queryAndRenderDelay);
-		return true;
+	if(oldRenderState.url != renderState.url) {
+		if(this.isSearchActive() || (renderState.tabGroupTitle != null && renderState.customGroupName == null)) {
+			this._queryAndRenderJob.run(this._queryAndRenderDelay);
+			return true;
+		}
 	}
 
 	// Case 4: custom group change

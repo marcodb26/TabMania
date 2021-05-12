@@ -1,5 +1,10 @@
 TODO 2.0
 
+- BUG: while in search mode, when changing page in a tab, the new page (taht matches the search)
+  doesn't show up in the search results if the old page was not part of the search results
+
+- Create "Incognito" bstab
+
 - Fix "deduplicate links from other tabs" based on the functionality
   implemented in the popup TabsManager.js
 
@@ -11,12 +16,6 @@ TODO 2.0
 
 - BUG: can't use tile contextMenu while wantsAttention is active
   * The tile closes the context menu again every time there's a title update
-
-- Let TabsStore remember the last title in "loaded" state while the tab is in
-  loading state
-  * Then sort based on "last title" if the tab is in "loading" state
-
-- Create "Incognito" bstab
 
 - Test _queryCycleNo
 

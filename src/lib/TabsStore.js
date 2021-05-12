@@ -71,6 +71,8 @@ add: function(tab, value) {
 // tabIdx is optional, defaults to "search it". Use it to pass in the tabIdx
 // if you already know it because you called _findTabIndexById() before,
 // and avoid another linear search again in this function.
+//
+// Returns the tab/value being replaced if "tab" is already in the TabsStore, "null" if not
 update: function(tab, value, tabIdx) {
 	value = optionalWithDefault(value, tab);
 
@@ -79,7 +81,7 @@ update: function(tab, value, tabIdx) {
 		// Explicitly calling the "add()" of this class, in case children classes
 		// override both update() and add().
 		Classes.TabsStoreBase.add.call(this, tab, value);
-		return;
+		return null;
 	}
 
 	if(tabIdx == null) {
@@ -91,14 +93,17 @@ update: function(tab, value, tabIdx) {
 	}
 
 	// Replace current entry with new info
+	let retVal = this._dict[tab.id];
 	this._dict[tab.id] = value;
 
 	if(tabIdx != -1) {
 		this._list[tabIdx] = value;
 	}
+
+	return retVal;
 },
 
-// Returns the tab being removed if "tabId" was found and removed, "null" if not
+// Returns the tab/value being removed if "tabId" was found and removed, "null" if not
 removeById: function(tabId) {
 	if(!(tabId in this._dict)) {
 		return null;
@@ -165,7 +170,7 @@ getTabIdList: function() {
 // normalized title, and extended tab ID (which includes the window ID).
 // This class adds those extra properties once, making them available to all uses later.
 // They're added to a "tm" dictionary, to avoid polluting too much the original object.
-// tm = { hostname: , lowerCaseUrl: , lowerCaseTitle: , normTitle: , extId: }
+// tm = { hostname: , lowerCaseUrl: , lowerCaseTitle: , sortTitle: , extId: }
 Classes.TabsStore = Classes.TabsStoreBase.subclass({
 
 	// "_tabsLoading" is a dictionary of all tabs in status "loading", keyed by tab ID
@@ -178,7 +183,8 @@ Classes.TabsStore = Classes.TabsStoreBase.subclass({
 // If you choose to initialize "tabs" at creation time, remember to also explicitly call
 // TabsStore.addShortcutBadges() afterwards, as the initializer doesn't do that.
 // See TabsManager._queryTabs() for the reasons why.
-_init: function(tabs) {
+// "oldTabsDict" is optional, see normalizeAll() and TabNormalizer.normalize() for its rationale.
+_init: function(tabs, oldTabsDict) {
 	this._tabsLoading = Classes.TabsStoreBase.create();
 	this._tabsPinnedFromBookmarks = Classes.TabsStoreBase.create(null, false);
 
@@ -189,16 +195,19 @@ _init: function(tabs) {
 
 	this.debug();
 
-	this.normalizeAll(false);
+	this.normalizeAll({ addShortcutBadges: false, oldTabsDict: oldTabsDict });
 },
 
 // Call this function if you need a full refresh of all search/shortcut badges due
 // to a configuration change.
 //
-// "addShortcutBadges" defaults to "true", see TabNormalizer.normalize().
+// "options.addShortcutBadges" defaults to "true", see TabNormalizer.normalize().
 // If you explicitly set it to "false", use TabsStore.addShortcutBadges() to
 // add the shortcut badges later.
-normalizeAll: function(addShortcutBadges) {
+normalizeAll: function(options) {
+	options = optionalWithDefault(options, {});
+	let oldTabsDict = optionalWithDefault(options.oldTabsDict, []);
+
 	const logHead = "TabsStore::normalizeAll(): ";
 	perfProf.mark("normalizeStart");
 
@@ -209,7 +218,7 @@ normalizeAll: function(addShortcutBadges) {
 
 	for(let i = 0; i < tabs.length; i++) {
 		let tab = tabs[i];
-		tabNormalizer.normalize(tab, null, addShortcutBadges);
+		tabNormalizer.normalize(tab, { addShortcutBadges: options.addShortcutBadges, oldTab: oldTabsDict[tab.id] });
 
 		if(tab.status == "loading") {
 			this._log(logHead + "found tab in loading status", tab);
@@ -238,9 +247,9 @@ reset: function() {
 	Classes.TabsStoreBase.reset.call(this);
 },
 
-_addOrUpdateInner: function(newTab) {
+_addOrUpdateInner: function(newTab, oldTab) {
 	const logHead = "TabsStore::_addOrUpdateInner(): ";
-	tabNormalizer.normalize(newTab);
+	tabNormalizer.normalize(newTab, { oldTab: oldTab });
 
 	if(newTab.status == "loading") {
 		this._log(logHead + "found tab in loading status", newTab);
@@ -258,8 +267,8 @@ _addOrUpdateInner: function(newTab) {
 
 // Overrides TabsStoreBase.add()
 add: function(newTab) {
-	this._addOrUpdateInner(newTab);
 	Classes.TabsStoreBase.add.call(this, newTab);
+	this._addOrUpdateInner(newTab);
 },
 
 // tabIdx is optional, defaults to "search it". Use it to pass in the tabIdx
@@ -267,8 +276,9 @@ add: function(newTab) {
 // and avoid another linear search again in this function.
 // Overrides TabsStoreBase.update()
 update: function(newTab, tabIdx) {
-	this._addOrUpdateInner(newTab);
-	Classes.TabsStoreBase.update.call(this, newTab, null, tabIdx);
+	let oldTab = Classes.TabsStoreBase.update.call(this, newTab, null, tabIdx);
+	this._addOrUpdateInner(newTab, oldTab);
+	return oldTab;
 },
 
 // Returns the tab being removed if "tabId" was found and removed, "null" if not.

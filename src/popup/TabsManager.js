@@ -331,8 +331,6 @@ _tabUpdatedCb: function(tabId, changeInfo, tab) {
 	//	return;
 	//}
 
-	// Very crude... we re-render everything for every update. But at least we try
-	// to reduce the frequency of the re-render in some cases.
 	this._log(logHead + "entering", changeInfo, tab);
 	this._processTabUpdate(tabId, tab);
 },
@@ -470,7 +468,9 @@ _settingsStoreUpdatedCb: function(ev) {
 	// In this case we can skip the re-query, since the set of tabs has not
 	// changed. We just need to trigger a rebuild of the search badges.
 	let oldTabList = this._normTabs.cloneTabs();
-	this._normTabs.normalizeAll();
+	// Note that here we're using the current dict as "oldTabsDict", but normalizeAll()
+	// should be ok with that
+	this._normTabs.normalizeAll({ oldTabsDict: this._normTabs.getDict() });
 
 	this._generateDiffEvents(oldTabList);
 },
@@ -525,8 +525,10 @@ _queryTabs: function() {
 			this._issue01WorkaroundJob.start(this._issue01WorkaroundInterval, false);
 
 			let oldTabList = null;
+			let oldTabDict = null
 			if(this._normTabs != null) {
 				oldTabList = this._normTabs.get();
+				oldTabDict = this._normTabs.getDict();
 			}
 
 			try {
@@ -535,7 +537,7 @@ _queryTabs: function() {
 				// we can just ignore the "normTabs" object... but to be
 				// good future-proof citizens, let's call the right interface...
 				perfProf.mark("normalizeStart");
-				this._normTabs = Classes.TabsStore.create(tabs);
+				this._normTabs = Classes.TabsStore.create(tabs, oldTabDict);
 
 				perfProf.mark("shortcutsStart");
 				// Note that we need to make this call only when the tabs change,

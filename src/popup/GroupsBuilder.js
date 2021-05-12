@@ -103,17 +103,19 @@ _tabGroupEntryToObj: function(groupName, data, pinned) {
 		retVal.type = Classes.GroupsBuilder.Type.TAB;
 		retVal.title = data.tabs[0].title;
 		retVal.favIconUrl = data.tabs[0].favIconUrl;
+
+		retVal.tm.lowerCaseTitle = data.tabs[0].tm.lowerCaseTitle;
+		retVal.tm.sortTitle = data.tabs[0].tm.sortTitle;
 	} else {
 		retVal.type = data.type;
 		retVal.title = groupName;
 		[ retVal.favIconUrl, retVal.cachedFavIconUrl ] = this._findFavIconUrl(groupName, data.tabs);
+
+		// The normalized title is what we'll use for sorting
+		retVal.tm.lowerCaseTitle = retVal.title.toLowerCase();
+		retVal.tm.sortTitle = tabNormalizer.normalizeLowerCaseTitle(retVal.tm.lowerCaseTitle);
 	}
 
-	// The normalized title is what we'll use for sorting. We've already added
-	// the tm.normTitle to the tabs, now we need to add it to the tabGroup
-	// objects we're about to return
-	retVal.tm.lowerCaseTitle = retVal.title.toLowerCase();
-	retVal.tm.normTitle = tabNormalizer.normalizeLowerCaseTitle(retVal.tm.lowerCaseTitle);
 	retVal.tm.pinned = pinned;
 
 	return retVal;
