@@ -71,7 +71,7 @@ _init: function({ labelHtml, standardTabs, incognitoTabs }) {
 	// manages incognito tabs.
 	// "localStore.incognitoTabsBsTabExpandedGroups" is used only if the instance manages
 	// only incognito tabs.
-	if(this._options.standardTabs) {
+	if(!this._isIncognito()) {
 		this._expandedGroups = localStore.standardTabsBsTabExpandedGroups;
 	} else {
 		if(this._options.incognitoTabs) {
@@ -341,6 +341,18 @@ _historyUpdatedCb: function(ev) {
 	this._queryAndRenderJob.run(this._queryAndRenderDelay);
 },
 
+_isIncognito: function() {
+	// The reason for "!standardTabs" to determine "_isIncognito" is because
+	// we only have 3 cases:
+	// 1. standardTabs == true, incognitoTabs == true (single bsTab in popup)
+	// 2. standardTabs == true, incognitoTabs == false ("home" bsTab with separate "incognito" bsTab)
+	// 3. standardTabs == false, incognitoTabs == true ("incognito" bsTab with separate "home" bsTab)
+	//
+	// The can't both be "false", but only (3) maps to "only incognito tabs", and
+	// that's the only case when "standardTabs" is "false".
+	return !this._options.standardTabs;
+},
+
 // When users use touch screens, a long hold (without moving) triggers the context
 // menu of the browser page. We don't care that users can see the context menu in
 // general (except that we don't want the TabMania context menu items there), but
@@ -387,7 +399,12 @@ _TabsBsTabViewer_render: function() {
 
 	this._disableContextMenuOnTouchEnd();
 
+	if(this._isIncognito()) {
+		this.addClasses("bg-secondary", "text-light", "border-dark");
+	}
+
 	this._containerViewer = Classes.ContainerViewer.create(this._emptyContainerString);
+
 	this._queryAndRenderTabs();
 
 	perfProf.mark("attachContainerStart");
@@ -545,7 +562,7 @@ _renderTile: function(containerViewer, tabGroup, tab) {
 
 	if(tile == null) {
 		// No cache, or not found in cache
-		tile = Classes.TabTileViewer.create(tab, tabGroup, this._tilesAsyncQueue);
+		tile = Classes.TabTileViewer.create(tab, tabGroup, this._tilesAsyncQueue, this._isIncognito());
 	}
 
 	if(tab.tm.wantsAttention) {
@@ -588,7 +605,8 @@ _renderTabsByGroup: function(tabGroups) {
 				// Multiple tabs under a title, or required container (pinned).
 				// Generate an inner container to attach to "this._containerViewer", then call
 				// this._renderTabsFlatInner(<newContainerViewer>, tabs, tabGroup);
-				let tilesGroupViewer = Classes.TilesGroupViewer.create(tabGroup, this._expandedGroups);
+				let tilesGroupViewer = Classes.TilesGroupViewer.create(tabGroup, this._expandedGroups,
+																		this._isIncognito());
 				this._containerViewer.append(tilesGroupViewer);
 				this._renderTabsFlatInner(tilesGroupViewer, tabs, tabGroup);
 			}

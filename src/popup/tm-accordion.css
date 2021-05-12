@@ -1,0 +1,60 @@
+/* Use .tm-accordion-button in the same element where you use .accordion-button, as this
+   class resets some of the visual styles (focused, expanded) of .accordion-button
+*/
+
+.tm-accordion-button:focus {
+	/* Reset the values from .accordion-button:focus, we don't want the blue aura.
+	   See also .tm-callout-* for the extra hoops we need to go through to make the
+	   callout colors stick. Make sure this class is defined before .tm-callout-*,
+	   otherwise those overrides won't work. .tm-callout-* is also the reason why we
+	   split "border-color" into 4 pieces here...
+	*/
+	box-shadow: initial;
+	border-color: rgba(0, 0, 0, 0.125);
+}
+
+.tm-accordion-button, .tm-accordion-button:not(.collapsed) {
+	/* Reset the values from .accordion-button:not(.collapsed), by assigning
+	   the same values used in .accordion-button.
+	*/
+	/* See https://getbootstrap.com/docs/5.0/customize/css-variables/ */
+	color: var(--bs-dark);
+	background-color: transparent;
+
+	/* Reset a value from .accordion-item:first-of-type .accordion-button, which defines
+	   the round border only for the top corners of the accordion header, not for the
+	   bottom corners, which we also want to be rounded */
+	border-radius: 0.25rem;
+	border-color: rgba(0, 0, 0, 0.125);
+}
+
+.tm-accordion-button::after, .tm-accordion-button:not(.collapsed)::after {
+	/* Reset the color of the caret from .accordion-button::after to use a consistent
+	   color of our choice both when the accordion is collapsed or not.
+	   .accordion-button::after uses a "background-image", but a "-webkit-mask" allows
+	   us to change caret color by just changing background color (see .tm-accordion-button-incognito::after).
+	*/
+
+	/* Remove the background-image set by .accordion-button::after */
+	background-image: none;
+
+	/* Add the mask */
+	-webkit-mask: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+
+	/* Since we're using a mask, the "background-color" is actually the color visible
+	   in the caret (needs to match the text color of other elements)
+	*/
+	/* See https://getbootstrap.com/docs/5.0/customize/css-variables/ */
+	background-color: var(--bs-dark);
+}
+
+.tm-accordion-button-incognito, .tm-accordion-button-incognito:not(.collapsed) {
+	/* See https://getbootstrap.com/docs/5.0/customize/css-variables/ */
+	color: var(--bs-light);
+	border-color: var(--bs-dark);
+}
+
+.tm-accordion-button-incognito::after, .tm-accordion-button-incognito:not(.collapsed)::after {
+	/* See https://getbootstrap.com/docs/5.0/customize/css-variables/ */
+	background-color: var(--bs-light);
+}

@@ -158,11 +158,13 @@ getBsTabId: function(bsTabLabel) {
 	return this._id + "-" + bsTabLabel;
 },
 
-_createBsTab: function(bsTabLabel, labelHtml, bsTabViewerSubclass) {
+// "initOptions" is an dict of options passed to the createAs() function.
+// It's not an optional argument, because you must at least pass "labelHtml".
+_createBsTab: function(bsTabLabel, bsTabViewerSubclass, initOptions) {
 	bsTabViewerSubclass = optionalWithDefault(bsTabViewerSubclass, Classes.BsTabViewer);
 	const bsTabId = this.getBsTabId(bsTabLabel);
 
-	this._bsTabViewersDict[bsTabId] = bsTabViewerSubclass.createAs(bsTabId, { labelHtml: labelHtml });
+	this._bsTabViewersDict[bsTabId] = bsTabViewerSubclass.createAs(bsTabId, initOptions);
 
 	this._bsTabViewersDict[bsTabId].addBsTabActivationStartListener(this._bsTabActivatedCb.bind(this));
 	this.append(this._bsTabViewersDict[bsTabId]);
@@ -171,8 +173,17 @@ _createBsTab: function(bsTabLabel, labelHtml, bsTabViewerSubclass) {
 },
 
 _populateTabs: function() {
-	this._createBsTab("home", "Home", Classes.TabsBsTabViewer);
-	this._createBsTab("settings", "Settings", Classes.SettingsBsTabViewer);
+	let splitIncognito = settingsStore.getOptionIncognitoBsTab() && localStore.isAllowedIncognitoAccess();
+
+	this._createBsTab("home", Classes.TabsBsTabViewer,
+					{ labelHtml: "Home", standardTabs: true, incognitoTabs: !splitIncognito });
+
+	if(splitIncognito) {
+		this._createBsTab("incognito", Classes.TabsBsTabViewer,
+						{ labelHtml: "Incognito", standardTabs: false, incognitoTabs: true });
+	}
+
+	this._createBsTab("settings", Classes.SettingsBsTabViewer, { labelHtml: "Settings" });
 },
 
 _tabsListNotificationCb: function(notification, sender) {
@@ -214,9 +225,13 @@ getActiveBsTabId: function() {
 	return this._activeBsTabId;
 },
 
+getBsTabByBsTabLabel: function(bsTabLabel) {
+	let bsTabId = this.getBsTabId(bsTabLabel);
+	return this.getBsTabViewerById(bsTabId);
+},
+
 getHomeBsTab: function() {
-	let homeBsTabId = this.getBsTabId("home");
-	return this.getBsTabViewerById(homeBsTabId);
+	return this.getBsTabByBsTabLabel("home");
 },
 
 // This function returns "true" only if the home tab is visible, besides being

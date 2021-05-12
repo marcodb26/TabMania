@@ -22,17 +22,28 @@ showStorage: function() {
 	chrome.storage.sync.get(function(result){console.log(result)});
 },
 
-showTabInfo: function(tabId) {
-	let allTabsBsTabViewer = popupViewer.getHomeBsTab();
+_showTabInfoInner: function(tabId, bsTabLabel) {
+	let tabsBsTabViewer = popupViewer.getBsTabByBsTabLabel(bsTabLabel);
 
-	let [ tabInfo, tileInfo ] = allTabsBsTabViewer.getTabInfo(tabId);
+	let [ tabInfo, tileInfo ] = tabsBsTabViewer.getTabInfo(tabId);
 
+	if(tileInfo == null && tabInfo == null) {
+		console.log("Not found in bsTab \"" + bsTabLabel + "\"");
+		return;
+	}
+
+	console.log("Found in bsTab \"" + bsTabLabel + "\"");
 	if(tileInfo != null && tabInfo == null) {
 		console.log("tabInfo (through tile):", tileInfo.getTabInfo());
 	} else {
 		console.log("tabInfo:", tabInfo);
 	}
 	console.log("tileInfo:", tileInfo);
+},
+
+showTabInfo: function(tabId) {
+	this._showTabInfoInner(tabId, "home");
+	this._showTabInfoInner(tabId, "incognito");
 },
 
 showSearchParserInfo: function() {
@@ -55,6 +66,10 @@ showBookmarksStats: function() {
 	}
 	console.log("bookmarksManager statistics:", bookmarksManager.getStats());
 },
+
+
+
+// PERFORMANCE TEST CASES
 
 // From https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
 _getRandomInt: function(min, max) {

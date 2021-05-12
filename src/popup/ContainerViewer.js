@@ -117,6 +117,7 @@ _init: function(options) {
 	this._options.htmlWhenEmpty = optionalWithDefault(options.htmlWhenEmpty, "");
 	this._options.border = optionalWithDefault(options.border, true);
 	this._options.bodyExtraClasses = [].concat(optionalWithDefault(options.bodyExtraClasses, []));
+	this._options.incognitoStyle = optionalWithDefault(options.incognitoStyle, false);
 
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.ContainerViewer._init.call(this, this._options.htmlWhenEmpty);
@@ -146,6 +147,10 @@ _renderHeadingAndBody: function() {
 		bodyOuterExtraClasses.push("show");
 	} else {
 		headingExtraClasses.push("collapsed");
+	}
+
+	if(this._options.incognitoStyle) {
+		headingExtraClasses.push("tm-accordion-button-incognito");
 	}
 
 	const headingHtml = `

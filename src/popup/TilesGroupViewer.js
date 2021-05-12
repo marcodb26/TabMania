@@ -6,16 +6,24 @@ Classes.TilesGroupViewer = Classes.CollapsibleContainerViewer.subclass({
 	groupName: null,
 	_expandedGroups: null,
 
-_init: function(tabGroup, expandedGroups) {
+// "incognitoStyle" is optional (default "false")
+_init: function(tabGroup, expandedGroups, incognitoStyle) {
 	this._tabGroup = tabGroup;
 	this._groupName = tabGroup.title;
 	this._expandedGroups = expandedGroups;
+	this._incognitoStyle = optionalWithDefault(incognitoStyle, false);
+
+	let emptyExtraClasses = [];
+	if(!incognitoStyle) {
+		emptyExtraClasses.push("text-muted");
+	}
 
 	let options = {
 		startExpanded: this._expandedGroups.has(this._groupName),
-		htmlWhenEmpty: `<i class="text-muted small">No tabs</i>`,
+		htmlWhenEmpty: `<i class="small ${emptyExtraClasses.join(" ")}">No tabs</i>`,
 		border: false,
 		bodyExtraClasses: [ "tm-indent-right" ],
+		incognitoStyle: this._incognitoStyle,
 	};
 
 	// Overriding the parent class' _init(), but calling that original function first
@@ -92,6 +100,10 @@ _TilesGroupViewer_renderHeading: function() {
 },
 
 _TilesGroupViewer_render: function() {
+	if(this._incognitoStyle) {
+		this.addClasses("bg-secondary", "text-light", "border-dark");
+	}
+
 	this._TilesGroupViewer_renderHeading();
 	this.addExpandedStartListener(this._containerExpandedCb.bind(this));
 	this.addCollapsedStartListener(this._containerCollapsedCb.bind(this));

@@ -116,7 +116,7 @@ _registerChromeCallbacks: function() {
 },
 
 _ignoreTab: function(tab) {
-	if(tab.incognito === undefined) {
+	if(tab.incognito === undefined || !tab.incognito) {
 		if(this._options.standardTabs) {
 			return false;
 		}
@@ -501,10 +501,16 @@ _tabsAsyncQuery: function() {
 			// Either "standardTabs" or "incognitoTabs" is "false", filter the
 			// right subset
 			let retVal = [];
+			let ignored = [];
 			for(let i = 0; i < tabs.length; i++) {
 				if(!this._ignoreTab(tabs[i])) {
 					retVal.push(tabs[i]);
+				} else {
+					ignored.push(tabs[i]);
 				}
+			}
+			if(ignored.length != 0) {
+				this._log(logHead + "list of tabs ignored:", ignored);
 			}
 			return retVal;
 		}.bind(this)

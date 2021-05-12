@@ -223,6 +223,8 @@ Classes.SettingsStore = Classes.AsyncBase.subclass({
 	// - "newTabWithOpenerDedup"
 	// - "newEmptyTabDedup"
 	// - "startupOpenPopup": auto-open popup at Chrome startup (only if popup undocked)
+	// - "incognitoBsTab": use a separate bsTab for incognito tabs (requires incognito to
+	//   be enabled for the TabMania extension)
 	_options: null,
 	_customGroups: null,
 
@@ -460,6 +462,15 @@ getOptionStartupOpenPopup: function() {
 
 setOptionStartupOpenPopup: function(value) {
 	return this._setOption("startupOpenPopup", value);
+},
+
+getOptionIncognitoBsTab: function() {
+	// Default "false"
+	return this._getBooleanOption("incognitoBsTab", false);
+},
+
+setOptionIncognitoBsTab: function(value) {
+	return this._setOption("incognitoBsTab", value);
 },
 
 getPinnedGroups: function() {

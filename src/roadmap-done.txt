@@ -130,6 +130,11 @@ DONE 2.0
   * The alternative to "search mode" is now called "full mode"
     - It used to be called "standard mode" and that started to create ambiguity and confusion
 
+- Created "Incognito" bstab, optional, tracked via localStore configuration
+  * Still need to add settings bsTab configuration for it
+
+- BUG: accordion callout becomes grey when accordion button focused/clicked
+
 
 DONE 1.3
 

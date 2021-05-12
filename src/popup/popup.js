@@ -28,6 +28,8 @@ var popupMsgServer = null;
 function testSettings() {
 //	settingsStore.setOptionDevMode(true);
 
+	settingsStore.setOptionIncognitoBsTab(true);
+
 	settingsStore.setOptionSearchUrl("https://duckduckgo.com/?q=%s");
 //	settingsStore.setOptionShowTabId(true);
 	settingsStore.setOptionAdvancedMenu(true);

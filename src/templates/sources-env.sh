@@ -27,7 +27,7 @@ declare -r PACKED_POPUP_SOURCES=(
 
 
 declare -r UNPACKED_POPUP_CSS=(
-	"popup.css" "tm-throbber.css"
+	"popup.css" "tm-accordion.css" "tm-throbber.css"
 )
 
 declare -r PACKED_POPUP_CSS=(

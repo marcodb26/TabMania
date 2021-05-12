@@ -44,7 +44,8 @@ Classes.TabTileViewer = Classes.Viewer.subclass({
 // "tabGroup" is optional, if specified it can be used to provide a default favIconUrl
 // "asyncQueue" is mandatory, and it's the queue where the tile needs to enqueue all heavy
 // rendering of itself.
-_init: function(tab, tabGroup, asyncQueue) {
+// "forceIncognitoStyle" is optional (default "false")
+_init: function(tab, tabGroup, asyncQueue, forceIncognitoStyle) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.Viewer._init.apply(this, arguments);
 
@@ -54,6 +55,7 @@ _init: function(tab, tabGroup, asyncQueue) {
 	this._touchHoverSerialPromises = Classes.SerialPromises.createAs(this._id + "::_touchHoverSerialPromises");
 	this._tab = tab;
 	this._asyncQueue = asyncQueue;
+	this._forceIncognitoStyle = optionalWithDefault(forceIncognitoStyle, false);
 
 	// Don't use this._tab.tm.extId here, because the "extended tab ID" can change any time
 	// a tab changes index or is moved to a different window, but _renderEmptyTile is called
@@ -198,6 +200,11 @@ _hoverTransitionEndCb: function(ev) {
 	}
 },
 
+_isIncognito: function(tab) {
+	tab = optionalWithDefault(tab, this._tab);
+	return tab.incognito || this._forceIncognitoStyle;
+},
+
 // "tabId" is only used to add an extra data attribute to the tile (for debugging), but since
 // this call is made only at the initialization of the tile, it assumes the "tabId" is immutable.
 // Then again, since the value is used only for debugging, it's not necessarily a big deal if
@@ -209,7 +216,7 @@ _renderEmptyTile: function(tabId) {
 	const menuId = this._id + "-menu";
 	const closeId = this._id + "-close";
 
-	const closeIconClass = this._tab.incognito ? "tm-close-icon-light" : "tm-close-icon";
+	const closeIconClass = this._isIncognito() ? "tm-close-icon-light" : "tm-close-icon";
 
 	const closeIcon = `<span aria-hidden="true" class="${closeIconClass}"></span>`;
 
@@ -745,7 +752,7 @@ _createRenderState: function(tab, tabGroup) {
 
 	renderState.wantsAttention = tab.tm.wantsAttention;
 
-	renderState.incognito = tab.incognito;
+	renderState.incognito = this._isIncognito(tab);
 
 	// "audible" and "muted" are not mutually exclusive, but we want to show a
 	// single icon, so we're using the arbitrary convention of making the muted

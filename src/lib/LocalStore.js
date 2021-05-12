@@ -41,6 +41,9 @@ Classes.LocalStore = Classes.AsyncBase.subclass({
 
 	_eventManager: null,
 
+	// Shadow flag tracking chrome.extension.isAllowedIncognitoAccess()
+	_incognitoAccess: null,
+
 // We need to override _init() to support listeners' registration as soon as
 // the object is created, even if the full initialization will need to be async
 _init: function(storageKeyPrefix) {
@@ -54,6 +57,7 @@ _init: function(storageKeyPrefix) {
 },
 
 _asyncInit: function() {
+	const logHead = "LocalStore::_asyncInit(): ";
 	// Overriding the parent class' _asyncInit(), but calling that original function first.
 	// We know that AsyncBase doesn't need to take any action, but let's use the right
 	// pattern and include the parent class' promise as part of the list of promises
@@ -72,6 +76,19 @@ _asyncInit: function() {
 	this._bootstrapTabs = Classes.PersistentDict.createAs("bootstrapTabs");
 	promiseArray.push(this._bootstrapTabs.getInitPromise());
 	this._bootstrapTabs.addEventListener(Classes.EventManager.Events.UPDATED, this._onUpdatedCb.bind(this));
+
+	// This is not really our configuration (and not even sure if it's local or global, that
+	// is if it belongs to the LocalStore or the SettingsStore class), but we know that:
+	// 1. Whenever the extension "incognito" config changes, the extension is restarted
+	// 2. There are no events to track changes for this flag (making (1) the only way to find out)
+	// This means that we can read this flag asynchronously once, and store it forever at runtime.
+	// We could do this anywhere, LocalStore is as good a place as any... and the whole TabMania
+	// initialization waits for this class to complete _asyncInit() already anyway.
+	promiseArray.push(chromeUtils.wrap(chrome.extension.isAllowedIncognitoAccess, logHead).then(
+		function(isAllowedAccess) {
+			this._incognitoAccess = isAllowedAccess;
+		}.bind(this)
+	));
 
 	return Promise.all(promiseArray).then(
 		function() {
@@ -117,6 +134,10 @@ setPopupSize: function(posX, posY, width, height) {
 	};
 
 	return this._bootstrapTabs.set("popupSize", size);
+},
+
+isAllowedIncognitoAccess: function() {
+	return this._incognitoAccess;
 },
 
 }); // Classes.LocalStore

@@ -6,6 +6,8 @@ page, some only on the popups) to monitor the state of the extension, or make ch
   - For now this only adds the _Extended tabId_ configuration checkbox
   - You might want to reload the popup for the changes to take effect
 
+* Call `popupViewer.getBsTabByBsTabLabel(<bsTabLabel>)` to get info about a bsTab
+
 * Call `tmConsole.showTabInfo(<tabId>)` to get tab and tile information about a tab that's currently
   being displayed in TabMania's popup
   - The <tabId> must be a normalized tab ID (not an extended tab ID, see below) to be able to

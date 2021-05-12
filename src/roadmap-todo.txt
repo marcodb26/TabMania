@@ -3,7 +3,23 @@ TODO 2.0
 - BUG: while in search mode, when changing page in a tab, the new page (taht matches the search)
   doesn't show up in the search results if the old page was not part of the search results
 
-- Create "Incognito" bstab
+- Use the new localStore.isAllowedIncognitoAccess() to set up the settings view of that flag
+
+- Add config for split of bsTab between standard and incognito tabs
+
+- BUG: dropdown shows dark in incognito mode, should show like close-icon
+
+- Now that we have 2 searchable bsTabs:
+  * Test tmConsole.showTabInfo()
+  * Review popupViewer.isSearchActive() now that we have multiple searchable tabs
+  * Review tmConsole.showSearchParserInfo()
+  * Review PopupDocker._backgroundCommandCb()
+
+- Support separate pinned bookmakrs for incognito and standard tabs
+
+- BUG: deduplication should not work between standard and incognito tabs
+
+- BUG: side color doesn't work for tiles of custom groups in incognito tiles
 
 - Fix "deduplicate links from other tabs" based on the functionality
   implemented in the popup TabsManager.js
