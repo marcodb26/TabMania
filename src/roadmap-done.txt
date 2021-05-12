@@ -121,7 +121,7 @@ DONE 2.0
 
 - Keep tiles in a stable position while a tab is loading
   * Prevent temporary title changes while in "loading" state from moving a tile up and down
-  * Let TabsStore remember the last title in "loaded" state while the tab is in "loading" state,
+  * Let TabsStore remember the last title in "complete" state while the tab is in "loading" state,
     and use that information to sort
   * Also, let new pages loading in the same tab keep tiles in the same position in the tiles
     list while the new page is loading, then move to the right position once loading is completed
