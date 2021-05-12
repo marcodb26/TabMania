@@ -7,13 +7,13 @@ TODO 2.0
 
 - Add config for split of bsTab between standard and incognito tabs
 
-- BUG: dropdown shows dark in incognito mode, should show like close-icon
-
 - Now that we have 2 searchable bsTabs:
   * Test tmConsole.showTabInfo()
   * Review popupViewer.isSearchActive() now that we have multiple searchable tabs
   * Review tmConsole.showSearchParserInfo()
   * Review PopupDocker._backgroundCommandCb()
+
+- Test search in new separated bsTabs
 
 - Support separate pinned bookmarks for incognito and standard tabs
 

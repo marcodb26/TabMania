@@ -41,6 +41,8 @@ Classes.TabTileViewer = Classes.Viewer.subclass({
 	// more debug information, so assume that non-zero values mean "true" and 0 means "false"
 	_pointerUpCancelRecentlyFired: 0,
 
+	_forceIncognitoStyle: null,
+
 // "tabGroup" is optional, if specified it can be used to provide a default favIconUrl
 // "asyncQueue" is mandatory, and it's the queue where the tile needs to enqueue all heavy
 // rendering of itself.
@@ -311,15 +313,15 @@ _addBadgesHtml: function(visibleBadgesHtml, badgesList, secondary) {
 _renderMenuInner: function() {
 	switch(this._renderState.tmType) {
 		case Classes.TabNormalizer.type.TAB:
-			this._menuViewer = Classes.TabTileMenuViewer.create(this._tab);
+			this._menuViewer = Classes.TabTileMenuViewer.create(this._tab, this._renderState.incognito);
 			this._menuViewer.attachToElement(this._menuElem);
 			break;
 		case Classes.TabNormalizer.type.BOOKMARK:
-			this._menuViewer = Classes.BookmarkTileMenuViewer.create(this._tab);
+			this._menuViewer = Classes.BookmarkTileMenuViewer.create(this._tab, this._renderState.incognito);
 			this._menuViewer.attachToElement(this._menuElem);
 			break;
 		case Classes.TabNormalizer.type.HISTORY:
-			this._menuViewer = Classes.HistoryTileMenuViewer.create(this._tab);
+			this._menuViewer = Classes.HistoryTileMenuViewer.create(this._tab, this._renderState.incognito);
 			this._menuViewer.attachToElement(this._menuElem);
 			break;
 		default:

@@ -135,6 +135,8 @@ DONE 2.0
 
 - BUG: accordion callout becomes grey when accordion button focused/clicked
 
+- BUG: dropdown of bookmark tiles display as dark in incognito mode, they should show like close-icon
+
 
 DONE 1.3
 

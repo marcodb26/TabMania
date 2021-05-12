@@ -1,6 +1,28 @@
+// CLASS TileMenuViewer
+//
+Classes.TileMenuViewer = Classes.MenuViewer.subclass({
+	__idPrefix: "TileMenuViewer",
+
+	_useIncognitoStyle: null,
+
+_init: function(useIncognitoStyle) {
+	this._useIncognitoStyle = optionalWithDefault(useIncognitoStyle, false);
+
+	// Overriding the parent class' _init(), but calling that original function first
+	Classes.MenuViewer._init.call(this, {
+		btnExtraClasses: [ this._useIncognitoStyle ? "btn-light" : "btn-secondary" ],
+		menuExtraClasses: [ "tm-dropdown-tile-menu" ],
+	});
+
+	this.debug();
+},
+
+}); // Classes.TileMenuViewer
+
+
 // CLASS TabTileMenuViewer
 //
-Classes.TabTileMenuViewer = Classes.MenuViewer.subclass({
+Classes.TabTileMenuViewer = Classes.TileMenuViewer.subclass({
 	__idPrefix: "TabTileMenuViewer",
 
 	_tab: null,
@@ -17,12 +39,9 @@ Classes.TabTileMenuViewer = Classes.MenuViewer.subclass({
 	// An array of menu items associated to custom shortcuts
 	_shortcutMenuItems: null,
 
-_init: function(tab) {
+_init: function(tab, useIncognitoStyle) {
 	// Overriding the parent class' _init(), but calling that original function first
-	Classes.MenuViewer._init.call(this, {
-		btnExtraClasses: [ tab.incognito ? "btn-light" : "btn-secondary" ],
-		menuExtraClasses: [ "tm-dropdown-tile-menu" ],
-	});
+	Classes.TileMenuViewer._init.call(this, useIncognitoStyle);
 
 	this.debug();
 	this._tab = tab;
@@ -300,7 +319,7 @@ update: function(tab) {
 
 // CLASS BookmarkTileMenuViewer
 //
-Classes.BookmarkTileMenuViewer = Classes.MenuViewer.subclass({
+Classes.BookmarkTileMenuViewer = Classes.TileMenuViewer.subclass({
 	__idPrefix: "BookmarkTileMenuViewer",
 
 	_bm: null,
@@ -314,9 +333,9 @@ Classes.BookmarkTileMenuViewer = Classes.MenuViewer.subclass({
 	_pinMenuItem: null,
 	_deleteMenuItem: null,
 
-_init: function(bm) {
+_init: function(bm, useIncognitoStyle) {
 	// Overriding the parent class' _init(), but calling that original function first
-	Classes.MenuViewer._init.call(this);
+	Classes.TileMenuViewer._init.call(this, useIncognitoStyle);
 
 	this.debug();
 	this._bm = bm;
@@ -465,7 +484,7 @@ update: function(bm) {
 
 // CLASS HistoryTileMenuViewer
 //
-Classes.HistoryTileMenuViewer = Classes.MenuViewer.subclass({
+Classes.HistoryTileMenuViewer = Classes.TileMenuViewer.subclass({
 	__idPrefix: "HistoryTileMenuViewer",
 
 	_item: null,
@@ -476,9 +495,9 @@ Classes.HistoryTileMenuViewer = Classes.MenuViewer.subclass({
 	_subtitleElem: null,
 	_deleteMenuItem: null,
 
-_init: function(item) {
+_init: function(item, useIncognitoStyle) {
 	// Overriding the parent class' _init(), but calling that original function first
-	Classes.MenuViewer._init.call(this);
+	Classes.TileMenuViewer._init.call(this, useIncognitoStyle);
 
 	this.debug();
 	this._item = item;
