@@ -15,7 +15,11 @@ TODO 2.0
   * Review tmConsole.showSearchParserInfo()
   * Review PopupDocker._backgroundCommandCb()
 
-- Support separate pinned bookmakrs for incognito and standard tabs
+- Support separate pinned bookmarks for incognito and standard tabs
+
+- When in incognito bsTab, use "+" to launch incognito tab
+
+- Check how gracefully shrinking the popup behaves with 3 bsTabs
 
 - BUG: deduplication should not work between standard and incognito tabs
 
