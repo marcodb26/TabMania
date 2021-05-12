@@ -233,7 +233,11 @@ _processRecentlyClosedTabs: function(sessions) {
 				// 
 				// Also filter out any tab that identifies a previous instance of the TabMania popup.
 				if(tab.url != popupUrl && tab.index != -1) {
-					this._assert(!tab.active, logHead + "recently closed tabs can't be active", tab);
+					if(tab.active) {
+						this._log(logHead + "recently closed tabs should not be active", tab);
+						// But we know they sometimes are, not sure there's any value in reminding
+						// ourselves of that with this log message...
+					}
 					tabNormalizer.normalize(tab, { type: Classes.TabNormalizer.type.RCTAB });
 					// Let's remember which window this tab is coming from. As a minimum, this
 					// can give us a hint that this tab might be trouble. We only know for sure
