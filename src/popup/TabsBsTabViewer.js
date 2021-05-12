@@ -429,22 +429,21 @@ _processTabGroupsCb: function(tabGroups) {
 },
 
 // This function is not really async, but we're making it async for uniformity
-// with the _querySearchTabs() function.
+// with the _queryTabsSearchMode() function.
 //
-// "query" is a bit of a msnomer in this case, because we don't really trigger any
+// "query" is a bit of a misnomer in this case, because we don't really trigger any
 // expensive query in this case, we just get the data that is being managed over time
 // by this._tabsManager.
-_queryStandardTabs: async function() {
+_queryTabsFullMode: async function() {
 	let tabs = this._tabsManager.getTabs();
 	let pinnedBookmarksIdsFromTabs = this._tabsManager.getPinnedBookmarkIdsFromTabs();
-	// Get only the pinned bookmarks that are not already marked as pinInherited by a
-	// standard tab
+	// Get only the pinned bookmarks that are not already marked as pinInherited by a tab
 	let pinnedBookmarks = bookmarksManager.getPinnedBookmarks(pinnedBookmarksIdsFromTabs);
 
 	return tabs.concat(pinnedBookmarks);
 },
 
-_querySearchTabs: async function() {
+_queryTabsSearchMode: async function() {
 	// Give some feedback to the user in case this search is going to take a while...
 	this._setSearchBoxCountBlinking();
 
@@ -470,9 +469,9 @@ _queryAndRenderTabs: function(newSearch) {
 
 	let queryPromise = null;
 	if(this.isSearchActive()) {
-		queryPromise = this._querySearchTabs();
+		queryPromise = this._queryTabsSearchMode();
 	} else {
-		queryPromise = this._queryStandardTabs();
+		queryPromise = this._queryTabsFullMode();
 	}
 
 	queryPromise.then(
@@ -491,9 +490,9 @@ _queryAndRenderTabs: function(newSearch) {
 
 			perfProf.mark("renderStart");
 			if(this.isSearchActive()) {
-				this._renderSearchTabs(tabs, newSearch);
+				this._renderTabsSearchMode(tabs, newSearch);
 			} else {
-				this._renderStandardTabs(tabs);
+				this._renderTabsFullMode(tabs);
 			}
 			perfProf.mark("renderEnd");
 
@@ -607,8 +606,8 @@ _logCachedTilesStats: function(logHead) {
 	this._log(logHead + this._cachedTilesUpdateNeededCnt + " cached tiles needed a re-render");
 },
 
-_renderStandardTabs: function(tabs) {
-	const logHead = "TabsBsTabViewer::_renderStandardTabs(): ";
+_renderTabsFullMode: function(tabs) {
+	const logHead = "TabsBsTabViewer::_renderTabsFullMode(): ";
 
 	perfProf.mark("groupStart");
 	let [ pinnedGroups, unpinnedGroups ] = this._groupsBuilder.groupByHostname(tabs);
@@ -633,8 +632,8 @@ _renderStandardTabs: function(tabs) {
 	perfProf.measure("Render tiles", "tilesStart", "tilesEnd");
 },
 
-_renderSearchTabs: function(tabs, newSearch) {
-	const logHead = "TabsBsTabViewer::_renderSearchTabs(): ";
+_renderTabsSearchMode: function(tabs, newSearch) {
+	const logHead = "TabsBsTabViewer::_renderTabsSearchMode(): ";
 
 	perfProf.mark("searchSortStart");
 	tabs = tabs.sort(Classes.TabNormalizer.compareTabsFn);
@@ -715,14 +714,14 @@ _activateSearchBox: function(active) {
 	active = optionalWithDefault(active, true);
 
 	const logHead = "TabsBsTabViewer::_activateSearchBox(" + active + "): ";
-	// When search mode gets activated, we need to switch from a standard view of
+	// When search mode gets activated, we need to switch from a full view of
 	// tabs and tabgroups to a view of only tabs. And viceversa when the search
 	// mode gets deactivated.
 	if(!active) {
-		this._log(logHead, "switching to standard render");
-		// Switch back to the standard view
+		this._log(logHead, "switching to full render");
+		// Switch back to the full view
 		this._TabsBsTabViewer_searchBoxInactiveInner();
-		// Since we're exiting the search, we need to re-render the standard view
+		// Since we're exiting the search, we need to re-render the full view
 		this._queryAndRenderTabs();
 	} else {
 		this._log(logHead, "switching to search render");
