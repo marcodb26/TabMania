@@ -43,7 +43,7 @@ _getBodyElem: function() {
 	if(this._rootElem != null) {
 		return this._rootElem;
 	}
-	
+
 	return null;
 },
 
@@ -80,6 +80,23 @@ addClasses: function(...args) {
 
 removeClasses: function(...args) {
 	this._rootElem.classList.remove(...args);
+},
+
+// Just useful for debugging
+getClasses: function() {
+	return Array.from(this._rootElem.classList);
+},
+
+addBodyClasses: function(...args) {
+	if(this._bodyElem != null) {
+		this._bodyElem.classList.add(...args);
+	}
+},
+
+removeBodyClasses: function(...args) {
+	if(this._bodyElem != null) {
+		this._bodyElem.classList.remove(...args);
+	}
 },
 
 // Overwrite the children of _bodyElem (or _rootElem if _bodyElem is null).

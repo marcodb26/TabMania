@@ -350,6 +350,28 @@
 	border-radius: 25%;
 }
 
+.tm-settings-item {
+	/* mx-2 */
+	margin-left: 0.5rem;
+	margin-right: 0.5rem;
+}
+
+.tm-settings-item:not(:first-child) {
+	/* Add spacing between settings items, but exclude the first, spacing before the
+	   first item should be managed by the containing element */
+	margin-top: 1rem; /* "mt-3" */
+}
+
+.tm-settings-card:not(:first-child) {
+	/* See .tm-settings-item:not(:first-child) */
+	margin-top: 0.5rem; /* "mt-2" */
+}
+
+.tm-settings-container:not(:first-child) {
+	/* See .tm-settings-item:not(:first-child) */
+	margin-top: 1rem; /* "mt-3" */
+}
+
 .tm-dropdown-item {
 	font-size: 0.75em;
 	padding-left: 1.75em;
@@ -694,11 +716,6 @@ Encoded with https://www.base64encode.org/
     border: 1px solid #e9ecef;
     border-left-width: .25rem;
     border-radius: .25rem;
-}
-
-.tm-callout-settings-card {
-    margin-top: 0.5rem;
-    padding-bottom: 0.5rem;
 }
 
 /* Matching the Bootstrap colors for consistency.

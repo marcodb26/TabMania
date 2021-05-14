@@ -38,7 +38,7 @@ _init: function(titleHtml, canClose) {
 	}
 
 	const rootHtml = `
-	<div class="tm-callout tm-callout-settings-card tm-hover tm-stacked-below">
+	<div class="tm-callout tm-settings-card tm-hover tm-stacked-below">
 		<div id="${titleId}" class="ms-2 fw-bold">${titleHtml}</div>
 		<div id="${bodyId}"></div>
 		${closeHtml}
@@ -126,7 +126,7 @@ _init: function(labelHtml) {
 	// set "display: none;", but fails on the inner <div> because "d-grid" is defined as
 	// "display: grid!important;" and the "!important" would overrides "display: none;"
 	const buttonHtml = `
-	<div class="mx-2 mt-3">
+	<div class="tm-settings-item">
 		<div class="d-grid gap-2">
 			<button id="${buttonId}" type="button" class="btn btn-primary">${labelHtml}</button>
 		</div>

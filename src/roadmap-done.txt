@@ -137,6 +137,13 @@ DONE 2.0
 
 - BUG: dropdown of bookmark tiles display as dark in incognito mode, they should show like close-icon
 
+- Cleaned up the rendering of settings containers and settings options
+  * Removed duplication in the initialization of option groups and settings containers
+  * We had too many random "mt-3" added and removed in many places, rationalized the spacing
+    between the various settings items and containers
+
+- Initial skeleton of "Incognito" configuration under "General settings"
+
 
 DONE 1.3
 

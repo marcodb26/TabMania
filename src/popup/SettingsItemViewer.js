@@ -19,7 +19,7 @@ Classes.SettingsItemViewer = Classes.HtmlViewer.subclass({
 	_helpHtml: null,
 
 	_rootHtml: `
-		<div class="mx-2 mt-3">
+		<div class="tm-settings-item">
 		</div>
 	`,
 

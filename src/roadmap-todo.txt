@@ -1,6 +1,6 @@
 TODO 2.0
 
-- BUG: while in search mode, when changing page in a tab, the new page (taht matches the search)
+- BUG: while in search mode, when changing page in a tab, the new page (that matches the search)
   doesn't show up in the search results if the old page was not part of the search results
 
 - Use the new localStore.isAllowedIncognitoAccess() to set up the settings view of that flag
