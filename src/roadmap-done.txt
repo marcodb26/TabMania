@@ -144,6 +144,9 @@ DONE 2.0
 
 - Initial skeleton of "Incognito" configuration under "General settings"
 
+- Now using localStore.isAllowedIncognitoAccess() instead of chrome.extension.isAllowedIncognitoAccess()
+  in SettingsBsTabViewer._renderIncognitoInfo(), and avoid the extra async wait
+
 
 DONE 1.3
 

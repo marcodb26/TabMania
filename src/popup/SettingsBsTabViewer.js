@@ -331,41 +331,39 @@ _renderIncognitoInfo: function(container) {
 	const extensionId = chromeUtils.getExtensionId();
 	const targetUrl = `chrome://extensions/?id=${extensionId}`;
 
+	let incognitoAccessEnabled = "enabled";
+	let extraFootnote = "";
+	if(!localStore.isAllowedIncognitoAccess()) {
+		incognitoAccessEnabled = "disabled";
+		extraFootnote = "Changes will apply only when access gets enabled. ";
+	}
+
 	// We'll keep the HREF in the link, even though we won't be able to use that
 	// HREF. We'll simulate a real link but instead redirect the request to the
 	// background.js to open the URL. Chrome doesn't allow opening a chrome://
 	// URL from within the popup.
 	const footnote = `
-		<div class="small">You can enable/disable access to incognito tabs in
+		<div class="small">${extraFootnote}You can enable/disable access to Incognito tabs in
 		the <a id="${linkId}" href="${targetUrl}" target="_blank">Chrome extension settings</a>
 	`;
 
-	// We'll set the contents when the chrome callback returns
 	const bodyHtml = `
 	<div class="tm-settings-item">
-		Loading...
+		<div>Access to Incognito tabs is <b>${incognitoAccessEnabled}</b><div> 
+		${footnote}
 	</div>
 	`;
 
 	let viewer = Classes.HtmlViewer.create(bodyHtml);
-	container.append(viewer);
 
-	// See https://developer.chrome.com/docs/extensions/reference/extension/#method-isAllowedIncognitoAccess
-	chromeUtils.wrap(chrome.extension.isAllowedIncognitoAccess, logHead).then(
-		function(isAllowedAccess) {
-			if(isAllowedAccess) {
-				viewer.setHtml("<div>Access to Incognito tabs is enabled<div>" + footnote);
-			} else {
-				viewer.setHtml("<div>Access to Incognito tabs is disabled<div>" + footnote);
-			}
-			let linkElem = viewer.getElementById(linkId);
-			linkElem.addEventListener("click",
-				function(ev) {
-					this.loadUrlThroughBackground(targetUrl);
-					ev.preventDefault();
-				}.bind(this), false);
-		}.bind(this)
-	);
+	let linkElem = viewer.getElementById(linkId);
+	linkElem.addEventListener("click",
+		function(ev) {
+			this.loadUrlThroughBackground(targetUrl);
+			ev.preventDefault();
+		}.bind(this), false);
+
+	container.append(viewer);
 },
 
 // Returns a container for the group of options, already attached to the
