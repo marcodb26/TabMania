@@ -79,7 +79,7 @@ isEqual: function(objA, objB, verbose) {
 				return false;
 			}
 			for(let i = 0; i < objA.length; i++) {
-				if(!this.isEqual(objA[i], objB[i])) {
+				if(!this.isEqual(objA[i], objB[i], verbose)) {
 					debugFn(logHead + "different array value at index:", i, objA, objB);
 					return false;
 				}
@@ -109,7 +109,7 @@ isEqual: function(objA, objB, verbose) {
 			debugFn(logHead + "different keys: " + keysA[i] + " / " + keysB[i]);
 			return false;
 		}
-		if(!this.isEqual(objA[keysA[i]], objB[keysB[i]])) {
+		if(!this.isEqual(objA[keysA[i]], objB[keysB[i]], verbose)) {
 			debugFn(logHead + "different values for key: " + keysA[i]);
 			return false;
 		}
