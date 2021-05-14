@@ -80,7 +80,7 @@ isEqual: function(objA, objB, verbose) {
 			}
 			for(let i = 0; i < objA.length; i++) {
 				if(!this.isEqual(objA[i], objB[i])) {
-					debugFn(logHead + "different array value at index " + i, objA, objB);
+					debugFn(logHead + "different array value at index:", i, objA, objB);
 					return false;
 				}
 			}

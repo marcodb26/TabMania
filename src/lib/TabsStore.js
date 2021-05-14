@@ -303,8 +303,8 @@ _tabsCmp: function(a, b) {
 	// comparison by including only properties that are not derived from other properties.
 	// We start by having this separate function in case we want to add that optimization later.
 
-	return tmUtils.isEqual(a, b, true);
-//	let retVal = tmUtils.isEqual(a, b);
+	return tmUtils.isEqual(a, b, false);
+//	let retVal = tmUtils.isEqual(a, b, true);
 //	if(!retVal) {
 //		this._log("TabsStore::_tabsCmp(): a and b are different", a, b);
 //	}
