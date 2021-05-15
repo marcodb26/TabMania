@@ -197,6 +197,17 @@ updateUrl: function(tab) {
 // If you're updating both title and URL, make sure to call updateUrl() first, as this
 // function depends on the right URL being in place.
 updateTitle: function(tab, oldTab) {
+	// Note that this is a bit of a slippery slope: if we change "tab.title", the next call
+	// to TabNormalizer.normalize() will find the title already change, and that could have
+	// bad side effects if we used the "has title changed?" info to set something in "tab.tm"
+	// (because we'd find out it's changed on the first call, but not on the second, so the
+	// answer to the question would change, though nothing has changed). Right now we're not
+	// trying to store the answer to this question, so we're ok here (no workaround needed),
+	// but ideally we should always leave "tab.title" as-is, and only modify our own "tab.tm.title"
+	// to make things cleaner.
+	// Note that we're having this exact problem with the tab.tm.useCachedFavIcon flag, which
+	// answer a question about tab.favIconUrl, but we change tab.favIconUrl, and the answer
+	// becomes inconsistent. See _updateFavIcon() for details.
 	tab.title = this._cleanupTitle(tab.title, tab.tm.url);
 	let lowerCaseTitle = tab.title.toLowerCase();
 
@@ -223,7 +234,23 @@ updateTitle: function(tab, oldTab) {
 _updateFavIcon: function(tab) {
 	let useCachedFavIcon = false;
 	const cachedFavIconUrl = this.buildCachedFavIconUrl(tab.tm.url);
-	if(tab.favIconUrl == null || tab.favIconUrl == "") {
+	if(tab.favIconUrl == null || tab.favIconUrl == "" || this.isCachedFavIconUrl(tab.favIconUrl)) {
+		// Since we allow multiple calls to TabNormalizer.normalize() for the same "tab" object,
+		// the logic in this function creates a problem when it modifies "tab.favIconUrl".
+		// The "tab.tm.useCachedFavIcon" flag answers the question "did we set the favicon to a
+		// cached URL?", which is a question about tab.favIconUrl, but since we change tab.favIconUrl
+		// at the first TabNormalizer.normalize() call, the first time we answer and the second time
+		// we answer we can get to different results (tab.tm.useCachedFavIcon can change from "true"
+		// to "false" at the second call for the same tab object, though nothing has really changed).
+		// It's not a huge deal but it creates confusion and triggers a lot of unnecessary updates
+		// downstream. That's why we implement this simple workaround, and add an extra check to see
+		// if "tab.favIconUrl" is already set to a cached favicon, because that can only happen if
+		// a previous call to TabNormalizer.normalize() changed it. In other words, we could also
+		// avoid this issue by getting rid of the flag "cachedFavIconUrl", and simply call the function
+		// isCachedFavIconUrl() every time, but since that function is expensive, we'd rather just
+		// cache its result once here.
+		// See also updateTitle() for another place where we could have the same problem (but we don't
+		// have it yet right now).
 		tab.favIconUrl = cachedFavIconUrl;
 		useCachedFavIcon = true;
 	}
@@ -732,14 +759,24 @@ normalize: function(tab, options) {
 
 	switch(type) {
 		case Classes.TabNormalizer.type.TAB:
+			this._updateSearchBadges(tab);
 			// Bookmarks don't need shortcut badges because they can't be invoked
 			// via custom shortcuts (though the URL in a custom shortcut could match
 			// the URL of a bookmark, they're slightly different things, let's not mix
 			// them up).
 			if(addShortcutBadges) {
+				// Make sure to take this action last: when you call TabNormalizer.normalize()
+				// multiple times, typically the first time "addShortcutBadges == false" because
+				// we must add the shortcut badges separately (see TabsManager._queryTabs()),
+				// but the following time "addShortcutBadges == true". So if we compare the
+				// tab info before and after the second call, with this function on top we'd
+				// get the items in the search badges array ordered differently, and that would
+				// trigger tmUtils.isEqual() to return "false" and generate unnecessary "update"
+				// events downstream. Maybe we should re-sort the search badges to make this more
+				// stable, but for now keeping the addShortcutBadges() call at the end seems to be
+				// enough.
 				this.addShortcutBadges(tab);
 			}
-			this._updateSearchBadges(tab);
 			break;
 		case Classes.TabNormalizer.type.RCTAB:
 			// No shortcut badges for Recently Closed Tabs
