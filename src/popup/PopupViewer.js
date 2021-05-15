@@ -114,11 +114,18 @@ Classes.PopupViewer = Classes.BootstrapTabsViewer.subclass({
 
 	_splitIncognito: null,
 
+	// popupViewer can replace bsTabs when "_splitIncognito" changes. We want the IDs
+	// of each instance of bsTabs to be distinguishable, and that's what _bsTabInstanceCnt
+	// is for.
+	_bsTabInstanceCnt: null,
+
+
 // Unfortunately "parentElem" is necessary here, see comment inside _init()
 _init: function(parentElem) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.BootstrapTabsViewer._init.apply(this, arguments);
 
+	this._bsTabInstanceCnt = 0;
 	this._bsTabViewersDict = {};
 	this._bsTabActivatedCbBound = this._bsTabActivatedCb.bind(this);
 
@@ -197,13 +204,14 @@ _bsTabActivatedCb: function(ev) {
 	localStore.setActiveBsTabId(ev.target.id);
 },
 
+
 // "initOptions" is a dict of options passed to the createAs() function.
 // It's not an optional argument, because you must at least pass "labelHtml".
 _createBsTabInner: function(bsTabLabel, bsTabViewerSubclass, initOptions) {
 	bsTabViewerSubclass = optionalWithDefault(bsTabViewerSubclass, Classes.BsTabViewer);
 	const bsTabId = this.getBsTabIdByLabel(bsTabLabel);
 
-	this._bsTabViewersDict[bsTabId] = bsTabViewerSubclass.createAs(bsTabId, initOptions);
+	this._bsTabViewersDict[bsTabId] = bsTabViewerSubclass.createAs(bsTabId + this._bsTabInstanceCnt++, initOptions);
 
 	this._bsTabViewersDict[bsTabId].addBsTabActivationStartListener(this._bsTabActivatedCbBound);
 
