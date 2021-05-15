@@ -455,10 +455,13 @@ _generateDiffEvents: function(oldTabList) {
 _settingsStoreUpdatedCb: function(ev) {
 	const logHead = "TabsManager::_settingsStoreUpdatedCb(" + ev.detail.key + "): ";
 
-
-	if(ev.detail.key == "pinnedGroups") {
+	if([ "pinnedGroups" ].includes(ev.detail.key)) {
 		// Changes to "pinnedGroups" don't impact badges of tabs, so they're not of
-		// interest for this class
+		// interest for this class.
+		// Changes to "options.incognitoTabs" on the other hand will trigger TabsBsTabViewer
+		// (the owner of the TabsManager) to drop the current instance and spawn a
+		// new one, so no reason to do further processing, this instance is about to
+		// be taken out of commission, but we don't have that info in the event... :-(
 		this._log(logHead + "ignoring key");
 		return;
 	}

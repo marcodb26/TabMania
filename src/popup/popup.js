@@ -28,7 +28,7 @@ var popupMsgServer = null;
 function testSettings() {
 //	settingsStore.setOptionDevMode(true);
 
-	settingsStore.setOptionIncognitoBsTab(false);
+//	settingsStore.setOptionIncognitoBsTab(false);
 
 	settingsStore.setOptionSearchUrl("https://duckduckgo.com/?q=%s");
 //	settingsStore.setOptionShowTabId(true);

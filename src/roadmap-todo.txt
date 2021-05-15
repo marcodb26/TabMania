@@ -1,9 +1,28 @@
 TODO 2.0
 
+- We need to have a discard() for TabsManager like we have it for TabsBsTabViewer
+
+- Implement "Incognito" option "Include bookmarks in Incognito search"
+
+- Improve handling of "options.incognitoBsTab" by TabsBsTabViewer (ignore event)
+  and TabsManager (ignore event)
+  * When we ignore the event, it's safe to ignore even if "incognitoBsTab" is not
+    the only option that has changed, because anyway TabsBsTabViewer and TabsManager
+	are about to be respawned, no point in trying to stay in sync
+
+- BUG: pin inheritance for tile group button (from tile group member) shows invisible
+  thumbtack icon for incognito tabs
+
+- Use the pattern "logHead, '<string>'" instead of "logHead + '<string>'"
+	// No extra space at the end of the "logHead" string, because we're starting to
+	// use comma instead of "+" to concatenate this._log() messages. The comma is more
+	// efficient than the "+" sign when this._log() or debugFn() are mapped to emptyFn().
+	// When we map them to emptyFn() we want the overhead to be minimal, and the overhead
+	// of the pattern "logHead + '<string>'" is definitely higher than the overhead of
+	// the pattern "logHead, '<string>'".
+
 - BUG: while in search mode, when changing page in a tab, the new page (that matches the search)
   doesn't show up in the search results if the old page was not part of the search results
-
-- Add config for split of bsTab between standard and incognito tabs
 
 - Now that we have 2 searchable bsTabs:
   * Test tmConsole.showTabInfo()

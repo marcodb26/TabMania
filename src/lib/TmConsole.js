@@ -23,7 +23,7 @@ showStorage: function() {
 },
 
 _showTabInfoInner: function(tabId, bsTabLabel) {
-	let tabsBsTabViewer = popupViewer.getBsTabByBsTabLabel(bsTabLabel);
+	let tabsBsTabViewer = popupViewer.getBsTabByLabel(bsTabLabel);
 
 	let [ tabInfo, tileInfo ] = tabsBsTabViewer.getTabInfo(tabId);
 

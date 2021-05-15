@@ -18,6 +18,9 @@ Classes.BsTabViewer = Classes.Viewer.subclass({
 	// body, almost nothing should ever happen to its header after initialization.
 	_rootElem: null,
 
+	_activationListenerCbBound: null,
+	_deactivationListenerCbBound: null,
+
 _init: function({ labelHtml }) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.Viewer._init.call(this);
@@ -80,8 +83,18 @@ _createBsTab: function(bsTabLabelHtml) {
 	this._triggerElem = this._headingElem.querySelector("#" + headingId);
 	this._rootElem = this._elementGen(bodyHtml);
 
-	this.addBsTabActivationStartListener(this._setParentActiveClass.bind(this, true));
-	this.addBsTabDeactivationStartListener(this._setParentActiveClass.bind(this, false));
+	this._activationListenerCbBound = this._setParentActiveClass.bind(this, true);
+	this._deactivationListenerCbBound = this._setParentActiveClass.bind(this, false);
+	this.addBsTabActivationStartListener(this._activationListenerCbBound);
+	this.addBsTabDeactivationStartListener(this._deactivationListenerCbBound);
+},
+
+discard: function() {
+	this.removeBsTabActivationStartListener(this._activationListenerCbBound);
+	this.removeBsTabDeactivationStartListener(this._deactivationListenerCbBound);
+
+	this._headingElem.remove();
+	this._rootElem.remove();
 },
 
 // The signature of the callback is function(event).
@@ -92,6 +105,10 @@ addBsTabActivationStartListener: function(fn) {
 	// tab switch, but before the new tab panel has been rendered
 	// Ses https://getbootstrap.com/docs/5.0/components/navs-tabs/#events
 	this._triggerElem.addEventListener("show.bs.tab", fn);
+},
+
+removeBsTabActivationStartListener: function(fn) {
+	this._triggerElem.removeEventListener("show.bs.tab", fn);
 },
 
 addBsTabActivationEndListener: function(fn) {
@@ -109,6 +126,10 @@ addBsTabDeactivationStartListener: function(fn) {
 	// tab switch, but before the tab switch has happened.
 	// Ses https://getbootstrap.com/docs/5.0/components/navs-tabs/#events
 	this._triggerElem.addEventListener("hide.bs.tab", fn);
+},
+
+removeBsTabDeactivationStartListener: function(fn) {
+	this._triggerElem.removeEventListener("hide.bs.tab", fn);
 },
 
 // The signature of the callback is function(event).

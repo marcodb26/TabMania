@@ -476,30 +476,22 @@ _renderIncognitoOptions: function() {
 
 	this._renderIncognitoInfo(incognitoGroup);
 
-	let bookmarksInSearch = Classes.SettingsCheckboxItemViewer.create({
-		setFn: settingsStore.setOptionBookmarksInSearch.bind(settingsStore),
-		getFn: settingsStore.getOptionBookmarksInSearch.bind(settingsStore),
-		label: "Include bookmarks",
+	let splitIncognitoBsTab = Classes.SettingsCheckboxItemViewer.create({
+		setFn: settingsStore.setOptionIncognitoBsTab.bind(settingsStore),
+		getFn: settingsStore.getOptionIncognitoBsTab.bind(settingsStore),
+		label: "Track Incognito tabs separately",
 		updateKey: "options",
 	});
-	incognitoGroup.append(bookmarksInSearch);
+	incognitoGroup.append(splitIncognitoBsTab);
 
-	let recentlyClosedInSearch = Classes.SettingsCheckboxItemViewer.create({
+	// TBD TBD NOT IMPLEMENTED
+	let bookmarksInIncognitoSearch = Classes.SettingsCheckboxItemViewer.create({
 		setFn: settingsStore.setOptionRecentlyClosedInSearch.bind(settingsStore),
 		getFn: settingsStore.getOptionRecentlyClosedInSearch.bind(settingsStore),
-		label: "Include recently closed tabs",
+		label: "Include bookmarks in Incognito search",
 		updateKey: "options",
 	});
-	incognitoGroup.append(recentlyClosedInSearch);
-
-	let historyInSearch = Classes.SettingsCheckboxPermViewer.create({
-		setFn: settingsStore.setOptionHistoryInSearch.bind(settingsStore),
-		getFn: settingsStore.getOptionHistoryInSearch.bind(settingsStore),
-		label: "Include browsing history",
-		updateKey: "options",
-		permission: "history"
-	});
-	incognitoGroup.append(historyInSearch);
+	incognitoGroup.append(bookmarksInIncognitoSearch);
 },
 
 _renderSettings: function() {

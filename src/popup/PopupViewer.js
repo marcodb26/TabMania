@@ -82,6 +82,16 @@ append: function(bsTabViewer) {
 	Classes.Viewer.append.apply(this, arguments);
 },
 
+// This function assumes that "oldBsTabViewer" is already attached to something
+replace: function(oldBsTabViewer, newBsTabViewer) {
+	let oldHeadingElem = oldBsTabViewer.getHeadingElement();
+	// See https://developer.mozilla.org/en-US/docs/Web/API/ChildNode/replaceWith
+	oldHeadingElem.replaceWith(newBsTabViewer.getHeadingElement());
+
+	let oldRootElem = oldBsTabViewer.getRootElement();
+	oldRootElem.replaceWith(newBsTabViewer.getRootElement());
+},
+
 // Append a button to the button bar
 appendButton: function(viewer) {
 	this._buttonBarElem.append(viewer.getRootElement());
@@ -100,12 +110,17 @@ Classes.PopupViewer = Classes.BootstrapTabsViewer.subclass({
 
 	_activeBsTabId: null,
 
+	_bsTabActivatedCbBound: null,
+
+	_splitIncognito: null,
+
 // Unfortunately "parentElem" is necessary here, see comment inside _init()
 _init: function(parentElem) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.BootstrapTabsViewer._init.apply(this, arguments);
 
 	this._bsTabViewersDict = {};
+	this._bsTabActivatedCbBound = this._bsTabActivatedCb.bind(this);
 
 	this._populateTabs();
 	perfProf.mark("popupViewerEnd");
@@ -124,6 +139,34 @@ _init: function(parentElem) {
 
 	// "tabsList" is a notification, we don't need to respond to it (last argument set to "false")
 	popupMsgServer.addCmd("tabsList", this._tabsListNotificationCb.bind(this), false);
+
+	settingsStore.addEventListener(Classes.EventManager.Events.UPDATED, this._settingsStoreUpdatedCb.bind(this));
+},
+
+_settingsStoreUpdatedCb: function(ev) {
+	const logHead = "PopupViewer::_settingsStoreUpdatedCb(" + ev.detail.key + "):";
+
+	if(ev.detail.key != "options") {
+		// Nothing to do, we only need to monitor "options.incognitoBsTab", and only when TabMania
+		// is allowed to manage incognito tabs
+		this._log(logHead, "ignoring key", ev.detail);
+		return;
+	}
+
+	let newSplitIncognito = settingsStore.getOptionIncognitoBsTab() && localStore.isAllowedIncognitoAccess();
+
+	if(newSplitIncognito === this._splitIncognito) {
+		// Nothing to do, we only need to monitor "options.incognitoBsTab", and only when TabMania
+		// is allowed to manage incognito tabs
+		this._log(logHead, "this._splitIncognito has not changed, nothing to do", this._splitIncognito);
+		return;
+	}
+
+	this._log(logHead, "processing change in this._splitIncognito, now set to", this._splitIncognito);
+	this._splitIncognito = newSplitIncognito;
+
+	this._replaceBsTab("home", Classes.TabsBsTabViewer,
+					{ labelHtml: "Home-new", standardTabs: true, incognitoTabs: !this._splitIncognito });
 },
 
 _initActiveTabId: function(results) {
@@ -158,27 +201,48 @@ getBsTabId: function(bsTabLabel) {
 	return this._id + "-" + bsTabLabel;
 },
 
-// "initOptions" is an dict of options passed to the createAs() function.
+// "initOptions" is a dict of options passed to the createAs() function.
 // It's not an optional argument, because you must at least pass "labelHtml".
-_createBsTab: function(bsTabLabel, bsTabViewerSubclass, initOptions) {
+_createBsTabInner: function(bsTabLabel, bsTabViewerSubclass, initOptions) {
 	bsTabViewerSubclass = optionalWithDefault(bsTabViewerSubclass, Classes.BsTabViewer);
 	const bsTabId = this.getBsTabId(bsTabLabel);
 
 	this._bsTabViewersDict[bsTabId] = bsTabViewerSubclass.createAs(bsTabId, initOptions);
 
-	this._bsTabViewersDict[bsTabId].addBsTabActivationStartListener(this._bsTabActivatedCb.bind(this));
-	this.append(this._bsTabViewersDict[bsTabId]);
+	this._bsTabViewersDict[bsTabId].addBsTabActivationStartListener(this._bsTabActivatedCbBound);
 
 	return this._bsTabViewersDict[bsTabId];
 },
 
+// "initOptions" is a dict of options passed to the createAs() function.
+// It's not an optional argument, because you must at least pass "labelHtml".
+_createBsTab: function(bsTabLabel, bsTabViewerSubclass, initOptions) {
+	let newBsTab = this._createBsTabInner.apply(this, arguments);
+	this.append(newBsTab);
+},
+
+// "initOptions" is a dict of options passed to the createAs() function.
+// It's not an optional argument, because you must at least pass "labelHtml".
+_replaceBsTab: function(bsTabLabel, bsTabViewerSubclass, initOptions) {
+	let oldBsTabViewer = this.getBsTabByLabel(bsTabLabel);
+	oldBsTabViewer.removeBsTabActivationStartListener(this._bsTabActivatedCbBound);
+
+	let newBsTabViewer = this._createBsTabInner.apply(this, arguments);
+	this.replace(oldBsTabViewer, newBsTabViewer);
+
+	// Do this at the end, because internally BsTabViewer.discard() removes the viewer
+	// from the DOM, and we need it to be in the DOM in order for this.replace() to
+	// work correctly
+	oldBsTabViewer.discard();
+},
+
 _populateTabs: function() {
-	let splitIncognito = settingsStore.getOptionIncognitoBsTab() && localStore.isAllowedIncognitoAccess();
+	this._splitIncognito = settingsStore.getOptionIncognitoBsTab() && localStore.isAllowedIncognitoAccess();
 
 	this._createBsTab("home", Classes.TabsBsTabViewer,
-					{ labelHtml: "Home", standardTabs: true, incognitoTabs: !splitIncognito });
+					{ labelHtml: "Home", standardTabs: true, incognitoTabs: !this._splitIncognito });
 
-	if(splitIncognito) {
+	if(this._splitIncognito) {
 		this._createBsTab("incognito", Classes.TabsBsTabViewer,
 						{ labelHtml: "Incognito", standardTabs: false, incognitoTabs: true });
 	}
@@ -209,15 +273,15 @@ activateBsTabById: function(bsTabId) {
 	}
 
 	this._activeBsTabId = bsTabId;
-	this.getBsTabViewerById(this._activeBsTabId).activate();
+	this.getBsTabById(this._activeBsTabId).activate();
 	return true;
 },
 
-activateBsTab: function(bsTabLabel) {
+activateBsTabByLabel: function(bsTabLabel) {
 	return this.activateBsTabById(this.getBsTabId(bsTabLabel));
 },
 
-getBsTabViewerById: function(bsTabId) {
+getBsTabById: function(bsTabId) {
 	return this._bsTabViewersDict[bsTabId];
 },
 
@@ -225,13 +289,13 @@ getActiveBsTabId: function() {
 	return this._activeBsTabId;
 },
 
-getBsTabByBsTabLabel: function(bsTabLabel) {
+getBsTabByLabel: function(bsTabLabel) {
 	let bsTabId = this.getBsTabId(bsTabLabel);
-	return this.getBsTabViewerById(bsTabId);
+	return this.getBsTabById(bsTabId);
 },
 
 getHomeBsTab: function() {
-	return this.getBsTabByBsTabLabel("home");
+	return this.getBsTabByLabel("home");
 },
 
 // This function returns "true" only if the home tab is visible, besides being

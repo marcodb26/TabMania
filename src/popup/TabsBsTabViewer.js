@@ -299,7 +299,7 @@ _bookmarkUpdatedCb: function(ev) {
 },
 
 _settingsStoreUpdatedCb: function(ev) {
-	const logHead = "TabsBsTabViewer::_settingsStoreUpdatedCb(" + ev.detail.key + "): ";
+	const logHead = "TabsBsTabViewer::_settingsStoreUpdatedCb(" + ev.detail.key + "):";
 
 	// The answer to all events is always the same, re-render everything.
 	// In this case though, we can skip the re-query, since there's no
@@ -318,12 +318,18 @@ _settingsStoreUpdatedCb: function(ev) {
 	// custom group colors.
 	if(!this.isSearchActive() && !([ "pinnedGroups", "customGroups" ].includes(ev.detail.key))) {
 		// Nothing to do, all other cases are managed by TabsManager and
-		// converted to UPDATED events
-		this._log(logHead + "ignoring key", ev.detail);
+		// converted to UPDATED events.
+		this._log(logHead, "ignoring key", ev.detail);
 		return;
 	}
 
-	this._log(logHead + "entering", ev.detail);
+	// We should filter out "options.incognitoBsTab", which is managed by popupViewer,
+	// and popupViewer causes the spawn of a new instance, so no point in taking any action
+	// in the old instance. On the other hand, "ev.detail" is set broadly to "options", and
+	// we don't know which option has changed, so we can't easily interrupt the flow. We
+	// could check explicitly if "options.incognitoBsTab" has changed, but it could be one
+	// change of many...
+	this._log(logHead, "entering", ev.detail);
 	this._queryAndRenderJob.run(this._queryAndRenderDelay);
 },
 

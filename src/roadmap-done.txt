@@ -147,6 +147,22 @@ DONE 2.0
 - Now using localStore.isAllowedIncognitoAccess() instead of chrome.extension.isAllowedIncognitoAccess()
   in SettingsBsTabViewer._renderIncognitoInfo(), and avoid the extra async wait
 
+- BUG: "verbose" flag not propagated in recursion of TmUtils.isEqual()
+
+- Speeding up tmUtils.isEqual() by avoiding string concatenation when this._log() is mapped to emptyFn()
+  * We should start using that pattern everywhere
+
+- BUG: in some cases, a second call to TabsNormalizer.normalize() for the same "tab" object causes the
+  "tab" object to become different even though nothing has changed
+  * This triggers unnecessary update events downstream
+
+- Add config for split of bsTab between standard and incognito tabs
+  * Partially implemented, only the "Home" bsTab gets updated, not the "Incognito" bsTab
+  * Note that we completely respawn the "Home" bsTab, so we lose track of any state that
+    is not persisted (any active search, and scrolling position)
+	- Why do we lose the scrolling position, is it tracked inside TabsBsTabViewer, or inside
+	  popupViewer?
+
 
 DONE 1.3
 
