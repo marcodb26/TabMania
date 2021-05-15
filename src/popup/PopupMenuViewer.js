@@ -49,7 +49,7 @@ _setDockToggleText: function() {
 },
 
 _initBsTabMenuItem: function(menuText, bsTabLabel) {
-	let bsTabId = this._popupViewer.getBsTabId(bsTabLabel);
+	let bsTabId = this._popupViewer.getBsTabIdByLabel(bsTabLabel);
 	let options = {
 		labelText: menuText,
 		actionFn: this._actionActivateBsTab.bind(this, bsTabId),

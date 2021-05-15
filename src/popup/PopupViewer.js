@@ -184,7 +184,7 @@ _initActiveTabId: function(results) {
 		}
 	}
 
-	activeBsTabId = this.getBsTabId("home");
+	activeBsTabId = this.getBsTabIdByLabel("home");
 	this._log(logHead + "initializing Bootstrap tabId to default:", activeBsTabId);
 	this.activateBsTabById(activeBsTabId)
 },
@@ -197,15 +197,11 @@ _bsTabActivatedCb: function(ev) {
 	localStore.setActiveBsTabId(ev.target.id);
 },
 
-getBsTabId: function(bsTabLabel) {
-	return this._id + "-" + bsTabLabel;
-},
-
 // "initOptions" is a dict of options passed to the createAs() function.
 // It's not an optional argument, because you must at least pass "labelHtml".
 _createBsTabInner: function(bsTabLabel, bsTabViewerSubclass, initOptions) {
 	bsTabViewerSubclass = optionalWithDefault(bsTabViewerSubclass, Classes.BsTabViewer);
-	const bsTabId = this.getBsTabId(bsTabLabel);
+	const bsTabId = this.getBsTabIdByLabel(bsTabLabel);
 
 	this._bsTabViewersDict[bsTabId] = bsTabViewerSubclass.createAs(bsTabId, initOptions);
 
@@ -278,7 +274,11 @@ activateBsTabById: function(bsTabId) {
 },
 
 activateBsTabByLabel: function(bsTabLabel) {
-	return this.activateBsTabById(this.getBsTabId(bsTabLabel));
+	return this.activateBsTabById(this.getBsTabIdByLabel(bsTabLabel));
+},
+
+getBsTabIdByLabel: function(bsTabLabel) {
+	return this._id + "-" + bsTabLabel;
 },
 
 getBsTabById: function(bsTabId) {
@@ -290,7 +290,7 @@ getActiveBsTabId: function() {
 },
 
 getBsTabByLabel: function(bsTabLabel) {
-	let bsTabId = this.getBsTabId(bsTabLabel);
+	let bsTabId = this.getBsTabIdByLabel(bsTabLabel);
 	return this.getBsTabById(bsTabId);
 },
 
@@ -302,7 +302,7 @@ getHomeBsTab: function() {
 // in search mode. If the settings tab is visible, this function returns false
 // regardless of the SearchableBsTabViewer.isSearchActive() response.
 isSearchActive: function() {
-	let homeBsTabId = this.getBsTabId("home");
+	let homeBsTabId = this.getBsTabIdByLabel("home");
 	if(this.getHomeBsTab().isSearchActive() && this.getActiveBsTabId() == homeBsTabId) {
 		return true;
 	}
