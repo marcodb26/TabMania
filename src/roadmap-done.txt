@@ -170,6 +170,8 @@ DONE 2.0
   bsTab"
   * We should now be calling removeEventListener() and removeListener() as necessary for
     all events registered by instances of these classes
+  * Also fixed a few race conditions when early calls (before instance initialization ended)
+    to discard() are made
 
 
 DONE 1.3
