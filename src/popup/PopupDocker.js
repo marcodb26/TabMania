@@ -11,6 +11,9 @@ Classes.PopupDocker = Classes.PopupDockerBase.subclass({
 	_savePopupSizeJob: null,
 	_savePopupSizeDelay: 1000,
 
+	// ELW = EventListenersWrapper
+	_elw: null,
+
 _init: function() {
 	const logHead = "PopupDocker::_init(): ";
 
@@ -19,6 +22,8 @@ _init: function() {
 
 	this.debug();
 
+	this._elw = Classes.EventListenersWrapper.create();
+
 	this._savePopupSizeJob = Classes.ScheduledJob.createAs(this._id + ".savePopupSize", this._savePopupSize.bind(this));
 	this._savePopupSizeJob.debug();
 
@@ -26,6 +31,8 @@ _init: function() {
 	localStore.addEventListener(Classes.EventManager.Events.UPDATED, this._updatedCb.bind(this));
 
 	this._addBackgroundCommandsListener();
+
+	window.addEventListener("unload", this._onUnloadCb.bind(this));
 
 	if(!this.isPopupDocked()) {
 		chromeUtils.queryTabs({ currentWindow: true }, logHead).then(
@@ -38,10 +45,6 @@ _init: function() {
 				chrome.tabs.onCreated.addListener(this._popupDefenderCb.bind(this));
 
 				window.addEventListener("resize", this._onResizeCb.bind(this));
-				// Since there's a "resize" event, but no "move" event for when the window
-				// moves, we use the unload event to capture the popup position right before
-				// the popup got closed.
-				window.addEventListener("unload", this._onUnloadCb.bind(this));
 			}.bind(this)
 		);
 	}
@@ -62,7 +65,17 @@ _addBackgroundCommandsListener: function() {
 		return;
 	}
 
-	popupDockerBgElem.addEventListener(Classes.EventManager.Events.UPDATED, this._backgroundCommandCb.bind(this));
+	// Since we never discard() the popupDocker, we don't need to track most
+	// events with the this._elw. The only exception is the background page.
+	// Callbacks attached to events from the background page will cause the
+	// whole popup context to continue to consume memory even after the user
+	// closes or reloads the popup, triggering what seems to be a massive
+	// memory leak (the popup size increases by 3-9MB at every popup reload).
+	// In order to keep the popup size from forever growing, we must remove this
+	// event handler when the popup closes or reloads, and we're using the "unload"
+	// event for this (see _onUnloadCb() for details).
+//	popupDockerBgElem.addEventListener(Classes.EventManager.Events.UPDATED, this._backgroundCommandCb.bind(this));
+	this._elw.listen(popupDockerBgElem, Classes.EventManager.Events.UPDATED, this._backgroundCommandCb.bind(this));
 },
 
 _loadCb: function(ev) {
@@ -135,11 +148,22 @@ _onResizeCb: function(ev) {
 },
 
 _onUnloadCb: function(ev) {
-	// Since there's a "resize" event, but no "move" event for when the window
-	// moves, we use the unload event to capture the popup position right before
-	// the popup got closed.
-	// Don't use the delayed _savePopupSizeJob, we need to take the action immediately.
-	this._savePopupSize();
+	const logHead = "PopupDocker::_onUnloadCb():";
+
+	this._log(logHead, "entering");
+
+	if(!this.isPopupDocked()) {
+		// Since there's a "resize" event, but no "move" event for when the window
+		// moves, we use the unload event to capture the popup position right before
+		// the popup got closed.
+		// Don't use the delayed _savePopupSizeJob, we need to take the action immediately.
+		this._savePopupSize();
+	}
+
+	this._elw.discard();
+	this._elw = null;
+
+	this._log(logHead, "completed");
 },
 
 _savePopupSize: function() {

@@ -173,6 +173,9 @@ DONE 2.0
   * Also fixed a few race conditions when early calls (before instance initialization ended)
     to discard() are made
 
+- BUG: massive Chrome memory leak on popup reload
+  * Worked around by removing a background page event listener on popup unload
+
 
 DONE 1.3
 
