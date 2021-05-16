@@ -110,19 +110,38 @@ _init: function({ labelHtml, standardTabs, incognitoTabs }) {
 },
 
 _asyncInitCb: function() {
-	this._registerTabsManagerCallbacks();
-	bookmarksManager.addEventListener(Classes.EventManager.Events.UPDATED, this._bookmarkUpdatedCb.bind(this));
-	this._historyFinder.addEventListener(Classes.EventManager.Events.UPDATED, this._historyUpdatedCb.bind(this));
+	const logHead = "TabsBsTabViewer::_asyncInitCb():";
+	if(this._queryCycleNo != 0) {
+		if(this._elw == null) {
+			this._log(logHead, "discard() called before initialization completed, giving up");
+			return;
+		}
+		// Unexpected, _queryCycleNo has been updated, but we're not in a discard() case
+		this._err(logHead, "unexpected, _queryCycleNo updated before initialization completed", this._queryCycleNo);
+	}
 
-	settingsStore.addEventListener(Classes.EventManager.Events.UPDATED, this._settingsStoreUpdatedCb.bind(this));
+	this._registerTabsManagerCallbacks();
+//	bookmarksManager.addEventListener(Classes.EventManager.Events.UPDATED, this._bookmarkUpdatedCb.bind(this));
+	this._elw.listen(bookmarksManager, Classes.EventManager.Events.UPDATED, this._bookmarkUpdatedCb.bind(this));
+
+//	this._historyFinder.addEventListener(Classes.EventManager.Events.UPDATED, this._historyUpdatedCb.bind(this));
+	this._elw.listen(this._historyFinder, Classes.EventManager.Events.UPDATED, this._historyUpdatedCb.bind(this));
+
+//	settingsStore.addEventListener(Classes.EventManager.Events.UPDATED, this._settingsStoreUpdatedCb.bind(this));
+	this._elw.listen(settingsStore, Classes.EventManager.Events.UPDATED, this._settingsStoreUpdatedCb.bind(this));
 
 	this._TabsBsTabViewer_render();
 },
 
 _registerTabsManagerCallbacks: function() {
-	this._tabsManager.addEventListener(Classes.TabsManager.Events.CREATED, this._tabCreatedCb.bind(this));
-	this._tabsManager.addEventListener(Classes.TabsManager.Events.REMOVED, this._tabRemovedCb.bind(this));
-	this._tabsManager.addEventListener(Classes.TabsManager.Events.UPDATED, this._tabUpdatedCb.bind(this));
+//	this._tabsManager.addEventListener(Classes.TabsManager.Events.CREATED, this._tabCreatedCb.bind(this));
+	this._elw.listen(this._tabsManager, Classes.TabsManager.Events.CREATED, this._tabCreatedCb.bind(this));
+
+//	this._tabsManager.addEventListener(Classes.TabsManager.Events.REMOVED, this._tabRemovedCb.bind(this));
+	this._elw.listen(this._tabsManager, Classes.TabsManager.Events.REMOVED, this._tabRemovedCb.bind(this));
+
+//	this._tabsManager.addEventListener(Classes.TabsManager.Events.UPDATED, this._tabUpdatedCb.bind(this));
+	this._elw.listen(this._tabsManager, Classes.TabsManager.Events.UPDATED, this._tabUpdatedCb.bind(this));
 },
 
 _tabCreatedCb: function(ev) {
@@ -395,8 +414,10 @@ _disableContextMenuOnTouchEnd: function() {
 	}.bind(this);
 
 	let rootElem = this.getRootElement();
-	rootElem.addEventListener("touchend", monitorTouchEndCb, false);
-	rootElem.addEventListener("contextmenu", monitorContextMenuCb, false);
+//	rootElem.addEventListener("touchend", monitorTouchEndCb, false);
+	this._elw.listen(rootElem, "touchend", monitorTouchEndCb, false);
+//	rootElem.addEventListener("contextmenu", monitorContextMenuCb, false);
+	this._elw.listen(rootElem, "contextmenu", monitorContextMenuCb, false);
 },
 
 _TabsBsTabViewer_render: function() {
@@ -420,11 +441,16 @@ _TabsBsTabViewer_render: function() {
 	perfProf.measure("Attach tiles cont.", "attachContainerStart", "attachContainerEnd");
 },
 
-_resetAsyncQueue: function() {
+_resetAsyncQueue: function(respawn=true) {
 	if(this._tilesAsyncQueue != null) {
 		this._tilesAsyncQueue.discard();
 	}
-	this._tilesAsyncQueue = Classes.AsyncQueue.create();
+
+	if(respawn) {
+		this._tilesAsyncQueue = Classes.AsyncQueue.create();
+	} else {
+		this._tilesAsyncQueue = null;
+	}
 },
 
 _prepareForNewCycle: function() {
@@ -715,6 +741,17 @@ activateTab: function(tab) {
 			}
 		} // Static function, don't "bind(this)"
 	);
+},
+
+// Overrides BsTabViewer.discard()
+discard: function() {
+	this._resetAsyncQueue(false);
+	this._queryCycleNo++;
+
+	Classes.BsTabViewer.discard.call(this);
+
+	this._tabsManager.discard();
+	this._tabsManager = null;
 },
 
 ///// Search-related functionality

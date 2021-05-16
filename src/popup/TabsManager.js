@@ -29,11 +29,25 @@ Classes.TabsManager = Classes.AsyncBase.subclass({
 
 	_stats: null,
 
+	// ELW = EventListenersWrapper
+	_elw: null,
+	_chromeElw: null,
+
+	// "_queryCycleNo" tracks changes in context. When a query starts, there's a specific
+	// _queryCycleNo. The query is async, so it waits for some results, and when the results
+	// arrive, we check if the _queryCycleNo has changed, in which case we drop everything.
+	_queryCycleNo: null,
+
 _init: function({ standardTabs, incognitoTabs }) {
 	// Set these properties before calling the parent _init(), because the
 	// parent _init() will trigger _asyncInit(), and when _asyncInit() runs,
 	// it needs to have these values available
 	this.debug();
+
+	this._elw = Classes.EventListenersWrapper.create();
+	this._chromeElw = Classes.EventListenersWrapper.create("addListener", "removeListener");
+
+	this._queryCycleNo = 0;
 
 	this._options = {};
 	this._options.standardTabs = optionalWithDefault(standardTabs, true);
@@ -56,6 +70,8 @@ _init: function({ standardTabs, incognitoTabs }) {
 },
 
 _asyncInit: function() {
+	const logHead = "TabsManager::_asyncInit():";
+
 	// Overriding the parent class' _asyncInit(), but calling that original function first
 	let parentPromise = Classes.AsyncBase._asyncInit.call(this);
 
@@ -63,9 +79,16 @@ _asyncInit: function() {
 	// all the callbacks, since the callbacks need this data
 	let thisPromise = this._queryTabs().then(
 		function() {
-			bookmarksManager.addEventListener(Classes.EventManager.Events.UPDATED, this._bookmarkUpdatedCb.bind(this));
+			if(this._elw == null) {
+				this._log(logHead, "discard() called before initialization completed, giving up");
+				return;
+			}
+//			bookmarksManager.addEventListener(Classes.EventManager.Events.UPDATED, this._bookmarkUpdatedCb.bind(this));
+			this._elw.listen(bookmarksManager, Classes.EventManager.Events.UPDATED, this._bookmarkUpdatedCb.bind(this));
+
 			this._registerChromeCallbacks();
-			settingsStore.addEventListener(Classes.EventManager.Events.UPDATED, this._settingsStoreUpdatedCb.bind(this));
+//			settingsStore.addEventListener(Classes.EventManager.Events.UPDATED, this._settingsStoreUpdatedCb.bind(this));
+			this._elw.listen(settingsStore, Classes.EventManager.Events.UPDATED, this._settingsStoreUpdatedCb.bind(this));
 		}.bind(this)
 	);
 
@@ -92,26 +115,37 @@ _resetStats: function() {
 //   onUpdated anyway.
 _registerChromeCallbacks: function() {
 	// https://developer.chrome.com/docs/extensions/reference/tabs/#event-onCreated
-	chrome.tabs.onCreated.addListener(this._tabCreatedCb.bind(this));
+//	chrome.tabs.onCreated.addListener(this._tabCreatedCb.bind(this));
+	this._chromeElw.listen(chrome.tabs.onCreated, this._tabCreatedCb.bind(this));
 
 	// https://developer.chrome.com/docs/extensions/reference/tabs/#event-onUpdated
 	// Note that chrome.tabs.onUpdated does NOT include updated to the "active" and
 	// "highlighted" property of a tab. For that you need to listen to chrome.tabs.onActivated
 	// and onHighlighted, though you'll only be able to learn which tabs are gaining
 	// "active" and "highlighted", not which tabs are losing them.
-	chrome.tabs.onUpdated.addListener(this._tabUpdatedCb.bind(this));
+//	chrome.tabs.onUpdated.addListener(this._tabUpdatedCb.bind(this));
+	this._chromeElw.listen(chrome.tabs.onUpdated, this._tabUpdatedCb.bind(this));
+
 	// Unfortunately closing a tab doesn't get considered an update to the tab, so we must
 	// register for this other event too...
 	// https://developer.chrome.com/docs/extensions/reference/tabs/#event-onRemoved
-	chrome.tabs.onRemoved.addListener(this._tabRemovedCb.bind(this));
+//	chrome.tabs.onRemoved.addListener(this._tabRemovedCb.bind(this));
+	this._chromeElw.listen(chrome.tabs.onRemoved, this._tabRemovedCb.bind(this));
+
 	// https://developer.chrome.com/docs/extensions/reference/tabs/#event-onHighlighted
-	chrome.tabs.onHighlighted.addListener(this._tabHighlightedCb.bind(this));
+//	chrome.tabs.onHighlighted.addListener(this._tabHighlightedCb.bind(this));
+	this._chromeElw.listen(chrome.tabs.onHighlighted, this._tabHighlightedCb.bind(this));
 	// https://developer.chrome.com/docs/extensions/reference/tabs/#event-onActivated
-	chrome.tabs.onActivated.addListener(this._tabActivatedCb.bind(this));
+//	chrome.tabs.onActivated.addListener(this._tabActivatedCb.bind(this));
+	this._chromeElw.listen(chrome.tabs.onActivated, this._tabActivatedCb.bind(this));
 	// https://developer.chrome.com/docs/extensions/reference/tabs/#event-onMoved
-	chrome.tabs.onMoved.addListener(this._tabActivatedHighlightedMovedAttachedCb.bind(this, Classes.TabsManager.Events.MOVED));
+//	chrome.tabs.onMoved.addListener(this._tabActivatedHighlightedMovedAttachedCb.bind(this, Classes.TabsManager.Events.MOVED));
+	this._chromeElw.listen(chrome.tabs.onMoved,
+					this._tabActivatedHighlightedMovedAttachedCb.bind(this, Classes.TabsManager.Events.MOVED));
 	// https://developer.chrome.com/docs/extensions/reference/tabs/#event-onAttached
-	chrome.tabs.onAttached.addListener(
+//	chrome.tabs.onAttached.addListener(
+//					this._tabActivatedHighlightedMovedAttachedCb.bind(this, Classes.TabsManager.Events.ATTACHED));
+	this._chromeElw.listen(chrome.tabs.onAttached,
 					this._tabActivatedHighlightedMovedAttachedCb.bind(this, Classes.TabsManager.Events.ATTACHED));
 },
 
@@ -161,6 +195,7 @@ _issue01Workaround: function() {
 
 	if(this._normTabs == null) {
 		this._log(logHead + "no _normTabs");
+		this._issue01WorkaroundJob.stop();
 		return;
 	}
 
@@ -521,15 +556,24 @@ _tabsAsyncQuery: function() {
 },
 
 _queryTabs: function() {
-	const logHead = "TabsManager::_queryTabs(): ";
-	this._log(logHead + "entering");
+	const logHead = "TabsManager::_queryTabs():";
+	this._log(logHead, "entering");
+
+	this._queryCycleNo++;
+	let savedQueryCycleNo = this._queryCycleNo;
 
 	perfProf.mark("queryStart");
 	return this._tabsAsyncQuery().then(
 		function(tabs) {
 			perfProf.mark("queryEnd");
 
-			this._log(logHead + "tabs received, processing");
+			if(savedQueryCycleNo != this._queryCycleNo) {
+				// The world has moved on while we were waiting, interrupt this operation
+				this._log(logHead, "old query cycle now obsolete, giving up");
+				return;
+			}
+
+			this._log(logHead, "tabs received, processing");
 
 			this._issue01WorkaroundJob.start(this._issue01WorkaroundInterval, false);
 
@@ -577,10 +621,10 @@ _queryTabs: function() {
 				perfProf.mark("shortcutsEnd");
 
 				if(oldTabList != null) {
-					this._log(logHead + "comparing with oldTabList");
+					this._log(logHead, "comparing with oldTabList");
 					this._generateDiffEvents(oldTabList);
 				} else {
-					this._log(logHead + "no oldTabList, nothing to compare (popup just bootstrapped?)");
+					this._log(logHead, "no oldTabList, nothing to compare (popup just bootstrapped?)");
 				}
 				perfProf.mark("diffEventsEnd");
 
@@ -612,6 +656,22 @@ getTabByTabId: function(tabId) {
 // to guarantee uniqueness.
 getPinnedBookmarkIdsFromTabs: function() {
 	return this._normTabs.getPinnedBookmarkIdsFromTabs();
+},
+
+discard: function() {
+	this._queryCycleNo++;
+
+	this._elw.discard();
+	// Leave this "this._elw = null", it's used by _asyncInit() to check for
+	// early discard() calls
+	this._elw = null;
+	this._chromeElw.discard();
+	this._chromeElw = null;
+
+	this._issue01WorkaroundJob.stop();
+	this._issue01WorkaroundJob = null;
+
+	this._normTabs = null;
 },
 
 }); // Classes.TabsManager

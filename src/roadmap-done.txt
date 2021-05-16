@@ -163,6 +163,14 @@ DONE 2.0
 	- Why do we lose the scrolling position, is it tracked inside TabsBsTabViewer, or inside
 	  popupViewer?
 
+- PopupViewer now allocates each respawned instance of TabsBsTabViewer with a unique ID
+
+- Improved implementation of TabsBsTabViewer.discard() and TabsManager.discard() to reduce
+  chances of memory leaks when switching between "split incognito bsTab" and "merged incognito
+  bsTab"
+  * We should now be calling removeEventListener() and removeListener() as necessary for
+    all events registered by instances of these classes
+
 
 DONE 1.3
 

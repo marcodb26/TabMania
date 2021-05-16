@@ -341,6 +341,115 @@ Classes.Base.roDef(Classes.EventManager, "Events", {});
 Classes.Base.roDef(Classes.EventManager.Events, "UPDATED", "tmUpdated");
 
 
+// CLASS EventListenersWrapper
+//
+// This wrapper is intended to simplify the discard() action of instances of other
+// classes, by storing all the historical event listeners registered by those instances.
+// The problem is that addEventListener() store a "strong reference" to objects, making
+// it impossible to garbage-collect the objects that performed registrations, unless
+// those same registrations are removed explicitly. On the other hand, removing a
+// registration can be very verbose in the code, because you first need to store the
+// exact callback (with bind()) for every registration to be removed, then make all
+// those removeEventListener() calls.
+//
+// This wrappers allows you to perform all those removeEventListener() in one go without
+// all that extra boilerplate.
+Classes.EventListenersWrapper = Classes.Base.subclass({
+
+	_weakRefListeners: null,
+	_listenFnName: null,
+	_unlistenFnName: null,
+
+// Chrome uses "addListener" and "removeListener" instead of "addEventListener" and
+// "removeEventListener". The call arguments are also slightly different, but this
+// class doesn't care what arguments are taken by these functions, it just stores
+// whatever arguments are passed to listen(), then play them back (though it tries
+// to play nice by using WeakRef() whenever possible).
+_init: function(listenFnName="addEventListener", unlistenFnName="removeEventListener") {
+	Classes.Base._init.call(this);
+
+	this.debug();
+
+	this._weakRefListeners = [];
+	this._listenFnName = listenFnName;
+	this._unlistenFnName = unlistenFnName;
+},
+
+// "listenerArgs" is the same sequence of arguments you'd pass to the addEventListener function
+listen: function(obj, ...listenerArgs) {
+	const logHead = "EventListenersWrapper.listen():";
+
+	if(obj == null) {
+		this._err(logHead, "event target can't be null", obj);
+		return;
+	}
+
+	let weakRefArgs = [];
+	for(let i = 0; i < arguments.length; i++) {
+		// See https://v8.dev/features/weak-references for a good primer on WeakRef
+		if([ "function", "object" ].includes(typeof arguments[i])) {
+			try {
+				weakRefArgs[i] = {
+					weakRef: new WeakRef(arguments[i]),
+					type: "weakRef",
+				};
+			} catch(e) {
+				this._err(logHead, "building new WeakRef(), on argument ", i, arguments[i]);
+				throw e;
+			}
+		} else {
+			weakRefArgs[i] = { 
+				arg: arguments[i],
+				type: "standard",
+			};
+		}
+	}
+
+	this._weakRefListeners.push(weakRefArgs);
+	obj[this._listenFnName].apply(obj, listenerArgs);
+},
+
+// Make sure unlisten() has the same arguments list of listen().
+//
+// Note that this function does not update "this._weakRefListeners", which continues
+// to accumulate new registrations from this.listen(). Given we're using weakMap()
+// for objects stored, this should not be a big problem. Besides, none of the existing
+// classes perform sequences of add/remove listener, they tend to just add all listeners
+// during initialization, then take no further actions.
+unlisten: function(obj, ...listenerArgs) {
+	obj[this._unlistenFnName].apply(obj, listenerArgs);
+},
+
+_unlistenWrapper: function(weakRefObj, ...listenerWeakRefArgs) {
+	let allArgs = [];
+	for(let i = 0; i < arguments.length; i++) {
+		switch(arguments[i].type) {
+			case "weakRef":
+				allArgs[i] = arguments[i].weakRef.deref();
+				break;
+			case "standard":
+				allArgs[i] = arguments[i].arg;
+				break;
+		}
+		if(allArgs[i] === undefined) {
+			// Event target (obj) or listener already garbage collected, nothing to do
+			return;
+		}
+	}
+
+	this.unlisten.apply(this, allArgs);
+},
+
+discard: function() {
+	for(let i = 0; i < this._weakRefListeners.length; i++) {
+		this._unlistenWrapper.apply(this, this._weakRefListeners[i]);
+	}
+	this._weakRefListeners = [];
+}
+
+}); // Classes.EventListenersWrapper
+
+
 // CLASS Error
 Classes.Error = Classes.Base.subclass({
 _init: function() {

@@ -21,9 +21,14 @@ Classes.BsTabViewer = Classes.Viewer.subclass({
 	_activationListenerCbBound: null,
 	_deactivationListenerCbBound: null,
 
+	// ELW = EventListenersWrapper
+	_elw: null,
+
 _init: function({ labelHtml }) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.Viewer._init.call(this);
+
+	this._elw = Classes.EventListenersWrapper.create();
 
 	this._createBsTab(labelHtml);
 },
@@ -93,6 +98,11 @@ discard: function() {
 	this.removeBsTabActivationStartListener(this._activationListenerCbBound);
 	this.removeBsTabDeactivationStartListener(this._deactivationListenerCbBound);
 
+	this._elw.discard();
+	// Leave this "this._elw = null", it's used by TabsBsTabViewer._asyncInitCb() to
+	// validate early discard() calls
+	this._elw = null;
+
 	this._headingElem.remove();
 	this._rootElem.remove();
 },
@@ -104,18 +114,21 @@ addBsTabActivationStartListener: function(fn) {
 	// We're attaching to "show.bs.tab", which is the event generated at
 	// tab switch, but before the new tab panel has been rendered
 	// Ses https://getbootstrap.com/docs/5.0/components/navs-tabs/#events
-	this._triggerElem.addEventListener("show.bs.tab", fn);
+//	this._triggerElem.addEventListener("show.bs.tab", fn);
+	this._elw.listen(this._triggerElem, "show.bs.tab", fn);
 },
 
 removeBsTabActivationStartListener: function(fn) {
-	this._triggerElem.removeEventListener("show.bs.tab", fn);
+//	this._triggerElem.removeEventListener("show.bs.tab", fn);
+	this._elw.unlisten(this._triggerElem, "show.bs.tab", fn);
 },
 
 addBsTabActivationEndListener: function(fn) {
 	// We're attaching to "shown.bs.tab", which is the event generated at
 	// the end of the tab switch, after the new tab panel has been rendered
 	// Ses https://getbootstrap.com/docs/5.0/components/navs-tabs/#events
-	this._triggerElem.addEventListener("shown.bs.tab", fn);
+//	this._triggerElem.addEventListener("shown.bs.tab", fn);
+	this._elw.listen(this._triggerElem, "shown.bs.tab", fn);
 },
 
 // The signature of the callback is function(event).
@@ -125,11 +138,13 @@ addBsTabDeactivationStartListener: function(fn) {
 	// We're attaching to "hide.bs.tab", which is the event generated at
 	// tab switch, but before the tab switch has happened.
 	// Ses https://getbootstrap.com/docs/5.0/components/navs-tabs/#events
-	this._triggerElem.addEventListener("hide.bs.tab", fn);
+//	this._triggerElem.addEventListener("hide.bs.tab", fn);
+	this._elw.listen(this._triggerElem, "hide.bs.tab", fn);
 },
 
 removeBsTabDeactivationStartListener: function(fn) {
-	this._triggerElem.removeEventListener("hide.bs.tab", fn);
+//	this._triggerElem.removeEventListener("hide.bs.tab", fn);
+	this._elw.unlisten(this._triggerElem, "hide.bs.tab", fn);
 },
 
 // The signature of the callback is function(event).
@@ -139,7 +154,8 @@ addBsTabDeactivationEndListener: function(fn) {
 	// We're attaching to "hidden.bs.tab", which is the event generated at
 	// tab switch, after the tab switch has happened.
 	// Ses https://getbootstrap.com/docs/5.0/components/navs-tabs/#events
-	this._triggerElem.addEventListener("hidden.bs.tab", fn);
+//	this._triggerElem.addEventListener("hidden.bs.tab", fn);
+	this._elw.listen(this._triggerElem, "hidden.bs.tab", fn);
 },
 
 // Activate tab
@@ -314,7 +330,8 @@ _bsTabActivatedCb: function(ev) {
 	// text from "CTRL+V". See _activateSearchCb() for details.
 	//
 	// See _activateSearchCbBoundFn above for details on this._activateSearchCbBoundFn here.
-	window.addEventListener("keydown", this._activateSearchCbBoundFn, true);
+//	window.addEventListener("keydown", this._activateSearchCbBoundFn, true);
+	this._elw.listen(window, "keydown", this._activateSearchCbBoundFn, true);
 	if(this._searchActive) {
 		this._searchBoxElemFocus();
 	}
@@ -325,7 +342,8 @@ _bsTabDeactivatedCb: function(ev) {
 	this._log(logHead + "searchable tab deactivated");
 
 	// See _activateSearchCbBoundFn above for details on this._activateSearchCbBoundFn here.
-	window.removeEventListener("keydown", this._activateSearchCbBoundFn, true);
+//	window.removeEventListener("keydown", this._activateSearchCbBoundFn, true);
+	this._elw.unlisten(window, "keydown", this._activateSearchCbBoundFn, true);
 },
 
 // See _activateSearchBox() and _init() for why we split this call out of
@@ -568,7 +586,8 @@ addSearchEventListener: function(fn) {
 	// therefore this callback will be invoked when the user presses "Enter",
 	// when the user empties the search box with the "x" button, or when the
 	// user incrementally types in more data.
-	this._searchBoxElem.addEventListener("search", fn, true);
+//	this._searchBoxElem.addEventListener("search", fn, true);
+	this._elw.listen(this._searchBoxElem, "search", fn, true);
 },
 
 }); // Classes.SearchableBsTabViewer
