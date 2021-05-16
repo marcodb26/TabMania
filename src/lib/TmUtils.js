@@ -1,22 +1,3 @@
-// Note that this function sets a default value even if value is "null", not
-// only if it's "undefined". Don't use this function if you care about the
-// "null" value
-function optionalWithDefault(value, defaultValue) {
-	if(typeof(value) === "undefined" || value == null) {
-		return defaultValue;
-	}
-	return value;
-}
-
-// In a number of places we need to use empty functions as markers. They work
-// better than "null" because they don't require extra checks before calling
-// a function returned by another function, and have no side effects.
-// Creating a single empty function here and reusing it everywhere else should
-// make the minimized code a little more compact ("return emptyFn" is shorter
-// than "return function(){}" even without minimization).
-function emptyFn() {}
-
-
 // CLASS TmUtils
 Classes.TmUtils = Classes.Base.subclass({
 
