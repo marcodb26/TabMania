@@ -35,7 +35,9 @@
 
 // See lib/prod.js for the source of "window.productionCode"
 function isProd() {
-	return optionalWithDefault(window.productionCode, false);
+	// Using the "nullish coalescing operator" of ES2020.
+	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Nullish_coalescing_operator
+	return window.productionCode ?? false;
 }
 
 Classes = {};
@@ -90,9 +92,7 @@ roDef: function(obj, propName, propValue) {
 // of the generated log function.
 // "consoleObj" is a special case to handle this._log.bg(), see the definition of _log.bg()
 // in debug() for more details. Defaults to the standard "console" object.
-_genLogFn: function(consoleFn, setPrefix, consoleObj) {
-	setPrefix = optionalWithDefault(setPrefix, false)
-	consoleObj = optionalWithDefault(consoleObj, console);
+_genLogFn: function(consoleFn, setPrefix=false, consoleObj=console) {
 	if(!setPrefix) {
 		// Leave "msg" alone
 		return Function.prototype.bind.call(consoleFn, consoleObj);
@@ -172,8 +172,7 @@ createAs: function(id, ...restArgs) {
 
 // Turn on (flag = true, default) or off (flag = false) logging to console.
 // Note that logging errors (_err()) can't be disabled right now.
-debug: function(flag) {
-	flag = optionalWithDefault(flag, true);
+debug: function(flag=true) {
 	if(flag && !isProd()) {
 		this.roDef(this, "_log", this._genLogFn(console.log, true));
 		this.roDef(this._log, "raw", this._genLogFn(console.log, false));
@@ -306,9 +305,7 @@ dispatchEvent: function(eventName, detailObj) {
 // the current objec owning the EventManager.
 // "extraData" is any extra properties you want in the "detail" section
 // of the generated event
-notifyListeners: function(eventId, extraData) {
-	extraData = optionalWithDefault(extraData, {});
-
+notifyListeners: function(eventId, extraData={}) {
 	let detail = Object.assign({ target: this._ownerObj }, extraData);
 	this.dispatchEvent(eventId, detail);
 },
