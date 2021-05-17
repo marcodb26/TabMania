@@ -189,11 +189,11 @@ clear: function() {
 },
 
 show: function() {
-	this._rootElem.classList.remove("tm-hide");
+	this._rootElem.classList.remove("d-none");
 },
 
 hide: function() {
-	this._rootElem.classList.add("tm-hide");
+	this._rootElem.classList.add("d-none");
 },
 
 isInDocumentDom: function() {

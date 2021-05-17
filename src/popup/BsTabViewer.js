@@ -280,14 +280,14 @@ _SearchableBsTabViewer_initBodyElem: function() {
 
 	// Note that the element with bodyId takes "overflow: auto" to avoid the parent gets it instead
 	const bodyHtml = `
-		<div id="${searchBoxContainerId}" class="m-1 tm-stacked-below tm-hide">
+		<div id="${searchBoxContainerId}" class="m-1 tm-stacked-below d-none">
 			<input type="search" id="${searchBoxId}" incremental class="form-control tm-searchbox" placeholder="Type to start searching">
 			<div class="tm-overlay tm-vertical-center tm-searchbox-icon">${icons.searchBox}</div>
 			<div class="tm-overlay tm-vertical-center tm-searchbox-count">
 				<span id="${searchBoxCountId}" class="tm-shaded badge tm-number-badge bg-secondary"></span>
 			</div>
 		</div>
-		<div id="${searchBoxErrorId}" class="tm-searchbox-msg tm-hide"></div>
+		<div id="${searchBoxErrorId}" class="tm-searchbox-msg d-none"></div>
 		<div class="tm-fit-bottom tm-home-bstab-scroll" id="${bodyId}">
 		</div>
 	`;
@@ -350,7 +350,7 @@ _bsTabDeactivatedCb: function(ev) {
 // _activateSearchBox().
 _SearchableBsTabViewer_searchBoxInactiveInner: function() {
 	const logHead = "SearchableBsTabViewer::_SearchableBsTabViewer_searchBoxInactiveInner(): ";
-	this._searchBoxContainerElem.classList.add("tm-hide");
+	this._searchBoxContainerElem.classList.add("d-none");
 	this._bodyElem.classList.remove("tm-fit-after-search");
 	this._searchActive = false;
 
@@ -384,7 +384,7 @@ _activateSearchBox: function(active) {
 		// When the searchbox appears, the "position:absolute;" (class .tm-fit-bottom)
 		// body needs to be shifted down to make sure it doesn't end up under the
 		// searchbox, that's what class .tm-fit-after-search is for.
-		this._searchBoxContainerElem.classList.remove("tm-hide");
+		this._searchBoxContainerElem.classList.remove("d-none");
 		this._bodyElem.classList.add("tm-fit-after-search");
 		this._searchActive = true;
 		this._searchBoxElemFocus();
@@ -558,11 +558,11 @@ setMessage: function(msgHtml, isInvalid) {
 	}
 
 	if(msgHtml != "") {
-		this._searchBoxErrorElem.classList.remove("tm-hide");
+		this._searchBoxErrorElem.classList.remove("d-none");
 		this._searchBoxErrorElem.innerHTML = msgHtml;
 	} else {
 		// Reset everything
-		this._searchBoxErrorElem.classList.add("tm-hide");
+		this._searchBoxErrorElem.classList.add("d-none");
 		this._searchBoxElem.classList.remove("is-invalid");
 		this._searchBoxErrorElem.classList.textContent = "";
 	}

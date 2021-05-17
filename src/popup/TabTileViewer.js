@@ -530,17 +530,17 @@ _renderBodyInner: function() {
 	favIconViewer.appendToElement(favIconContainerElem);
 
 	if(this._renderState.showCloseButton) {
-		this._closeElem.classList.remove("tm-hide");
+		this._closeElem.classList.remove("d-none");
 	} else {
-		this._closeElem.classList.add("tm-hide");
+		this._closeElem.classList.add("d-none");
 	}
 	if(this._renderState.showMenu) {
-		this._menuElem.classList.remove("tm-hide");
+		this._menuElem.classList.remove("d-none");
 		// The _menuViewer is not in the body of the tile, but its destiny is parallel
 		// to that of the body of the tile...
 		this._processMenuViewer();
 	} else {
-		this._menuElem.classList.add("tm-hide");
+		this._menuElem.classList.add("d-none");
 	}
 },
 
