@@ -37,6 +37,16 @@ page, some only on the popups) to monitor the state of the extension, or make ch
 
 * Call `popupDockerBg.showState()` in the background page console to find the state of the popup (docked or undocked)
 
+* Call `gcChecker.check()` to see if garbage collection is able to operate properly
+  - `collected` should have the same length as `weakRefs` if there are no leaks, though the garbage
+    collector might take some time to decide to collect
+	* You can use the `memory` tab in Chrome DevTools to force an iteration of the garbage collector
+	  by pressing the trash bin icon on the top left
+  - Call `gcChecker.check(true)` to clear from the `gcChecker` cache all items that have been collected
+    up to the first uncollected item
+	* This should cause `weakRefs` to become an empty array when everything is collected properly
+  - This function should only be used in dev mode (in production the `gcChecker` is inactive)
+
 * Use `monitorEvents(document, "pointercancel")` (standard Chrome dev tool) to monitor events for touch displays
 
 * Why should I not just use `chrome://inspect/#pages` to make sense of my tabs?

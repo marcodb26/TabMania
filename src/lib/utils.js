@@ -1,3 +1,91 @@
+// The GarbageCollectionChecker class uses WeakRef() to track objects, and allows
+// you to validate when a specific object is getting garbage collected (its weakRef
+// can't be dereferenced anymore, deref() returns "undefined"). Simply call add()
+// to add objects, then call check() from the Chrome DevTools console to check if
+// any of the objects is still dereference-able.
+//
+// Instances of this class (specifically, the default instance "gcChecker") are intended
+// only for use in development, not in production.
+Classes.GarbageCollectionChecker = Classes.Base.subclass({
+
+	_weakRefs: null,
+
+	_cnt: null,
+
+_init: function() {
+	Classes.Base._init.call(this);
+
+	this.debug();
+
+	this._weakRefs = [];
+	this._cnt = 0;
+
+	// Activate this class only in development environments, deactivate it in
+	// production by switching "add()" to "emptyFn()"
+	if(isProd()) {
+		this.add = emptyFn;
+	} else {
+		this.add({ txt: "a test object" }, "test-obj");
+	}
+},
+
+// Default value for "label" built with "optional chaining" and "nullish coalescing operator":
+// "if obj has a getId() method use that, otherwise say 'undefined' and trigger '??' to return
+// an empty string".
+add: function(obj, label=obj.getId?.() ?? "") {
+	this._weakRefs.push({
+		weakRef: new WeakRef(obj),
+		label,
+		timestamp: performance.now(),
+		pos: this._cnt++,
+	});
+},
+
+// If "clear" is "true", delete the entries that have been garbage collected, until
+// the first entry that has not been garbage collected.
+// If called with "clear = false", "collected.length" should be equal to "weakRefs.length"
+// when things are working correctly (no leaks), while when called with "clear = true",
+// "weakRefs.length" should be zero when things are working correctly.
+// Offering both options ("clear" true or false) because if things are not working correctly
+// it can be useful to find out which objects are being garbage collected, but those are
+// gone when the function clears them.
+check: function(clear=false) {
+	let cleared = [];
+	let collected = [];
+	let more = true;
+
+	// Remove all the old entries that have been garbage collected until the first
+	// entry that has not been
+	while(this._weakRefs.length > 0 && clear && more) {
+		if(this._weakRefs[0].weakRef.deref() === undefined) {
+			let item = this._weakRefs.shift();
+			cleared.push(item);
+			collected.push(item);
+		} else {
+			more = false;
+		}
+	}
+
+	// Now let's browse all the remaining _weakRefs to see if anything else has been
+	// garbage collected (but don't clean them up)
+	for(let i = 0; i < this._weakRefs.length; i++) {
+		if(this._weakRefs[0].weakRef.deref() === undefined) {
+			collected.push(this._weakRefs[i]);
+		}
+	}
+
+	return {
+		cleared,
+		collected,
+		weakRefs: this._weakRefs,
+	};
+},
+
+}); // Classes.GarbageCollectionChecker
+
+Classes.Base.roDef(window, "gcChecker", Classes.GarbageCollectionChecker.createAs("gcChecker"));
+
+
 // CLASS BoundArray
 // This class defines a version of Array that automatically forces its size to a
 // max of "maxElements"

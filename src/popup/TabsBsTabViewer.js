@@ -98,7 +98,8 @@ _init: function({ labelHtml, standardTabs, incognitoTabs }) {
 	};
 	this._searchManager = Classes.SearchManager.createAs(this._id + "-searchManager", searchManagerOptions);
 
-	this._queryAndRenderJob = Classes.ScheduledJob.create(this._queryAndRenderTabs.bind(this), "queryAndRender");
+	this._queryAndRenderJob = Classes.ScheduledJob.createAs(this._id +  ".queryAndRenderTabs",
+															this._queryAndRenderTabs.bind(this));
 	this._queryAndRenderJob.debug();
 
 	this._groupsBuilder = Classes.GroupsBuilder.create();
@@ -748,10 +749,16 @@ discard: function() {
 	this._resetAsyncQueue(false);
 	this._queryCycleNo++;
 
+	this._queryAndRenderJob.discard();
+	gcChecker.add(this._queryAndRenderJob);
+	this._queryAndRenderJob = null;
+
 	Classes.BsTabViewer.discard.call(this);
 
 	this._tabsManager.discard();
 	this._tabsManager = null;
+
+	gcChecker.add(this);
 },
 
 ///// Search-related functionality

@@ -1,6 +1,6 @@
 TODO 2.0
 
-- We need to have a discard() for TabsManager like we have it for TabsBsTabViewer
+- Implement hide/show for "Incognito" bsTab when "split incognito" configuration changes
 
 - Implement "Incognito" option "Include bookmarks in Incognito search"
 

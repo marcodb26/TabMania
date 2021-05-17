@@ -145,6 +145,11 @@ skip: function() {
 	}
 },
 
+discard: function() {
+	this.stop();
+	this._jobFn = null;
+},
+
 isRunning: function() {
 	return (this._handle != null);
 },

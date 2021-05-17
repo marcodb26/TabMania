@@ -58,11 +58,11 @@ _init: function({ standardTabs, incognitoTabs }) {
 	this._eventManager = Classes.EventManager.create();
 	this._eventManager.attachRegistrationFunctions(this);
 
-	this._queryJob = Classes.ScheduledJob.create(this._queryTabs.bind(this), this._id + ".queryTabs");
+	this._queryJob = Classes.ScheduledJob.createAs(this._id + ".queryTabs", this._queryTabs.bind(this));
 	this._queryJob.debug();
 
-	this._issue01WorkaroundJob = Classes.ScheduledJob.create(this._issue01Workaround.bind(this),
-																this._id + ".issue01Workaround");
+	this._issue01WorkaroundJob = Classes.ScheduledJob.createAs(this._id + ".issue01Workaround",
+																this._issue01Workaround.bind(this));
 	this._issue01WorkaroundJob.debug();
 
 	// Overriding the parent class' _init(), but calling that original function too
@@ -582,6 +582,8 @@ _queryTabs: function() {
 			if(this._normTabs != null) {
 				oldTabList = this._normTabs.get();
 				oldTabDict = this._normTabs.getDict();
+				gcChecker.add(this._normTabs, this.getId() + ".normTabs" + this._queryCycleNo);
+				this._normTabs = null;
 			}
 
 			try {
@@ -668,10 +670,17 @@ discard: function() {
 	this._chromeElw.discard();
 	this._chromeElw = null;
 
-	this._issue01WorkaroundJob.stop();
+	this._queryJob.discard();
+	gcChecker.add(this._queryJob);
+	this._queryJob = null;
+
+	this._issue01WorkaroundJob.discard();
+	gcChecker.add(this._issue01WorkaroundJob);
 	this._issue01WorkaroundJob = null;
 
 	this._normTabs = null;
+
+	gcChecker.add(this);
 },
 
 }); // Classes.TabsManager
