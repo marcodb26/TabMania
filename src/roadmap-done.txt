@@ -191,6 +191,12 @@ DONE 2.0
 - Check if EventManager needs work to support discard()
   * It doesn't look like it does, but just to be safe, added a discard()
 
+- BUG: active BsTab not getting highlighted in popup menu
+  * We introduced the concept of bsTabInstanceId to allow us to differentiate subsequent instances
+    of home and incognito tabs, and got that mixed up with the bsTabId
+	- The bsTabId is an identifier of the "class" of bsTab (home, incognito or settings), while the
+	  DOM needs to be given instance IDs
+
 
 DONE 1.3
 

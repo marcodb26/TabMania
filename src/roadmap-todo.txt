@@ -1,8 +1,7 @@
 TODO 2.0
 
-- BUG: active BsTab not getting highlighted in popup menu
-  * Also, consider restructiring the logic that drives highlighting to be driven
-    by popupViewer instead of being driven by localStore information
+- Consider restructiring the logic that drives popup menu highlighting to be driven
+  by popupViewer instead of being driven by localStore information
 
 - Implement "Incognito" option "Include bookmarks in Incognito search"
 

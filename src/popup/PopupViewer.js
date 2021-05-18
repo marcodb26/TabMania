@@ -203,11 +203,13 @@ _initActiveTabId: function(results) {
 },
 
 _bsTabActivatedCb: function(ev) {
-	const logHead = "PopupViewer::_bsTabActivatedCb(" + ev.target.id + "): ";
-	this._log(logHead + "tab activated", ev);
+	const bsTabId = this.getBsTabIdFromBsTabInstanceId(ev.target.id);
 
-	this._activeBsTabId = ev.target.id;
-	localStore.setActiveBsTabId(ev.target.id);
+	const logHead = "PopupViewer::_bsTabActivatedCb(" + bsTabId + ", " + ev.target.id + "):";
+	this._log(logHead, "tab activated", ev);
+
+	this._activeBsTabId = bsTabId;
+	localStore.setActiveBsTabId(bsTabId);
 },
 
 
@@ -215,7 +217,9 @@ _bsTabActivatedCb: function(ev) {
 // It's not an optional argument, because you must at least pass "labelHtml".
 _createBsTabInner: function(bsTabLabel, bsTabViewerSubclass, initOptions, startHidden=false) {
 	const bsTabId = this.getBsTabIdByLabel(bsTabLabel);
-	let newBsTab = bsTabViewerSubclass.createAs(bsTabId + this._bsTabInstanceCnt++, initOptions);
+	const bsTabInstanceId = bsTabId + this._bsTabInstanceCnt++;
+
+	let newBsTab = bsTabViewerSubclass.createAs(bsTabInstanceId, initOptions);
 
 	newBsTab.addBsTabActivationStartListener(this._bsTabActivatedCbBound);
 
@@ -314,6 +318,15 @@ getActiveBsTabId: function() {
 	return this._activeBsTabId;
 },
 
+getBsTabIdFromBsTabInstanceId: function(bsTabInstanceId) {
+	// The ID of the DOM node is not really the "bsTabId", because we're adding an extra
+	// number to recognize subsequent instances of the bsTab. We need to extract the
+	// "bsTabId" from the "bsTab instance ID". We do that by splitting the instance ID
+	// at the first occurrence of a digit.
+	// Using optional chaining in case split() returns an empty array...
+	return bsTabInstanceId.split(/[0-9]/, 1)?.[0];
+},
+
 getBsTabByLabel: function(bsTabLabel) {
 	let bsTabId = this.getBsTabIdByLabel(bsTabLabel);
 	return this.getBsTabById(bsTabId);
@@ -331,7 +344,7 @@ isSearchActive: function() {
 	if(this.getHomeBsTab().isSearchActive() && this.getActiveBsTabId() == homeBsTabId) {
 		return true;
 	}
-	return false;		
+	return false;
 },
 
 getSearchQuery: function() {
