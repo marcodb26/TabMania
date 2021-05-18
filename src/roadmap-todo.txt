@@ -1,8 +1,8 @@
 TODO 2.0
 
-- Implement hide/show for "Incognito" bsTab when "split incognito" configuration changes
-
-- Add "Incognito" to top menu
+- BUG: active BsTab not getting highlighted in popup menu
+  * Also, consider restructiring the logic that drives highlighting to be driven
+    by popupViewer instead of being driven by localStore information
 
 - Implement "Incognito" option "Include bookmarks in Incognito search"
 

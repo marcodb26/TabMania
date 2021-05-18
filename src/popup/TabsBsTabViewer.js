@@ -60,7 +60,7 @@ _init: function({ labelHtml, standardTabs, incognitoTabs }) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.SearchableBsTabViewer._init.call(this, { labelHtml: this._options.labelHtml });
 
-	const logHead = "TabsBsTabViewer::_init(): ";
+	const logHead = "TabsBsTabViewer::_init():";
 	this.debug();
 
 	this._queryCycleNo = 0;
@@ -80,7 +80,10 @@ _init: function({ labelHtml, standardTabs, incognitoTabs }) {
 			this._emptyContainerString = "No incognito tabs"
 			this._expandedGroups = localStore.incognitoTabsBsTabExpandedGroups;
 		} else {
-			this._err(logHead + "neither standard nor incognito tabs to render, invalid configuration");
+			this._log(logHead, "neither standard nor incognito tabs to render, going idle");
+			// With this configuration, the instance is just a placeholder with no tracking
+			// needed, so we don't need to continue the initialization below
+			return;
 		}
 	}
 
@@ -746,6 +749,13 @@ activateTab: function(tab) {
 
 // Overrides BsTabViewer.discard()
 discard: function() {
+	if(!this._options.standardTabs && !this._options.incognitoTabs) {
+		// This instance was a placeholder if both standardTabs and incognitoBsTab were disabled,
+		// so there's nothing to discard in that case. Just don't forget to call the parent class...
+		Classes.BsTabViewer.discard.call(this);
+		return;
+	}
+
 	this._resetAsyncQueue(false);
 	this._queryCycleNo++;
 
@@ -757,8 +767,6 @@ discard: function() {
 
 	this._tabsManager.discard();
 	this._tabsManager = null;
-
-	gcChecker.add(this);
 },
 
 ///// Search-related functionality

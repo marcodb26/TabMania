@@ -119,6 +119,8 @@ Classes.PopupViewer = Classes.BootstrapTabsViewer.subclass({
 	// is for.
 	_bsTabInstanceCnt: null,
 
+	_popupMenuViewer: null,
+
 
 // Unfortunately "parentElem" is necessary here, see comment inside _init()
 _init: function(parentElem) {
@@ -128,6 +130,9 @@ _init: function(parentElem) {
 	this._bsTabInstanceCnt = 0;
 	this._bsTabViewersDict = {};
 	this._bsTabActivatedCbBound = this._bsTabActivatedCb.bind(this);
+
+	this._popupMenuViewer = Classes.PopupMenuViewer.create(this);
+	this._attachMenu(this._popupMenuViewer);
 
 	this._populateTabs();
 	perfProf.mark("popupViewerEnd");
@@ -141,8 +146,6 @@ _init: function(parentElem) {
 	perfProf.mark("attachEnd");
 
 	this._initActiveTabId();
-
-	this._attachMenu(Classes.PopupMenuViewer.create(this));
 
 	// "tabsList" is a notification, we don't need to respond to it (last argument set to "false")
 	popupMsgServer.addCmd("tabsList", this._tabsListNotificationCb.bind(this), false);
@@ -173,7 +176,10 @@ _settingsStoreUpdatedCb: function(ev) {
 	this._splitIncognito = newSplitIncognito;
 
 	this._replaceBsTab("home", Classes.TabsBsTabViewer,
-					{ labelHtml: "Home-new", standardTabs: true, incognitoTabs: !this._splitIncognito });
+				{ labelHtml: "Home", standardTabs: true, incognitoTabs: !this._splitIncognito });
+
+	this._replaceBsTab("incognito", Classes.TabsBsTabViewer,
+				{ labelHtml: "Incognito", standardTabs: false, incognitoTabs: this._splitIncognito }, !this._splitIncognito);
 },
 
 _initActiveTabId: function(results) {
@@ -207,27 +213,36 @@ _bsTabActivatedCb: function(ev) {
 
 // "initOptions" is a dict of options passed to the createAs() function.
 // It's not an optional argument, because you must at least pass "labelHtml".
-_createBsTabInner: function(bsTabLabel, bsTabViewerSubclass, initOptions) {
-	bsTabViewerSubclass = optionalWithDefault(bsTabViewerSubclass, Classes.BsTabViewer);
+_createBsTabInner: function(bsTabLabel, bsTabViewerSubclass, initOptions, startHidden=false) {
 	const bsTabId = this.getBsTabIdByLabel(bsTabLabel);
+	let newBsTab = bsTabViewerSubclass.createAs(bsTabId + this._bsTabInstanceCnt++, initOptions);
 
-	this._bsTabViewersDict[bsTabId] = bsTabViewerSubclass.createAs(bsTabId + this._bsTabInstanceCnt++, initOptions);
+	newBsTab.addBsTabActivationStartListener(this._bsTabActivatedCbBound);
 
-	this._bsTabViewersDict[bsTabId].addBsTabActivationStartListener(this._bsTabActivatedCbBound);
+	if(startHidden) {
+		newBsTab.hide();
+	}
 
-	return this._bsTabViewersDict[bsTabId];
+	this._bsTabViewersDict[bsTabId] = newBsTab;
+	return newBsTab;
 },
 
 // "initOptions" is a dict of options passed to the createAs() function.
 // It's not an optional argument, because you must at least pass "labelHtml".
-_createBsTab: function(bsTabLabel, bsTabViewerSubclass, initOptions) {
+_createBsTab: function(bsTabLabel, bsTabViewerSubclass, initOptions, startHidden) {
 	let newBsTab = this._createBsTabInner.apply(this, arguments);
 	this.append(newBsTab);
+
+	// There's a little mismatch here, _createBsTabInner() uses "labelHtml", while
+	// addBsTabMenuItem() uses "labelText". For now they're the same, so we'll live
+	// with this mismatch until we need to fix it (it will be obvious because the
+	// menu labels will show raw HTML).
+	this._popupMenuViewer.addBsTabMenuItem(bsTabLabel, initOptions.labelHtml, startHidden);
 },
 
 // "initOptions" is a dict of options passed to the createAs() function.
 // It's not an optional argument, because you must at least pass "labelHtml".
-_replaceBsTab: function(bsTabLabel, bsTabViewerSubclass, initOptions) {
+_replaceBsTab: function(bsTabLabel, bsTabViewerSubclass, initOptions, startHidden) {
 	let oldBsTabViewer = this.getBsTabByLabel(bsTabLabel);
 	oldBsTabViewer.removeBsTabActivationStartListener(this._bsTabActivatedCbBound);
 
@@ -238,6 +253,10 @@ _replaceBsTab: function(bsTabLabel, bsTabViewerSubclass, initOptions) {
 	// from the DOM, and we need it to be in the DOM in order for this.replace() to
 	// work correctly
 	oldBsTabViewer.discard();
+
+	// Note that updateBsTabMenuItem() must receive an explicit "hide" parameter, as its
+	// behavior is slightly different from the behavior of "startHidden" in this function
+	this._popupMenuViewer.updateBsTabMenuItem(bsTabLabel, initOptions.labelHtml, startHidden ?? false);
 },
 
 _populateTabs: function() {
@@ -246,10 +265,8 @@ _populateTabs: function() {
 	this._createBsTab("home", Classes.TabsBsTabViewer,
 					{ labelHtml: "Home", standardTabs: true, incognitoTabs: !this._splitIncognito });
 
-	if(this._splitIncognito) {
-		this._createBsTab("incognito", Classes.TabsBsTabViewer,
-						{ labelHtml: "Incognito", standardTabs: false, incognitoTabs: true });
-	}
+	this._createBsTab("incognito", Classes.TabsBsTabViewer,
+					{ labelHtml: "Incognito", standardTabs: false, incognitoTabs: this._splitIncognito }, !this._splitIncognito);
 
 	this._createBsTab("settings", Classes.SettingsBsTabViewer, { labelHtml: "Settings" });
 },

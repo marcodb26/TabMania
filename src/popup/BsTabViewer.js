@@ -105,6 +105,8 @@ discard: function() {
 
 	this._headingElem.remove();
 	this._rootElem.remove();
+
+	gcChecker.add(this);
 },
 
 // The signature of the callback is function(event).
@@ -196,6 +198,18 @@ blink: function() {
 
 _removeBlinkCb: function() {
 	this._triggerElem.classList.remove("tm-blink");
+},
+
+// Overrides Viewer.show()
+show: function() {
+	this._headingElem.classList.remove("d-none");
+	Classes.Viewer.show.call(this);
+},
+
+// Overrides Viewer.hide()
+hide: function() {
+	this._headingElem.classList.add("d-none");
+	Classes.Viewer.hide.call(this);
 },
 
 }); // Classes.BsTabViewer

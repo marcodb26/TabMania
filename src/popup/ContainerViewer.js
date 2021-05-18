@@ -21,9 +21,9 @@ Classes.ContainerViewer = Classes.Viewer.subclass({
 	_htmlWhenEmpty: null,
 	_appendedCnt: null,
 
-// "textWhenEmpty" is the txt to display in the container if it contains no objects.
-// If "null", the container will not show any text.
-_init: function(htmlWhenEmpty) {
+// "htmlWhenEmpty" is the HTML to display in the container if it contains no objects.
+// If "null", the container will not show any HTML.
+_init: function(htmlWhenEmpty="") {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.Viewer._init.apply(this, arguments);
 	const logHead = "ContainerViewer::_init(): ";

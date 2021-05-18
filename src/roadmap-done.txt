@@ -183,6 +183,14 @@ DONE 2.0
   are being discarded (changing the "split incognito" configuration flag)
   * Added a "gcChecker" class for this purposes
 
+- Implemented hide/show for "Incognito" bsTab when "split incognito" configuration changes
+
+- Restructured PopupMenuViewer class to get bsTab menu items as a side effect of creating bsTabs
+  * Instead of having to explicitly define each bsTab explicitly (once again) in the initialization
+    of PopupMenuViewer
+
+- Added "Incognito" to popup menu, with logic to show/hide depending on "split incognito"
+
 
 DONE 1.3
 

@@ -7,6 +7,8 @@ Classes.PopupMenuViewer = Classes.MenuViewer.subclass({
 
 	_activeBsTabId: null,
 
+	_bsTabMenuContainer: null,
+
 	// Track here all the menu item viewers
 	_bsTabMenuItems: null,
 	_dockToggleMenuItem: null,
@@ -48,15 +50,58 @@ _setDockToggleText: function() {
 	this._dockToggleMenuItem.setHtml(dockToggleText);
 },
 
-_initBsTabMenuItem: function(menuText, bsTabLabel) {
+addBsTabMenuItem: function(bsTabLabel, menuText, startHidden=false) {
 	let bsTabId = this._popupViewer.getBsTabIdByLabel(bsTabLabel);
 	let options = {
 		labelText: menuText,
 		actionFn: this._actionActivateBsTab.bind(this, bsTabId),
 	};
 	let menuItem = Classes.MenuItemViewer.create(options);
-	this.append(menuItem);
+	if(startHidden) {
+		menuItem.hide();
+	}
+	this._bsTabMenuContainer.append(menuItem);
 	this._bsTabMenuItems[bsTabId] = menuItem;
+
+	// Since we've added a bsTab, we might need a new "selected" bsTab, let's rerun
+	// that logic
+	this._selectBsTabMenuItem(this._activeBsTabId);
+
+	return menuItem;
+},
+
+// "bsTabLabel" is mandatory, and must already exist (use addBsTabMenuItem() first).
+// "menuText" is optional, if not specified, the menu label is not changed
+// "hide" is optional, if not specified the hidden/shown status of the menu item
+// is not changed
+updateBsTabMenuItem: function(bsTabLabel, menuText, hide) {
+	const logHead = "PopupMenuViewer.updateBsTabMenuItem():";
+
+	let bsTabId = this._popupViewer.getBsTabIdByLabel(bsTabLabel);
+	let menuItem = this._bsTabMenuItems[bsTabId];
+
+	if(menuItem == null) {
+		this._err(logHead, "menu item not found:", bsTabId);
+		return;
+	}
+
+	if(menuText != null) {
+		menuItem.setText(menuText);
+	}
+
+	if(hide != null) {
+		if(hide) {
+			menuItem.hide();
+		} else {
+			menuItem.show();
+		}
+	}
+
+	// Since we've modified a bsTab, we might need a new "selected" bsTab, let's rerun
+	// that logic
+	this._selectBsTabMenuItem(this._activeBsTabId);
+
+	return menuItem;
 },
 
 _selectBsTabMenuItem: function(highlightBsTabId) {
@@ -76,17 +121,21 @@ _selectBsTabMenuItem: function(highlightBsTabId) {
 _initMenuItems: function() {
 	this._bsTabMenuItems = [];
 
+	this._bsTabMenuContainer = Classes.ContainerViewer.create();
+	this.append(this._bsTabMenuContainer);
+
 	// Show the bsTabs options only if the popup is undocked. A docked popup can never be resized
 	// to be too small to show the bsTab headings.
-	if(!localStore.isPopupDocked()) {
-		this._initBsTabMenuItem("Home", "home");
-		this._initBsTabMenuItem("Settings", "settings");
-
-		this._activeBsTabId = localStore.getActiveBsTabId();
-		this._selectBsTabMenuItem(this._activeBsTabId);
-
+	if(localStore.isPopupDocked()) {
+		this._bsTabMenuContainer.hide();
+	} else {
 		this.appendDivider();
 	}
+
+	this._activeBsTabId = localStore.getActiveBsTabId();
+
+//	this.addBsTabMenuItem("home", "Home");
+//	this.addBsTabMenuItem("settings", "Settings");
 
 	this._dockToggleMenuItem = Classes.MenuItemViewer.create({ actionFn: this._actionDockToggleCb.bind(this) });
 	this._setDockToggleText();
