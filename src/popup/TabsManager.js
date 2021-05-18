@@ -671,11 +671,9 @@ discard: function() {
 	this._chromeElw = null;
 
 	this._queryJob.discard();
-	gcChecker.add(this._queryJob);
 	this._queryJob = null;
 
 	this._issue01WorkaroundJob.discard();
-	gcChecker.add(this._issue01WorkaroundJob);
 	this._issue01WorkaroundJob = null;
 
 	this._normTabs = null;

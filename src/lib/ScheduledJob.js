@@ -148,6 +148,7 @@ skip: function() {
 discard: function() {
 	this.stop();
 	this._jobFn = null;
+	gcChecker.add(this);
 },
 
 isRunning: function() {

@@ -760,7 +760,6 @@ discard: function() {
 	this._queryCycleNo++;
 
 	this._queryAndRenderJob.discard();
-	gcChecker.add(this._queryAndRenderJob);
 	this._queryAndRenderJob = null;
 
 	Classes.BsTabViewer.discard.call(this);
