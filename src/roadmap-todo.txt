@@ -1,8 +1,5 @@
 TODO 2.0
 
-- Consider restructiring the logic that drives popup menu highlighting to be driven
-  by popupViewer instead of being driven by localStore information
-
 - Implement "Incognito" option "Include bookmarks in Incognito search"
 
 - Loading a page that starts with a redirect fails to deduplicate the final link
@@ -18,9 +15,6 @@ TODO 2.0
   * When we ignore the event, it's safe to ignore even if "incognitoBsTab" is not
     the only option that has changed, because anyway TabsBsTabViewer and TabsManager
 	are about to be respawned, no point in trying to stay in sync
-
-- BUG: pin inheritance for tile group button (from tile group member) shows invisible
-  thumbtack icon for incognito tabs
 
 - Use the pattern "logHead, '<string>'" instead of "logHead + '<string>'"
 	// No extra space at the end of the "logHead" string, because we're starting to

@@ -14,7 +14,9 @@ _init: function(tabGroup, expandedGroups, incognitoStyle) {
 	this._incognitoStyle = optionalWithDefault(incognitoStyle, false);
 
 	let emptyExtraClasses = [];
-	if(!incognitoStyle) {
+	if(incognitoStyle) {
+		emptyExtraClasses.push("text-white-50");
+	} else {
 		emptyExtraClasses.push("text-muted");
 	}
 
@@ -37,6 +39,12 @@ _init: function(tabGroup, expandedGroups, incognitoStyle) {
 },
 
 _TilesGroupViewer_renderHeading: function() {
+	let lightIconClass = "text-secondary";
+
+	if(this._incognitoStyle) {
+		lightIconClass = "text-white-50";
+	}
+
 	let iconBadgeHtml = `
 		<div class="tm-overlay tm-full-size">
 			<div class="tm-icon-badge-pos small">
@@ -57,7 +65,7 @@ _TilesGroupViewer_renderHeading: function() {
 		if(!settingsStore.isGroupPinned(this._groupName)) {
 			// If the group is not itself pinned, then it must be pinned due
 			// to some of its inner tabs...
-			extraClasses.push("text-secondary");
+			extraClasses.push(lightIconClass);
 		}
 		pinnedIconHtml = `
 		<p class="m-0 pe-2">

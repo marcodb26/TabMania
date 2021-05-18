@@ -363,10 +363,21 @@ _renderBodyInner: function() {
 	const logHead = "TabTileViewer::_renderBodyInner(): ";
 	let visibleBadgesHtml = [];
 	let titleExtraClasses = [];
-	let textMuted = "text-muted";
+
+	// .text-muted and .text-secondary are actually the same color...
+	let textMutedClass = "text-muted";
+	let lightIconClass = "text-secondary";
+
 	const favIconContainerId = this._id + "-favicon";
 	let favIconClasses = [ "align-text-bottom" ];
 	let favIconParentClasses = [];
+
+	if(this._renderState.incognito) {
+		this.addClasses("bg-secondary", "text-light", "border-dark");
+		// Bootstrap "text-muted" only works for light backgrounds
+		textMutedClass = "text-white-50";
+		lightIconClass = "text-white-50";
+	}
 
 	switch(this._renderState.audio) {
 		case "audible-muted":
@@ -376,11 +387,7 @@ _renderBodyInner: function() {
 			visibleBadgesHtml.push(icons.volumeAudible);
 			break;
 		case "muted":
-			if(!this._renderState.incognito) {
-				visibleBadgesHtml.push(icons.volumeMuted("text-secondary"));
-			} else {
-				visibleBadgesHtml.push(icons.volumeMuted("text-white-50"));
-			}
+			visibleBadgesHtml.push(icons.volumeMuted(lightIconClass));
 			break;
 		default:
 			if(this._renderState.audio != null) {
@@ -405,14 +412,10 @@ _renderBodyInner: function() {
 		visibleBadgesHtml.push(icons.thumbtack());
 	} else {
 		if(this._renderState.pinInherited) {
-			visibleBadgesHtml.push(icons.thumbtack("tm-fa-thumbtack-tile", "text-secondary"));
+			// "tm-fa-thumbtack-tile" is the default, but if we need to specify more classes
+			// then the default doesn't apply, and we need to list it explicitly
+			visibleBadgesHtml.push(icons.thumbtack("tm-fa-thumbtack-tile", lightIconClass));
 		}
-	}
-
-	if(this._renderState.incognito) {
-		this.addClasses("bg-secondary", "text-light", "border-dark");
-		// Bootstrap "text-muted" only works for light backgrounds
-		textMuted = "";
 	}
 
 	if(this._renderState.status != null) {
@@ -505,11 +508,11 @@ _renderBodyInner: function() {
 			<span id="${favIconContainerId}" class="${favIconParentClasses.join(" ")}" style="position: relative;">
 				${throbberHtml}
 				<!-- The favicon goes here -->
-			</span>${specialIcon}<span class="${textMuted} ${titleExtraClasses.join(" ")}">${this._safeText(this._renderState.title)}</span>
+			</span>${specialIcon}<span class="${textMutedClass} ${titleExtraClasses.join(" ")}">${this._safeText(this._renderState.title)}</span>
 		</p>
 		<div class="d-flex lh-1">
 			<p class="flex-grow-1 align-self-center text-truncate tm-tile-url">
-				<small class="lh-base ${textMuted}">${this._safeText(urlLine)}</small>
+				<small class="lh-base ${textMutedClass}">${this._safeText(urlLine)}</small>
 			</p>
 			<p class="align-self-center card-text small" style="text-align: right;">
 				${visibleBadgesHtml.join(" ")}

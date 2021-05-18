@@ -197,6 +197,17 @@ DONE 2.0
 	- The bsTabId is an identifier of the "class" of bsTab (home, incognito or settings), while the
 	  DOM needs to be given instance IDs
 
+- Consider restructiring the logic that drives popup menu highlighting to be driven
+  by popupViewer instead of being driven by localStore information
+  * Decided to leave it as it is, based on localStore events
+
+- BUG: pin inheritance for tile group button (from tile group member) shows invisible
+  thumbtack icon for incognito tabs
+  * Cleaned up rendering of "light" text/icons in incognito mode (where they have to appear
+    a bit darker)
+  * Using .text-white-50 though it's based on transparency and might not show the same
+	color depending on the background color (for now for us the background color is always the same)
+
 
 DONE 1.3
 
