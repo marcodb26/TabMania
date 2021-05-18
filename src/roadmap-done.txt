@@ -176,9 +176,6 @@ DONE 2.0
 - BUG: massive Chrome memory leak on popup reload
   * Worked around by removing a background page event listener on popup unload
 
-- Check if EventManager needs work to support discard()
-  * It doesn't look like it does
-
 - Validated TabsBsTabViewer and TabsManager are getting garbage collected when old instances
   are being discarded (changing the "split incognito" configuration flag)
   * Added a "gcChecker" class for this purposes
@@ -190,6 +187,9 @@ DONE 2.0
     of PopupMenuViewer
 
 - Added "Incognito" to popup menu, with logic to show/hide depending on "split incognito"
+
+- Check if EventManager needs work to support discard()
+  * It doesn't look like it does, but just to be safe, added a discard()
 
 
 DONE 1.3

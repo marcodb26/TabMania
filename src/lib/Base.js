@@ -346,6 +346,26 @@ attachRegistrationFunctions: function(obj) {
 	this._ownerObj = obj;
 },
 
+discard: function() {
+	// The addEventListener/removeEventListener are function pointers of the
+	// corresponding this._elem functions, so we need to clear them to free
+	// up this._elem from extra references
+	this.addEventListener = null;
+	this.removeEventListener = null;
+
+	// Same for the _ownerObj function, they point to this._elem functions
+	this._ownerObj.addEventListener = null;
+	this._ownerObj.removeEventListener = null;
+	this._ownerObj = null;
+
+	// Remove it from the DOM, in case it had been added...
+	this._elem.remove();
+
+	gcChecker.add(this);
+	gcChecker.add(this._elem, this.getId() + "._elem");
+	this._elem = null;
+},
+
 addEventListener: function() {
 	// Empty placeholder, replaced during _init(), don't write code here
 },

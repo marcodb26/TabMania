@@ -55,13 +55,13 @@ _init: function({ standardTabs, incognitoTabs }) {
 
 	this._resetStats();
 
-	this._eventManager = Classes.EventManager.create();
+	this._eventManager = Classes.EventManager.createAs(this.getId() + ".eventManager");
 	this._eventManager.attachRegistrationFunctions(this);
 
-	this._queryJob = Classes.ScheduledJob.createAs(this._id + ".queryTabs", this._queryTabs.bind(this));
+	this._queryJob = Classes.ScheduledJob.createAs(this._id + ".queryJob", this._queryTabs.bind(this));
 	this._queryJob.debug();
 
-	this._issue01WorkaroundJob = Classes.ScheduledJob.createAs(this._id + ".issue01Workaround",
+	this._issue01WorkaroundJob = Classes.ScheduledJob.createAs(this._id + ".issue01WorkaroundJob",
 																this._issue01Workaround.bind(this));
 	this._issue01WorkaroundJob.debug();
 
@@ -675,6 +675,9 @@ discard: function() {
 
 	this._issue01WorkaroundJob.discard();
 	this._issue01WorkaroundJob = null;
+
+	this._eventManager.discard();
+	this._eventManager = null;
 
 	this._normTabs = null;
 
