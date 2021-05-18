@@ -91,7 +91,7 @@ _init: function({ labelHtml, standardTabs, incognitoTabs }) {
 		standardTabs: this._options.standardTabs,
 		incognitoTabs: this._options.incognitoTabs
 	};
-	this._tabsManager = Classes.TabsManager.createAs(this._id + "-tabsManager", tabsManagerOptions);
+	this._tabsManager = Classes.TabsManager.createAs(this._id + ".tabsManager", tabsManagerOptions);
 
 	this._historyFinder = Classes.HistoryFinder.create();
 
@@ -99,9 +99,9 @@ _init: function({ labelHtml, standardTabs, incognitoTabs }) {
 		tabsManager: this._tabsManager,
 		historyFinder: this._historyFinder
 	};
-	this._searchManager = Classes.SearchManager.createAs(this._id + "-searchManager", searchManagerOptions);
+	this._searchManager = Classes.SearchManager.createAs(this._id + ".searchManager", searchManagerOptions);
 
-	this._queryAndRenderJob = Classes.ScheduledJob.createAs(this._id +  ".queryAndRenderTabs",
+	this._queryAndRenderJob = Classes.ScheduledJob.createAs(this._id +  ".queryAndRenderJob",
 															this._queryAndRenderTabs.bind(this));
 	this._queryAndRenderJob.debug();
 
