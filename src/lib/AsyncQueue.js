@@ -284,6 +284,7 @@ discard: async function() {
 	//this._log.trace(logHead + stackTrace());
 
 	this._discarded = true;
+	gcChecker.add(this);
 
 	if(!this._isRunning()) {
 		// Unlikely there's anything to cleanup if it's not running...
