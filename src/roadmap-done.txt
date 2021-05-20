@@ -221,6 +221,8 @@ DONE 2.0
 
 - popupViewer.getSearchQuery() now returns the serch query of the currently active bsTab
 
+- Completed cleanup of tmConsole functions that needed the split between "home" and "incognito" bsTabs
+
 
 DONE 1.3
 
