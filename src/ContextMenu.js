@@ -41,7 +41,9 @@ _moveToLeastTabbedCb: function(itemData, tab) {
 
 	// This is the only action that can decide to do nothing, so we need some
 	// extra visual feedback to let the user know we heard the click, but there
-	// was nothing to do
+	// was nothing to do.
+	// We always blink, but if we didn't move, we blink the old window, if we moved,
+	// we blink the new window.
 	this._blinkPopupIconBadge(tab.id);
 },
 
@@ -55,7 +57,7 @@ _openInLeastTabbedCb: function(itemData, tab) {
 
 	this._log(logHead + "entering", itemData, tab);
 
-	chromeUtils.loadUrl(itemData.linkUrl);
+	chromeUtils.loadUrl(itemData.linkUrl, { incognito: tab.incognito });
 },
 
 _searchPopupCb: function(itemData, tab) {
@@ -76,7 +78,11 @@ _searchCb: function(shortcutKey, itemData, tab) {
 
 	if(shortcutKey == null) {
 		// Launch/search case
-		keyboardShortcuts.launchOrSearch(itemData.selectionText);
+		//
+		// Always open launch/search in non-incognito tab, regardless of where it's
+		// been launched from. We do the same for all other search-related shortcuts.
+//		keyboardShortcuts.launchOrSearch(itemData.selectionText, tab.incognito);
+		keyboardShortcuts.launchOrSearch(itemData.selectionText, false);
 		return;
 	}
 

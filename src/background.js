@@ -45,7 +45,7 @@ function openUrlCb(request, sender, sendResponse) {
 	// but just beware of the consequences of thinking of changing that back to opening
 	// a tab in the current window (which is by necessity the window where you had the
 	// popup running).
-	chromeUtils.loadUrl(request.url, null, chrome.windows.WINDOW_ID_NONE).then(
+	chromeUtils.loadUrl(request.url, { winId: chrome.windows.WINDOW_ID_NONE }).then(
 		function() {
 			sendResponse({ status: "success"});
 		}

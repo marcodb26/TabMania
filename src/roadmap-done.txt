@@ -197,7 +197,7 @@ DONE 2.0
 	- The bsTabId is an identifier of the "class" of bsTab (home, incognito or settings), while the
 	  DOM needs to be given instance IDs
 
-- Consider restructiring the logic that drives popup menu highlighting to be driven
+- Consider restructuring the logic that drives popup menu highlighting to be driven
   by popupViewer instead of being driven by localStore information
   * Decided to leave it as it is, based on localStore events
 
@@ -208,10 +208,16 @@ DONE 2.0
   * Using .text-white-50 though it's based on transparency and might not show the same
 	color depending on the background color (for now for us the background color is always the same)
 
+- Cleaned up ChromeUtils to support "incognito or not" for all methods offered (including queries)
+
 - BUG: background page tries to use incognito tab as LTW and gets error
   [5] ChromeUtils::wrap().cb: chromeUtils::moveTab(activate: true): chrome.runtime.lastError = Tabs can only be moved between windows in the same profile.
 
-- When in incognito bsTab, use "+" to launch incognito tab
+- When in incognito bsTab, use "+" to launch/search in incognito tab
+
+- All search-related context menus open results in non-incognito window, even if launched from
+  incognito windows
+  * On the other hand "Open in LTW" and "Move to LWT" stick to the existing tab context (incognito or not)
 
 
 DONE 1.3

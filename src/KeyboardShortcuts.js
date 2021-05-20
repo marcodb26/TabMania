@@ -55,7 +55,7 @@ _getClipboardAsText: function() {
 	return retVal;
 },
 
-launchOrSearch: function(url) {
+launchOrSearch: function(url, incognito=false) {
 	const logHead = "KeyboardShortcuts::launchOrSearch(): ";
 
 	if(url == null) {
@@ -79,10 +79,10 @@ launchOrSearch: function(url) {
 //		url = "https://www.google.com/search?q=" + url;
 	}
 
-	chromeUtils.loadUrl(url);
+	chromeUtils.loadUrl(url, { incognito });
 },
 
-runCustomShortcutSearch: function(scInfo, searchText) {
+runCustomShortcutSearch: function(scInfo, searchText, incognito=false) {
 	const logHead = "KeyboardShortcuts::runCustomShortcutSearch(searchText: " + searchText + "): ";
 
 	if(searchText == null || searchText == "") {
@@ -104,7 +104,7 @@ runCustomShortcutSearch: function(scInfo, searchText) {
 	if(scInfo.candidateTabs == null) {
 		this._log(logHead + "no candidateTabs, opening in new tab");
 		// We pick the "least tabbed window" to open the new tab
-		chromeUtils.loadUrl(url);
+		chromeUtils.loadUrl(url, { incognito });
 		return;
 	}
 
@@ -125,7 +125,7 @@ runCustomShortcutSearch: function(scInfo, searchText) {
 	// If we found an exact match, open that tab, otherwise open tab 0.
 	tabIdx = (tabIdx != -1) ? tabIdx : 0;
 	this._log(logHead + "opening in candidateTabs[" + tabIdx + "]", scInfo.candidateTabs[tabIdx]);
-	chromeUtils.loadUrl(url, scInfo.candidateTabs[tabIdx].id);
+	chromeUtils.loadUrl(url, { tabId: scInfo.candidateTabs[tabIdx].id });
 },
 
 _manageCustomShortcut: function(shortcutKey) {
@@ -142,7 +142,7 @@ _manageCustomShortcut: function(shortcutKey) {
 		// The shortcut has not been configured. For unconfigured shortcuts we want to
 		// default to the "open new tab" behavior.
 		// The shortcuts never create incognito windows/tabs, always non-incognito.
-		chromeUtils.reuseOrCreateTab();
+		chromeUtils.createTab();
 		return;
 	}
 
@@ -152,7 +152,7 @@ _manageCustomShortcut: function(shortcutKey) {
 		this._log(logHead + "loading URL " + scInfo.url);
 		// Pick the "least tabbed window" to open the new tab if we need a new
 		// tab, or the existing tab if there is one
-		chromeUtils.loadUrl(scInfo.url, tabId);
+		chromeUtils.loadUrl(scInfo.url, { tabId });
 		return;
 	}
 

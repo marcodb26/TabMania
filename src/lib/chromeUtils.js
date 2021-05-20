@@ -103,6 +103,8 @@ _queryWithFilter: async function(queryFn, callerLogHead, queryInfo) {
 // 1. Search only among incognito or non-incognito tabs (queryInfo.incognito).
 //    Note that if you don't specify "incognito", this function returns both non-incognito and
 //    incognito tabs, like chrome.tabs.query().
+//    Note also that you can't use both "windowId" and "incognito", so if you use "windowId", then
+//    "incognito" will automatically be removed.
 // 2. About queryInfo.url, there's some special handling to be done to search with fragments ("#").
 //
 // NOTE: this function can modify "queryInfo", so don't use the same "queryInfo" twice, rebuild it
@@ -110,6 +112,14 @@ _queryWithFilter: async function(queryFn, callerLogHead, queryInfo) {
 queryTabs: async function(queryInfo, callerLogHead) {
 	const logHead = "ChromeUtils::queryTabs(): ";
 	callerLogHead = optionalWithDefault(callerLogHead, logHead);
+
+	if(queryInfo.windowId != null && queryInfo.incognito !== undefined) {
+		// If the caller specified a "windowId", "incognito" doesn't make sense, because
+		// we must pick that "windowId" regardless. "incognito" is actually in the way, because
+		// if the window exists but it's not in the right incognito state, we might discard it
+		// from the search results. Best to just drop "incognito" if "windowId" is defined.
+		delete queryInfo.incognito;
+	}
 
 	if(queryInfo.url == null) {
 		// No url, no special handling needed
@@ -216,9 +226,11 @@ getLeastTabbedWindowId: function(incognito=false, preferredWinId) {
 	);
 },
 
-getEmptyTabsList: function(incognito=false) {
+// "windowId" is optional, if specified, only search for empty tabs in that specific window.
+// If "windowId" is specified, queryTabs() will ignore "incognito".
+getEmptyTabsList: function(incognito=false, windowId) {
 	const logHead = "ChromeUtils::getEmptyTabsList(): ";
-	return this.queryTabs({ url: "chrome://newtab/", incognito }, logHead);
+	return this.queryTabs({ url: "chrome://newtab/", incognito, windowId }, logHead);
 },
 
 discardTab: async function(tab) {
@@ -293,13 +305,11 @@ activateTab: function(tab) {
 	return Promise.all([ activatePromise, focusPromise ]);
 },
 
-// Create a new tab in the current window.
+// Create a new tab in the "winId" window.
 // "url" is optional, if not specified, Chrome will open a New Tab page
 // "winId" is optional, if not specified defaults to chrome.windows.WINDOW_ID_CURRENT. 
-createTab: function(url, winId) {
-	winId = optionalWithDefault(winId, chrome.windows.WINDOW_ID_CURRENT);
-
-	const logHead = "ChromeUtils::createTab(" + url + "): ";
+_createTabInner: function(url, winId=chrome.windows.WINDOW_ID_CURRENT) {
+	const logHead = "ChromeUtils::_createTabInner(" + url + "): ";
 
 	let promiseA = this.wrap(chrome.tabs.create, logHead, { url: url, windowId: winId });
 	// Assume the tab will be opened in a known window, and avoid the
@@ -310,66 +320,82 @@ createTab: function(url, winId) {
 	return Promise.all([ promiseA, promiseB ]);
 },
 
-// "incognito" is optional, default "false" (reuse or create by only considering
-// non-incognito tabs). One context (incognito or non-incognito) must be defined.
-// "url" is optional, if not specified, Chrome will open a New Tab page.
-reuseOrCreateTab: function(incognito=false, url) {
-	// First, check if we have an empty tab and reuse that, then, if not
-	// found, pick the least tabbed window and use that to create a new tab.
-	return this.getEmptyTabsList(incognito).then(
-		function(tabs) {
-			if(tabs.length != 0) {
-				// Reusing an empty tab, pick the first one in the list
-				return this.loadUrl(url, tabs[0].id);
-			}
+// "options" includes the following:
+// - "url", if not specified, Chrome will open a New Tab page.
+// - "incognito", default "false" (reuse or create by only considering non-incognito
+//   tabs). One context (incognito or non-incognito) must be defined.
+// - "winId", only use that window ID to create the new tab
+// - "reuse", default "true", reuse existing empty tabs (either on all windows or on "winId")
+createTab: async function(options) {
+	let incognito = options?.incognito ?? false;
+	let reuse = options?.reuse ?? true;
+	let url = options?.url ?? null;
+	let winId = options?.winId ?? null;
 
-			// Need to find the least tabbed window
-			return this.getLeastTabbedWindowId(incognito).then(
-				function(winId) {
-					// "winId" can be null because:
-					// 1. You want to open an incognito tab and there are only non-incognito windows
-					// 2. You want to open a non-incognito tab and there are only incognito windows
-					// 3. There are only popup windows open, no "normal" window
-					if(winId == null) {
-						// It's ok to pass "url: null"
-						this.createWindow({ incognito, url, focused: true })
-					} else {
-						return this.createTab(url, winId);
-					}
-				}.bind(this)
-			);
-		}.bind(this)
-	);
+	let tabs = [];
+
+	if(reuse) {
+		// First, check if we have an empty tab and reuse that, then, if not
+		// found, pick the least tabbed window and use that to create a new tab.
+		let tabs = await this.getEmptyTabsList(incognito, winId);
+	}
+
+	if(tabs.length != 0) {
+		// Reusing an empty tab, pick the first one in the list
+		return this.loadUrl(url, { tabId: tabs[0].id });
+	}
+
+	if(winId == null) {
+		// Need to find the least tabbed window
+		winId = await this.getLeastTabbedWindowId(incognito);
+	}
+
+	// "winId" can be null because:
+	// 1. You want to open an incognito tab and there are only non-incognito windows
+	// 2. You want to open a non-incognito tab and there are only incognito windows
+	// 3. There are only popup windows open, no "normal" window
+	if(winId == null) {
+		// It's ok to pass "url: null"
+		return this.createWindow({ incognito, url, focused: true });
+	}
+
+	// If we get here, "winId" is not "null", so we don't need to worry about overriding
+	// the default value for the _createTabInner() "winId" argument
+	return this._createTabInner(url, winId);
 },
 
 // tabId is optional, if specified, load in the tab, otherwise create a new tab.
 // Also takes the window with the new tab to the foreground.
 //
-// "winId" is optional, if not specified, the current window will be used. Note that
-// "winId" is relevant only if a new tab needs to be opened, an existing tab won't
-// be moved to a different window. Use chrome.windows.WINDOW_ID_NONE to open the
-// tab in a new window.
-loadUrl: function(url, tabId, winId) {
-	const logHead = "ChromeUtils::loadUrl(" + url + ", " + tabId + ", " + winId + "): ";
+// "options" includes:
+// - "incognito", optional, ignored if "tabId" is defined
+// - "tabId"
+// - "winId" is optional, if not specified, the current window will be used. Note that
+//   "winId" is relevant only if a new tab needs to be opened, an existing tab won't
+//   be moved to a different window. Use chrome.windows.WINDOW_ID_NONE to open the
+//   tab in a new window.
+loadUrl: function(url, options) {
+	const logHead = "ChromeUtils::loadUrl(" + url + "):";
 
-	tabId = optionalWithDefault(tabId, null);
+	let incognito = options?.incognito ?? false;
+	let tabId = options?.tabId ?? null;
+	let winId = options?.winId ?? null;
+
+	this._log(logHead, "entering", incognito, tabId, winId);
+	// If you want to open in an existing tabId, you should not specify a winId, and viceversa
+	this._assert(!(tabId != null && winId != null), logHead);
 
 	if(winId == chrome.windows.WINDOW_ID_NONE) {
 		// Open in a new window, only one command, return the single promise immediately.
 		// If this function was called asking for a new window, the tabId should be "null"...
 		this._assert(tabId == null);
-		return this.wrap(chrome.windows.create, logHead, { focused: true, url: url });
+		return this.createWindow({ focused: true, url: url, incognito });
 	}
 
 	if(tabId == null) {
 		// Not a new window, but we need a new tab to be added to an existing window
 		// or a new one
-		if(winId == null) {
-			// The caller is not requesting a specific window, let's use our heuristic
-			return this.reuseOrCreateTab(false, url);
-		}
-		// The caller is requesting a very specific window, give it to her
-		return this.createTab(url, winId);
+		return this.createTab({ incognito, url, winId });
 	}
 
 	// Existing tab (therefore, existing window)
@@ -378,7 +404,7 @@ loadUrl: function(url, tabId, winId) {
 
 	promiseA = this.activateTabByTabId(tabId);
 	// Note that "url" could be undefined here (when we reuse an existing "new tab", recursive
-	// call coming from reuseOrCreateTab()), but that's ok
+	// call coming from createTab()), but that's ok
 	promiseB = this.wrap(chrome.tabs.update, logHead, tabId, { url: url });
 
 	return Promise.all([ promiseA, promiseB ]);
