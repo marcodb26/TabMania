@@ -225,6 +225,8 @@ DONE 2.0
 
 - BUG: search breaks if there are zero results
 
+- BUG: chromeUtils.createTab() ignores existing empty tabs
+
 
 DONE 1.3
 

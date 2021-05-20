@@ -123,7 +123,7 @@ queryTabs: async function(queryInfo, callerLogHead) {
 
 	if(queryInfo.url == null) {
 		// No url, no special handling needed
-		return await this._queryWithFilter(chrome.tabs.query, callerLogHead, queryInfo);
+		return this._queryWithFilter(chrome.tabs.query, callerLogHead, queryInfo);
 	}
 
 	// https://developer.chrome.com/docs/extensions/reference/tabs/#method-query
@@ -136,7 +136,7 @@ queryTabs: async function(queryInfo, callerLogHead) {
 	let fragmentOffset = queryInfo.url.indexOf("#");
 	if(fragmentOffset == -1) {
 		// No fragment in url, no special handling needed
-		return await this._queryWithFilter(chrome.tabs.query, callerLogHead, queryInfo);
+		return this._queryWithFilter(chrome.tabs.query, callerLogHead, queryInfo);
 	}
 
 	let origUrl = queryInfo.url;
@@ -229,7 +229,7 @@ getLeastTabbedWindowId: function(incognito=false, preferredWinId) {
 // "windowId" is optional, if specified, only search for empty tabs in that specific window.
 // If "windowId" is specified, queryTabs() will ignore "incognito".
 getEmptyTabsList: function(incognito=false, windowId) {
-	const logHead = "ChromeUtils::getEmptyTabsList(): ";
+	const logHead = "ChromeUtils::getEmptyTabsList():";
 	return this.queryTabs({ url: "chrome://newtab/", incognito, windowId }, logHead);
 },
 
@@ -327,6 +327,7 @@ _createTabInner: function(url, winId=chrome.windows.WINDOW_ID_CURRENT) {
 // - "winId", only use that window ID to create the new tab
 // - "reuse", default "true", reuse existing empty tabs (either on all windows or on "winId")
 createTab: async function(options) {
+	const logHead = "ChromeUtils.createTab():"
 	let incognito = options?.incognito ?? false;
 	let reuse = options?.reuse ?? true;
 	let url = options?.url ?? null;
@@ -337,8 +338,10 @@ createTab: async function(options) {
 	if(reuse) {
 		// First, check if we have an empty tab and reuse that, then, if not
 		// found, pick the least tabbed window and use that to create a new tab.
-		let tabs = await this.getEmptyTabsList(incognito, winId);
+		tabs = await this.getEmptyTabsList(incognito, winId);
 	}
+
+	this._log(logHead, "empty tabs:", tabs, options, incognito, winId, reuse);
 
 	if(tabs.length != 0) {
 		// Reusing an empty tab, pick the first one in the list
@@ -473,7 +476,7 @@ closeTab: function(tabId) {
 // In order for this function to work, manifest.json must have permission "*://*/*"
 // (or whatever subset of URLs you want to allow injection into).
 inject: function(tabId, jsFile) {
-	const logHead = "ChomeUtils::inject(" + tabId + "): ";
+	const logHead = "ChromeUtils::inject(" + tabId + "): ";
 	// See https://developer.chrome.com/docs/extensions/reference/extensionTypes/#type-InjectDetails
 	// for all the options
 	return this.wrapQuiet(chrome.tabs.executeScript, logHead, tabId, { file: jsFile }).catch(
@@ -503,7 +506,7 @@ inject: function(tabId, jsFile) {
 //
 // Easier to use async functions to manage a sequential loop of promises...
 getBookmarkPathList: async function(bmNode) {
-	const logHead = "ChomeUtils::getBookmarkPathList(" + bmNode.id + "): ";
+	const logHead = "ChromeUtils::getBookmarkPathList(" + bmNode.id + "): ";
 
 	let pathList = [];
 
@@ -532,7 +535,7 @@ getBookmarkPathList: async function(bmNode) {
 // This function does not return an accurate count, as it includes also folders, which
 // are not really bookmarks. Let's keep it this way for now...
 getBookmarksCount: function() {
-	const logHead = "ChomeUtils::getBookmarksCount(" + bmNode.id + "): ";
+	const logHead = "ChromeUtils::getBookmarksCount(" + bmNode.id + "): ";
 
 	// This sounds crazy inefficient, no better way to just get a count of nodes?
 	// Get the entire tree, then count? Hmmm...
