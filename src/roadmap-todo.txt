@@ -1,7 +1,5 @@
 TODO 2.0
 
-- Search for "rational" breaks in incognito tabs
-
 - The candidate tabs for shortcut searches should run as context menu in non-incognito tabs
   even if invoked from incognito tabs
   * Should we do the same for LOS too? (right now it opens in incognito if started from incognito)

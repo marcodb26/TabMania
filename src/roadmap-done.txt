@@ -223,6 +223,8 @@ DONE 2.0
 
 - Completed cleanup of tmConsole functions that needed the split between "home" and "incognito" bsTabs
 
+- BUG: search breaks if there are zero results
+
 
 DONE 1.3
 

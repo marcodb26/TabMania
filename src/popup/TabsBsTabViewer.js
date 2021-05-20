@@ -535,12 +535,6 @@ _queryAndRenderTabs: function(newSearch) {
 				return;
 			}
 
-			if(tabs.length == 0) {
-				this._log(logHead + "no tabs");
-				this._containerViewer.clear();
-				return;
-			}
-
 			perfProf.mark("renderStart");
 			if(this.isSearchActive()) {
 				this._renderTabsSearchMode(tabs, newSearch);
@@ -652,21 +646,27 @@ _renderTabsByGroup: function(tabGroups) {
 
 _logCachedTilesStats: function(logHead) {
 	if(this._cachedTilesByTabId == null) {
-		this._log(logHead + "no cache, no stats");
+		this._log(logHead, "no cache, no stats");
 		return;
 	}
-	this._log(logHead + "reused " + this._recycledTilesCnt + " tiles, " +
-				Object.keys(this._cachedTilesByTabId).length + " tiles still in cache");
-	this._log(logHead + this._cachedTilesUpdateNeededCnt + " cached tiles needed a re-render");
+	this._log(logHead, "reused", this._recycledTilesCnt, "tiles,",
+				Object.keys(this._cachedTilesByTabId).length, "tiles still in cache");
+	this._log(logHead, this._cachedTilesUpdateNeededCnt, "cached tiles needed a re-render");
 },
 
 _renderTabsFullMode: function(tabs) {
-	const logHead = "TabsBsTabViewer::_renderTabsFullMode(): ";
+	const logHead = "TabsBsTabViewer::_renderTabsFullMode():";
+
+	if(tabs.length == 0) {
+		this._log(logHead, "no tabs");
+		this._containerViewer.clear();
+		return;
+	}
 
 	perfProf.mark("groupStart");
 	let [ pinnedGroups, unpinnedGroups ] = this._groupsBuilder.groupByHostname(tabs);
 	perfProf.mark("groupEnd");
-	this._log(logHead + "pinnedGroups = ", pinnedGroups, "unpinnedGroups = ", unpinnedGroups);
+	this._log(logHead, "pinnedGroups =", pinnedGroups, "unpinnedGroups =", unpinnedGroups);
 
 	// We need to clear() in all cases. This logic is very crude, ideally we should have
 	// a more seamless transition from a set of tabs to a different set of tabs, but
@@ -687,7 +687,7 @@ _renderTabsFullMode: function(tabs) {
 },
 
 _renderTabsSearchMode: function(tabs, newSearch) {
-	const logHead = "TabsBsTabViewer::_renderTabsSearchMode(): ";
+	const logHead = "TabsBsTabViewer::_renderTabsSearchMode():";
 
 	perfProf.mark("searchSortStart");
 	tabs = tabs.sort(Classes.TabNormalizer.compareTabsFn);
@@ -701,6 +701,11 @@ _renderTabsSearchMode: function(tabs, newSearch) {
 	this._setSearchBoxCount(tabs.length);
 	if(newSearch) {
 		this._bodyElem.scrollTo(0, 0);
+	}
+
+	if(tabs.length == 0) {
+		this._log(logHead, "no results");
+		return;
 	}
 
 	this._currentSearchResults = tabs;
