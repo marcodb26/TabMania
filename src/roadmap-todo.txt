@@ -1,9 +1,5 @@
 TODO 2.0
 
-- The candidate tabs for shortcut searches should run as context menu in non-incognito tabs
-  even if invoked from incognito tabs
-  * Should we do the same for LOS too? (right now it opens in incognito if started from incognito)
-
 - Dedup and "move to LTW" (from background page) interfere with the "create new tab" "+" button in the popup?
 
 - ContextMenu._searchPopupCb() might need a split between standard and incognito bstab?
