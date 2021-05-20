@@ -227,6 +227,9 @@ DONE 2.0
 
 - BUG: chromeUtils.createTab() ignores existing empty tabs
 
+- Updated TabsBsTabViewer.activateTab() to support tabs activation in incognito windows
+  * Bookmarks opened from incognito bsTab now use the incognito flag of TabsBsTabViewer.activateTab()
+
 
 DONE 1.3
 

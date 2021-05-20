@@ -5,8 +5,8 @@ Classes.TileMenuViewer = Classes.MenuViewer.subclass({
 
 	_useIncognitoStyle: null,
 
-_init: function(useIncognitoStyle) {
-	this._useIncognitoStyle = optionalWithDefault(useIncognitoStyle, false);
+_init: function(useIncognitoStyle=false) {
+	this._useIncognitoStyle = useIncognitoStyle;
 
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.MenuViewer._init.call(this, {
@@ -202,7 +202,7 @@ _updateMenuItems: function() {
 },
 
 _actionActivateCb: function(ev) {
-	Classes.TabsBsTabViewer.activateTab(this._tab);
+	Classes.TabsBsTabViewer.activateTab(this._tab, this._useIncognitoStyle);
 },
 
 _actionPinToggleCb: function(ev) {
@@ -440,7 +440,7 @@ _updateMenuItems: function() {
 },
 
 _actionActivateCb: function(ev) {
-	Classes.TabsBsTabViewer.activateTab(this._bm);
+	Classes.TabsBsTabViewer.activateTab(this._bm, this._useIncognitoStyle);
 },
 
 _actionBookmarkManagerCb: function(ev) {
@@ -555,7 +555,7 @@ _updateMenuItems: function() {
 },
 
 _actionActivateCb: function(ev) {
-	Classes.TabsBsTabViewer.activateTab(this._item);
+	Classes.TabsBsTabViewer.activateTab(this._item, this._useIncognitoStyle);
 },
 
 _actionDeleteCb: function(ev) {

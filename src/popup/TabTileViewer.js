@@ -47,7 +47,7 @@ Classes.TabTileViewer = Classes.Viewer.subclass({
 // "asyncQueue" is mandatory, and it's the queue where the tile needs to enqueue all heavy
 // rendering of itself.
 // "forceIncognitoStyle" is optional (default "false")
-_init: function(tab, tabGroup, asyncQueue, forceIncognitoStyle) {
+_init: function(tab, tabGroup, asyncQueue, forceIncognitoStyle=false) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.Viewer._init.apply(this, arguments);
 
@@ -57,7 +57,7 @@ _init: function(tab, tabGroup, asyncQueue, forceIncognitoStyle) {
 	this._touchHoverSerialPromises = Classes.SerialPromises.createAs(this._id + "::_touchHoverSerialPromises");
 	this._tab = tab;
 	this._asyncQueue = asyncQueue;
-	this._forceIncognitoStyle = optionalWithDefault(forceIncognitoStyle, false);
+	this._forceIncognitoStyle = forceIncognitoStyle;
 
 	// Don't use this._tab.tm.extId here, because the "extended tab ID" can change any time
 	// a tab changes index or is moved to a different window, but _renderEmptyTile is called
@@ -642,7 +642,7 @@ _renderBody: function(queuePriority) {
 },
 
 _onTileClickCb: function(ev) {
-	Classes.TabsBsTabViewer.activateTab(this._tab);
+	Classes.TabsBsTabViewer.activateTab(this._tab, this._forceIncognitoStyle);
 },
 
 _onTileCloseCb: function(ev) {

@@ -723,7 +723,7 @@ getTabInfo: function(tabId) {
 // This is a static function, because we need it both in the "Enter" handler as
 // well as in the "click" handler (see TabTileViewer), and there was no cleaner way
 // to make this code available in both
-activateTab: function(tab) {
+activateTab: function(tab, incognito=false) {
 	const logHead = "Classes.TabsBsTabViewer.activateTab(): ";
 	if(tab.tm.type == Classes.TabNormalizer.type.TAB) {
 		chromeUtils.activateTab(tab);
@@ -740,10 +740,10 @@ activateTab: function(tab) {
 
 	// The tile is a bookmark or history item, not a tab/rcTab, we need to find an existing
 	// tab already loaded with the current url, or open a new tab to handle the Enter/click
-	chromeUtils.queryTabs({ url: tab.url }, logHead).then(
+	chromeUtils.queryTabs({ url: tab.url, incognito }, logHead).then(
 		function(tabList) {
 			if(tabList.length == 0) {
-				chromeUtils.loadUrl(tab.url);
+				chromeUtils.loadUrl(tab.url, { incognito });
 			} else {
 				// Activate the first tab in the list with a matching URL
 				chromeUtils.activateTab(tabList[0]);
@@ -860,7 +860,7 @@ _respondToEnterKey: function(searchBoxText) {
 
 	this._log(logHead + "activating tab Id " + this._currentSearchResults[0].id +
 					" (" + this._currentSearchResults[0].tm.type + ")");
-	Classes.TabsBsTabViewer.activateTab(this._currentSearchResults[0]);
+	Classes.TabsBsTabViewer.activateTab(this._currentSearchResults[0], this._isIncognito());
 },
 
 getSearchParserInfo: function() {
