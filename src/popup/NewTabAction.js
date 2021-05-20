@@ -39,12 +39,12 @@ _launchOrSearch: function(urlOrSearch, incognito) {
 },
 
 _createNewTab: function(ev) {
-	const logHead = "NewTabAction::_createNewTab(): ";
+	const logHead = "NewTabAction::_createNewTab():";
 
 	let searchQuery = popupViewer.getSearchQuery();
 	let incognito = popupViewer.isIncognitoBsTabActive();
 
-	//this._log(logHead + "the search query is: " + searchQuery);
+	this._log(logHead, "the search query is:", searchQuery);
 	if(searchQuery == null) {
 		// Normal behavior
 		chromeUtils.createTab({ incognito });

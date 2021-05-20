@@ -21,7 +21,7 @@ page, some only on the popups) to monitor the state of the extension, or make ch
 
 * Call `tmConsole.showSearchParserInfo()` on the popup console to see how the search parser interpreted
   the active query
-  - Works only while the TabMania popup is in search mode
+  - Works only while the TabMania popup is in search mode, and displays info about the active bsTab
 
 * Call `tmConsole.showBookmarksStats()` on the popup console to see counters from bookmarksManager.
 

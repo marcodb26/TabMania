@@ -219,6 +219,8 @@ DONE 2.0
   incognito windows
   * On the other hand "Open in LTW" and "Move to LWT" stick to the existing tab context (incognito or not)
 
+- popupViewer.getSearchQuery() now returns the serch query of the currently active bsTab
+
 
 DONE 1.3
 

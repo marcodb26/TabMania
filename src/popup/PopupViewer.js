@@ -318,6 +318,10 @@ getActiveBsTabId: function() {
 	return this._activeBsTabId;
 },
 
+getActiveBsTab: function() {
+	return this.getBsTabById(this.getActiveBsTabId());
+},
+
 getBsTabIdFromBsTabInstanceId: function(bsTabInstanceId) {
 	// The ID of the DOM node is not really the "bsTabId", because we're adding an extra
 	// number to recognize subsequent instances of the bsTab. We need to extract the
@@ -337,18 +341,18 @@ getHomeBsTab: function() {
 },
 
 isIncognitoBsTabActive: function() {
-	return this._activeBsTabId == "popup-bstabs-incognito";
+	return this.getActiveBsTabId() == this.getBsTabIdByLabel("incognito");
 },
 
-// This function returns "true" only if the home tab is visible, besides being
+// This function returns "true" only if a searchable tab is visible, besides being
 // in search mode. If the settings tab is visible, this function returns false
 // regardless of the SearchableBsTabViewer.isSearchActive() response.
 isSearchActive: function() {
-	let homeBsTabId = this.getBsTabIdByLabel("home");
-	if(this.getHomeBsTab().isSearchActive() && this.getActiveBsTabId() == homeBsTabId) {
-		return true;
+	if(this.getActiveBsTabId() == this.getBsTabIdByLabel("settings")) {
+		return false;
 	}
-	return false;
+
+	return this.getActiveBsTab().isSearchActive();
 },
 
 getSearchQuery: function() {
@@ -356,7 +360,7 @@ getSearchQuery: function() {
 		return null;
 	}
 
-	return this.getHomeBsTab().getSearchQuery();
+	return this.getActiveBsTab().getSearchQuery();
 },
 
 }); // Classes.PopupViewer

@@ -1,18 +1,12 @@
 TODO 2.0
 
-- popupViewer.getSearchQuery() should return the serch query of the currently active bsTab...
+- Search for "rational" breaks in incognito tabs
 
 - The candidate tabs for shortcut searches should run as context menu in non-incognito tabs
   even if invoked from incognito tabs
   * Should we do the same for LOS too? (right now it opens in incognito if started from incognito)
 
-- Continue chain of changes for "incognito" starting from chromeUtils.getEmptyTabsList()
-  * Also check all the places where we use directly chrome.tabs.query() or chrome.windows.getAll()
-    to see if we should replace them with _queryWithFilter()
-
 - Dedup and "move to LTW" (from background page) interfere with the "create new tab" "+" button in the popup?
-
-- Continue chain popupDockerBg.runPopupSearch()
 
 - ContextMenu._searchPopupCb() might need a split between standard and incognito bstab?
   * Or we let it search only in standard tabs and so be it?
@@ -53,12 +47,6 @@ TODO 2.0
 
 - BUG: while in search mode, when changing page in a tab, the new page (that matches the search)
   doesn't show up in the search results if the old page was not part of the search results
-
-- Now that we have 2 searchable bsTabs:
-  * Test tmConsole.showTabInfo()
-  * Review popupViewer.isSearchActive() now that we have multiple searchable tabs
-  * Review tmConsole.showSearchParserInfo()
-  * Review PopupDocker._backgroundCommandCb()
 
 - Test search in new separated bsTabs
 
