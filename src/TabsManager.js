@@ -341,7 +341,9 @@ _getLtwIdForMove: async function(tab) {
 		}
 	}
 
-	let moveWinId = await chromeUtils.getLeastTabbedWindowId(tab.windowId);
+	// If the tab was non-incognito, move only to a non-incognito window, while if it was
+	// incognito, move only to an incognito window
+	let moveWinId = await chromeUtils.getLeastTabbedWindowId(tab.incognito, tab.windowId);
 
 	if(moveWinId == tab.windowId) {
 		return null;

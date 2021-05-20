@@ -75,16 +75,45 @@ getExtensionId: function() {
 
 //// Utils to work with tabs (chrome.tabs)
 
-// "queryInfo" is the same as defined in https://developer.chrome.com/docs/extensions/reference/tabs/#method-query
-// This wrapper is needed only if you're querying with queryInfo.url, because there's some special
-// handling to be done in that case. However, you can always call it.
+// _queryWithFilter() is a utility to add extra filtering capabilities to chrome.tabs.query()
+// or chrome.windows.getAll(), since both can't filter in/out incognito tabs/windows.
+// The filter applies only if the extra flag (queryInfo.incognito) is set, otherwise this
+// function behaves like chrome.tabs.query() or chrome.windows.getAll().
+//
+// Note that this function must modify "queryInfo" (to remove "incognito"), because the Chrome
+// function don't allow for intruders in their query data structures.
+_queryWithFilter: async function(queryFn, callerLogHead, queryInfo) {
+	// "queryInfo" is optional, so we need to use optional chaining to deal with it
+	const incognitoFlag = queryInfo?.incognito;
+	// We must delete the extra intruder flag "incognito", otherwise chrome.tabs.query() fails.
+	// Optional chaining works for delete too.
+	delete queryInfo?.incognito;
+
+	let objs = await this.wrap(queryFn, callerLogHead, queryInfo);
+
+	if(incognitoFlag !== undefined) {
+		return objs.filter(obj => obj.incognito == incognitoFlag);
+	}
+	return objs;
+},
+
+// "queryInfo" is the same as defined in https://developer.chrome.com/docs/extensions/reference/tabs/#method-query,
+// but we're overloading "queryInfo" to include "incognito", which is not supported by chrome.tabs.query().
+// This wrapper is needed to:
+// 1. Search only among incognito or non-incognito tabs (queryInfo.incognito).
+//    Note that if you don't specify "incognito", this function returns both non-incognito and
+//    incognito tabs, like chrome.tabs.query().
+// 2. About queryInfo.url, there's some special handling to be done to search with fragments ("#").
+//
+// NOTE: this function can modify "queryInfo", so don't use the same "queryInfo" twice, rebuild it
+// at every call.
 queryTabs: async function(queryInfo, callerLogHead) {
 	const logHead = "ChromeUtils::queryTabs(): ";
 	callerLogHead = optionalWithDefault(callerLogHead, logHead);
 
 	if(queryInfo.url == null) {
 		// No url, no special handling needed
-		return await chromeUtils.wrap(chrome.tabs.query, callerLogHead, queryInfo);
+		return await this._queryWithFilter(chrome.tabs.query, callerLogHead, queryInfo);
 	}
 
 	// https://developer.chrome.com/docs/extensions/reference/tabs/#method-query
@@ -97,13 +126,13 @@ queryTabs: async function(queryInfo, callerLogHead) {
 	let fragmentOffset = queryInfo.url.indexOf("#");
 	if(fragmentOffset == -1) {
 		// No fragment in url, no special handling needed
-		return await chromeUtils.wrap(chrome.tabs.query, callerLogHead, queryInfo);
+		return await this._queryWithFilter(chrome.tabs.query, callerLogHead, queryInfo);
 	}
 
 	let origUrl = queryInfo.url;
 	queryInfo.url = queryInfo.url.substring(0, fragmentOffset);
 
-	let tabListNoFragment = await chromeUtils.wrap(chrome.tabs.query, callerLogHead, queryInfo);
+	let tabListNoFragment = await this._queryWithFilter(chrome.tabs.query, callerLogHead, queryInfo);
 	this._log(logHead + "chrome.tabs.query() for " + queryInfo.url + " returned:", tabListNoFragment);
 
 	// Now we have a list of tabs matching the URL without fragment, which subset matches the URL
@@ -119,6 +148,9 @@ queryTabs: async function(queryInfo, callerLogHead) {
 	return tabList;
 },
 
+// "incognito" is an optional argument, default "false". There's no use case to search for
+// LTW across both incognito and non-incognito windows, because creating tabs or moving tabs
+// must happen in only one of these two contexts (incognito or non-incognito).
 // "preferredWinId" is an optional argument. It's possible multiple windows are all equally
 // least tabbed windows (LTWs).
 // There are two use cases for getLeastTabbedWindowId():
@@ -129,10 +161,11 @@ queryTabs: async function(queryInfo, callerLogHead) {
 //   there, we should instead let the tab stay where it is. That's what we call "preferredWinId"
 //   * Note that if "preferredWinId" refers to a window of type "popup", this function ignores
 //     "preferredWinId", as it only deals with windows of type "normal".
-getLeastTabbedWindowId: function(preferredWinId) {
+getLeastTabbedWindowId: function(incognito=false, preferredWinId) {
 	const logHead = "ChromeUtils::getLeastTabbedWindowId(): ";
 	let options = {
 		populate: true,
+		incognito,
 		// We only care about "normal", "popup" windows don't have tabs
 		windowTypes: [ "normal" ]
 	};
@@ -159,7 +192,7 @@ getLeastTabbedWindowId: function(preferredWinId) {
 		return currentMinWin;
 	};
 
-	return this.wrap(chrome.windows.getAll, logHead, options).then(
+	return this._queryWithFilter(chrome.windows.getAll, logHead, options).then(
 		function(winList) {
 			if(winList.length == 0) {
 				// Can this really happen??? If all open windows are of type "popup" maybe?
@@ -183,9 +216,9 @@ getLeastTabbedWindowId: function(preferredWinId) {
 	);
 },
 
-getEmptyTabsList: function() {
+getEmptyTabsList: function(incognito=false) {
 	const logHead = "ChromeUtils::getEmptyTabsList(): ";
-	return this.queryTabs({ url: "chrome://newtab/" }, logHead);
+	return this.queryTabs({ url: "chrome://newtab/", incognito }, logHead);
 },
 
 discardTab: async function(tab) {
@@ -382,7 +415,7 @@ moveTabToLeastTabbedWindow: function(tab, activate, oldWindowActiveTabId) {
 	activate = optionalWithDefault(activate, false);
 	const logHead = "chromeUtils::moveTabToLeastTabbedWindow(activate: " + activate + "): ";
 
-	return this.getLeastTabbedWindowId(tab.windowId).then(
+	return this.getLeastTabbedWindowId(tab.incognito, tab.windowId).then(
 		function(winId) {
 			if(tab.windowId == winId) {
 				this._log(logHead + "tab " + tab.id + " is already in the least tabbed window " + winId);

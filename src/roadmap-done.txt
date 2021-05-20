@@ -208,6 +208,9 @@ DONE 2.0
   * Using .text-white-50 though it's based on transparency and might not show the same
 	color depending on the background color (for now for us the background color is always the same)
 
+- BUG: background page tries to use incognito tab as LTW and gets error
+  [5] ChromeUtils::wrap().cb: chromeUtils::moveTab(activate: true): chrome.runtime.lastError = Tabs can only be moved between windows in the same profile.
+
 
 DONE 1.3
 
