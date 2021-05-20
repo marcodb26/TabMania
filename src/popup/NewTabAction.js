@@ -46,7 +46,7 @@ _createNewTab: function(ev) {
 	//this._log(logHead + "the search query is: " + searchQuery);
 	if(searchQuery == null) {
 		// Normal behavior
-		chromeUtils.reuseOrCreateTab();
+		chromeUtils.reuseOrCreateTab(popupViewer.isIncognitoBsTabActive());
 		return;
 	}
 

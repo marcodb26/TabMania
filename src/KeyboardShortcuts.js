@@ -140,7 +140,8 @@ _manageCustomShortcut: function(shortcutKey) {
 
 	if(scInfo.empty) {
 		// The shortcut has not been configured. For unconfigured shortcuts we want to
-		// default to the "open new tab" behavior
+		// default to the "open new tab" behavior.
+		// The shortcuts never create incognito windows/tabs, always non-incognito.
 		chromeUtils.reuseOrCreateTab();
 		return;
 	}

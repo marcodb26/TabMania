@@ -267,9 +267,14 @@ focusWindowByTabId: function(tabId) {
 },
 
 focusWindow: function(tab) {
-	const logHead = "ChromeUtils::focusWindow(): ";
+	const logHead = "ChromeUtils::focusWindow():";
 	// https://developer.chrome.com/docs/extensions/reference/windows/#method-update
 	return this.wrap(chrome.windows.update, logHead, tab.windowId, { focused: true });
+},
+
+createWindow: function(createData) {
+	const logHead = "ChromeUtils::createWindow():";
+	return this.wrap(chrome.windows.create, logHead, createData);
 },
 
 activateTabByTabId: function(tabId) {
@@ -305,11 +310,13 @@ createTab: function(url, winId) {
 	return Promise.all([ promiseA, promiseB ]);
 },
 
-// "url" is optional, if not specified, Chrome will open a New Tab page
-reuseOrCreateTab: function(url) {
+// "incognito" is optional, default "false" (reuse or create by only considering
+// non-incognito tabs). One context (incognito or non-incognito) must be defined.
+// "url" is optional, if not specified, Chrome will open a New Tab page.
+reuseOrCreateTab: function(incognito=false, url) {
 	// First, check if we have an empty tab and reuse that, then, if not
 	// found, pick the least tabbed window and use that to create a new tab.
-	return this.getEmptyTabsList().then(
+	return this.getEmptyTabsList(incognito).then(
 		function(tabs) {
 			if(tabs.length != 0) {
 				// Reusing an empty tab, pick the first one in the list
@@ -317,12 +324,18 @@ reuseOrCreateTab: function(url) {
 			}
 
 			// Need to find the least tabbed window
-			return this.getLeastTabbedWindowId().then(
+			return this.getLeastTabbedWindowId(incognito).then(
 				function(winId) {
-					// Ignore the case "winId == null", even if it was real,
-					// chromeUtils.loadUrl() would simply open the new tab in
-					// the current window
-					return this.createTab(url, winId);
+					// "winId" can be null because:
+					// 1. You want to open an incognito tab and there are only non-incognito windows
+					// 2. You want to open a non-incognito tab and there are only incognito windows
+					// 3. There are only popup windows open, no "normal" window
+					if(winId == null) {
+						// It's ok to pass "url: null"
+						this.createWindow({ incognito, url, focused: true })
+					} else {
+						return this.createTab(url, winId);
+					}
 				}.bind(this)
 			);
 		}.bind(this)
@@ -353,7 +366,7 @@ loadUrl: function(url, tabId, winId) {
 		// or a new one
 		if(winId == null) {
 			// The caller is not requesting a specific window, let's use our heuristic
-			return this.reuseOrCreateTab(url);
+			return this.reuseOrCreateTab(false, url);
 		}
 		// The caller is requesting a very specific window, give it to her
 		return this.createTab(url, winId);

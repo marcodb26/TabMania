@@ -336,6 +336,10 @@ getHomeBsTab: function() {
 	return this.getBsTabByLabel("home");
 },
 
+isIncognitoBsTabActive: function() {
+	return this._activeBsTabId == "popup-bstabs-incognito";
+},
+
 // This function returns "true" only if the home tab is visible, besides being
 // in search mode. If the settings tab is visible, this function returns false
 // regardless of the SearchableBsTabViewer.isSearchActive() response.

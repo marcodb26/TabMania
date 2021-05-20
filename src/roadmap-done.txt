@@ -211,6 +211,8 @@ DONE 2.0
 - BUG: background page tries to use incognito tab as LTW and gets error
   [5] ChromeUtils::wrap().cb: chromeUtils::moveTab(activate: true): chrome.runtime.lastError = Tabs can only be moved between windows in the same profile.
 
+- When in incognito bsTab, use "+" to launch incognito tab
+
 
 DONE 1.3
 
