@@ -516,7 +516,9 @@ _settingsStoreUpdatedCb: function(ev) {
 _tabsAsyncQuery: function() {
 	const logHead = "TabsManager::_tabsAsyncQuery(): ";
 
-	// Use an empty dictionary to query for all tabs
+	// Use an empty dictionary to query for all tabs.
+	// Not using the "incognito" flag in the queryTabs() filter, because we want to do
+	// the filtering ourselves here (to add extra debugging info about the ignored tabs).
 	return chromeUtils.queryTabs({}, logHead).then(
 		function(tabs) {
 			if(window.tmStaging !== undefined) {

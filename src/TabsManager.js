@@ -112,6 +112,8 @@ _addAllListeners: function() {
 },
 
 _tabsCountAssertCb: function() {
+	// Leaving the "incognito" argument of _queryTabs() "undefined", to count across all tabs,
+	// both incognito and non-incognito
 	this._queryTabs().then(
 		function(tabs) {
 			logHead = "TabsManager::_tabsCountAssertCb().cb: ";
@@ -126,15 +128,19 @@ _tabsCountAssertCb: function() {
 	);
 },
 
-_queryTabs: function() {
-	return chromeUtils.queryTabs({}, "TabsManager::_queryTabs(): ");
+// Don't assign a default value, because we need to offer the option to leave it
+// "undefined" to search across both incognito and non-incognito tabs
+_queryTabs: function(incognito) {
+	return chromeUtils.queryTabs({ incognito }, "TabsManager::_queryTabs(): ");
 },
 
 _updateShortcutsAllTabs: function() {
-	const logHead = "TabsManager::_updateShortcutsAllTabs(): "
-	return this._queryTabs().then(
+	const logHead = "TabsManager::_updateShortcutsAllTabs():";
+
+	// Shortcuts are only applied to non-incognito tabs
+	return this._queryTabs(false).then(
 		function(tabs) {
-			this._log(logHead + "query completed, updating shortcuts");
+			this._log(logHead, "query completed, updating shortcuts");
 			this._normTabs = Classes.TabsStore.create(tabs);
 			settingsStore.getShortcutsManager().updateTabs(this._normTabs.get());
 			this._normTabs.addShortcutBadges();
@@ -151,6 +157,8 @@ _updateShortcutsOneTab: function(tab) {
 
 // Returns a Promise that resolves to the tabs count. Also store the tabs count in "_tabsCount".
 _setTabsCount: function() {
+	// Leaving the "incognito" argument of _queryTabs() "undefined", to count across all tabs,
+	// both incognito and non-incognito
 	return this._queryTabs().then(
 		function(tabs) {
 			let tabsCount = tabs.length;
@@ -272,7 +280,7 @@ _findExistingUrlMatchTab: async function(tab) {
 		return null;
 	}
 
-	let tabList = await chromeUtils.queryTabs({ url: tab.tm.url }, logHead);
+	let tabList = await chromeUtils.queryTabs({ url: tab.tm.url, incognito: tab.incognito }, logHead);
 
 	if(tabList.length == 0) {
 		return null;
@@ -657,6 +665,8 @@ _onWindowFocusChangeCb: function(windowId, simulated) {
 },
 
 _getChromeActiveTab: function() {
+	// No need to use the "incognito" option, since we're locking that down by
+	// selecting the current window
 	return chromeUtils.queryTabs({ active: true, currentWindow: true }, "TabsManager::_getChromeActiveTab(): ");
 },
 

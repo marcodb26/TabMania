@@ -230,6 +230,9 @@ DONE 2.0
 - Updated TabsBsTabViewer.activateTab() to support tabs activation in incognito windows
   * Bookmarks opened from incognito bsTab now use the incognito flag of TabsBsTabViewer.activateTab()
 
+- BUG: creating empty tabs triggers deduplication between non-incognito and incognito window
+  * We should never cross that boundary
+
 
 DONE 1.3
 
