@@ -1,7 +1,5 @@
 TODO 2.0
 
-- Continue chain of changes from _manageCustomShortcut() (check keyboard shortcuts vs. context menu)
-
 - Change context menu text to say "incognito window" instead of "window" for incognito tabs
 
 - Implement "Incognito" option "Include bookmarks in Incognito search"
