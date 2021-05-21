@@ -1,11 +1,6 @@
 TODO 2.0
 
-- Change context menu text to say "incognito window" instead of "window" for incognito tabs
-
 - Implement "Incognito" option "Include bookmarks in Incognito search"
-
-- BUG: Creating a new tab in an incognito window tries to reuse an existing non-incognito new tab
-  * And viceversa
 
 - Recently closed tab reopened with CTRL+SHIFT+T should not be opened in a LTW, it
   should get reopened in the same window where it used to be
@@ -35,13 +30,15 @@ TODO 2.0
 - BUG: while in search mode, when changing page in a tab, the new page (that matches the search)
   doesn't show up in the search results if the old page was not part of the search results
 
+- popup/TabsManager.js must generate updates also when pinned bookmarks get updated
+  * How do we do that? We only compare _normTabs, which doesn't include _filteredPinnedBookmarks
+    - Who manages diffs for _filteredPinnedBookmarks?
+
 - Test search in new separated bsTabs
 
 - Support separate pinned bookmarks for incognito and standard tabs
 
 - Check how gracefully shrinking the popup behaves with 3 bsTabs
-
-- BUG: deduplication should not work between standard and incognito tabs
 
 - BUG: side color doesn't work for tiles of custom groups in incognito tiles
 
@@ -58,10 +55,6 @@ TODO 2.0
   * The tile closes the context menu again every time there's a title update
 
 - Test _queryCycleNo
-
-- popup/TabsManager.js must generate updates also when pinned bookmarks get updated
-  * How do we do that? We only compare _normTabs, which doesn't include _filteredPinnedBookmarks
-    - Who manages diffs for _filteredPinnedBookmarks?
 
 - Some customGroup changes affect TabsManager (different search badges on a tile), some
   other affect only rendering (different color for a custom group)
@@ -99,7 +92,7 @@ TODO 2.0
 - BUG: after opening the popup, it takes long before the dropdown menus start showing up,
   especially for tabs below the top
 
-- Remove the docked popup, we can always used the docked case for other messages later...
+- Remove the docked popup, we can always use the docked case for other messages later...
   (e.g. notifications)
 
 - Validation needed:

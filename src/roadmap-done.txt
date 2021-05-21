@@ -230,13 +230,16 @@ DONE 2.0
 - Updated TabsBsTabViewer.activateTab() to support tabs activation in incognito windows
   * Bookmarks opened from incognito bsTab now use the incognito flag of TabsBsTabViewer.activateTab()
 
-- BUG: creating empty tabs triggers deduplication between non-incognito and incognito window
+- BUG: creating empty tabs triggers deduplication between non-incognito and incognito windows
   * We should never cross that boundary
 
 - Shortcuts only operate on non-incognito tabs
   * Forced in background page
   * Forced in popup
   * Forced in ShortcutsManager
+
+- Change context menu text to say "incognito window" instead of "window" for incognito tabs
+  * Can't be done
 
 
 DONE 1.3
