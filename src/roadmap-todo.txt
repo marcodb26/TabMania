@@ -1,10 +1,5 @@
 TODO 2.0
 
-- Dedup and "move to LTW" (from background page) interfere with the "create new tab" "+" button in the popup?
-
-- ContextMenu._searchPopupCb() might need a split between standard and incognito bstab?
-  * Or we let it search only in standard tabs and so be it?
-
 - Continue chain of changes from _manageCustomShortcut() (check keyboard shortcuts vs. context menu)
 
 - Change context menu text to say "incognito window" instead of "window" for incognito tabs
@@ -108,6 +103,12 @@ TODO 2.0
 
 - Remove the docked popup, we can always used the docked case for other messages later...
   (e.g. notifications)
+
+- Validation needed:
+  * Do dedup and "move to LTW" (from background page) interfere with the "create new tab" "+" button in the popup?
+
+- ContextMenu._searchPopupCb() might need a split between standard and incognito bstab?
+  * Or we let it search only in standard tabs and so be it?
 
 
 PREP FOR NEXT RELEASE

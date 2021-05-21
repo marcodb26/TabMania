@@ -242,7 +242,7 @@ _issue01Workaround: function() {
 _processTabUpdateInner: function(tab) {
 	this._normTabs.update(tab);
 	// Then update the shortcuts info, if needed
-	if(this._options.standardTabs) {
+	if(this._options.standardTabs && !tab.incognito) {
 		settingsStore.getShortcutsManager().updateTabs(this._normTabs.get());
 	}
 },
@@ -601,13 +601,10 @@ _queryTabs: function() {
 				// not when the settingsStore configuration changes (in that case
 				// updateTabs() is done automatically inside the shortcutManager)
 				if(this._options.standardTabs) {
-					// We'll need to clean this up later: in theory we want to manage
-					// shortcuts for both standard tabs and incognito tabs, but the
 					// ShortcutsManager.updateTabs() function was built before we split
 					// standard and incognito tabs, and each call replaces the previous
 					// call, so we must allow only calls from the same set of tabs.
-					// updateTabs() needs to be improved to support calls from two sets
-					// of tabs (standard and incognito).
+					// Anyway we never want to call it from the "incognito" bsTab.
 					settingsStore.getShortcutsManager().updateTabs(this._normTabs.get());
 
 					// Classes.TabsStore.create() automatically normalizes the tabs,

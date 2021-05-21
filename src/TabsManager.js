@@ -149,9 +149,16 @@ _updateShortcutsAllTabs: function() {
 },
 
 _updateShortcutsOneTab: function(tab) {
-	const logHead = "TabsManager::_updateShortcutsOneTab(" + tab.id + "): "
-	this._log(logHead + "updating shortcuts with ", tab);
+	const logHead = "TabsManager::_updateShortcutsOneTab(" + tab.id + "):";
+
 	this._normTabs.update(tab);
+
+	if(tab.incognito) {
+		this._log(logHead, "ignoring incognito tab for shortcuts");
+		return;
+	}
+
+	this._log(logHead, "updating shortcuts with ", tab);
 	settingsStore.getShortcutsManager().updateTabs(this._normTabs.get());
 },
 

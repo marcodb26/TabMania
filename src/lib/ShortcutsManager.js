@@ -18,6 +18,8 @@ Classes.Base.roDef(window.ExtCommands, "SHORTCUT05", "94shortcut" );
 //
 // This class generates events Classes.EventManager.Events.UPDATED, with "detail" set
 // to { target: <this object>, key: <key> }, where "key" is the key of a custom shortcut
+//
+// Note that internally this class ignores incognito tabs (see _propertySearch())
 Classes.ShortcutsManager = Classes.AsyncBase.subclass({
 	_storageKeyPrefix: null,
 
@@ -164,14 +166,14 @@ _onUpdatedCb: function(key, ev) {
 //	});
 //},
 
-// Search all tabs matching "hostname", and return them sorted
-// by window position
+// Search all non-incognito tabs matching "key" (typically "hostname"), and return them
+// sorted by window position
 _propertySearch: function(key, value) {
 	// We should validate if using a reducer is faster than just looping
 	// the array...
 	let retVal = this._tabs.reduce(
 		function(res, tab) {
-			if(tab.tm[key] == value) {
+			if(tab.incognito == false && tab.tm[key] == value) {
 				res.push(tab);
 			}
 			return res;
@@ -284,6 +286,7 @@ _computeShortcutsInfo: function() {
 	this._shortcutKeys.forEach(this._computeInfo.bind(this));
 },
 
+// Note that internally this class ignores incognito tabs (see _propertySearch())
 updateTabs: function(tabs) {
 	//const logHead = "ShortcutsManager::getShortcutInfo(): ";
 

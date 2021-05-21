@@ -233,6 +233,11 @@ DONE 2.0
 - BUG: creating empty tabs triggers deduplication between non-incognito and incognito window
   * We should never cross that boundary
 
+- Shortcuts only operate on non-incognito tabs
+  * Forced in background page
+  * Forced in popup
+  * Forced in ShortcutsManager
+
 
 DONE 1.3
 
