@@ -241,6 +241,9 @@ DONE 2.0
 - Change context menu text to say "incognito window" instead of "window" for incognito tabs
   * Can't be done
 
+- Implemented "Incognito" option "Include bookmarks in Incognito search"
+  * And removed recently closed tabs and history items from incognito bsTab search
+
 
 DONE 1.3
 

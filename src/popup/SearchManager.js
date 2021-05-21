@@ -4,12 +4,16 @@ Classes.SearchManager = Classes.AsyncBase.subclass({
 
 	_tabsManager: null,
 	_historyFinder: null,
+	_incognitoBsTab: null,
 
 	_searchQuery: null,
 
 	_searchResults: null,
 
-_init: function({ tabsManager, historyFinder }) {
+// The option "incognitoBsTab" is needed because the "incognito" bsTab handles
+// search slightly differently from the "home" bsTab: never returns history data,
+// and returns bookmarks as controlled by a separate user setting.
+_init: function({ tabsManager, historyFinder, incognitoBsTab }) {
 	// Set these properties before calling the parent _init(), because the
 	// parent _init() will trigger _asyncInit(), and when _asyncInit() runs,
 	// it needs to have these values available
@@ -17,6 +21,7 @@ _init: function({ tabsManager, historyFinder }) {
 
 	this._tabsManager = tabsManager;
 	this._historyFinder = historyFinder;
+	this._incognitoBsTab = incognitoBsTab;
 
 	this._eventManager = Classes.EventManager.create();
 	this._eventManager.attachRegistrationFunctions(this);
@@ -36,22 +41,36 @@ _asyncInit: function() {
 },
 
 queryTabs: async function() {
-	const logHead = "SearchManager::_queryTabs(): ";
-	[ rcTabs, bmNodes, hItems ] = await Promise.all([
+	const logHead = "SearchManager::_queryTabs():";
+	let rcPromise = null;
+	let bmPromise = null;
+	let historyPromise = null;
+
+	if(this._incognitoBsTab) {
+		rcPromise = Promise.resolve([]);
+		if(settingsStore.getOptionBookmarksInIncognitoSearch()) {
+			bmPromise = bookmarksManager.find(this._searchQuery);
+		} else {
+			bmPromise = Promise.resolve([]);
+		}
+		historyPromise = Promise.resolve([]);
+	} else {
 		// Unlike bookmarks and history items that support search, recently closed tabs
 		// don't support search, but there's only a maximum of 25 of them, so we can just
 		// scoop them all up and pretend they were always together with the standard tabs
-		this._historyFinder._getRecentlyClosedTabs(),
-		bookmarksManager.find(this._searchQuery),
-		this._historyFinder.find(this._searchQuery),
-	]);
+		rcPromise = this._historyFinder._getRecentlyClosedTabs();
+		bmPromise = bookmarksManager.find(this._searchQuery);
+		historyPromise = this._historyFinder.find(this._searchQuery);
+	}
+
+	[ rcTabs, bmNodes, hItems ] = await Promise.all([ rcPromise, bmPromise, historyPromise ]);
 
 	if(!this.isSearchActive()) {
 		// While waiting for the Promise.all(), the user can close the search and go
 		// back to standard mode. If that happens, the call to this._activateSearchBox(false)
 		// sets this._searchQuery to "null", so this function will eventually fail if
 		// we let it continue. Let's just get out...
-		this._log(logHead + "got out of search mode, discarding results");
+		this._log(logHead, "got out of search mode, discarding results");
 		return;
 	}
 

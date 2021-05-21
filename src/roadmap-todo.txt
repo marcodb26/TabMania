@@ -1,6 +1,7 @@
 TODO 2.0
 
-- Implement "Incognito" option "Include bookmarks in Incognito search"
+- Split pinned bookmarks between "home" and "incognito" bsTabs
+  * Including displaying and "pin"/"unpin" menu items
 
 - Recently closed tab reopened with CTRL+SHIFT+T should not be opened in a LTW, it
   should get reopened in the same window where it used to be

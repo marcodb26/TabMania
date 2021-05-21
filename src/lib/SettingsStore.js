@@ -210,6 +210,9 @@ Classes.SettingsStore = Classes.AsyncBase.subclass({
 	// - "recentlyClosedInSearch": whether or not "recently closed tabs" should be included
 	//   in search results
 	// - "bookmarksInSearch": whether or not bookmarks should be included in search results
+	// - "historyInSearch": whether or not history should be included in search results
+	// - "bookmarksInIncognitoSearch": whether or not bookmarks should be included in incognito
+	//   search results (requires "bookmarksInSearch" and "incognitoBsTab" to be active)
 	// - "searchUrl": the custom search URL to use with "Clipboard launch/search".
 	//   * Make sure this URL includes "%s"
 	// - "devMode": enable/disable developer options (like the UI for "showTabId")
@@ -364,6 +367,15 @@ getOptionHistoryInSearch: function() {
 
 setOptionHistoryInSearch: function(value) {
 	return this._setOption("historyInSearch", value);
+},
+
+getOptionBookmarksInIncognitoSearch: function() {
+	// We want the default for this option to be "true"
+	return this._getBooleanOption("bookmarksInIncognitoSearch", true);
+},
+
+setOptionBookmarksInIncognitoSearch: function(value) {
+	return this._setOption("bookmarksInIncognitoSearch", value);
 },
 
 getOptionShowTabId: function() {

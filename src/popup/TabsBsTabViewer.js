@@ -93,11 +93,13 @@ _init: function({ labelHtml, standardTabs, incognitoTabs }) {
 	};
 	this._tabsManager = Classes.TabsManager.createAs(this._id + ".tabsManager", tabsManagerOptions);
 
-	this._historyFinder = Classes.HistoryFinder.create();
+	// History and recently closed tabs can only be searched in the "Home" bsTab
+	this._historyFinder = this._isIncognito() ? null : Classes.HistoryFinder.create();
 
 	let searchManagerOptions = {
 		tabsManager: this._tabsManager,
-		historyFinder: this._historyFinder
+		historyFinder: this._historyFinder,
+		incognitoBsTab: this._isIncognito(),
 	};
 	this._searchManager = Classes.SearchManager.createAs(this._id + ".searchManager", searchManagerOptions);
 
@@ -128,8 +130,10 @@ _asyncInitCb: function() {
 //	bookmarksManager.addEventListener(Classes.EventManager.Events.UPDATED, this._bookmarkUpdatedCb.bind(this));
 	this._elw.listen(bookmarksManager, Classes.EventManager.Events.UPDATED, this._bookmarkUpdatedCb.bind(this));
 
-//	this._historyFinder.addEventListener(Classes.EventManager.Events.UPDATED, this._historyUpdatedCb.bind(this));
-	this._elw.listen(this._historyFinder, Classes.EventManager.Events.UPDATED, this._historyUpdatedCb.bind(this));
+	if(this._historyFinder != null) {
+//		this._historyFinder.addEventListener(Classes.EventManager.Events.UPDATED, this._historyUpdatedCb.bind(this));
+		this._elw.listen(this._historyFinder, Classes.EventManager.Events.UPDATED, this._historyUpdatedCb.bind(this));
+	}
 
 //	settingsStore.addEventListener(Classes.EventManager.Events.UPDATED, this._settingsStoreUpdatedCb.bind(this));
 	this._elw.listen(settingsStore, Classes.EventManager.Events.UPDATED, this._settingsStoreUpdatedCb.bind(this));
@@ -511,10 +515,9 @@ _queryTabsSearchMode: async function() {
 // display (that is, at the same time the search count stop blinking). Doing it
 // before that (in this function or in the caller, since searches are async) would
 // result in an odd visual effect.
-_queryAndRenderTabs: function(newSearch) {
-	newSearch = optionalWithDefault(newSearch, false);
-	const logHead = "TabsBsTabViewer::_queryAndRenderTabs(" + newSearch + "): ";
-	this._log(logHead + "entering");
+_queryAndRenderTabs: function(newSearch=false) {
+	const logHead = "TabsBsTabViewer::_queryAndRenderTabs(" + newSearch + "):";
+	this._log(logHead, "entering");
 	this.blink();
 
 	this._prepareForNewCycle();
@@ -531,7 +534,7 @@ _queryAndRenderTabs: function(newSearch) {
 		function(tabs) {
 			if(savedQueryCycleNo != this._queryCycleNo) {
 				// The world has moved on while we were waiting, interrupt this operation
-				this._log(logHead + "old query cycle now obsolete, giving up");
+				this._log(logHead, "old query cycle now obsolete, giving up");
 				return;
 			}
 

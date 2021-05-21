@@ -486,9 +486,10 @@ _renderIncognitoOptions: function() {
 
 	// TBD TBD NOT IMPLEMENTED
 	let bookmarksInIncognitoSearch = Classes.SettingsCheckboxItemViewer.create({
-		setFn: settingsStore.setOptionRecentlyClosedInSearch.bind(settingsStore),
-		getFn: settingsStore.getOptionRecentlyClosedInSearch.bind(settingsStore),
+		setFn: settingsStore.setOptionBookmarksInIncognitoSearch.bind(settingsStore),
+		getFn: settingsStore.getOptionBookmarksInIncognitoSearch.bind(settingsStore),
 		label: "Include bookmarks in Incognito search",
+		helpHtml: "<i>Include bookmarks</i> in the <i>Search</i> options must be enabled; applies to the <i>Incognito</i> tab",
 		updateKey: "options",
 	});
 	incognitoGroup.append(bookmarksInIncognitoSearch);
