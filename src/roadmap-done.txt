@@ -244,6 +244,9 @@ DONE 2.0
 - Implemented "Incognito" option "Include bookmarks in Incognito search"
   * And removed recently closed tabs and history items from incognito bsTab search
 
+- Initial work on multi-select
+  * Added checkbox and one way to enter "multi-select mode"
+
 
 DONE 1.3
 

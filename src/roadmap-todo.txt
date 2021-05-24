@@ -1,5 +1,8 @@
 TODO 2.0
 
+- Finish multi-select mode
+  * Add panel to allow exiting from multi-select mode and actions in multi-select mode
+
 - BUG: pinning a tab doesn't trigger a re-sort
 
 - BUG: gmail showed up twice even though there was only one tab

@@ -51,6 +51,8 @@ Classes.TabsBsTabViewer = Classes.SearchableBsTabViewer.subclass({
 	// This is a sorted list of tabs, as they appear in the search results
 	_currentSearchResults: null,
 
+	_selectMode: null,
+
 _init: function({ labelHtml, standardTabs, incognitoTabs }) {
 	this._options = {};
 	this._options.labelHtml = labelHtml
@@ -64,6 +66,8 @@ _init: function({ labelHtml, standardTabs, incognitoTabs }) {
 	this.debug();
 
 	this._queryCycleNo = 0;
+
+	this._selectMode = false;
 
 	// "this._expandedGroups" is initialized to only one localStore persistent set.
 	// If this instance manages standard tabs, it gets initialized to "localStore.standardTabsBsTabExpandedGroups",
@@ -386,6 +390,23 @@ _isIncognito: function() {
 	return !this._options.standardTabs;
 },
 
+isSelectMode: function() {
+	return this._selectMode;
+},
+
+setSelectMode: function(flag=true) {
+	if(this._selectMode === flag) {
+		// Nothing to do
+		return;
+	}
+
+	this._selectMode = flag;
+
+	for(const [tabId, tile] of Object.entries(this._tilesByTabId)) {
+		tile.setSelectMode(flag);
+	}
+},
+
 // When users use touch screens, a long hold (without moving) triggers the context
 // menu of the browser page. We don't care that users can see the context menu in
 // general (except that we don't want the TabMania context menu items there), but
@@ -596,6 +617,8 @@ _renderTile: function(containerViewer, tabGroup, tab) {
 	if(tile == null) {
 		// No cache, or not found in cache
 		tile = Classes.TabTileViewer.create(tab, tabGroup, this._tilesAsyncQueue, this._isIncognito());
+		tile.initSelectMode(null, this.setSelectMode.bind(this, true));
+		tile.setSelectMode(this.isSelectMode());
 	}
 
 	if(tab.tm.wantsAttention) {

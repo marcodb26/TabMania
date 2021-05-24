@@ -5,6 +5,9 @@ Classes.TileMenuViewer = Classes.MenuViewer.subclass({
 
 	_useIncognitoStyle: null,
 
+	_selectCb: null,
+	_selectMenuItem: null,
+
 _init: function(useIncognitoStyle=false) {
 	this._useIncognitoStyle = useIncognitoStyle;
 
@@ -15,6 +18,26 @@ _init: function(useIncognitoStyle=false) {
 	});
 
 	this.debug();
+},
+
+_actionSelectCb: function(ev) {
+	if(this._selectCb != null) {
+		this._selectCb(ev);
+	}
+},
+
+_initSelectMenuItem: function() {
+	options = {
+		labelText: "Select",
+		actionFn: this._actionSelectCb.bind(this),
+	};
+	this._selectMenuItem = Classes.MenuItemViewer.create(options);
+	this.append(this._selectMenuItem);
+},
+
+// Callback signature: fn(ev)
+setSelectCb: function(fn) {
+	this._selectCb = fn;
 },
 
 }); // Classes.TileMenuViewer
@@ -94,6 +117,8 @@ _initMenuItems: function() {
 	this._titleMenuItem = Classes.MenuItemViewer.create(options);
 	this._titleMenuItem.setHtml("<b>" + this._safeText(this._tab.title) + "</b>");
 	this.append(this._titleMenuItem);
+
+	this._initSelectMenuItem();
 
 	options = {
 		labelText: this._tab.pinned ? "Unpin" : "Pin",
@@ -415,6 +440,8 @@ _initMenuItems: function() {
 		this.append(this._openBookmarkManagerMenuItem);
 	}
 
+	this._initSelectMenuItem();
+
 	options = {
 		labelText: this._bm.pinned ? "Unpin" : "Pin",
 		actionFn: this._actionPinToggleCb.bind(this),
@@ -540,6 +567,8 @@ _updateTitleMenuItem: function() {
 
 _initMenuItems: function() {
 	this._renderTitle();
+
+	this._initSelectMenuItem();
 
 	let options = {
 		labelText: "Delete",

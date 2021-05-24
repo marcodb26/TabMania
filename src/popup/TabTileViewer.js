@@ -5,6 +5,8 @@ Classes.TabTileViewer = Classes.Viewer.subclass({
 
 	_rootElem: null,
 	_bodyElem: null,
+	_selectElem: null,
+	_overlayElem: null,
 	_menuElem: null,
 	_closeElem: null,
 
@@ -43,6 +45,11 @@ Classes.TabTileViewer = Classes.Viewer.subclass({
 
 	_forceIncognitoStyle: null,
 
+	_selectMode: null,
+
+	_selectionObj: null,
+	_selectModeCb: null,
+
 // "tabGroup" is optional, if specified it can be used to provide a default favIconUrl
 // "asyncQueue" is mandatory, and it's the queue where the tile needs to enqueue all heavy
 // rendering of itself.
@@ -64,6 +71,9 @@ _init: function(tab, tabGroup, asyncQueue, forceIncognitoStyle=false) {
 	// only once in the life of the tile, and that extra info could be outdated (and that would
 	// cause confusion).
 	this._renderEmptyTile(this._tab.id);
+	// Call setSelectMode() after _renderEmptyTile(), because setSelectMode() needs the
+	// select and overlay elements to be initialized
+	this.setSelectMode(false);
 	this.update(tab, tabGroup);
 },
 
@@ -207,6 +217,64 @@ _isIncognito: function(tab) {
 	return tab.incognito || this._forceIncognitoStyle;
 },
 
+_selectMenuCb: function(ev) {
+	if(this._selectModeCb == null) {
+		// If we still don't have a handler for entering select mode, we should do nothing
+		return;
+	}
+
+	// When the "Select" menu item is clicked, we need to enter "Select mode" on all
+	// tiles, not just this one. We'll let the owner of the _selectModeCb() take care
+	// of that, don't call setSelectMode() directly here.
+	this._selectModeCb(ev);
+
+	// Clicking the select menu also means selecting this item, now that "select mode"
+	// is turned on by the previous call
+	this.toggleSelect();
+},
+
+isSelectMode: function() {
+	return this._selectMode;
+},
+
+setSelectMode: function(flag=true) {
+	// Use "===" because during initialization this function gets called while this._selectMode = null
+	if(this._selectMode === flag) {
+		// Nothing to do
+		return;
+	}
+
+	this._selectMode = flag;
+
+	// Add/remove "d-none" to select and overlay elements, they're mutually exclusive
+	this._overlayElem.classList[flag ? "add" : "remove"]("d-none");
+	this._selectElem.classList[flag ? "remove" : "add"]("d-none");
+
+	// Reset the select checked value to "unselected"
+	this._selectElem.checked = false;
+},
+
+toggleSelect: function() {
+	if(!this.isSelectMode()) {
+		return;
+	}
+
+	this._selectElem.checked = !this._selectElem.checked;
+},
+
+isSelected: function() {
+	if(!this.isSelectMode()) {
+		return false;
+	}
+
+	return this._selectElem.checked;
+},
+
+initSelectMode: function(selectionObj, selectModeCb) {
+	this._selectionObj = selectionObj;
+	this._selectModeCb = selectModeCb;
+},
+
 // "tabId" is only used to add an extra data attribute to the tile (for debugging), but since
 // this call is made only at the initialization of the tile, it assumes the "tabId" is immutable.
 // Then again, since the value is used only for debugging, it's not necessarily a big deal if
@@ -215,6 +283,8 @@ _isIncognito: function(tab) {
 // by using "tmConsole.showTabInfo(<tabId>)".
 _renderEmptyTile: function(tabId) {
 	const bodyId = this._id + "-body";
+	const overlayId = this._id + "-overlay";
+	const selectId = this._id + "-select";
 	const menuId = this._id + "-menu";
 	const closeId = this._id + "-close";
 
@@ -222,17 +292,44 @@ _renderEmptyTile: function(tabId) {
 
 	const closeIcon = `<span aria-hidden="true" class="${closeIconClass}"></span>`;
 
-	// We want to set min-height because when there are a lot of tiles and you're
-	// scrolled to the bottom, it might take a while to get to render the body of
-	// of those tiles. While you wait, it's better to see a full-sized empty tile
-	// than a bunch of super-thin tiles that later disappear.
+	// We want to set min-height in the other container because when there are a lot of 
+	// tiles and you're scrolled to the bottom, it might take a while to get to render
+	// the body of of those tiles. While you wait, it's better to see a full-sized empty
+	// tile than a bunch of super-thin tiles that later disappear.
 	//
 	// For attributes "data-*" see https://html.spec.whatwg.org/#embedding-custom-non-visible-data-with-the-data-*-attributes
+//	const rootHtml = `
+//	<div style="min-height: 3em;" class="card tm-hover tm-cursor-default" data-tab-id="${tabId}">
+//		<div id="${bodyId}" class="card-body px-2 py-1 text-nowrap tm-stacked-below">
+//		</div>
+//		<div id="${overlayId}" class="tm-overlay tm-full-size tm-hover-target">
+//			<div id="${menuId}" class="tm-tile-toggle-center">
+//			</div>
+//			<div class="tm-float-right">
+//				<button type="button" id="${closeId}" class="tm-close-icon-button" aria-label="Close">
+//					${closeIcon}
+//				</button>
+//			</div>
+//		</div>
+//	</div>
+//	`;
+
+	// Note that "min-width: 0;" is needed in the "bodyId" element to force the element
+	// to fit within the flex container width (with or without the "selectId" visible).
+	// Without setting a "min-width", the "min-width" is set to "auto", and that causes
+	// the "bodyId" element to take all the space it needs, and ignore the constraints
+	// of the parent's width.
+	// Explained here: https://makandracards.com/makandra/66994-css-flex-and-min-width
+	//
+	// The "selectId" defaults as "d-none" and will be made visible when entering "select mode".
 	const rootHtml = `
 	<div style="min-height: 3em;" class="card tm-hover tm-cursor-default" data-tab-id="${tabId}">
-		<div id="${bodyId}" class="card-body px-2 py-1 text-nowrap tm-stacked-below">
+		<div class="d-flex align-items-center">
+			<input id="${selectId}" class="form-check-input mt-0 ms-1 d-none" type="checkbox" value="" style="min-width: 1em;">
+			<div id="${bodyId}" class="card-body px-2 py-1 text-nowrap tm-stacked-below" style="min-width: 0;">
+			</div>
 		</div>
-		<div class="tm-overlay tm-full-size tm-hover-target">
+		<div id="${overlayId}" class="tm-overlay tm-full-size tm-hover-target">
 			<div id="${menuId}" class="tm-tile-toggle-center">
 			</div>
 			<div class="tm-float-right">
@@ -247,6 +344,8 @@ _renderEmptyTile: function(tabId) {
 	this._rootElem = this._elementGen(rootHtml);
 	this._bodyElem = this.getElementById(bodyId);
 
+	this._selectElem = this.getElementById(selectId);
+	this._overlayElem = this.getElementById(overlayId);
 	// We always start with menu and close button visible, but _renderBodyInner() can decide
 	// to hide them depending on _renderState
 	this._menuElem = this.getElementById(menuId);
@@ -314,22 +413,22 @@ _renderMenuInner: function() {
 	switch(this._renderState.tmType) {
 		case Classes.TabNormalizer.type.TAB:
 			this._menuViewer = Classes.TabTileMenuViewer.create(this._tab, this._renderState.incognito);
-			this._menuViewer.attachToElement(this._menuElem);
 			break;
 		case Classes.TabNormalizer.type.BOOKMARK:
 			this._menuViewer = Classes.BookmarkTileMenuViewer.create(this._tab, this._renderState.incognito);
-			this._menuViewer.attachToElement(this._menuElem);
 			break;
 		case Classes.TabNormalizer.type.HISTORY:
 			this._menuViewer = Classes.HistoryTileMenuViewer.create(this._tab, this._renderState.incognito);
-			this._menuViewer.attachToElement(this._menuElem);
 			break;
 		default:
 			// A recently closed tab should not get here...
 			const logHead = "TabTileViewer::_renderMenuInner(tile " + this._id + "): ";
 			this._err(logHead + "unknown tmType", this._renderState.tmType);
-			break;
+			return;
 	}
+
+	this._menuViewer.attachToElement(this._menuElem);
+	this._menuViewer.setSelectCb(this._selectMenuCb.bind(this));
 },
 
 _renderMenu: function() {
@@ -642,7 +741,11 @@ _renderBody: function(queuePriority) {
 },
 
 _onTileClickCb: function(ev) {
-	Classes.TabsBsTabViewer.activateTab(this._tab, this._forceIncognitoStyle);
+	if(this.isSelectMode()) {
+		this.toggleSelect();
+	} else {
+		Classes.TabsBsTabViewer.activateTab(this._tab, this._forceIncognitoStyle);
+	}
 },
 
 _onTileCloseCb: function(ev) {
