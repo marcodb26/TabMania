@@ -1,5 +1,16 @@
 TODO 2.0
 
+- BUG: pinning a tab doesn't trigger a re-sort
+
+- BUG: gmail showed up twice even though there was only one tab
+  * One tab showed "SC1" (shortcut), the other didn't
+  * One tab was loaded, the other was unloaded
+  * Both tabs showed the pin
+  * Closing the unloaded tab triggered both tabs to disappear
+  * Happened after a PC resumed from hibernation
+
+- Wants attention should include tabs that change favicon without changing URL
+
 - Split pinned bookmarks between "home" and "incognito" bsTabs
   * Including displaying and "pin"/"unpin" menu items
 
