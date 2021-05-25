@@ -47,7 +47,7 @@ Classes.TabTileViewer = Classes.Viewer.subclass({
 
 	_selectMode: null,
 
-	_selectionObj: null,
+	_multiSelectObj: null,
 	_selectModeCb: null,
 
 // "tabGroup" is optional, if specified it can be used to provide a default favIconUrl
@@ -260,6 +260,12 @@ toggleSelect: function() {
 	}
 
 	this._selectElem.checked = !this._selectElem.checked;
+
+	if(this._selectElem.checked) {
+		this._multiSelectObj.addTab(this._tab);
+	} else {
+		this._multiSelectObj.removeTab(this._tab);
+	}
 },
 
 isSelected: function() {
@@ -270,8 +276,8 @@ isSelected: function() {
 	return this._selectElem.checked;
 },
 
-initSelectMode: function(selectionObj, selectModeCb) {
-	this._selectionObj = selectionObj;
+initSelectMode: function(multiSelectObj, selectModeCb) {
+	this._multiSelectObj = multiSelectObj;
 	this._selectModeCb = selectModeCb;
 },
 

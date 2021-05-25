@@ -253,7 +253,9 @@ DONE 2.0
   * Needed now otherwise we can't add another heading panel to support multi-select
 
 - Minor cleanup: renamed attachToElement() and appendToElement() (as attachInParentElement() and
-  appendInParentElement()) to match prependInParentElement() 
+  appendInParentElement()) to match prependInParentElement()
+
+- Initial work on the MultiSelectPanelViewer to track actions on tiles multi-selection
 
 
 DONE 1.3

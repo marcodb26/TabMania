@@ -9,11 +9,11 @@ Classes.TabsStoreBase = Classes.Base.subclass({
 // "tabs" is an optional list of initial tabs to add
 // "useList" is optional, default to "true". Set it to "false" if you call update()
 // with a "value" different from "tab" and can't override _findTabIndexById() easily.
-_init: function(tabs, useList) {
+_init: function(tabs, useList=true) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.Base._init.call(this);
 
-	this._useList = optionalWithDefault(useList, true);
+	this._useList = useList;
 
 	this.reset();
 
@@ -153,6 +153,10 @@ getDict: function() {
 
 getTabIdList: function() {
 	return Object.keys(this._dict);
+},
+
+getCount: function() {
+	return this._list.length;
 },
 
 }); // Classes.TabsStoreBase

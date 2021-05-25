@@ -53,6 +53,8 @@ Classes.TabsBsTabViewer = Classes.SearchableBsTabViewer.subclass({
 
 	_selectMode: null,
 
+	_multiSelectPanel: null,
+
 _init: function({ labelHtml, standardTabs, incognitoTabs }) {
 	this._options = {};
 	this._options.labelHtml = labelHtml
@@ -401,10 +403,15 @@ setSelectMode: function(flag=true) {
 	}
 
 	this._selectMode = flag;
+	this._multiSelectPanel.activate(flag);
 
 	for(const [tabId, tile] of Object.entries(this._tilesByTabId)) {
 		tile.setSelectMode(flag);
 	}
+},
+
+_multiSelectClosedCb: function(ev) {
+	this.setSelectMode(false);
 },
 
 // When users use touch screens, a long hold (without moving) triggers the context
@@ -451,13 +458,18 @@ _disableContextMenuOnTouchEnd: function() {
 
 _TabsBsTabViewer_render: function() {
 	// Make the TabsBsTabViewer content unselectable
-	this.getRootElement().classList.add("tm-select-none");
+	this.addClasses("tm-select-none");
 
 	this._disableContextMenuOnTouchEnd();
 
 	if(this._isIncognito()) {
 		this.addClasses("bg-secondary", "text-light", "border-dark");
 	}
+
+	this._multiSelectPanel = Classes.MultiSelectPanelViewer.create();
+	this.append(this._multiSelectPanel);
+	this._elw.listen(this._multiSelectPanel, Classes.MultiSelectPanelViewer.Events.CLOSED,
+					this._multiSelectClosedCb.bind(this));
 
 	this._containerViewer = Classes.ContainerViewer.create(this._emptyContainerString);
 
@@ -617,7 +629,7 @@ _renderTile: function(containerViewer, tabGroup, tab) {
 	if(tile == null) {
 		// No cache, or not found in cache
 		tile = Classes.TabTileViewer.create(tab, tabGroup, this._tilesAsyncQueue, this._isIncognito());
-		tile.initSelectMode(null, this.setSelectMode.bind(this, true));
+		tile.initSelectMode(this._multiSelectPanel, this.setSelectMode.bind(this, true));
 		tile.setSelectMode(this.isSelectMode());
 	}
 
@@ -792,6 +804,11 @@ discard: function() {
 
 	this._queryAndRenderJob.discard();
 	this._queryAndRenderJob = null;
+
+	if(this._multiSelectPanel != null) {
+		this._multiSelectPanel.discard();
+		this._multiSelectPanel = null;
+	}
 
 	Classes.BsTabViewer.discard.call(this);
 
