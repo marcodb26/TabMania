@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Nesting</title>
+
+		<style>
+		</style>
+
+		<link href="../src/lib/npm/bootstrap.min.css" rel="stylesheet">
+
+		<!-- These are needed to test the tile -->
+		<link href="../src/popup/popup.css" rel="stylesheet">
+	</head>
+	<!-- Goal: nest a scrollable <div> within some headers and footers while staying
+		 at the vertical height of the viewport and never overflowing it
+	-->
+
+	<!-- "height: 100%;" doesn't seem to do the trick, but "height: 100vh;" does -->
+	<body style="height: 100vh;">
+		<div class="d-flex flex-column h-100">
+			<!-- See https://stackoverflow.com/a/34362676 for "flex: none;".
+			     Update: it doesn't appear to be needed... -->
+<!--		<div style="flex: none;">Line 1</div>  -->
+			<div>Line 1</div>
+			<div>Line 2</div>
+
+			<!-- Same here, neither "style='flex: 1;'" nor "class='flex-fill'"
+			     seems to be needed... -->
+<!--		<div class="flex-fill" style="overflow: auto; flex: 1;"> -->
+			<div class="overflow-auto">
+				<div>Line 3.1</div>
+				<div>Line 3.2</div>
+				<div>Line 3.3</div>
+				<div>Line 3.4</div>
+				<div>Line 3.5</div>
+				<div>Line 3.6</div>
+				<div>Line 3.7</div>
+				<div>Line 3.8</div>
+				<div>Line 3.9</div>
+				<div>Line 3.10</div>
+				<div>Line 3.1</div>
+				<div>Line 3.2</div>
+				<div>Line 3.3</div>
+				<div>Line 3.4</div>
+				<div>Line 3.5</div>
+				<div>Line 3.6</div>
+				<div>Line 3.7</div>
+				<div>Line 3.8</div>
+				<div>Line 3.9</div>
+				<div>Line 3.10</div>
+				<div>Line 3.1</div>
+				<div>Line 3.2</div>
+				<div>Line 3.3</div>
+				<div>Line 3.4</div>
+				<div>Line 3.5</div>
+				<div>Line 3.6</div>
+				<div>Line 3.7</div>
+				<div>Line 3.8</div>
+				<div>Line 3.9</div>
+				<div>Line 3.10</div>
+			</div>
+			<div>Line 4</div>
+		</div>
+	</body>
+</html>
