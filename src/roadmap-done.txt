@@ -247,6 +247,10 @@ DONE 2.0
 - Initial work on multi-select
   * Added checkbox and one way to enter "multi-select mode"
 
+- Cleaned up rendering of bsTabs bodies, now using .d-flex .flex-column layout to organize multiple
+  headers on top of a scrollable tiles container
+  * The vertical scrollbar is finally under control...
+
 
 DONE 1.3
 

@@ -52,12 +52,24 @@ _renderTabsContainer: function() {
 	</div>
 	`;
 
+	// Usual quirkiness of CSS flex layout, need to specify "min-height: 0;".
+	// Without setting a "min-height", the "min-height" is set to "auto", and that causes
+	// the element to take all the space it needs, and ignore the constraints of the
+	// parent's height. Similar to the problem described in TabTileViewer._renderEmptyTile()
+	// and explained here: https://makandracards.com/makandra/66994-css-flex-and-min-width
 	const bodyHtml = `
-	<div class="tab-content tm-fit-bottom tm-fit-after-bstabs" id="${bodyId}">
+	<div class="tab-content h-100" id="${bodyId}" style="min-height: 0;">
 	</div>
 	`;
 
-	this._rootElem = this._elementGen(`<div id=${this._id}>` + headingHtml + bodyHtml + "</div>");
+	const rootHtml = `
+	<div class="d-flex flex-column h-100" id=${this._id}>
+		${headingHtml}
+		${bodyHtml}
+	</div>
+	`;
+
+	this._rootElem = this._elementGen(rootHtml);
 
 	this._headingElem = this.getElementById(headingId);
 	this._buttonBarElem = this.getElementById(buttonBarId);
@@ -142,7 +154,7 @@ _init: function(parentElem) {
 	// if the DOM is not attached to "document", and the tab doesn't get
 	// activated. So we need to make sure we attach this class to the DOM
 	// before we start the tab activation chain with _initActiveTabId().
-	this.attachToElement(parentElem);
+	this.prependInParentElement(parentElem);
 	perfProf.mark("attachEnd");
 
 	this._initActiveTabId();

@@ -131,7 +131,7 @@ function init() {
 		//	popupMsgServer.debug();
 			popupMsgServer.start();
 
-			let rootElem = document.getElementById("popup-bstabs-div");
+			let rootElem = document.body;
 
 			Classes.Base.roDef(window, "bookmarksManager", Classes.BookmarksManager.create());
 

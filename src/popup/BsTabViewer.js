@@ -77,10 +77,13 @@ _createBsTab: function(bsTabLabelHtml) {
 		</li>
 	`;
 
-	// The style "height: 100%" is needed to let the inner vertical scrollbars activate (otherwise a
-	// scrollbar on an outer <div> will activate)
+	// The class "h-100" is needed to let the inner vertical scrollbars activate (otherwise a
+	// scrollbar on an outer <div> will activate). Don't add class "tm-overflow-auto" here in
+	// general because some subclasses might need to add other fixed headers on top before
+	// the scrollable elements (e.g. TabsBsTabViewer needs the search panel to stay on top
+	// and never scroll away).
 	const bodyHtml = `
-		<div class="tab-pane fade tm-scrollable-bstab-body" id="${bodyId}" role="tabpanel" aria-labelledby="${headingId}">
+		<div class="tab-pane fade h-100" id="${bodyId}" role="tabpanel" aria-labelledby="${headingId}">
 		</div>
 	`;
 
@@ -291,9 +294,10 @@ _SearchableBsTabViewer_initBodyElem: function() {
 	//
 	// Note that it would be nice to insert the search icon with a "::before" pseudo-element,
 	// but apparently that can't be done for <input>. See https://stackoverflow.com/questions/4574912/css-content-generation-before-or-after-input-elements
-
-	// Note that the element with bodyId takes "overflow: auto" to avoid the parent gets it instead
+	//
+	// Note that the element with bodyId takes "tm-overflow-auto" to avoid the parent gets it instead.
 	const bodyHtml = `
+	<div class="d-flex flex-column h-100">
 		<div id="${searchBoxContainerId}" class="m-1 tm-stacked-below d-none">
 			<input type="search" id="${searchBoxId}" incremental class="form-control tm-searchbox" placeholder="Type to start searching">
 			<div class="tm-overlay tm-vertical-center tm-searchbox-icon">${icons.searchBox}</div>
@@ -302,8 +306,9 @@ _SearchableBsTabViewer_initBodyElem: function() {
 			</div>
 		</div>
 		<div id="${searchBoxErrorId}" class="tm-searchbox-msg d-none"></div>
-		<div class="tm-fit-bottom tm-home-bstab-scroll" id="${bodyId}">
+		<div class="tm-overflow-auto" id="${bodyId}">
 		</div>
+	</div>
 	`;
 
 	this.setHtml(bodyHtml);
@@ -365,7 +370,6 @@ _bsTabDeactivatedCb: function(ev) {
 _SearchableBsTabViewer_searchBoxInactiveInner: function() {
 	const logHead = "SearchableBsTabViewer::_SearchableBsTabViewer_searchBoxInactiveInner(): ";
 	this._searchBoxContainerElem.classList.add("d-none");
-	this._bodyElem.classList.remove("tm-fit-after-search");
 	this._searchActive = false;
 
 	// Restore the scrolling position as it was before the user started searching
@@ -395,11 +399,7 @@ _activateSearchBox: function(active) {
 		// esume it after the search
 		this._standardViewScrollTop = this._bodyElem.scrollTop;
 
-		// When the searchbox appears, the "position:absolute;" (class .tm-fit-bottom)
-		// body needs to be shifted down to make sure it doesn't end up under the
-		// searchbox, that's what class .tm-fit-after-search is for.
 		this._searchBoxContainerElem.classList.remove("d-none");
-		this._bodyElem.classList.add("tm-fit-after-search");
 		this._searchActive = true;
 		this._searchBoxElemFocus();
 	} else {

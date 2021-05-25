@@ -173,6 +173,12 @@ appendToElement: function(parentDomElem) {
 	parentDomElem.append(this._rootElem);
 },
 
+// This function is needed to interact with the non-Viewer world of raw elements.
+// "prepend" leaves whatever other children the parent element might already have.
+prependInParentElement: function(parentDomElem) {
+	parentDomElem.prepend(this._rootElem);
+},
+
 // Remove all the children of _bodyElem (or _rootElem if _bodyElem is null)
 clear: function() {
 	const logHead = "Viewer::clear(): ";

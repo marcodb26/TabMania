@@ -304,6 +304,9 @@ _setBody: function() {
 		</div>
 	`;
 
+	// The settings pane is the only one that can have the "tm-overflow-auto" at the top,
+	// no other inner component needs to remain visible on top
+	this.addClasses("tm-overflow-auto");
 	this.setHtml(html);
 	this._bodyElem = this.getElementById(bodyId);
 },

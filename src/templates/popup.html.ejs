@@ -72,19 +72,23 @@ Note the use of the closing tag with the leading "-", indicating "trim-mode ('ne
 		<link rel="icon" href="<%- basePath + "images/icon-16.png" %>" type="image/png">
 	</head>
 
-	<%_ %><%# We need "overflow-x: hidden" at the body level to make the horizontal scrollbar
+	<%_ %><%# We need "overflow-x: hidden;" at the body level to make the horizontal scrollbar
 			# of the BsTabs heading are to stay hidden when the popup is too narrow.
 			# Putting "overflow-x: hidden" on any other <body> child in the branch towards
 			# the haeding area causes "overflow-y" to get set as well, and that in turn
 			# causes the main menu to be clipped at the height of the heading area, instead
 			# of expanding over the tiles area.
+			# "height: 100vh;" is needed to force the body to have the same height as the
+			# window containing it, which is the only way to let the flex-column layout know
+			# how much space it really has to play with, and avoid the vertical scrollbar from
+			# appearing too far out (we want the vertical scrollbar for the tiles, but not to
+			# scroll away the headings).
 	-%>
-	<body style="overflow-x: hidden">
+	<body style="overflow-x: hidden; height: 100vh;">
 
 		<%_ %><%# Note that the maximum width of an extension's popup is 800px, but we just need half of that.
 		  # See https://stackoverflow.com/questions/8983165/how-can-i-expand-the-popup-window-of-my-chrome-extension#:~:text=Chrome%20extension%20popups%20can%20have,and%20maximum%20width%20of%20800px.
 		-%>
-		<div id="popup-bstabs-div"></div>
 		<%_ %><%# Optional JavaScript for Bootstrap -%>
 		<script src="<%- libPath + "bootstrap.bundle.min.js" %>"></script>
 		<script src="<%- libPath + "dayjs.min.js" %>"></script>
