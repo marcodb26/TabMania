@@ -251,6 +251,9 @@ DONE 2.0
   headers on top of a scrollable tiles container
   * The vertical scrollbar is finally under control...
 
+- Minor cleanup: renamed attachToElement() and appendToElement() (as attachInParentElement() and
+  appendInParentElement()) to match prependInParentElement() 
+
 
 DONE 1.3
 

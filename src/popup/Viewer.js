@@ -162,14 +162,14 @@ detach: function() {
 
 // This function is needed to interact with the non-Viewer world of raw elements.
 // "attach" removes anything that might have been in the parent element.
-attachToElement: function(parentDomElem) {
+attachInParentElement: function(parentDomElem) {
 	parentDomElem.textContent = "";
-	this.appendToElement(parentDomElem);
+	this.appendInParentElement(parentDomElem);
 },
 
 // This function is needed to interact with the non-Viewer world of raw elements.
 // "append" leaves whatever other children the parent element might already have.
-appendToElement: function(parentDomElem) {
+appendInParentElement: function(parentDomElem) {
 	parentDomElem.append(this._rootElem);
 },
 
@@ -256,7 +256,7 @@ Classes.HtmlViewer = Classes.Viewer.subclass({
 	_rootElem: null,
 
 // "html" must have a single root element, otherwise only the first top level
-// element will be added to the DOM when calling append() or attach/appendToElement().
+// element will be added to the DOM when calling append() or attach/appendInParentElement().
 _init: function(html) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.Viewer._init.call(this);

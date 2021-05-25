@@ -104,7 +104,7 @@ _TilesGroupViewer_renderHeading: function() {
 		extraClasses: [ "tm-favicon-16" ],
 	};
 	let favIconViewer = Classes.ImageViewer.create(favIconOptions);
-	favIconViewer.attachToElement(favIconContainerElem);
+	favIconViewer.attachInParentElement(favIconContainerElem);
 },
 
 _TilesGroupViewer_render: function() {

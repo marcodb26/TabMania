@@ -82,7 +82,7 @@ _renderTabsContainer: function() {
 
 _attachMenu: function(menuViewer) {
 	this._menuViewer = menuViewer;
-	this._menuViewer.attachToElement(this._menuElem);
+	this._menuViewer.attachInParentElement(this._menuElem);
 },
 
 // Override Viewer.append()
@@ -295,8 +295,8 @@ _tabsListNotificationCb: function(notification, sender) {
 },
 
 // Override Classes.Viewer's behavior
-attachToElement: function() {
-	Classes.Viewer.attachToElement.apply(this, arguments);
+attachInParentElement: function() {
+	Classes.Viewer.attachInParentElement.apply(this, arguments);
 	// Perform here any initialization that requires the elements to be attached
 	// to the document's DOM (e.g., hicharts charts can only be initialized after
 	// we've been attached to the window.document DOM)

@@ -464,7 +464,7 @@ _TabsBsTabViewer_render: function() {
 	this._queryAndRenderTabs();
 
 	perfProf.mark("attachContainerStart");
-	//this._containerViewer.attachToElement(this.getBodyElement());
+	//this._containerViewer.attachInParentElement(this.getBodyElement());
 	this.append(this._containerViewer);
 	perfProf.mark("attachContainerEnd");
 	perfProf.measure("Attach tiles cont.", "attachContainerStart", "attachContainerEnd");

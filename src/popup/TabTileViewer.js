@@ -427,7 +427,7 @@ _renderMenuInner: function() {
 			return;
 	}
 
-	this._menuViewer.attachToElement(this._menuElem);
+	this._menuViewer.attachInParentElement(this._menuElem);
 	this._menuViewer.setSelectCb(this._selectMenuCb.bind(this));
 },
 
@@ -629,7 +629,7 @@ _renderBodyInner: function() {
 		extraClasses: favIconClasses,
 	};
 	let favIconViewer = Classes.ImageViewer.create(favIconOptions);
-	favIconViewer.appendToElement(favIconContainerElem);
+	favIconViewer.appendInParentElement(favIconContainerElem);
 
 	if(this._renderState.showCloseButton) {
 		this._closeElem.classList.remove("d-none");

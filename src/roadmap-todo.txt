@@ -1,8 +1,5 @@
 TODO 2.0
 
-- Rename attachToElement() and appendToElement() to match prependInParentElement()
-  * attachInParentElement(), appendInParentElement()
-
 - Finish multi-select mode
   * Add panel to allow exiting from multi-select mode and actions in multi-select mode
 
