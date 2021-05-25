@@ -38,9 +38,7 @@ _renderPanel: function() {
 	const bodyHtml = `
 		<div class="card tm-cursor-default">
 			<span id="${cntId}">0</span> Empty multi-select panel
-			<button type="button" id="${closeId}" class="tm-close-icon-button" aria-label="Close">
-				<span aria-hidden="true" class="tm-close-icon"></span>
-			</button>
+			${icons.closeHtml(closeId)}
 		</div>
 	`;
 

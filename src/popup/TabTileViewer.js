@@ -296,29 +296,12 @@ _renderEmptyTile: function(tabId) {
 
 	const closeIconClass = this._isIncognito() ? "tm-close-icon-light" : "tm-close-icon";
 
-	const closeIcon = `<span aria-hidden="true" class="${closeIconClass}"></span>`;
-
 	// We want to set min-height in the other container because when there are a lot of 
 	// tiles and you're scrolled to the bottom, it might take a while to get to render
 	// the body of of those tiles. While you wait, it's better to see a full-sized empty
 	// tile than a bunch of super-thin tiles that later disappear.
 	//
 	// For attributes "data-*" see https://html.spec.whatwg.org/#embedding-custom-non-visible-data-with-the-data-*-attributes
-//	const rootHtml = `
-//	<div style="min-height: 3em;" class="card tm-hover tm-cursor-default" data-tab-id="${tabId}">
-//		<div id="${bodyId}" class="card-body px-2 py-1 text-nowrap tm-stacked-below">
-//		</div>
-//		<div id="${overlayId}" class="tm-overlay tm-full-size tm-hover-target">
-//			<div id="${menuId}" class="tm-tile-toggle-center">
-//			</div>
-//			<div class="tm-float-right">
-//				<button type="button" id="${closeId}" class="tm-close-icon-button" aria-label="Close">
-//					${closeIcon}
-//				</button>
-//			</div>
-//		</div>
-//	</div>
-//	`;
 
 	// Note that "min-width: 0;" is needed in the "bodyId" element to force the element
 	// to fit within the flex container width (with or without the "selectId" visible).
@@ -339,9 +322,7 @@ _renderEmptyTile: function(tabId) {
 			<div id="${menuId}" class="tm-tile-toggle-center">
 			</div>
 			<div class="tm-float-right">
-				<button type="button" id="${closeId}" class="tm-close-icon-button" aria-label="Close">
-					${closeIcon}
-				</button>
+				${icons.closeHtml(closeId, [], closeIconClass)}
 			</div>
 		</div>
 	</div>

@@ -257,6 +257,9 @@ DONE 2.0
 
 - Initial work on the MultiSelectPanelViewer to track actions on tiles multi-selection
 
+- Consolidated HTML rendering of close button as icons.closeHtml()
+  * From 3 places where it was hardcoded
+
 
 DONE 1.3
 
