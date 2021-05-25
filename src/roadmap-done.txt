@@ -250,6 +250,7 @@ DONE 2.0
 - Cleaned up rendering of bsTabs bodies, now using .d-flex .flex-column layout to organize multiple
   headers on top of a scrollable tiles container
   * The vertical scrollbar is finally under control...
+  * Needed now otherwise we can't add another heading panel to support multi-select
 
 - Minor cleanup: renamed attachToElement() and appendToElement() (as attachInParentElement() and
   appendInParentElement()) to match prependInParentElement() 
