@@ -276,7 +276,7 @@ DONE 2.0
     multi-select mode
   * The menu is still empty
 
-- Tile select: support clicking on the checkbox, not only on the rest of the tile
+- Tile selection: support clicking on the checkbox, not only on the rest of the tile
 
 
 DONE 1.3
