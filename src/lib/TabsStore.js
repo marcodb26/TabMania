@@ -134,6 +134,10 @@ getById: function(searchTabId) {
 	return this._dict[searchTabId];
 },
 
+hasById: function(searchTabId) {
+	return this.getById(searchTabId) !== undefined;
+},
+
 // get() returns the "_list", getDict() returns the "_dict"
 get: function() {
 	// We can use Object.values() instead of tracking a separate "_list", but if the instance

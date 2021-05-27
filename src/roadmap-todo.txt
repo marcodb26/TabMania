@@ -1,11 +1,10 @@
 TODO 2.0
 
-- Tile select: support clicking on the checkbox, not only on the rest of the tile
-
 - The MultiSelect panel should show up above the scrollable area, not inside of it
 
 - Finish multi-select mode
-  * Add panel to allow exiting from multi-select mode and actions in multi-select mode
+  * Add actions in multi-select mode
+  * Add selection checkbox to group titles to select/unselect all within group
 
 - BUG: pinning a tab doesn't trigger a re-sort
 

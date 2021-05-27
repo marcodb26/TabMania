@@ -246,6 +246,8 @@ DONE 2.0
 
 - Initial work on multi-select
   * Added checkbox and one way to enter "multi-select mode"
+  * Selections are persisted across transitions through search, to allow users to accumulate
+    a selection over time
 
 - Cleaned up rendering of bsTabs bodies, now using .d-flex .flex-column layout to organize multiple
   headers on top of a scrollable tiles container
@@ -256,9 +258,25 @@ DONE 2.0
   appendInParentElement()) to match prependInParentElement()
 
 - Initial work on the MultiSelectPanelViewer to track actions on tiles multi-selection
+  * Including one way to exit "multi-select" mode
 
 - Consolidated HTML rendering of close button as icons.closeHtml()
   * From 3 places where it was hardcoded
+
+- Added checkbox in multi-select panel to trigger select/unselect all behavior
+  * Also using the "indetermined" checkbox state to identify partial selection conditions
+  * Automatically setting the checkbox state upon every re-render
+
+- In multi-select mode, re-selecting tiles upon re-render in case they're tracked as selected
+  * It was still missing before, though it would appear to be working if reusing tiles
+    through the tiles cache
+
+- Initial draft for multi-select panel layout
+  * Checkbox to select/unselect all, dropdown caret, count of selected items, button to close
+    multi-select mode
+  * The menu is still empty
+
+- Tile select: support clicking on the checkbox, not only on the rest of the tile
 
 
 DONE 1.3

@@ -47,8 +47,10 @@ Classes.TabTileViewer = Classes.Viewer.subclass({
 
 	_selectMode: null,
 
-	_multiSelectObj: null,
-	_selectModeCb: null,
+	// "_selectSetSelectedFn" has signature _selectSetSelectedFn(tab, flag)
+	_selectSetSelectedFn: null,
+	// "_selectModeStartFn" has signature _selectModeStartFn()
+	_selectModeStartFn: null,
 
 // "tabGroup" is optional, if specified it can be used to provide a default favIconUrl
 // "asyncQueue" is mandatory, and it's the queue where the tile needs to enqueue all heavy
@@ -218,19 +220,19 @@ _isIncognito: function(tab) {
 },
 
 _selectMenuCb: function(ev) {
-	if(this._selectModeCb == null) {
+	if(this._selectModeStartFn == null) {
 		// If we still don't have a handler for entering select mode, we should do nothing
 		return;
 	}
 
 	// When the "Select" menu item is clicked, we need to enter "Select mode" on all
-	// tiles, not just this one. We'll let the owner of the _selectModeCb() take care
+	// tiles, not just this one. We'll let the owner of the _selectModeStartFn() take care
 	// of that, don't call setSelectMode() directly here.
-	this._selectModeCb(ev);
+	this._selectModeStartFn();
 
 	// Clicking the select menu also means selecting this item, now that "select mode"
 	// is turned on by the previous call
-	this.toggleSelect();
+	this.toggleSelected();
 },
 
 isSelectMode: function() {
@@ -254,31 +256,37 @@ setSelectMode: function(flag=true) {
 	this._selectElem.checked = false;
 },
 
-toggleSelect: function() {
+setSelected: function(flag=true) {
+	if(this._selectElem.checked == flag) {
+		// Already in that state, nothing to do
+		return;
+	}
+
+	this._selectElem.checked = flag;
+	this._selectSetSelectedFn(this._tab, this._selectElem.checked);
+},
+
+toggleSelected: function(flag) {
 	if(!this.isSelectMode()) {
 		return;
 	}
 
-	this._selectElem.checked = !this._selectElem.checked;
-
-	if(this._selectElem.checked) {
-		this._multiSelectObj.addTab(this._tab);
-	} else {
-		this._multiSelectObj.removeTab(this._tab);
-	}
+	this._selectElem.focus();
+	this.setSelected(!this._selectElem.checked);
 },
 
 isSelected: function() {
-	if(!this.isSelectMode()) {
-		return false;
-	}
-
 	return this._selectElem.checked;
 },
 
-initSelectMode: function(multiSelectObj, selectModeCb) {
-	this._multiSelectObj = multiSelectObj;
-	this._selectModeCb = selectModeCb;
+// "setSelectedFn" has signature setSelectedFn(tab, flag). Don't let the TabsBsTabViewer hardcode
+// the "tab" by binding it to this function, let the tile provide the tab instead. The reason is
+// that the tab info can change over time, and the tile can always return the latest, while the
+// bound tab would be fixed at the beginning of time and eventually become stale.
+// "selectModeStartFn" has signature selectModeStartFn()
+initSelectMode: function(setSelectedFn, selectModeStartFn) {
+	this._selectSetSelectedFn = setSelectedFn;
+	this._selectModeStartFn = selectModeStartFn;
 },
 
 // "tabId" is only used to add an extra data attribute to the tile (for debugging), but since
@@ -322,7 +330,7 @@ _renderEmptyTile: function(tabId) {
 			<div id="${menuId}" class="tm-tile-toggle-center">
 			</div>
 			<div class="tm-float-right">
-				${icons.closeHtml(closeId, [], closeIconClass)}
+				${icons.closeHtml(closeId, [], [ closeIconClass ])}
 			</div>
 		</div>
 	</div>
@@ -729,7 +737,7 @@ _renderBody: function(queuePriority) {
 
 _onTileClickCb: function(ev) {
 	if(this.isSelectMode()) {
-		this.toggleSelect();
+		this.toggleSelected();
 	} else {
 		Classes.TabsBsTabViewer.activateTab(this._tab, this._forceIncognitoStyle);
 	}
@@ -1032,6 +1040,7 @@ setClickHandler: function(fn) {
 	// Since update() doesn't change the root element, this handler remains valid
 	// across multiple update() calls
 	this._rootElem.addEventListener("click", fn, false);
+	this._selectElem.addEventListener("click", fn, false);
 },
 
 }); // Classes.TabTileViewer

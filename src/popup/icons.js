@@ -52,10 +52,10 @@ history: function(...args) {
 	`;
 },
 
-closeHtml: function(closeId, buttonExtraClasses=[], iconClass="tm-close-icon") {
+closeHtml: function(closeId, buttonExtraClasses=[], iconClasses=["tm-close-icon"]) {
 	return `
 		<button type="button" id="${closeId}" class="tm-close-icon-button ${buttonExtraClasses.join(" ")}" aria-label="Close">
-			<span aria-hidden="true" class="${iconClass}"></span>
+			<span aria-hidden="true" class="${iconClasses.join(" ")}"></span>
 		</button>
 	`;
 },

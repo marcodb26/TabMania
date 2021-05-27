@@ -410,8 +410,64 @@ setSelectMode: function(flag=true) {
 	}
 },
 
+_tileSelectedCb: function(tab, flag) {
+	if(flag) {
+		this._multiSelectPanel.addTab(tab);
+	} else {
+		this._multiSelectPanel.removeTab(tab);
+	}
+
+	this._computeMultiSelectState(flag);
+},
+
+_multiSelectSelectedCb: function(ev) {
+	const logHead = "TabsBsTabViewer::_multiSelectSelectedCb():";
+
+	if(ev.detail.selected) {
+		this._log(logHead, "all selected", ev);
+	} else {
+		this._log(logHead, "all unselected", ev);
+	}
+
+	for(const [tabId, tile] of Object.entries(this._tilesByTabId)) {
+		tile.setSelected(ev.detail.selected);
+	}
+},
+
 _multiSelectClosedCb: function(ev) {
 	this.setSelectMode(false);
+},
+
+// If "hint" is "undefined", it won't contribute to the determination of the panel
+// checkbox state
+_computeMultiSelectState: function(hint) {
+	let atLeastOneSelected = false;
+
+	for(const [tabId, tile] of Object.entries(this._tilesByTabId)) {
+		if(tile.isSelected()) {
+			atLeastOneSelected = true;
+			if(hint === false) {
+				// We're finding that at least one is selected, and we know from the "hint"
+				// that at least one has just been unselected, no need to continue with the
+				// loop, the multiSelect state is "partially selected" (indetermined)
+				this._multiSelectPanel.setSelected(true, true);
+				return;
+			}
+		} else {
+			if(atLeastOneSelected || hint === true) {
+				// At least one is selected (either because we found it, or because the "hint"
+				// told us that), and now we're finding out that at least one is unselected,
+				// no need to continue with the loop, the multiSelect state is "partially
+				// selected" (indetermined)
+				this._multiSelectPanel.setSelected(true, true);
+				return;
+			}
+		}
+	}
+
+	// If we get here, we didn't hit the "partially selected" case, so the tiles are
+	// either all selected, or all unselected
+	this._multiSelectPanel.setSelected(atLeastOneSelected);
 },
 
 // When users use touch screens, a long hold (without moving) triggers the context
@@ -468,6 +524,8 @@ _TabsBsTabViewer_render: function() {
 
 	this._multiSelectPanel = Classes.MultiSelectPanelViewer.create();
 	this.append(this._multiSelectPanel);
+	this._elw.listen(this._multiSelectPanel, Classes.MultiSelectPanelViewer.Events.SELECTED,
+					this._multiSelectSelectedCb.bind(this));
 	this._elw.listen(this._multiSelectPanel, Classes.MultiSelectPanelViewer.Events.CLOSED,
 					this._multiSelectClosedCb.bind(this));
 
@@ -578,8 +636,14 @@ _queryAndRenderTabs: function(newSearch=false) {
 				this._renderTabsFullMode(tabs);
 			}
 			perfProf.mark("renderEnd");
-
 			perfProf.measure("Rendering", "renderStart", "renderEnd");
+
+			if(this.isSelectMode()) {
+				perfProf.mark("multiSelectStart");
+				this._computeMultiSelectState();
+				perfProf.mark("multiSelectEnd");
+				perfProf.measure("multiSelect", "multiSelectStart", "multiSelectEnd");
+			}
 
 			// This piece of logic will need to be added when "chrome tab groups"
 			// APIs become available.
@@ -629,8 +693,12 @@ _renderTile: function(containerViewer, tabGroup, tab) {
 	if(tile == null) {
 		// No cache, or not found in cache
 		tile = Classes.TabTileViewer.create(tab, tabGroup, this._tilesAsyncQueue, this._isIncognito());
-		tile.initSelectMode(this._multiSelectPanel, this.setSelectMode.bind(this, true));
-		tile.setSelectMode(this.isSelectMode());
+		tile.initSelectMode(this._tileSelectedCb.bind(this), this.setSelectMode.bind(this, true));
+	}
+
+	tile.setSelectMode(this.isSelectMode());
+	if(this.isSelectMode()) {
+		tile.setSelected(this._multiSelectPanel.hasTab(tab));
 	}
 
 	if(tab.tm.wantsAttention) {

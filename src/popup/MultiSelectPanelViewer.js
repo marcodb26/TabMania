@@ -11,7 +11,11 @@ Classes.MultiSelectPanelViewer = Classes.Viewer.subclass({
 	_eventManager: null,
 
 	_cntElem: null,
+	_selectElem: null,
+	_menuElem: null,
 	_closeElem: null,
+
+	_menuViewer: null,
 
 _init: function(closeCb) {
 	// Overriding the parent class' _init(), but calling that original function first
@@ -33,19 +37,41 @@ _init: function(closeCb) {
 
 _renderPanel: function() {
 	const cntId = this._id + "-cnt";
+	const selectId = this._id + "-select";
+	const menuId = this._id + "-menu";
 	const closeId = this._id + "-close";
 
 	const bodyHtml = `
-		<div class="card tm-cursor-default">
-			<span id="${cntId}">0</span> Empty multi-select panel
-			${icons.closeHtml(closeId)}
+	<div class="card tm-cursor-default">
+		<div class="d-flex align-items-center">
+			<input id="${selectId}" class="form-check-input mt-0 mx-1" type="checkbox" value="" style="min-width: 1em;">
+			<div id="${menuId}" class=""></div>
+			<div class="flex-fill mx-2 fst-italic fw-light"><span id="${cntId}">0</span> selected</div>
+			<div>
+				${icons.closeHtml(closeId, [], [ "tm-close-icon", "align-middle" ])}
+			</div>
 		</div>
+	</div>
 	`;
 
 	this._rootElem = this._elementGen(bodyHtml);
 	this._cntElem = this.getElementById(cntId);
+
+	this._selectElem = this.getElementById(selectId);
+	this._elw.listen(this._selectElem, "click", this._selectAllCb.bind(this), false);
+
+	this._menuElem = this.getElementById(menuId);
+	this._menuViewer = Classes.MultiSelectPanelMenuViewer.create();
+	this._menuViewer.attachInParentElement(this._menuElem);
+
 	this._closeElem = this.getElementById(closeId);
 	this._elw.listen(this._closeElem, "click", this._closeCb.bind(this), false);
+},
+
+_selectAllCb: function(ev) {
+	const logHead = "MultiSelectPanelViewer._selectAllCb():";
+	this._log(logHead, "entering", ev);
+	this._eventManager.notifyListeners(Classes.MultiSelectPanelViewer.Events.SELECTED, { selected: this._selectElem.checked });
 },
 
 _closeCb: function(ev) {
@@ -107,7 +133,17 @@ removeTab: function(tab) {
 	this._cntElem.textContent = this._tabsStore.getCount();
 },
 
+hasTab: function(tab) {
+	return this._tabsStore.hasById(tab.id);
+},
+
+setSelected: function(flag=true, indeterminate=false) {
+	this._selectElem.checked = flag;
+	this._selectElem.indeterminate = indeterminate;
+},
+
 }); // Classes.MultiSelectPanelViewer
 
 Classes.Base.roDef(Classes.MultiSelectPanelViewer, "Events", {});
+Classes.Base.roDef(Classes.MultiSelectPanelViewer.Events, "SELECTED", "tmSelected");
 Classes.Base.roDef(Classes.MultiSelectPanelViewer.Events, "CLOSED", "tmClosed");

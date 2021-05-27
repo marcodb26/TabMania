@@ -16,9 +16,9 @@ Classes.PopupMenuViewer = Classes.MenuViewer.subclass({
 _init: function(popupViewer) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.MenuViewer._init.call(this, {
-		// Note that with this definition of "btnExtraClasses" we're overriding the
-		// default "btn-secondary" color class for the dropdown button
-		btnExtraClasses: [ "tm-menu-icon" ],
+		// Note that with this definition of "btnClasses" we're overriding the default
+		// "btn-secondary" color class for the dropdown button
+		btnClasses: [ "btn", "tm-menu-icon" ],
 		showToggle: false,
 	});
 

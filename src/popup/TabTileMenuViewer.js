@@ -13,7 +13,7 @@ _init: function(useIncognitoStyle=false) {
 
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.MenuViewer._init.call(this, {
-		btnExtraClasses: [ this._useIncognitoStyle ? "btn-light" : "btn-secondary" ],
+		btnClasses: [ "btn", this._useIncognitoStyle ? "btn-light" : "btn-secondary" ],
 		menuExtraClasses: [ "tm-dropdown-tile-menu" ],
 	});
 

@@ -562,6 +562,7 @@ Encoded with https://www.base64encode.org/
 
 .tm-close-icon {
 	outline: transparent;
+	line-height: initial;
 }
 
 .tm-close-icon::after {

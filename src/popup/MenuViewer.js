@@ -16,7 +16,7 @@ Classes.MenuViewer = Classes.Viewer.subclass({
 // "options" includes:
 // - "label", if not specified (default), the dropdown will just show the caret. The label
 //   can contain HTML, not only text
-// - "btnExtraClasses", you can use it for example for the CSS class to use for the button coloring,
+// - "btnClasses", you can use it for example for the CSS class to use for the button coloring,
 //   and it default to "btn-secondary"
 _init: function(options) {
 	// Don't store "options" as-is, create a copy (and while you're doing it, initialize all
@@ -25,7 +25,7 @@ _init: function(options) {
 	this._options = {};
 	this._options.label = optionalWithDefault(options.label, "");
 	this._options.showToggle = optionalWithDefault(options.showToggle, true);
-	this._options.btnExtraClasses = optionalWithDefault(options.btnExtraClasses, [ "btn-secondary" ]);
+	this._options.btnClasses = optionalWithDefault(options.btnClasses, [ "btn", "btn-secondary" ]);
 	this._options.menuExtraClasses = optionalWithDefault(options.menuExtraClasses, []);
 
 	// Overriding the parent class' _init(), but calling that original function first
@@ -37,7 +37,7 @@ _MenuViewer_render: function() {
 	const menuId = this._id + "-menu";
 	const menuItemsContainerId = this._id + "-menuitems";
 
-	let dropdownClasses = [ "btn" ];
+	let dropdownClasses = [];
 	let menuClasses = [ "dropdown-menu" ];
 
 	if(this._options.showToggle) {
@@ -48,7 +48,7 @@ _MenuViewer_render: function() {
 	}
 
 	// push() can take multiple arguments
-	dropdownClasses.push(...this._options.btnExtraClasses);
+	dropdownClasses.push(...this._options.btnClasses);
 	menuClasses.push(...this._options.menuExtraClasses);
 
 	// See https://stackoverflow.com/questions/43233421/changing-dropdown-icon-on-bootstrap-4
