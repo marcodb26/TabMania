@@ -63,6 +63,7 @@ _renderPanel: function() {
 	this._menuElem = this.getElementById(menuId);
 	this._menuViewer = Classes.MultiSelectPanelMenuViewer.create();
 	this._menuViewer.attachInParentElement(this._menuElem);
+	this._elw.listen(this._menuViewer, Classes.MultiSelectPanelMenuViewer.Events.CLOSED, this._closeCb.bind(this), false);
 
 	this._closeElem = this.getElementById(closeId);
 	this._elw.listen(this._closeElem, "click", this._closeCb.bind(this), false);
@@ -81,10 +82,11 @@ _closeCb: function(ev) {
 },
 
 discard: function() {
-	this._rootElem.remove();
-
 	this._elw.discard();
 	this._elw = null;
+
+	this._menuViewer.discard();
+	this._menuViewer = null;
 
 	this._eventManager.discard();
 	this._eventManager = null;
@@ -92,6 +94,12 @@ discard: function() {
 	if(this.isActive()) {
 		this.activate(false);
 	}
+
+	// Do this after deactivating, because "this.activate(false)" needs to still have
+	// access to "this._rootElem"
+	this._rootElem.remove();
+	this._rootElem = null;
+
 	gcChecker.add(this._tabsStore);
 	this._tabsStore = null;
 

@@ -11,7 +11,11 @@ Classes.PopupMenuViewer = Classes.MenuViewer.subclass({
 
 	// Track here all the menu item viewers
 	_bsTabMenuItems: null,
+	_multiSelectMenuItem: null,
 	_dockToggleMenuItem: null,
+
+	_enterMultiSelectText: "Enter select mode",
+	_exitMultiSelectText: "Exit select mode",
 
 _init: function(popupViewer) {
 	// Overriding the parent class' _init(), but calling that original function first
@@ -27,17 +31,19 @@ _init: function(popupViewer) {
 
 	this._popupViewer = popupViewer;
 
+	this._activeBsTabId = localStore.getActiveBsTabId();
+
 	this._initMenuItems();
 	localStore.addEventListener(Classes.EventManager.Events.UPDATED, this._localStoreUpdatedCb.bind(this));
 },
 
 _localStoreUpdatedCb: function(ev) {
-	const logHead = "PopupMenuViewer::_localStoreUpdatedCb(" + ev.detail.key + "): ";
+	const logHead = "PopupMenuViewer._localStoreUpdatedCb():";
 
 	let activeBsTabId = localStore.getActiveBsTabId();
 
 	if(this._activeBsTabId == activeBsTabId) {
-		this._log(logHead + "activeBsTabId unchanged, ignoring");
+		this._log(logHead, "activeBsTabId unchanged, ignoring key", ev.detail.key);
 		return;
 	}
 
@@ -104,6 +110,28 @@ updateBsTabMenuItem: function(bsTabLabel, menuText, hide) {
 	return menuItem;
 },
 
+updateMultiSelectMenuItem: function(activeBsTabId) {
+	const logHead = "PopupMenuViewer.updateMultiSelectMenuItem():";
+
+	let activeBsTab = this._popupViewer.getBsTabById(activeBsTabId);
+
+	if(activeBsTabId == this._popupViewer.getBsTabIdByLabel("settings") || activeBsTab == null) {
+		if(activeBsTab == null) {
+			this._log(logHead, "this._popupViewer not ready", activeBsTabId)
+		} else {
+			this._log(logHead, "disabling menu item for settings tab", activeBsTabId);
+		}
+		this._multiSelectMenuItem.enable(false);
+		this._multiSelectMenuItem.setHtml(this._enterMultiSelectText);
+		return;
+	}
+
+	this._log(logHead, "entering, activeBsTabId =", activeBsTabId);
+
+	this._multiSelectMenuItem.enable();
+	this._multiSelectMenuItem.setHtml(activeBsTab.isSelectMode() ? this._exitMultiSelectText : this._enterMultiSelectText);
+},
+
 _selectBsTabMenuItem: function(highlightBsTabId) {
 	// This is a low frequency event, let's just scan all the menu items.
 	//
@@ -116,6 +144,8 @@ _selectBsTabMenuItem: function(highlightBsTabId) {
 			bsTabMenuItem.selected(false);
 		}
 	}
+
+	this.updateMultiSelectMenuItem(highlightBsTabId);
 },
 
 _initMenuItems: function() {
@@ -132,10 +162,9 @@ _initMenuItems: function() {
 		this.appendDivider();
 	}
 
-	this._activeBsTabId = localStore.getActiveBsTabId();
-
-//	this.addBsTabMenuItem("home", "Home");
-//	this.addBsTabMenuItem("settings", "Settings");
+	this._multiSelectMenuItem = Classes.MenuItemViewer.create({ actionFn: this._actionToggleSelectModeCb.bind(this) });
+	this.updateMultiSelectMenuItem(this._activeBsTabId);
+	this.append(this._multiSelectMenuItem);
 
 	this._dockToggleMenuItem = Classes.MenuItemViewer.create({ actionFn: this._actionDockToggleCb.bind(this) });
 	this._setDockToggleText();
@@ -149,6 +178,12 @@ _updateMenuItems: function() {
 
 _actionActivateBsTab: function(bsTabId, ev) {
 	this._popupViewer.activateBsTabById(bsTabId);
+},
+
+_actionToggleSelectModeCb: function(ev) {
+	// No need to check if the current active bsTab is the "settings" tab, because
+	// when that happens this menu gets disabled and can't be clicked
+	this._popupViewer.getBsTabById(this._activeBsTabId).toggleSelectMode();
 },
 
 _actionDockToggleCb: function(ev) {

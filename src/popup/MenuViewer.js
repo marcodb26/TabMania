@@ -112,6 +112,18 @@ open: function() {
 	this._dropdownBsObj.show();
 },
 
+discard: function() {
+	this._rootElem.remove();
+	this._rootElem = null;
+	this._bodyElem = null;
+	this._menuElem = null;
+
+	this._dropdownBsObj.dispose();
+	this._dropdownBsObj = null;
+
+	gcChecker.add(this);
+},
+
 }); // Classes.MenuViewer
 
 

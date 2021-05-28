@@ -70,7 +70,7 @@ _init: function(tab, useIncognitoStyle) {
 	this._tab = tab;
 
 	this._assert(this._tab.tm.type == Classes.TabNormalizer.type.TAB);
-	
+
 	this._initMenuItems();
 },
 

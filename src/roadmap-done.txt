@@ -278,6 +278,17 @@ DONE 2.0
 
 - Tile selection: support clicking on the checkbox, not only on the rest of the tile
 
+- Initial menu item placeholders in multi-select panel
+  * Only the "Exit select mode" menu item works
+
+- Added an "Enter/exit select mode" to popup viewer menu
+  * Contestual: supports independent select modes for "Home" and "Incognito" tabs
+    - Disabled when the "Settings" tab is active
+
+- Tested transition to "split incognito" with multi select
+  * By design, any active or historical selection is lost when changing "split incognito"
+    configuration
+
 
 DONE 1.3
 

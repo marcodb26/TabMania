@@ -456,6 +456,18 @@ listen: function(obj, ...listenerArgs) {
 // classes perform sequences of add/remove listener, they tend to just add all listeners
 // during initialization, then take no further actions.
 unlisten: function(obj, ...listenerArgs) {
+	const logHead = "EventListenersWrapper.unlisten():";
+
+	if(obj[this._unlistenFnName] == null) {
+		// When calling EventManager.discard(), the listening functions get explicitly
+		// unlinked from the EventManager owner instance. This check protects against
+		// out of order calls during discard().
+		// If the "obj" is derived from Base class, "getId()" exists, otherwise it doesn't.
+		this._log(logHead, "obj", obj?.getId() ?? "[not derived from Base]", "missing _unlistenFnName =",
+					this._unlistenFnName, arguments);
+		return;
+	}
+
 	obj[this._unlistenFnName].apply(obj, listenerArgs);
 },
 

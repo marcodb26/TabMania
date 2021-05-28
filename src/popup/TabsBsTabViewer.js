@@ -405,9 +405,15 @@ setSelectMode: function(flag=true) {
 	this._selectMode = flag;
 	this._multiSelectPanel.activate(flag);
 
+	popupViewer.updateMultiSelectMenuItem();
+
 	for(const [tabId, tile] of Object.entries(this._tilesByTabId)) {
 		tile.setSelectMode(flag);
 	}
+},
+
+toggleSelectMode: function() {
+	this.setSelectMode(!this.isSelectMode());
 },
 
 _tileSelectedCb: function(tab, flag) {
@@ -873,6 +879,9 @@ discard: function() {
 	this._queryAndRenderJob.discard();
 	this._queryAndRenderJob = null;
 
+	// Note that discarding the _multiSelectPanel before calling the parent's discard(), causes
+	// some listener functions to be missing during the EventListenersWrapper.discard(), but that's
+	// ok, EventListenersWrapper.unlisten() is protected against this case.
 	if(this._multiSelectPanel != null) {
 		this._multiSelectPanel.discard();
 		this._multiSelectPanel = null;

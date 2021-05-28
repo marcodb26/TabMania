@@ -356,11 +356,15 @@ isIncognitoBsTabActive: function() {
 	return this.getActiveBsTabId() == this.getBsTabIdByLabel("incognito");
 },
 
+isSettingsBsTabActive: function() {
+	return this.getActiveBsTabId() == this.getBsTabIdByLabel("settings");
+},
+
 // This function returns "true" only if a searchable tab is visible, besides being
 // in search mode. If the settings tab is visible, this function returns false
 // regardless of the SearchableBsTabViewer.isSearchActive() response.
 isSearchActive: function() {
-	if(this.getActiveBsTabId() == this.getBsTabIdByLabel("settings")) {
+	if(this.isSettingsBsTabActive()) {
 		return false;
 	}
 
@@ -373,6 +377,10 @@ getSearchQuery: function() {
 	}
 
 	return this.getActiveBsTab().getSearchQuery();
+},
+
+updateMultiSelectMenuItem: function() {
+	this._menuViewer.updateMultiSelectMenuItem(this.getActiveBsTabId());
 },
 
 }); // Classes.PopupViewer

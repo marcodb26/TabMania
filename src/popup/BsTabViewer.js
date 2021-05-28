@@ -107,7 +107,9 @@ discard: function() {
 	this._elw = null;
 
 	this._headingElem.remove();
+	this._headingElem = null;
 	this._rootElem.remove();
+	this._rootElem = null;
 
 	gcChecker.add(this);
 },

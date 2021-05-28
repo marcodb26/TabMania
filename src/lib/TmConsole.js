@@ -49,7 +49,7 @@ showTabInfo: function(tabId) {
 showSearchParserInfo: function() {
 	let allTabsBsTabViewer = null;
 
-	if(this.getActiveBsTabId() == this.getBsTabIdByLabel("settings")) {
+	if(popupViewer.isSettingsBsTabActive()) {
 		// Te current bsTab is not a searchable bsTab, by default let's return
 		// info about the "home" bsTab (as opposed to the "incognito" bsTab)
 		allTabsBsTabViewer = popupViewer.getHomeBsTab();
