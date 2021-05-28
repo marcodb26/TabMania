@@ -282,12 +282,14 @@ DONE 2.0
   * Only the "Exit select mode" menu item works
 
 - Added an "Enter/exit select mode" to popup viewer menu
-  * Contestual: supports independent select modes for "Home" and "Incognito" tabs
+  * Contextual: supports independent select modes for "Home" and "Incognito" tabs
     - Disabled when the "Settings" tab is active
 
 - Tested transition to "split incognito" with multi select
   * By design, any active or historical selection is lost when changing "split incognito"
     configuration
+
+- BUG: _elw.unlisten() was not robust in case a removeEventListener() had already been discarded
 
 
 DONE 1.3
