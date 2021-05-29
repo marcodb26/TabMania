@@ -584,7 +584,7 @@ _queryTabs: function() {
 			if(this._normTabs != null) {
 				oldTabList = this._normTabs.get();
 				oldTabDict = this._normTabs.getDict();
-				gcChecker.add(this._normTabs, this.getId() + ".normTabs" + this._queryCycleNo);
+				this._normTabs.discard();
 				this._normTabs = null;
 			}
 
@@ -594,7 +594,7 @@ _queryTabs: function() {
 				// we can just ignore the "normTabs" object... but to be
 				// good future-proof citizens, let's call the right interface...
 				perfProf.mark("normalizeStart");
-				this._normTabs = Classes.TabsStore.create(tabs, oldTabDict);
+				this._normTabs = Classes.TabsStore.createAs(this.getId() + ".normTabs" + this._queryCycleNo, tabs, oldTabDict);
 
 				perfProf.mark("shortcutsStart");
 				// Note that we need to make this call only when the tabs change,
@@ -678,6 +678,7 @@ discard: function() {
 	this._eventManager.discard();
 	this._eventManager = null;
 
+	this._normTabs.discard();
 	this._normTabs = null;
 
 	gcChecker.add(this);

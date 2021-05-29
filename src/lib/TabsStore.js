@@ -163,6 +163,11 @@ getCount: function() {
 	return this._list.length;
 },
 
+discard: function() {
+	this.reset();
+	gcChecker.add(this);
+},
+
 }); // Classes.TabsStoreBase
 
 
