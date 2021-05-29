@@ -291,6 +291,8 @@ DONE 2.0
 
 - BUG: _elw.unlisten() was not robust in case a removeEventListener() had already been discarded
 
+- The MultiSelect panel now appears above the scrollable area, not inside of it
+
 
 DONE 1.3
 

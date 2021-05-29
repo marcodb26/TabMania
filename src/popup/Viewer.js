@@ -146,13 +146,13 @@ prepend: function(viewer) {
 	this._getBodyElem().prepend(viewer.getRootElement());
 },
 
-// This is "add to my parent before me". Add current viewer as sibling before "viewer"
+// This is "add to my parent before me". Add "viewer" argument as sibling before current viewer
 addBefore: function(viewer) {
-	let parentNode = viewer.getRootElement().parentNode;
+	let parentNode = this._getBodyElem().parentNode;
 	this._assert(parentNode != null);
 
 	// See https://developer.mozilla.org/en-US/docs/Web/API/Node/insertBefore
-	parentNode.insertBefore(this._rootElem, viewer.getRootElement());
+	parentNode.insertBefore(viewer.getRootElement(), this._getBodyElem());
 },
 
 // Detaches the viewer from the DOM (if it was attached to it)

@@ -529,7 +529,9 @@ _TabsBsTabViewer_render: function() {
 	}
 
 	this._multiSelectPanel = Classes.MultiSelectPanelViewer.create();
-	this.append(this._multiSelectPanel);
+	// Add the _multiSelectPanel before the TabsBsTabViewer's body, so the scrollbar of the
+	// TabsBsTabViewer doesn't include the _multiSelectPanel
+	this.addBefore(this._multiSelectPanel);
 	this._elw.listen(this._multiSelectPanel, Classes.MultiSelectPanelViewer.Events.SELECTED,
 					this._multiSelectSelectedCb.bind(this));
 	this._elw.listen(this._multiSelectPanel, Classes.MultiSelectPanelViewer.Events.CLOSED,

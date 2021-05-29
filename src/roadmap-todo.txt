@@ -1,7 +1,5 @@
 TODO 2.0
 
-- The MultiSelect panel should show up above the scrollable area, not inside of it
-
 - Finish multi-select mode
   * Add actions in multi-select mode
   * Add selection checkbox to group titles to select/unselect all within group
