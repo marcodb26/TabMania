@@ -293,6 +293,8 @@ DONE 2.0
 
 - The MultiSelect panel now appears above the scrollable area, not inside of it
 
+- Track and display count of selected tiles in view besides total count of selected tiles
+
 
 DONE 1.3
 

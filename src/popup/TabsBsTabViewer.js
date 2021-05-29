@@ -637,6 +637,12 @@ _queryAndRenderTabs: function(newSearch=false) {
 				return;
 			}
 
+			if(this.isSelectMode()) {
+				// When we render below, we re-add tabs to the _multiSelectPanel view, so
+				// we must reset before we render
+				this._multiSelectPanel.resetView();
+			}
+
 			perfProf.mark("renderStart");
 			if(this.isSearchActive()) {
 				this._renderTabsSearchMode(tabs, newSearch);
@@ -648,6 +654,8 @@ _queryAndRenderTabs: function(newSearch=false) {
 
 			if(this.isSelectMode()) {
 				perfProf.mark("multiSelectStart");
+				// _computeMultiSelectState() uses the tiles info to determine select state
+				// for the multiSelect panel, so it must be called after rendering
 				this._computeMultiSelectState();
 				perfProf.mark("multiSelectEnd");
 				perfProf.measure("multiSelect", "multiSelectStart", "multiSelectEnd");
@@ -706,7 +714,18 @@ _renderTile: function(containerViewer, tabGroup, tab) {
 
 	tile.setSelectMode(this.isSelectMode());
 	if(this.isSelectMode()) {
-		tile.setSelected(this._multiSelectPanel.hasTab(tab));
+		if(tile.isSelected()) {
+			// Since the tile is already selected, calling tile.setSelected() results in a
+			// no-op, which is fine in general, except for the missing side effect that we
+			// end up not updating the _multiSelectPanel._tabsStoreInView, so we need to
+			// explicitly do that here. Don't call this._tileSelectedCb() here, because it
+			// also tries to recompute the _multiSelectPanel's select state, which is an
+			// expensive operation that will anyway be performed once at the end of this
+			// loop of tiles re-rendering.
+			this._multiSelectPanel.addTab(tab);
+		} else {
+			tile.setSelected(this._multiSelectPanel.hasTab(tab));
+		}
 	}
 
 	if(tab.tm.wantsAttention) {

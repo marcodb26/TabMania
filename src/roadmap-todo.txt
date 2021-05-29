@@ -4,6 +4,10 @@ TODO 2.0
   * Add actions in multi-select mode
   * Add selection checkbox to group titles to select/unselect all within group
 
+- BUG: selecting a tile calls both MultiSelectPanelViewer.removeTab() and
+  MultiSelectPanelViewer.addTab() (it should only call addTab())
+  * And unselecting calls addTab() then removeTab()
+
 - BUG: Yahoo Mail seems to enter an infinite "Loading" state at random (reload?)
 
 - BUG: pinning a tab doesn't trigger a re-sort

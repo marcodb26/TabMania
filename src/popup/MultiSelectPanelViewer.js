@@ -10,7 +10,11 @@ Classes.MultiSelectPanelViewer = Classes.Viewer.subclass({
 
 	_eventManager: null,
 
-	_cntElem: null,
+	_tabsStoreAll: null,
+	_tabsStoreInView: null,
+
+	_cntAllElem: null,
+	_cntInViewElem: null,
 	_selectElem: null,
 	_menuElem: null,
 	_closeElem: null,
@@ -23,7 +27,8 @@ _init: function(closeCb) {
 
 	this.debug();
 
-	this._tabsStore = Classes.TabsStoreBase.create();
+	this._tabsStoreAll = Classes.TabsStoreBase.createAs(this.getId() + ".tabsStoreAll");
+	this._tabsStoreInView = Classes.TabsStoreBase.createAs(this.getId() + ".tabsStoreInView");
 	this._active = false;
 
 	this._elw = Classes.EventListenersWrapper.create();
@@ -36,7 +41,8 @@ _init: function(closeCb) {
 },
 
 _renderPanel: function() {
-	const cntId = this._id + "-cnt";
+	const cntInViewId = this._id + "-cnt-view";
+	const cntAllId = this._id + "-cnt-all";
 	const selectId = this._id + "-select";
 	const menuId = this._id + "-menu";
 	const closeId = this._id + "-close";
@@ -46,7 +52,7 @@ _renderPanel: function() {
 		<div class="d-flex align-items-center">
 			<input id="${selectId}" class="form-check-input mt-0 mx-1" type="checkbox" value="" style="min-width: 1em;">
 			<div id="${menuId}" class=""></div>
-			<div class="flex-fill mx-2 fst-italic fw-light"><span id="${cntId}">0</span> selected</div>
+			<div class="flex-fill mx-2 fst-italic fw-light"><span id="${cntInViewId}">0</span> in view (<span id="${cntAllId}">0</span> total)</div>
 			<div>
 				${icons.closeHtml(closeId, [], [ "tm-close-icon", "align-middle" ])}
 			</div>
@@ -55,7 +61,8 @@ _renderPanel: function() {
 	`;
 
 	this._rootElem = this._elementGen(bodyHtml);
-	this._cntElem = this.getElementById(cntId);
+	this._cntAllElem = this.getElementById(cntAllId);
+	this._cntInViewElem = this.getElementById(cntInViewId);
 
 	this._selectElem = this.getElementById(selectId);
 	this._elw.listen(this._selectElem, "click", this._selectAllCb.bind(this), false);
@@ -100,8 +107,10 @@ discard: function() {
 	this._rootElem.remove();
 	this._rootElem = null;
 
-	gcChecker.add(this._tabsStore);
-	this._tabsStore = null;
+	this._tabsStoreAll.discard();
+	this._tabsStoreAll = null;
+	this._tabsStoreInView.discard();
+	this._tabsStoreInView = null;
 
 	gcChecker.add(this);
 },
@@ -117,7 +126,8 @@ activate: function(flag=true) {
 		this.show();
 	} else {
 		this.hide();
-		this._tabsStore.reset();
+		this._tabsStoreAll.reset();
+		this._tabsStoreInView.reset();
 	}
 },
 
@@ -128,21 +138,33 @@ isActive: function() {
 addTab: function(tab) {
 	const logHead = "MultiSelectPanelViewer.addTab():";
 	this._log(logHead, "adding tab", tab);
-	this._tabsStore.update(tab);
+	this._tabsStoreAll.update(tab);
+	this._tabsStoreInView.update(tab);
 
-	this._cntElem.textContent = this._tabsStore.getCount();
+	this._cntAllElem.textContent = this._tabsStoreAll.getCount();
+	this._cntInViewElem.textContent = this._tabsStoreInView.getCount();
 },
 
 removeTab: function(tab) {
 	const logHead = "MultiSelectPanelViewer.removeTab():";
 	this._log(logHead, "removing tab", tab);
-	this._tabsStore.removeById(tab.id);
+	this._tabsStoreAll.removeById(tab.id);
+	this._tabsStoreInView.removeById(tab.id);
 
-	this._cntElem.textContent = this._tabsStore.getCount();
+	this._cntAllElem.textContent = this._tabsStoreAll.getCount();
+	this._cntInViewElem.textContent = this._tabsStoreInView.getCount();
 },
 
 hasTab: function(tab) {
-	return this._tabsStore.hasById(tab.id);
+	return this._tabsStoreAll.hasById(tab.id);
+},
+
+resetView: function() {
+	const logHead = "MultiSelectPanelViewer.resetView():";
+	this._log(logHead, "entering");
+
+	this._tabsStoreInView.reset();
+	this._cntInViewElem.textContent = this._tabsStoreInView.getCount();
 },
 
 setSelected: function(flag=true, indeterminate=false) {
