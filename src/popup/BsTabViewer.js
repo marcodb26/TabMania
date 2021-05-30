@@ -372,6 +372,7 @@ _bsTabDeactivatedCb: function(ev) {
 _SearchableBsTabViewer_searchBoxInactiveInner: function() {
 	const logHead = "SearchableBsTabViewer::_SearchableBsTabViewer_searchBoxInactiveInner(): ";
 	this._searchBoxContainerElem.classList.add("d-none");
+	this._searchBoxElem.value = "";
 	this._searchActive = false;
 
 	// Restore the scrolling position as it was before the user started searching
