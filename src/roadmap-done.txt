@@ -295,6 +295,14 @@ DONE 2.0
 
 - Track and display count of selected tiles in view besides total count of selected tiles
 
+- BUG: SearchableBsTabViewer._activateSearchBox(false) should unset the current search text
+  * In case the function gets called explicitly to interrupt search (as opposed to being triggered
+    by searchbox events)
+
+- Added a new "list selected" mode to show all (and only) the tiles that are currently selected
+  * Mutually exclusive with "search mode"
+  * Enabled/disabled via the multi select panel menu "Show selection"
+
 
 DONE 1.3
 

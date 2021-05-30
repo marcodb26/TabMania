@@ -70,7 +70,9 @@ _renderPanel: function() {
 	this._menuElem = this.getElementById(menuId);
 	this._menuViewer = Classes.MultiSelectPanelMenuViewer.create();
 	this._menuViewer.attachInParentElement(this._menuElem);
-	this._elw.listen(this._menuViewer, Classes.MultiSelectPanelMenuViewer.Events.CLOSED, this._closeCb.bind(this), false);
+	this._elw.listen(this._menuViewer, Classes.MultiSelectPanelViewer.Events.CLOSED, this._forwardEventCb.bind(this), false);
+	this._elw.listen(this._menuViewer, Classes.MultiSelectPanelViewer.Events.LISTED, this._forwardEventCb.bind(this), false);
+	this._elw.listen(this._menuViewer, Classes.MultiSelectPanelMenuViewer.Events.TABSCLOSED, this._closeTabsCb.bind(this), false);
 
 	this._closeElem = this.getElementById(closeId);
 	this._elw.listen(this._closeElem, "click", this._closeCb.bind(this), false);
@@ -82,10 +84,26 @@ _selectAllCb: function(ev) {
 	this._eventManager.notifyListeners(Classes.MultiSelectPanelViewer.Events.SELECTED, { selected: this._selectElem.checked });
 },
 
+_forwardEventCb: function(ev) {
+	const logHead = "MultiSelectPanelViewer._forwardEventCb():";
+	this._log(logHead, "entering", ev);
+	this._eventManager.notifyListeners(ev.type);
+},
+
 _closeCb: function(ev) {
 	const logHead = "MultiSelectPanelViewer._closeCb():";
 	this._log(logHead, "entering", ev);
 	this._eventManager.notifyListeners(Classes.MultiSelectPanelViewer.Events.CLOSED);
+},
+
+_closeTabsCb: function(ev) {
+	const logHead = "MultiSelectPanelViewer._closeTabsCb():";
+	this._log(logHead, "not implemented", ev);
+},
+
+_updateCounts: function() {
+	this._cntAllElem.textContent = this._tabsStoreAll.getCount();
+	this._cntInViewElem.textContent = this._tabsStoreInView.getCount();
 },
 
 discard: function() {
@@ -128,6 +146,10 @@ activate: function(flag=true) {
 		this.hide();
 		this._tabsStoreAll.reset();
 		this._tabsStoreInView.reset();
+		// Update the counts, so when we show the panel the next time, it won't start
+		// with stale information
+		this._updateCounts();
+		this.setSelected(false);
 	}
 },
 
@@ -141,8 +163,7 @@ addTab: function(tab) {
 	this._tabsStoreAll.update(tab);
 	this._tabsStoreInView.update(tab);
 
-	this._cntAllElem.textContent = this._tabsStoreAll.getCount();
-	this._cntInViewElem.textContent = this._tabsStoreInView.getCount();
+	this._updateCounts();
 },
 
 removeTab: function(tab) {
@@ -151,8 +172,11 @@ removeTab: function(tab) {
 	this._tabsStoreAll.removeById(tab.id);
 	this._tabsStoreInView.removeById(tab.id);
 
-	this._cntAllElem.textContent = this._tabsStoreAll.getCount();
-	this._cntInViewElem.textContent = this._tabsStoreInView.getCount();
+	this._updateCounts();
+},
+
+getTabs: function() {
+	return this._tabsStoreAll.get();
 },
 
 hasTab: function(tab) {
@@ -172,8 +196,13 @@ setSelected: function(flag=true, indeterminate=false) {
 	this._selectElem.indeterminate = indeterminate;
 },
 
+setListSelectedMode: function(flag=true) {
+	this._menuViewer.setListSelectedMode(flag);
+},
+
 }); // Classes.MultiSelectPanelViewer
 
 Classes.Base.roDef(Classes.MultiSelectPanelViewer, "Events", {});
 Classes.Base.roDef(Classes.MultiSelectPanelViewer.Events, "SELECTED", "tmSelected");
 Classes.Base.roDef(Classes.MultiSelectPanelViewer.Events, "CLOSED", "tmClosed");
+Classes.Base.roDef(Classes.MultiSelectPanelViewer.Events, "LISTED", "tmListed");

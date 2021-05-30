@@ -3,12 +3,18 @@ TODO 2.0
 - Finish multi-select mode
   * Add actions in multi-select mode
   * Add selection checkbox to group titles to select/unselect all within group
+  * Disable re-rendering on Chrome events while in select mode
+    - Keep everything static while you're selecting
+	  * Or should we update at least titles if the user navigates?
 
 - BUG: selecting a tile calls both MultiSelectPanelViewer.removeTab() and
   MultiSelectPanelViewer.addTab() (it should only call addTab())
   * And unselecting calls addTab() then removeTab()
 
 - BUG: Yahoo Mail seems to enter an infinite "Loading" state at random (reload?)
+
+- Merge TabsBsTabViewer._renderTabsFullMode() and TabsBsTabViewer._renderTabsListSelectedMode()
+  * See comment on top of latter function for details
 
 - BUG: pinning a tab doesn't trigger a re-sort
 

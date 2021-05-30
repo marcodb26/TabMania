@@ -52,6 +52,7 @@ Classes.TabsBsTabViewer = Classes.SearchableBsTabViewer.subclass({
 	_currentSearchResults: null,
 
 	_selectMode: null,
+	_listSelectedMode: null,
 
 	_multiSelectPanel: null,
 
@@ -70,6 +71,7 @@ _init: function({ labelHtml, standardTabs, incognitoTabs }) {
 	this._queryCycleNo = 0;
 
 	this._selectMode = false;
+	this._listSelectedMode = false;
 
 	// "this._expandedGroups" is initialized to only one localStore persistent set.
 	// If this instance manages standard tabs, it gets initialized to "localStore.standardTabsBsTabExpandedGroups",
@@ -405,6 +407,11 @@ setSelectMode: function(flag=true) {
 	this._selectMode = flag;
 	this._multiSelectPanel.activate(flag);
 
+	// Always reset _listSelectedMode when entering/exiting "select mode".
+	// The second argument set to "true" forces the function to take all the actions
+	// regardless of the value of "_selectMode".
+	this.setListSelectedMode(false, true);
+
 	popupViewer.updateMultiSelectMenuItem();
 
 	for(const [tabId, tile] of Object.entries(this._tilesByTabId)) {
@@ -444,6 +451,10 @@ _multiSelectClosedCb: function(ev) {
 	this.setSelectMode(false);
 },
 
+_multiSelectListedCb: function(ev) {
+	this.toggleListSelectedMode();
+},
+
 // If "hint" is "undefined", it won't contribute to the determination of the panel
 // checkbox state
 _computeMultiSelectState: function(hint) {
@@ -474,6 +485,55 @@ _computeMultiSelectState: function(hint) {
 	// If we get here, we didn't hit the "partially selected" case, so the tiles are
 	// either all selected, or all unselected
 	this._multiSelectPanel.setSelected(atLeastOneSelected);
+},
+
+setListSelectedMode: function(flag=true, force=false) {
+	const logHead = "TabsBsTabViewer.setListSelectedMode():";
+
+	if(this._listSelectedMode == flag) {
+		// Nothing to do
+		this._log(logHead, "nothing to do");
+		return;
+	}
+
+	this._log(logHead, "entering");
+
+	this._listSelectedMode = flag;
+	this._multiSelectPanel.setListSelectedMode(this._listSelectedMode);
+
+	if(!this.isSelectMode() && !force) {
+		// Take no further action
+		this._log(logHead, "skipping further actions");
+		return;
+	}
+
+	if(this.isSearchActive()) {
+		if(this._listSelectedMode) {
+			// _listSelectedMode and search mode are mutually exclusive, so we need to disable
+			// search when we enter _listSelectedMode. Note that _activateSearchBox(false) performs
+			// this._queryAndRenderJob.run() internally, and we don't want to render twice.
+			this._activateSearchBox(false);
+		}
+		// If search is active and _listSelectedMode is becoming inactive, this should mean
+		// search mode has just been activated. Per _activateSearchBox() below, in that case
+		// we should not explicitly call this._queryAndRenderJob.run(), as it would be a duplicate.
+	} else {
+		// Whenever we switch in or out of "list selected" mode we need to trigger a re-render,
+		// but only when we're not dealing with search mode transitions...
+		this._queryAndRenderJob.run();
+	}
+},
+
+toggleListSelectedMode: function() {
+	this.setListSelectedMode(!this.isListSelectedMode());
+},
+
+isListSelectedMode: function() {
+	if(!this.isSelectMode()) {
+		return false;
+	}
+
+	return this._listSelectedMode;
 },
 
 // When users use touch screens, a long hold (without moving) triggers the context
@@ -536,6 +596,8 @@ _TabsBsTabViewer_render: function() {
 					this._multiSelectSelectedCb.bind(this));
 	this._elw.listen(this._multiSelectPanel, Classes.MultiSelectPanelViewer.Events.CLOSED,
 					this._multiSelectClosedCb.bind(this));
+	this._elw.listen(this._multiSelectPanel, Classes.MultiSelectPanelViewer.Events.LISTED,
+					this._multiSelectListedCb.bind(this));
 
 	this._containerViewer = Classes.ContainerViewer.create(this._emptyContainerString);
 
@@ -647,7 +709,11 @@ _queryAndRenderTabs: function(newSearch=false) {
 			if(this.isSearchActive()) {
 				this._renderTabsSearchMode(tabs, newSearch);
 			} else {
-				this._renderTabsFullMode(tabs);
+				if(this.isListSelectedMode()) {
+					this._renderTabsListSelectedMode(this._multiSelectPanel.getTabs());
+				} else {
+					this._renderTabsFullMode(tabs);
+				}
 			}
 			perfProf.mark("renderEnd");
 			perfProf.measure("Rendering", "renderStart", "renderEnd");
@@ -848,6 +914,38 @@ _renderTabsSearchMode: function(tabs, newSearch) {
 	this._logCachedTilesStats(logHead);
 },
 
+// In theory, the only difference between this function and _renderTabsFullMode() is
+// that _renderTabsFullMode() groups tabs, while this function doesn't. Eventually we
+// should get to a point where "full mode" can pick whether or not tabs should be
+// grouped (and how), and at that point there should be no reason for this separate
+// function to exist.
+// Do not add any "list selected" mode specific action here, any specific calculations
+// or filtering on the "tabs" should be done outside of this function, this function
+// should only do rendering.
+_renderTabsListSelectedMode: function(tabs) {
+	const logHead = "TabsBsTabViewer::_renderTabsListSelectedMode():";
+
+	perfProf.mark("listSelectedSortStart");
+	tabs = tabs.sort(Classes.TabNormalizer.compareTabsFn);
+	perfProf.mark("listSelectedSortEnd");
+
+	// This logic is very crude, ideally we should have a more seamless transition from
+	// a set of tabs to a different set of tabs, but we're leaving that logic for later.
+	this._containerViewer.clear();
+
+	this._bodyElem.scrollTo(0, 0);
+
+	if(tabs.length == 0) {
+		this._log(logHead, "no tabs");
+		return;
+	}
+
+	perfProf.mark("listSelectedRenderStart");
+	this._renderTabsFlatInner(this._containerViewer, tabs);
+	perfProf.mark("listSelectedRenderEnd");
+	this._logCachedTilesStats(logHead);
+},
+
 // Used for debugging by tmUtils.showTabInfo()
 getTabInfo: function(tabId) {
 	return [ this._tabsManager.getTabByTabId(tabId), this._tilesByTabId[tabId] ];
@@ -928,13 +1026,11 @@ _TabsBsTabViewer_searchBoxInactiveInner: function() {
 },
 
 // Override this function from Classes.SearchableBsTabViewer
-_activateSearchBox: function(active) {
+_activateSearchBox: function(active=true) {
 	// Call the original function first
 	Classes.SearchableBsTabViewer._activateSearchBox.apply(this, arguments);
 
-	active = optionalWithDefault(active, true);
-
-	const logHead = "TabsBsTabViewer::_activateSearchBox(" + active + "): ";
+	const logHead = "TabsBsTabViewer::_activateSearchBox(" + active + "):";
 	// When search mode gets activated, we need to switch from a full view of
 	// tabs and tabgroups to a view of only tabs. And viceversa when the search
 	// mode gets deactivated.
@@ -948,9 +1044,12 @@ _activateSearchBox: function(active) {
 		this._log(logHead, "switching to search render");
 		this._currentSearchResults = null;
 		this._setSearchBoxCount();
+		// Search mode and "list selected" mode are mutually exclusive, when you
+		// enter one, you must exit the other
+		this.setListSelectedMode(false);
 
 		// We don't need to call this._queryAndRenderTabs() in this case, because
-		// it's already being invoked as part of _searchBoxProcessData().
+		// it's already being invoked as part of _searchBoxProcessData()
 	}
 },
 

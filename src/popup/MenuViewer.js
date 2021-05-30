@@ -215,8 +215,7 @@ setAction: function(fn) {
 	this._bodyElem.addEventListener("click", this._actionFn, false);
 },
 
-selected: function(flag) {
-	flag = optionalWithDefault(flag, true);
+selected: function(flag=true) {
 	if(flag) {
 		this._bodyElem.classList.add("tm-selected");
 		this._bodyElem.setAttribute("aria-current", "true");
@@ -227,8 +226,7 @@ selected: function(flag) {
 },
 
 // Enable/disable the menu item, as controlled by "flag" (optional, default "enable")
-enable: function(flag) {
-	flag = optionalWithDefault(flag, true);
+enable: function(flag=true) {
 	if(flag) {
 		this._bodyElem.classList.remove("disabled");
 	} else {

@@ -33,10 +33,13 @@ _init: function(useIncognitoStyle=false) {
 _actionExitCb: function(ev) {
 	const logHead = "MultiSelectPanelMenuViewer._actionExitCb():";
 	this._log(logHead, "entering", ev);
-	this._eventManager.notifyListeners(Classes.MultiSelectPanelMenuViewer.Events.CLOSED);
+	this._eventManager.notifyListeners(Classes.MultiSelectPanelViewer.Events.CLOSED);
 },
 
 _actionListCb: function(ev) {
+	const logHead = "MultiSelectPanelMenuViewer._actionListCb():";
+	this._log(logHead, "entering", ev);
+	this._eventManager.notifyListeners(Classes.MultiSelectPanelViewer.Events.LISTED);
 },
 
 _actionPinCb: function(ev) {
@@ -66,7 +69,7 @@ _initMenuItems: function() {
 	this.append(this._exitMenuItem);
 
 	options = {
-		labelText: "List selection",
+		labelText: "Show selection",
 		actionFn: this._actionListCb.bind(this),
 	};
 	this._listMenuItem = Classes.MenuItemViewer.create(options);
@@ -113,6 +116,10 @@ _initMenuItems: function() {
 	this.append(this._closeMenuItem);
 },
 
+setListSelectedMode: function(flag=true) {
+	this._listMenuItem.selected(flag);
+},
+
 discard: function() {
 	this._eventManager.discard();
 	this._eventManager = null;
@@ -123,5 +130,4 @@ discard: function() {
 }); // Classes.MultiSelectPanelMenuViewer
 
 Classes.Base.roDef(Classes.MultiSelectPanelMenuViewer, "Events", {});
-Classes.Base.roDef(Classes.MultiSelectPanelMenuViewer.Events, "CLOSED", "tmClosed");
 Classes.Base.roDef(Classes.MultiSelectPanelMenuViewer.Events, "TABSCLOSED", "tmTabsClosed");
