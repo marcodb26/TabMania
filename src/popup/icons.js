@@ -45,12 +45,18 @@ bookmark: `
 `,
 
 // This SVG was taken from the stackoverflow.com website. Unclear attribution requirements.
-// It's not from Font Awesome, as 
+// It's not from Font Awesome.
 history: function(...args) {
 	return `
 	<svg class="${args.join(" ")}" aria-hidden="true" focusable="false" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19 18"><path fill="currentColor" d="M3 9a8 8 0 113.73 6.77L8.2 14.3A6 6 0 105 9l3.01-.01-4 4-4-4h3L3 9zm7-4h1.01L11 9.36l3.22 2.1-.6.93L10 10V5z"></path></svg>
 	`;
 },
+
+// This is an SVG from Bootstrap Icons: https://icons.getbootstrap.com/icons/list-task/
+// <!-- <i class="bi bi-list-task"></i> -->
+list: `
+	<svg class="tm-bi-list-task" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2 2.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5V3a.5.5 0 0 0-.5-.5H2zM3 3H2v1h1V3z"/><path d="M5 3.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zM5.5 7a.5.5 0 0 0 0 1h9a.5.5 0 0 0 0-1h-9zm0 4a.5.5 0 0 0 0 1h9a.5.5 0 0 0 0-1h-9z"/><path fill-rule="evenodd" d="M1.5 7a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H2a.5.5 0 0 1-.5-.5V7zM2 7h1v1H2V7zm0 3.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5H2zm1 .5H2v1h1v-1z"/></svg>
+`,
 
 closeHtml: function(closeId, buttonExtraClasses=[], iconClasses=["tm-close-icon"]) {
 	return `

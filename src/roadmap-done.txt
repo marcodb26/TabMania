@@ -302,6 +302,8 @@ DONE 2.0
 - Added a new "list selected" mode to show all (and only) the tiles that are currently selected
   * Mutually exclusive with "search mode"
   * Enabled/disabled via the multi select panel menu "Show selection"
+  * Can be enabled via a checkbox button or via a menu item in the multi select panel
+    - The checkbox button allow users to easily understand the "list selected" mode is active
 
 
 DONE 1.3

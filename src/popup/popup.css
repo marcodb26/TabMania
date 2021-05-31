@@ -133,6 +133,12 @@
 	vertical-align: -.1em;
 }
 
+.tm-bi-list-task {
+	width: 1em;
+	height: 1em;
+	vertical-align: -0.06em;
+}
+
 .tm-tile-small {
 	/* Bootstrap "small" is still too big for our tiles */
 	font-size: .75em;
@@ -382,11 +388,12 @@
 	   be slightly off to the right when the toggle is used without text.
 	   Implementing a behavior similar to Bootstrap's dropdown-toggle-split, except
 	   that dropdown-toggle-split completely removes the dropdown-toggle's "margin-left: 0.255em",
-	   and that makes the toggle nudged a bit too much to the left (fr whatever reason,
+	   and that makes the toggle nudged a bit too much to the left (for whatever reason,
 	   I didn't understand it, maybe we should investigate this more), while here we just
 	   want the left margin to push the caret perfectly to the center.
+	   .dropdown-toggle-split also adds extra padding, which might not be desirable.
 	   Note that dropdown-toggle-split also makes the toggle too narrow, but we fix the
-	   width of the toggle in tm-dropdown-toggle, so that wouldn't be an issu.
+	   width of the toggle in tm-dropdown-toggle, so that wouldn't be an issue.
 	*/
 	margin-left: .14em;
 }
@@ -423,6 +430,42 @@
 .tm-btnbar-btn {
 	position: relative;
 }
+
+
+
+
+
+/******** .tm-btn and .tm-checkbox-btn ********/
+
+.tm-btn {
+	display: block;
+	text-align: center;
+	border-radius: .25rem;
+}
+
+.tm-btn:hover {
+	/* Same color as .btn-light */
+	background-color: var(--bs-light);
+}
+
+.tm-btn:active {
+	/* A color slightly darker than .tm-btn:hover */
+	background-color: #f1f2f3;
+	box-shadow: 0 0 3px #f1f2f3;
+}
+
+.tm-checkbox-btn {
+	width: 1.4em;
+	height: 1.4em;
+}
+
+/* See https://stackoverflow.com/questions/5275857/highlight-label-if-checkbox-is-checked */
+.btn-check:checked + .tm-checkbox-btn {
+	/* A color slightly darker than .tm-btn:active */
+	background-color: #d7d8d9;
+}
+
+/******** END: .tm-btn and .tm-checkbox-btn ********/
 
 
 
@@ -499,7 +542,7 @@ Encoded with https://www.base64encode.org/
 .tm-plus-icon::after {
 	display: inline-block;
 	width: 2em;
-    height: 2em;
+	height: 2em;
 
 	content: "";
 
@@ -514,7 +557,7 @@ Encoded with https://www.base64encode.org/
 	background-size: 1em;
 
 /*
-These three dots were too simple to bother any tool or library, just created by hand
+These "+" sign was too simple to bother any tool or library, just created by hand
 
 <svg role="img" viewBox="0 0 300 400" xmlns="http://www.w3.org/2000/svg"><rect rx="10" height="26" width="200" x="50" y="187" fill="currentColor"/><rect rx="10" height="200" width="26" x="137" y="100" fill="currentColor"/></svg>
 

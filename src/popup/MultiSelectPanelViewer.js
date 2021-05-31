@@ -17,6 +17,7 @@ Classes.MultiSelectPanelViewer = Classes.Viewer.subclass({
 	_cntInViewElem: null,
 	_selectElem: null,
 	_menuElem: null,
+	_listCheckboxElem: null,
 	_closeElem: null,
 
 	_menuViewer: null,
@@ -45,13 +46,18 @@ _renderPanel: function() {
 	const cntAllId = this._id + "-cnt-all";
 	const selectId = this._id + "-select";
 	const menuId = this._id + "-menu";
+	const listCheckboxId = this._id + "-list";
 	const closeId = this._id + "-close";
 
 	const bodyHtml = `
 	<div class="card tm-cursor-default">
 		<div class="d-flex align-items-center">
-			<input id="${selectId}" class="form-check-input mt-0 mx-1" type="checkbox" value="" style="min-width: 1em;">
+			<input id="${selectId}" class="form-check-input mt-0 ms-1" type="checkbox" value="" style="min-width: 1em;">
 			<div id="${menuId}" class=""></div>
+			<div>
+				<input type="checkbox" class="btn-check" id="${listCheckboxId}" autocomplete="off">
+				<label class="tm-btn tm-checkbox-btn" for="${listCheckboxId}">${icons.list}</label>
+			</div>
 			<div class="flex-fill mx-2 fst-italic fw-light"><span id="${cntInViewId}">0</span> in view (<span id="${cntAllId}">0</span> total)</div>
 			<div>
 				${icons.closeHtml(closeId, [], [ "tm-close-icon", "align-middle" ])}
@@ -74,6 +80,9 @@ _renderPanel: function() {
 	this._elw.listen(this._menuViewer, Classes.MultiSelectPanelViewer.Events.LISTED, this._forwardEventCb.bind(this), false);
 	this._elw.listen(this._menuViewer, Classes.MultiSelectPanelMenuViewer.Events.TABSCLOSED, this._closeTabsCb.bind(this), false);
 
+	this._listCheckboxElem = this.getElementById(listCheckboxId);
+	this._elw.listen(this._listCheckboxElem, "click", this._listCb.bind(this), false);
+
 	this._closeElem = this.getElementById(closeId);
 	this._elw.listen(this._closeElem, "click", this._closeCb.bind(this), false);
 },
@@ -88,6 +97,12 @@ _forwardEventCb: function(ev) {
 	const logHead = "MultiSelectPanelViewer._forwardEventCb():";
 	this._log(logHead, "entering", ev);
 	this._eventManager.notifyListeners(ev.type);
+},
+
+_listCb: function(ev) {
+	const logHead = "MultiSelectPanelViewer._listCb():";
+	this._log(logHead, "entering", ev);
+	this._eventManager.notifyListeners(Classes.MultiSelectPanelViewer.Events.LISTED);
 },
 
 _closeCb: function(ev) {
@@ -197,6 +212,10 @@ setSelected: function(flag=true, indeterminate=false) {
 },
 
 setListSelectedMode: function(flag=true) {
+	const logHead = "MultiSelectPanelViewer.setListSelectedMode():";
+	this._log(logHead, "entering", flag);
+
+	this._listCheckboxElem.checked = flag;
 	this._menuViewer.setListSelectedMode(flag);
 },
 
