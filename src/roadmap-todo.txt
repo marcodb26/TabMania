@@ -1,5 +1,8 @@
 TODO 2.0
 
+- BUG: when popup window is narrow (but not too narrow), tile dropdown menu triggers
+  horizontal scrollbar instead of shrinking to fit the width of the popup view
+
 - Finish multi-select mode
   * Add actions in multi-select mode
   * Add selection checkbox to group titles to select/unselect all within group

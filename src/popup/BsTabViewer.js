@@ -308,7 +308,7 @@ _SearchableBsTabViewer_initBodyElem: function() {
 			</div>
 		</div>
 		<div id="${searchBoxErrorId}" class="tm-searchbox-msg d-none"></div>
-		<div class="tm-overflow-auto" id="${bodyId}">
+		<div class="tm-overflow-auto flex-fill" id="${bodyId}">
 		</div>
 	</div>
 	`;

@@ -308,6 +308,9 @@ DONE 2.0
 - Improved rendering of multi select panel when popup very narrow
   * And swapped order of "total" vs. "in view" counts
 
+- BUG: when not enough tiles in the popup (e.g. during search), tile dropdown menu causes
+  scrollbars instead of overflowing in the remaining popup empty space
+
 
 DONE 1.3
 
