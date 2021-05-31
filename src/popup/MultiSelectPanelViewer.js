@@ -56,11 +56,11 @@ _renderPanel: function() {
 			<div id="${menuId}" class=""></div>
 			<div>
 				<input type="checkbox" class="btn-check" id="${listCheckboxId}" autocomplete="off">
-				<label class="tm-btn tm-checkbox-btn" for="${listCheckboxId}">${icons.list}</label>
+				<label class="tm-btn tm-checkbox-btn me-2 tm-xxs-hide" for="${listCheckboxId}">${icons.list}</label>
 			</div>
-			<div class="flex-fill mx-2 fst-italic fw-light"><span id="${cntInViewId}">0</span> in view (<span id="${cntAllId}">0</span> total)</div>
+			<div class="flex-fill me-2 fst-italic fw-light"><span id="${cntAllId}">0</span><span class="tm-xxs-hide"> total</span> (<span id="${cntInViewId}">0</span><span class="tm-xxs-hide"> in view</span>)</div>
 			<div>
-				${icons.closeHtml(closeId, [], [ "tm-close-icon", "align-middle" ])}
+				${icons.closeHtml(closeId, [ "ps-0" ], [ "tm-close-icon", "align-middle" ])}
 			</div>
 		</div>
 	</div>

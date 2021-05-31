@@ -305,6 +305,9 @@ DONE 2.0
   * Can be enabled via a checkbox button or via a menu item in the multi select panel
     - The checkbox button allow users to easily understand the "list selected" mode is active
 
+- Improved rendering of multi select panel when popup very narrow
+  * And swapped order of "total" vs. "in view" counts
+
 
 DONE 1.3
 
