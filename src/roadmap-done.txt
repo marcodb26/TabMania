@@ -311,6 +311,8 @@ DONE 2.0
 - BUG: when not enough tiles in the popup (e.g. during search), tile dropdown menu causes
   scrollbars instead of overflowing in the remaining popup empty space
 
+- Implemented multi select "Highlight" action
+
 
 DONE 1.3
 

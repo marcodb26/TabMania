@@ -30,16 +30,10 @@ _init: function(useIncognitoStyle=false) {
 	this._initMenuItems();
 },
 
-_actionExitCb: function(ev) {
-	const logHead = "MultiSelectPanelMenuViewer._actionExitCb():";
-	this._log(logHead, "entering", ev);
-	this._eventManager.notifyListeners(Classes.MultiSelectPanelViewer.Events.CLOSED);
-},
-
-_actionListCb: function(ev) {
-	const logHead = "MultiSelectPanelMenuViewer._actionListCb():";
-	this._log(logHead, "entering", ev);
-	this._eventManager.notifyListeners(Classes.MultiSelectPanelViewer.Events.LISTED);
+_actionCb: function(notifEventName, ev) {
+	const logHead = "MultiSelectPanelMenuViewer._actionCb():";
+	this._log(logHead, "entering", notifEventName, ev);
+	this._eventManager.notifyListeners(notifEventName);
 },
 
 _actionPinCb: function(ev) {
@@ -51,33 +45,29 @@ _actionUnpinCb: function(ev) {
 _actionPinBookmarksCb: function(ev) {
 },
 
-_actionHighlightToggleCb: function(ev) {
-},
-
-_actionCloseTabsCb: function(ev) {
-	const logHead = "MultiSelectPanelMenuViewer._actionCloseTabsCb():";
-	this._log(logHead, "entering", ev);
-	this._eventManager.notifyListeners(Classes.MultiSelectPanelMenuViewer.Events.TABSCLOSED);
+_addMenuItem: function(labelText, notifEventName) {
+	let options = {
+		labelText,
+		actionFn: this._actionCb.bind(this, notifEventName),
+	};
+	let retVal = Classes.MenuItemViewer.create(options);
+	this.append(retVal);
+	return retVal;
 },
 
 _initMenuItems: function() {
-	let options = {
-		labelText: "Exit select mode",
-		actionFn: this._actionExitCb.bind(this),
-	};
-	this._exitMenuItem = Classes.MenuItemViewer.create(options);
-	this.append(this._exitMenuItem);
-
-	options = {
-		labelText: "Show selection",
-		actionFn: this._actionListCb.bind(this),
-	};
-	this._listMenuItem = Classes.MenuItemViewer.create(options);
-	this.append(this._listMenuItem);
+	this._exitMenuItem = this._addMenuItem("Exit select mode", Classes.MultiSelectPanelViewer.Events.CLOSED);
+	this._listMenuItem = this._addMenuItem("Show selection", Classes.MultiSelectPanelViewer.Events.LISTED);
 
 	this.appendDivider();
 
-	options = {
+	this._highlightMenuItem = this._addMenuItem("Toggle highlight",
+								Classes.MultiSelectPanelMenuViewer.Events.TABSHIGHLIGHTED);
+	this._closeMenuItem = this._addMenuItem("Close/remove selection",
+								Classes.MultiSelectPanelMenuViewer.Events.TABSCLOSED);
+
+
+	let options = {
 		labelText: "Pin selection",
 		actionFn: this._actionPinCb.bind(this),
 	};
@@ -100,20 +90,6 @@ _initMenuItems: function() {
 //		this._unpinByBookmarkMenuItem.hide();
 //	}
 	this.append(this._pinBookmarksMenuItem);
-
-	options = {
-		labelText: "Toggle highlight",
-		actionFn: this._actionHighlightToggleCb.bind(this),
-	};
-	this._highlightMenuItem = Classes.MenuItemViewer.create(options);
-	this.append(this._highlightMenuItem);
-
-	options = {
-		labelText: "Close/remove selection",
-		actionFn: this._actionCloseTabsCb.bind(this),
-	};
-	this._closeMenuItem = Classes.MenuItemViewer.create(options);
-	this.append(this._closeMenuItem);
 },
 
 setListSelectedMode: function(flag=true) {
@@ -130,4 +106,5 @@ discard: function() {
 }); // Classes.MultiSelectPanelMenuViewer
 
 Classes.Base.roDef(Classes.MultiSelectPanelMenuViewer, "Events", {});
+Classes.Base.roDef(Classes.MultiSelectPanelMenuViewer.Events, "TABSHIGHLIGHTED", "tmTabsHighlighted");
 Classes.Base.roDef(Classes.MultiSelectPanelMenuViewer.Events, "TABSCLOSED", "tmTabsClosed");

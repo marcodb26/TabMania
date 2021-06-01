@@ -442,8 +442,8 @@ _multiSelectSelectedCb: function(ev) {
 		this._log(logHead, "all unselected", ev);
 	}
 
-	for(const [tabId, tile] of Object.entries(this._tilesByTabId)) {
-		tile.setSelected(ev.detail.selected);
+	for(let tabId in this._tilesByTabId) {
+		this._tilesByTabId[tabId].setSelected(ev.detail.selected);
 	}
 },
 
@@ -588,7 +588,7 @@ _TabsBsTabViewer_render: function() {
 		this.addClasses("bg-secondary", "text-light", "border-dark");
 	}
 
-	this._multiSelectPanel = Classes.MultiSelectPanelViewer.create();
+	this._multiSelectPanel = Classes.MultiSelectPanelViewer.create(this._tabsManager);
 	// Add the _multiSelectPanel before the TabsBsTabViewer's body, so the scrollbar of the
 	// TabsBsTabViewer doesn't include the _multiSelectPanel
 	this.addBefore(this._multiSelectPanel);

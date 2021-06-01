@@ -10,6 +10,7 @@ Classes.MultiSelectPanelViewer = Classes.Viewer.subclass({
 
 	_eventManager: null,
 
+	_tabsManager: null,
 	_tabsStoreAll: null,
 	_tabsStoreInView: null,
 
@@ -22,11 +23,17 @@ Classes.MultiSelectPanelViewer = Classes.Viewer.subclass({
 
 	_menuViewer: null,
 
-_init: function(closeCb) {
+// We use the "tabsManager" to get up-to-date information about "real tabs" when deciding
+// what actions to take. The problem is that the _tabsStore* of instances of this class
+// don't always get refreshed as the status of the corresponding tabs changes. Some do
+// (those that are currently "in view"), some don't (those that are not in view).
+_init: function(tabsManager) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.Viewer._init.call(this);
 
 	this.debug();
+
+	this._tabsManager = tabsManager;
 
 	this._tabsStoreAll = Classes.TabsStoreBase.createAs(this.getId() + ".tabsStoreAll");
 	this._tabsStoreInView = Classes.TabsStoreBase.createAs(this.getId() + ".tabsStoreInView");
@@ -78,7 +85,10 @@ _renderPanel: function() {
 	this._menuViewer.attachInParentElement(this._menuElem);
 	this._elw.listen(this._menuViewer, Classes.MultiSelectPanelViewer.Events.CLOSED, this._forwardEventCb.bind(this), false);
 	this._elw.listen(this._menuViewer, Classes.MultiSelectPanelViewer.Events.LISTED, this._forwardEventCb.bind(this), false);
-	this._elw.listen(this._menuViewer, Classes.MultiSelectPanelMenuViewer.Events.TABSCLOSED, this._closeTabsCb.bind(this), false);
+	this._elw.listen(this._menuViewer, Classes.MultiSelectPanelMenuViewer.Events.TABSHIGHLIGHTED,
+						this._tabsHighlightedCb.bind(this), false);
+	this._elw.listen(this._menuViewer, Classes.MultiSelectPanelMenuViewer.Events.TABSCLOSED,
+						this._tabsClosedCb.bind(this), false);
 
 	this._listCheckboxElem = this.getElementById(listCheckboxId);
 	this._elw.listen(this._listCheckboxElem, "click", this._listCb.bind(this), false);
@@ -111,9 +121,125 @@ _closeCb: function(ev) {
 	this._eventManager.notifyListeners(Classes.MultiSelectPanelViewer.Events.CLOSED);
 },
 
-_closeTabsCb: function(ev) {
-	const logHead = "MultiSelectPanelViewer._closeTabsCb():";
-	this._log(logHead, "not implemented", ev);
+_filterSelectedTabs: function(typeList) {
+	const logHead = "MultiSelectPanelViewer._filterTabs():";
+//	this._log(logHead, "entering", typeList);
+
+	let selectedTabs = this._tabsStoreAll.get();
+	let retVal = [];
+	let deletedTabIds = [];
+	for(let i = 0; i < selectedTabs.length; i++) {
+		let tabInfo = selectedTabs[i];
+
+		if(!typeList.includes(tabInfo.tm.type)) {
+			// The tab is of a type that needs to be filtered out
+			continue;
+		}
+
+		if(tabInfo.tm.type == Classes.TabNormalizer.type.TAB) {
+			// The action might require up-to-date knowledge about the state of a tab,
+			// which might have changed since the time the tab was stored in the
+			// _tabsStoreAll. Remember this class doesn't track tab info updates,
+			// but _tabsManager does.
+			tabInfo = this._tabsManager.getTabByTabId(tabInfo.id);
+		}
+
+		if(tabInfo == null) {
+			// The tab has been deleted, don't use it. Since the tab doesn't exist anymore,
+			// we log the original info from "selectedTabs[i]"
+			this._log(logHead, "skipping deleted tab", selectedTabs[i]);
+			// As a side effect, let's get rid of this deleted tab, so it won't be in the way
+			// again later. We store the deleted IDs first, then delete them later, because
+			// we're looking the list of tabs from _tabsStoreAll, so we should not modify
+			// that list while we traverse it, we'll perform the actual deletes after the loop.
+			deletedTabIds.push(selectedTabs[i].id);
+			continue;
+		}
+
+		retVal.push(tabInfo);
+	}
+
+	for(let i = 0; i < deletedTabIds.length; i++) {
+		this._tabsStoreAll.removeById(deletedTabIds[i]);
+	}
+	this._updateCounts();
+
+	return retVal;
+},
+
+_tabsHighlightedCb: function(ev) {
+	const logHead = "MultiSelectPanelViewer._tabsHighlightedCb():";
+
+	let anyHighlighted = false;
+	let anyInactive = false;
+
+	let tabs = this._filterSelectedTabs([ Classes.TabNormalizer.type.TAB ]);
+
+	for(let i = 0; i < tabs.length; i++) {
+		if(!tabs[i].active) {
+			anyInactive = true;
+			if(tabs[i].highlighted) {
+				anyHighlighted = true;
+			}
+		}
+	}
+
+	let needHighlight = false;
+
+	if(!anyInactive) {
+		// The selection is made of only active tabs. Active tabs are always highlighted,
+		// and removing highlight of an active tab will only work if there are other
+		// highlighted tabs in the same window. We'll try...
+		needHighlight = false;
+	} else {
+		// Follow the same behavior of the multi-select checkbox: if any of the non-active
+		// tabs is already highlighted, pick the "remove highlight" action, while if they're
+		// all not highlighted, pick the "set highlight" action
+		needHighlight = !anyHighlighted;
+	}
+	this._log(logHead, "highlighting", needHighlight, tabs);
+
+	for(let i = 0; i < tabs.length; i++) {
+		// We chose to use chrome.tabs.update() instead of chrome.tabs.highlight() for a number
+		// of reasons:
+		// 1. chrome.tabs.highlight() can only add, not remove, highlight
+		// 2. chrome.tabs.highlight() works with tab indices, not with tab IDs.
+		//    That's unfortunate, because this._tabsStoreAll doesn't track tab index changes,
+		//    so here we would need to get the latest tab index for each tab, otherwise we might end
+		//    up highlighting the wrong tab...
+		chromeUtils.wrap(chrome.tabs.update, logHead, tabs[i].id, { highlighted: needHighlight });
+	}
+},
+
+_tabsClosedCb: function(ev) {
+	const logHead = "MultiSelectPanelViewer._tabsClosedCb():";
+
+	// Classes.TabNormalizer.type.TAB
+	let tabs = this._filterSelectedTabs([ Classes.TabNormalizer.type.TAB ]);
+
+	if(tabs.length != 0) {
+		let tabIds = tabs.map(tab => tab.id);
+		this._log(logHead, "closing standard tabs", tabIds, tabs);
+		chromeUtils.wrap(chrome.tabs.remove, logHead, tabIds);
+	}
+
+	// Classes.TabNormalizer.type.BOOKMARK
+	tabs = this._filterSelectedTabs([ Classes.TabNormalizer.type.BOOKMARK ]);
+
+	if(tabs.length != 0) {
+		this._log(logHead, "deleting bookmarks", tabs);
+		for(let i = 0; i < tabs.length; i++) {
+			chromeUtils.wrap(chrome.bookmarks.remove, logHead, tabs[i].bookmarkId);
+			// TO DO, remove from our internal lists by calling removeTab(),
+			// but change removeTab() to have an option to not refresh the counts
+			// at every call...
+		}
+	}
+
+	// Classes.TabNormalizer.type.HISTORY
+
+	// Skip Classes.TabNormalizer.type.RCTAB, as chrome.sessions doesn't have an
+	// API to delete a recently closed tab
 },
 
 _updateCounts: function() {
@@ -130,6 +256,9 @@ discard: function() {
 
 	this._eventManager.discard();
 	this._eventManager = null;
+
+	// Don't discard _tabsManager, this class doesn't own it
+	this._tabsManager = null;
 
 	if(this.isActive()) {
 		this.activate(false);
