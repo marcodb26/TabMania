@@ -1,5 +1,10 @@
 TODO 2.0
 
+- BUG: when dragging a tab from a window to another, chrome.tabs.query fails
+  * TabsManager::_queryTabs(): chrome.runtime.lastError = Tabs cannot be queried right now (user may be dragging a tab).
+  * Saw it on both background page and popup consoles
+  * Note that this seems to be happening also when the user changes tab, without dragging
+
 - BUG: when popup window is narrow (but not too narrow), tile dropdown menu triggers
   horizontal scrollbar instead of shrinking to fit the width of the popup view
 

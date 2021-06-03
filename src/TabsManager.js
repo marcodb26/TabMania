@@ -377,7 +377,7 @@ _getLtwIdForMove: async function(tab) {
 // choose to run the initial precondition checks in parallel, then we take the most appropriate
 // branch and run to completion.
 _createdTabSpecialActions: async function(tab) {
-	const logHead = "TabsManager::_createdTabSpecialActions(): ";
+	const logHead = "TabsManager._createdTabSpecialActions():";
 
 	if(tab.tm.protocol == "chrome-extension:") {
 		// Don't take any action for any Chrome extension popup (especially TabMania's own!)
@@ -386,6 +386,16 @@ _createdTabSpecialActions: async function(tab) {
 
 	if(!tab.active) {
 		// Move/deduplicate only tabs that are created in the foreground
+		return;
+	}
+
+	if(tab.sessionId !== undefined) {
+		// If a tab has a "sessionId" property, it's been restored via the chrome.sessions API,
+		// and we want to leave it where it used to be.
+		// See https://developer.chrome.com/docs/extensions/reference/tabs/#type-Tab
+		// Update: the "sessionId" field seems to never appear in the chrome.tabs notifications,
+		// regardless of how the page got restored ("CTRL+SHIFT+T" or the chrome.sessions.restore()).
+		this._log(logHead, "ignoring tab with 'sessionId' property:", tab.sessionId, tab);
 		return;
 	}
 
@@ -410,19 +420,19 @@ _createdTabSpecialActions: async function(tab) {
 
 	if(winInfo != null && winInfo.type == "popup") {
 		// No special actions are taken for popup windows
-		this._log(logHead + "popup window, ignoring", winInfo);
+		this._log(logHead, "popup window, ignoring", winInfo);
 		return;
 	}
 
 	if(existingTab == null && ltwId == null) {
 		// None of the special actions apply: no existing tab, and the new tab is already
 		// on the least tabbed window (or TabMania is configured to not move). Nothing to do.
-		this._log(logHead + "nothing to do");
+		this._log(logHead, "nothing to do");
 		return;
 	}
 
 	if(existingTab != null) {
-		this._log(logHead + "found existing tab (new, existing):", tab, existingTab);
+		this._log(logHead, "found existing tab (new, existing):", tab, existingTab);
 		if(existingTab.windowId != tab.windowId) {
 			// If we close the newly created tab to replace it with an existing tab in a different
 			// window, the old window needs to put back the active tab where it was before the new
@@ -443,7 +453,7 @@ _createdTabSpecialActions: async function(tab) {
 	// If we get here, we need to move the tab to the least tabbed window. Note that the action
 	// with "refActiveTabId" is taken inside chromeUtils.moveTab() in this case, no need to make
 	// that extra call explicitly.
-	this._log(logHead + "moving tab to least tabbed window", ltwId, tab);
+	this._log(logHead, "moving tab to least tabbed window", ltwId, tab);
 	return chromeUtils.moveTab(tab, ltwId, true, refActiveTabId);
 },
 
