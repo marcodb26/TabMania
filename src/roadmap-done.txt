@@ -329,6 +329,8 @@ DONE 2.0
 
 - Completed implementation of multi select "Close/delete" action
 
+- BUG: multi select actions need to be resilient in case the selection is empty
+
 
 DONE 1.3
 

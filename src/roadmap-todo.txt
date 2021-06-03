@@ -4,6 +4,9 @@ TODO 2.0
 
 - Multi-select "Close/delete" action should support undo
 
+- BUG: TabsBsTabViewer.js:205 [popup-bstabs-home0] TabsBsTabViewer::_processTabUpdate(tabId = 453): tile not found and not in search mode 
+  * Shows up when in multi select mode and showing only selected tabs
+
 - BUG: while in search mode, when changing page in a tab, the new page (that matches the search)
   doesn't show up in the search results if the old page was not part of the search results
 

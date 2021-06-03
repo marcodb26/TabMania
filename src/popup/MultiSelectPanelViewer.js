@@ -265,11 +265,13 @@ _closeCb: function(ev) {
 },
 
 _groupSelectedTabs: function() {
-//	const logHead = "MultiSelectPanelViewer._groupSelectedTabs():";
-//	this._log(logHead, "entering");
-
-	let selectedTabs = this._tabsStoreAll.get();
 	let retVal = {};
+	let selectedTabs = this._tabsStoreAll.get();
+
+	if(selectedTabs == null) {
+		// No tabs selected, nothing to do
+		return retVal;
+	}
 
 	for(let i = 0; i < selectedTabs.length; i++) {
 		let tab = selectedTabs[i];
@@ -290,6 +292,11 @@ _tabsHighlightedCb: function(ev) {
 	let anyInactive = false;
 
 	let tabs = this._groupSelectedTabs()[Classes.TabNormalizer.type.TAB];
+
+	if(tabs == null) {
+		// No tabs selected, nothing to do
+		return;
+	}
 
 	for(let i = 0; i < tabs.length; i++) {
 		if(!tabs[i].active) {
