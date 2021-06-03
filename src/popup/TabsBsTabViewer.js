@@ -369,7 +369,7 @@ _settingsStoreUpdatedCb: function(ev) {
 },
 
 _historyUpdatedCb: function(ev) {
-	const logHead = "TabsBsTabViewer::_historyUpdatedCb(): ";
+	const logHead = "TabsBsTabViewer._historyUpdatedCb():";
 
 	// In theory we could just call a removeEventListener() when we get out of search
 	// mode, but this code seems harmless enough
@@ -378,7 +378,7 @@ _historyUpdatedCb: function(ev) {
 		return;
 	}
 
-	this._log(logHead + "entering", ev.detail);
+	this._log(logHead, "entering", ev.detail);
 	this._queryAndRenderJob.run(this._queryAndRenderDelay);
 },
 
@@ -588,7 +588,7 @@ _TabsBsTabViewer_render: function() {
 		this.addClasses("bg-secondary", "text-light", "border-dark");
 	}
 
-	this._multiSelectPanel = Classes.MultiSelectPanelViewer.create(this._tabsManager);
+	this._multiSelectPanel = Classes.MultiSelectPanelViewer.create(this._tabsManager, this._historyFinder);
 	// Add the _multiSelectPanel before the TabsBsTabViewer's body, so the scrollbar of the
 	// TabsBsTabViewer doesn't include the _multiSelectPanel
 	this.addBefore(this._multiSelectPanel);

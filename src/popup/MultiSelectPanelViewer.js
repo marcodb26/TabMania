@@ -7,12 +7,20 @@ Classes.MultiSelectPanelViewer = Classes.Viewer.subclass({
 
 	// ELW = EventListenersWrapper
 	_elw: null,
+	_tabsElw: null,
 
 	_eventManager: null,
 
 	_tabsManager: null,
+	_historyFinder: null,
+
 	_tabsStoreAll: null,
 	_tabsStoreInView: null,
+
+	_refreshBookmarksJob: null,
+	// Delay before a full bookmarks update. Use this to avoid causing too many bookmark updates
+	// when a multi-select action is taken
+	_refreshBookmarksDelay: 200,
 
 	_cntAllElem: null,
 	_cntInViewElem: null,
@@ -27,7 +35,7 @@ Classes.MultiSelectPanelViewer = Classes.Viewer.subclass({
 // what actions to take. The problem is that the _tabsStore* of instances of this class
 // don't always get refreshed as the status of the corresponding tabs changes. Some do
 // (those that are currently "in view"), some don't (those that are not in view).
-_init: function(tabsManager) {
+_init: function(tabsManager, historyFinder) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.Viewer._init.call(this);
 
@@ -38,33 +46,40 @@ _init: function(tabsManager) {
 	this._active = false;
 
 	this._elw = Classes.EventListenersWrapper.create();
+	this._tabsElw = Classes.EventListenersWrapper.create();
 
 	this._eventManager = Classes.EventManager.createAs(this.getId() + ".eventManager");
 	this._eventManager.attachRegistrationFunctions(this);
 
+	this._refreshBookmarksJob = Classes.ScheduledJob.createAs(this._id +  ".refreshBookmarksJob",
+															this._refreshBookmarks.bind(this));
+	this._refreshBookmarksJob.debug();
+
 	this._tabsManager = tabsManager;
-	this._tabsManager.getInitPromise().then(this._asyncInitCb.bind(this));
+	this._historyFinder = historyFinder;
 
 	this._renderPanel();
 	this.activate(false);
 },
 
-_asyncInitCb: function() {
-	const logHead = "MultiSelectPanelViewer::_asyncInitCb():";
-	if(this._elw == null) {
-		this._log(logHead, "discard() called before initialization completed, giving up");
-		return;
-	}
+_setTabsListeners: function() {
+	const logHead = "MultiSelectPanelViewer._setTabsListeners():";
+	this._assert(this._tabsManager.isInitialized(), logHead);
 
 	// Classes.TabsManager.Events.CREATED can't impact the selection
-	this._elw.listen(this._tabsManager, Classes.TabsManager.Events.REMOVED, this._tabRemovedCb.bind(this));
-	this._elw.listen(this._tabsManager, Classes.TabsManager.Events.UPDATED, this._tabUpdatedCb.bind(this));
+	this._tabsElw.listen(this._tabsManager, Classes.TabsManager.Events.REMOVED, this._tabRemovedCb.bind(this));
+	this._tabsElw.listen(this._tabsManager, Classes.TabsManager.Events.UPDATED, this._tabUpdatedCb.bind(this));
 
-	this._elw.listen(bookmarksManager, Classes.EventManager.Events.UPDATED, this._bookmarkUpdatedCb.bind(this));
+	this._tabsElw.listen(bookmarksManager, Classes.EventManager.Events.UPDATED, this._bookmarkUpdatedCb.bind(this));
+
+	if(this._historyFinder != null) {
+		this._tabsElw.listen(this._historyFinder, Classes.EventManager.Events.UPDATED, this._historyUpdatedCb.bind(this));
+	}
+
 },
 
 _tabRemovedCb: function(ev) {
-	const logHead = "MultiSelectPanelViewer::_tabRemovedCb():";
+	const logHead = "MultiSelectPanelViewer._tabRemovedCb():";
 	this._log(logHead, "entering", ev.detail.tab.id, ev.detail);
 	this.removeTab(ev.detail.tab);
 },
@@ -78,7 +93,7 @@ _tabUpdatedCbInner: function(tab) {
 },
 
 _tabUpdatedCb: function(ev) {
-	const logHead = "MultiSelectPanelViewer::_tabUpdatedCb():";
+	const logHead = "MultiSelectPanelViewer._tabUpdatedCb():";
 
 	let changed = 0;
 
@@ -99,8 +114,8 @@ _tabUpdatedCb: function(ev) {
 	// No need to _updateCounts(), the count has not changed
 },
 
-_bookmarkUpdatedCb: function(ev) {
-	const logHead = "MultiSelectPanelViewer::_bookmarkUpdatedCb():";
+_refreshBookmarks: function() {
+	const logHead = "MultiSelectPanelViewer._refreshBookmarks():";
 
 	let changed = 0;
 	let removed = 0;
@@ -114,7 +129,7 @@ _bookmarkUpdatedCb: function(ev) {
 		let bm = bookmarksManager.getBmNode(tab.bookmarkId);
 
 		if(bm == null) {
-			this.removeTab(tab);
+			this.removeTab(tab, false);
 			removed++;
 			continue;
 		}
@@ -123,7 +138,57 @@ _bookmarkUpdatedCb: function(ev) {
 		changed++;
 	}
 
-	this._log(logHead, "changed", changed, ", removed", removed, ev.detail);
+	this._log(logHead, "changed", changed, ", removed", removed);
+
+	this._updateCounts();
+},
+
+_bookmarkUpdatedCb: function(ev) {
+	const logHead = "MultiSelectPanelViewer._bookmarkUpdatedCb():";
+	this._log(logHead, "entering", ev.detail);
+	this._refreshBookmarksJob.run(this._refreshBookmarksDelay);
+},
+
+_refreshHistory: function(urls, removeAll) {
+	const logHead = "MultiSelectPanelViewer._refreshHistory():";
+
+	let removed = 0;
+
+	let selectedTabs = this._tabsStoreAll.get();
+	for(let i = 0; i < selectedTabs.length; i++) {
+		let tab = selectedTabs[i];
+		if(tab.tm.type != Classes.TabNormalizer.type.HISTORY) {
+			continue;
+		}
+
+		if(removeAll || urls.includes(tab.url)) {
+			this.removeTab(tab, false);
+			removed++;
+			continue;
+		}
+	}
+
+	this._log(logHead, "removed", removed);
+
+	this._updateCounts();
+},
+
+_historyUpdatedCb: function(ev) {
+	const logHead = "MultiSelectPanelViewer._historyUpdatedCb():";
+
+	if(ev.detail.event != Classes.HistoryFinder.event.REMOVED) {
+		this._log(logHead, "ignoring event", ev.detail);
+		return;
+	}
+	this._log(logHead, "entering", ev.detail.data.urls, ev.detail);
+
+	// Unlike in the bookmarks case, we can't use a ScheduledJob here, because
+	// ScheduledJob doesn't support accumulating parameters. We'd need to aggregate
+	// the full list of "ev.detail.data.urls" across the multiple calls that are
+	// getting rate-limited into a single call. We could implement that by tracking
+	// the state in the MultiSelectPanelViewer itself, but that's not necessarily
+	// very straightforward to do
+	this._refreshHistory(ev.detail.data.urls, ev.detail.data.allHistory);
 },
 
 _renderPanel: function() {
@@ -199,48 +264,21 @@ _closeCb: function(ev) {
 	this._eventManager.notifyListeners(Classes.MultiSelectPanelViewer.Events.CLOSED);
 },
 
-_filterSelectedTabs: function(typeList) {
-	const logHead = "MultiSelectPanelViewer._filterSelectedTabs():";
-//	this._log(logHead, "entering", typeList);
+_groupSelectedTabs: function() {
+//	const logHead = "MultiSelectPanelViewer._groupSelectedTabs():";
+//	this._log(logHead, "entering");
 
 	let selectedTabs = this._tabsStoreAll.get();
-	let retVal = [];
-	let deletedTabIds = [];
+	let retVal = {};
+
 	for(let i = 0; i < selectedTabs.length; i++) {
-		let tabInfo = selectedTabs[i];
-
-		if(!typeList.includes(tabInfo.tm.type)) {
-			// The tab is of a type that needs to be filtered out
-			continue;
+		let tab = selectedTabs[i];
+		let tabList = retVal[tab.tm.type];
+		if(tabList == null) {
+			retVal[tab.tm.type] = tabList = [];
 		}
-
-//		if(tabInfo.tm.type == Classes.TabNormalizer.type.TAB) {
-//			// The action might require up-to-date knowledge about the state of a tab,
-//			// which might have changed since the time the tab was stored in the
-//			// _tabsStoreAll. Remember this class doesn't track tab info updates,
-//			// but _tabsManager does.
-//			tabInfo = this._tabsManager.getTabByTabId(tabInfo.id);
-//		}
-
-//		if(tabInfo == null) {
-//			// The tab has been deleted, don't use it. Since the tab doesn't exist anymore,
-//			// we log the original info from "selectedTabs[i]"
-//			this._log(logHead, "skipping deleted tab", selectedTabs[i]);
-//			// As a side effect, let's get rid of this deleted tab, so it won't be in the way
-//			// again later. We store the deleted IDs first, then delete them later, because
-//			// we're looking the list of tabs from _tabsStoreAll, so we should not modify
-//			// that list while we traverse it, we'll perform the actual deletes after the loop.
-//			deletedTabIds.push(selectedTabs[i].id);
-//			continue;
-//		}
-
-		retVal.push(tabInfo);
+		tabList.push(tab);
 	}
-
-//	for(let i = 0; i < deletedTabIds.length; i++) {
-//		this._tabsStoreAll.removeById(deletedTabIds[i]);
-//	}
-//	this._updateCounts();
 
 	return retVal;
 },
@@ -251,7 +289,7 @@ _tabsHighlightedCb: function(ev) {
 	let anyHighlighted = false;
 	let anyInactive = false;
 
-	let tabs = this._filterSelectedTabs([ Classes.TabNormalizer.type.TAB ]);
+	let tabs = this._groupSelectedTabs()[Classes.TabNormalizer.type.TAB];
 
 	for(let i = 0; i < tabs.length; i++) {
 		if(!tabs[i].active) {
@@ -292,29 +330,40 @@ _tabsHighlightedCb: function(ev) {
 _tabsClosedCb: function(ev) {
 	const logHead = "MultiSelectPanelViewer._tabsClosedCb():";
 
-	// Classes.TabNormalizer.type.TAB
-	let tabs = this._filterSelectedTabs([ Classes.TabNormalizer.type.TAB ]);
+	let tabGroups = this._groupSelectedTabs();
 
-	if(tabs.length != 0) {
+	// Classes.TabNormalizer.type.TAB
+	let tabs = tabGroups[Classes.TabNormalizer.type.TAB];
+
+	if(tabs != null && tabs.length != 0) {
 		let tabIds = tabs.map(tab => tab.id);
 		this._log(logHead, "closing standard tabs", tabIds, tabs);
 		chromeUtils.wrap(chrome.tabs.remove, logHead, tabIds);
 	}
 
 	// Classes.TabNormalizer.type.BOOKMARK
-	tabs = this._filterSelectedTabs([ Classes.TabNormalizer.type.BOOKMARK ]);
+	tabs = tabGroups[Classes.TabNormalizer.type.BOOKMARK];
 
-	if(tabs.length != 0) {
+	if(tabs != null && tabs.length != 0) {
 		this._log(logHead, "deleting bookmarks", tabs);
 		for(let i = 0; i < tabs.length; i++) {
 			chromeUtils.wrap(chrome.bookmarks.remove, logHead, tabs[i].bookmarkId);
-			// TO DO, remove from our internal lists by calling removeTab(),
-			// but change removeTab() to have an option to not refresh the counts
-			// at every call...
+			// In turn this loop will trigger bookmark events that will enqueue
+			// a run of _refreshBookmarksJob. Hopefully this entire loop will end
+			// before the _refreshBookmarksDelay has elapsed, so the refresh bookmarks
+			// action will be taken only once
 		}
 	}
 
 	// Classes.TabNormalizer.type.HISTORY
+	tabs = tabGroups[Classes.TabNormalizer.type.HISTORY];
+
+	if(tabs != null && tabs.length != 0) {
+		this._log(logHead, "deleting history items", tabs);
+		for(let i = 0; i < tabs.length; i++) {
+			chromeUtils.wrap(chrome.history.deleteUrl, logHead, { url: tabs[i].url });
+		}
+	}
 
 	// Skip Classes.TabNormalizer.type.RCTAB, as chrome.sessions doesn't have an
 	// API to delete a recently closed tab
@@ -328,6 +377,8 @@ _updateCounts: function() {
 discard: function() {
 	this._elw.discard();
 	this._elw = null;
+	this._tabsElw.discard();
+	this._tabsElw = null;
 
 	this._menuViewer.discard();
 	this._menuViewer = null;
@@ -335,8 +386,12 @@ discard: function() {
 	this._eventManager.discard();
 	this._eventManager = null;
 
-	// Don't discard _tabsManager, this class doesn't own it
+	this._refreshBookmarksJob.discard();
+	this._refreshBookmarksJob = null;
+
+	// Don't discard _tabsManager and _historyFinder, this class doesn't own them
 	this._tabsManager = null;
+	this._historyFinder = null;
 
 	if(this.isActive()) {
 		this.activate(false);
@@ -363,9 +418,11 @@ activate: function(flag=true) {
 	this._active = flag;
 
 	if(flag) {
+		this._setTabsListeners();
 		this.show();
 	} else {
 		this.hide();
+		this._tabsElw.clear();
 		this._tabsStoreAll.reset();
 		this._tabsStoreInView.reset();
 		// Update the counts, so when we show the panel the next time, it won't start
@@ -388,16 +445,18 @@ addTab: function(tab) {
 	this._updateCounts();
 },
 
-_removeTabById: function(tabId) {
+_removeTabById: function(tabId, updateCounts=true) {
 	const logHead = "MultiSelectPanelViewer._removeTabById():";
 	this._log(logHead, "removing tab", tabId);
 	this._tabsStoreAll.removeById(tabId);
 	this._tabsStoreInView.removeById(tabId);
 
-	this._updateCounts();
+	if(updateCounts) {
+		this._updateCounts();
+	}
 },
 
-removeTab: function(tab) {
+removeTab: function(tab, updateCounts) {
 	this._removeTabById(tab.id);
 },
 

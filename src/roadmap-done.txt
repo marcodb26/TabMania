@@ -316,6 +316,19 @@ DONE 2.0
 - Listening to tabsManager and bookmarksManager events to update MultiSelectPanelViewer tracked
   tabs as they get updated or removed
 
+- Updated HistoryFinder to use EventListenersWrapper
+  * The _removeHistoryEventsListeners() function was buggy, and was not going to really
+    remove the listeners
+
+- Tracking history removal events in MultiSelectPanelViewer
+
+- Adding/removing tabs/bookmarks/history event listeners from MultiSelectPanelViewer when viewer
+  gets activated/deactivated
+
+- Rate-limiting bookmarks refreshing in MultiSelectPanelViewer, as it could be relatively expensive
+
+- Completed implementation of multi select "Close/delete" action
+
 
 DONE 1.3
 

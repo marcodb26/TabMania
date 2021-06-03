@@ -56,14 +56,14 @@ _addMenuItem: function(labelText, notifEventName) {
 },
 
 _initMenuItems: function() {
-	this._exitMenuItem = this._addMenuItem("Exit select mode", Classes.MultiSelectPanelViewer.Events.CLOSED);
 	this._listMenuItem = this._addMenuItem("Show selection", Classes.MultiSelectPanelViewer.Events.LISTED);
+	this._exitMenuItem = this._addMenuItem("Exit select mode", Classes.MultiSelectPanelViewer.Events.CLOSED);
 
 	this.appendDivider();
 
 	this._highlightMenuItem = this._addMenuItem("Toggle highlight",
 								Classes.MultiSelectPanelMenuViewer.Events.TABSHIGHLIGHTED);
-	this._closeMenuItem = this._addMenuItem("Close/remove selection",
+	this._closeMenuItem = this._addMenuItem("Close/delete selection",
 								Classes.MultiSelectPanelMenuViewer.Events.TABSCLOSED);
 
 

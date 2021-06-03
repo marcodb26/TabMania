@@ -1,5 +1,12 @@
 TODO 2.0
 
+- Multi-select "Close/delete" action should ask for confirmation
+
+- Multi-select "Close/delete" action should support undo
+
+- BUG: while in search mode, when changing page in a tab, the new page (that matches the search)
+  doesn't show up in the search results if the old page was not part of the search results
+
 - BUG: when dragging a tab from a window to another, chrome.tabs.query fails
   * TabsManager::_queryTabs(): chrome.runtime.lastError = Tabs cannot be queried right now (user may be dragging a tab).
   * Saw it on both background page and popup consoles
@@ -62,9 +69,6 @@ TODO 2.0
 	// When we map them to emptyFn() we want the overhead to be minimal, and the overhead
 	// of the pattern "logHead + '<string>'" is definitely higher than the overhead of
 	// the pattern "logHead, '<string>'".
-
-- BUG: while in search mode, when changing page in a tab, the new page (that matches the search)
-  doesn't show up in the search results if the old page was not part of the search results
 
 - popup/TabsManager.js must generate updates also when pinned bookmarks get updated
   * How do we do that? We only compare _normTabs, which doesn't include _filteredPinnedBookmarks

@@ -21,6 +21,10 @@ Classes.HistoryFinder = Classes.Base.subclass({
 	// which we put here just for debugging.
 	_hasHistoryPermission: null,
 
+	// ELW = EventListenersWrapper
+	_chromeElw: null,
+	_historyElw: null,
+
 _init: function() {
 	const logHead = "HistoryFinder::_init(): ";
 	// Overriding the parent class' _init(), but calling that original function first
@@ -30,16 +34,19 @@ _init: function() {
 	this._eventManager = Classes.EventManager.create();
 	this._eventManager.attachRegistrationFunctions(this);
 
+	this._chromeElw = Classes.EventListenersWrapper.create("addListener", "removeListener");
+	this._historyElw = Classes.EventListenersWrapper.create("addListener", "removeListener");
+
 	// https://developer.chrome.com/docs/extensions/reference/permissions/#event-onAdded
-	chrome.permissions.onAdded.addListener(this._permissionAddedCb.bind(this));
+	this._chromeElw.listen(chrome.permissions.onAdded, this._permissionAddedCb.bind(this));
 	// https://developer.chrome.com/docs/extensions/reference/permissions/#event-onRemoved
-	chrome.permissions.onRemoved.addListener(this._permissionRemovedCb.bind(this));
+	this._chromeElw.listen(chrome.permissions.onRemoved, this._permissionRemovedCb.bind(this));
 
 	// Recently closed tabs depend on the "sessions" permission, which we set as mandatory,
 	// not optional, so we can always listen to their events, unlike the "history" events
 	//
 	// https://developer.chrome.com/docs/extensions/reference/sessions/#event-onChanged
-	chrome.sessions.onChanged.addListener(this._recentlyClosedChangedCb.bind(this));
+	this._chromeElw.listen(chrome.sessions.onChanged, this._recentlyClosedChangedCb.bind(this));
 
 	chromeUtils.wrap(chrome.permissions.contains, logHead, { permissions: ["history"] }).then(
 		function(hasPermission) {
@@ -59,21 +66,16 @@ _addHistoryEventsListeners: function() {
 	this._log(logHead + "initializing history event listeners");
 
 	// https://developer.chrome.com/docs/extensions/reference/history/#event-onVisitRemoved
-	chrome.history.onVisitRemoved.addListener(this._visitRemovedCb.bind(this));
+	this._historyElw.listen(chrome.history.onVisitRemoved, this._visitRemovedCb.bind(this));
 	// https://developer.chrome.com/docs/extensions/reference/history/#event-onVisited
-	chrome.history.onVisited.addListener(this._visitedCb.bind(this));
+	this._historyElw.listen(chrome.history.onVisited, this._visitedCb.bind(this));
 },
 
 _removeHistoryEventsListeners: function() {
 	const logHead = "HistoryFinder::_removeHistoryEventsListeners(): ";
 	this._log(logHead + "removing history event listeners");
 
-	// These removeListener() functions are never documented, but they should always exist...
-	// See https://stackoverflow.com/a/13522461/10791475
-	// https://developer.chrome.com/docs/extensions/reference/history/#event-onVisitRemoved
-	chrome.history.onVisitRemoved.removeListener(this._visitRemovedCb.bind(this));
-	// https://developer.chrome.com/docs/extensions/reference/history/#event-onVisited
-	chrome.history.onVisited.removeListener(this._visitedCb.bind(this));
+	this._historyElw.clear();
 },
 
 _permissionAddedCb: function(permissions) {

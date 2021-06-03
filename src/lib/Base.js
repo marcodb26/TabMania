@@ -491,12 +491,16 @@ _unlistenWrapper: function(weakRefObj, ...listenerWeakRefArgs) {
 	this.unlisten.apply(this, allArgs);
 },
 
-discard: function() {
+clear: function() {
 	for(let i = 0; i < this._weakRefListeners.length; i++) {
 		this._unlistenWrapper.apply(this, this._weakRefListeners[i]);
 	}
 	this._weakRefListeners = [];
-}
+},
+
+discard: function() {
+	this.clear();
+},
 
 }); // Classes.EventListenersWrapper
 
