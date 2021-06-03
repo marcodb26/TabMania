@@ -313,6 +313,9 @@ DONE 2.0
 
 - Implemented multi select "Highlight" action
 
+- Listening to tabsManager and bookmarksManager events to update MultiSelectPanelViewer tracked
+  tabs as they get updated or removed
+
 
 DONE 1.3
 

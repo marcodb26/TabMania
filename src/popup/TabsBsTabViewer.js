@@ -182,7 +182,7 @@ _tabCreatedCb: function(ev) {
 },
 
 _tabRemovedCb: function(ev) {
-	const logHead = "TabsBsTabViewer::_tabRemovedCb(tabId = " + ev.detail.tabId + "): ";
+	const logHead = "TabsBsTabViewer::_tabRemovedCb(tabId = " + ev.detail.tab.id + "): ";
 
 	this._log(logHead + "entering", ev.detail);
 	this._queryAndRenderJob.run(this._queryAndRenderDelay);

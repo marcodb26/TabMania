@@ -33,8 +33,6 @@ _init: function(tabsManager) {
 
 	this.debug();
 
-	this._tabsManager = tabsManager;
-
 	this._tabsStoreAll = Classes.TabsStoreBase.createAs(this.getId() + ".tabsStoreAll");
 	this._tabsStoreInView = Classes.TabsStoreBase.createAs(this.getId() + ".tabsStoreInView");
 	this._active = false;
@@ -44,8 +42,88 @@ _init: function(tabsManager) {
 	this._eventManager = Classes.EventManager.createAs(this.getId() + ".eventManager");
 	this._eventManager.attachRegistrationFunctions(this);
 
+	this._tabsManager = tabsManager;
+	this._tabsManager.getInitPromise().then(this._asyncInitCb.bind(this));
+
 	this._renderPanel();
 	this.activate(false);
+},
+
+_asyncInitCb: function() {
+	const logHead = "MultiSelectPanelViewer::_asyncInitCb():";
+	if(this._elw == null) {
+		this._log(logHead, "discard() called before initialization completed, giving up");
+		return;
+	}
+
+	// Classes.TabsManager.Events.CREATED can't impact the selection
+	this._elw.listen(this._tabsManager, Classes.TabsManager.Events.REMOVED, this._tabRemovedCb.bind(this));
+	this._elw.listen(this._tabsManager, Classes.TabsManager.Events.UPDATED, this._tabUpdatedCb.bind(this));
+
+	this._elw.listen(bookmarksManager, Classes.EventManager.Events.UPDATED, this._bookmarkUpdatedCb.bind(this));
+},
+
+_tabRemovedCb: function(ev) {
+	const logHead = "MultiSelectPanelViewer::_tabRemovedCb():";
+	this._log(logHead, "entering", ev.detail.tab.id, ev.detail);
+	this.removeTab(ev.detail.tab);
+},
+
+_tabUpdatedCbInner: function(tab) {
+	this._tabsStoreAll.update(tab);
+
+	if(this._tabsStoreInView.hasById(tab.id)) {
+		this._tabsStoreInView.update(tab);
+	}
+},
+
+_tabUpdatedCb: function(ev) {
+	const logHead = "MultiSelectPanelViewer::_tabUpdatedCb():";
+
+	let changed = 0;
+
+	for(let i = 0; i < ev.detail.tabs.length; i++) {
+		let tab = ev.detail.tabs[i];
+
+		if(!this._tabsStoreAll.hasById(tab.id)) {
+			// If it's not in _tabsStoreAll, it can't be in _tabsStoreInView
+			continue;
+		}
+
+		this._tabUpdatedCbInner(tab);
+		changed++;
+	}
+
+	this._log(logHead, "changed", changed, ev.detail);
+
+	// No need to _updateCounts(), the count has not changed
+},
+
+_bookmarkUpdatedCb: function(ev) {
+	const logHead = "MultiSelectPanelViewer::_bookmarkUpdatedCb():";
+
+	let changed = 0;
+	let removed = 0;
+
+	let selectedTabs = this._tabsStoreAll.get();
+	for(let i = 0; i < selectedTabs.length; i++) {
+		let tab = selectedTabs[i];
+		if(tab.tm.type != Classes.TabNormalizer.type.BOOKMARK) {
+			continue;
+		}
+		let bm = bookmarksManager.getBmNode(tab.bookmarkId);
+
+		if(bm == null) {
+			this.removeTab(tab);
+			removed++;
+			continue;
+		}
+
+		this._tabUpdatedCbInner(bm);
+		changed++;
+	}
+
+	this._log(logHead, "changed", changed, ", removed", removed, ev.detail);
 },
 
 _renderPanel: function() {
@@ -122,7 +200,7 @@ _closeCb: function(ev) {
 },
 
 _filterSelectedTabs: function(typeList) {
-	const logHead = "MultiSelectPanelViewer._filterTabs():";
+	const logHead = "MultiSelectPanelViewer._filterSelectedTabs():";
 //	this._log(logHead, "entering", typeList);
 
 	let selectedTabs = this._tabsStoreAll.get();
@@ -136,33 +214,33 @@ _filterSelectedTabs: function(typeList) {
 			continue;
 		}
 
-		if(tabInfo.tm.type == Classes.TabNormalizer.type.TAB) {
-			// The action might require up-to-date knowledge about the state of a tab,
-			// which might have changed since the time the tab was stored in the
-			// _tabsStoreAll. Remember this class doesn't track tab info updates,
-			// but _tabsManager does.
-			tabInfo = this._tabsManager.getTabByTabId(tabInfo.id);
-		}
+//		if(tabInfo.tm.type == Classes.TabNormalizer.type.TAB) {
+//			// The action might require up-to-date knowledge about the state of a tab,
+//			// which might have changed since the time the tab was stored in the
+//			// _tabsStoreAll. Remember this class doesn't track tab info updates,
+//			// but _tabsManager does.
+//			tabInfo = this._tabsManager.getTabByTabId(tabInfo.id);
+//		}
 
-		if(tabInfo == null) {
-			// The tab has been deleted, don't use it. Since the tab doesn't exist anymore,
-			// we log the original info from "selectedTabs[i]"
-			this._log(logHead, "skipping deleted tab", selectedTabs[i]);
-			// As a side effect, let's get rid of this deleted tab, so it won't be in the way
-			// again later. We store the deleted IDs first, then delete them later, because
-			// we're looking the list of tabs from _tabsStoreAll, so we should not modify
-			// that list while we traverse it, we'll perform the actual deletes after the loop.
-			deletedTabIds.push(selectedTabs[i].id);
-			continue;
-		}
+//		if(tabInfo == null) {
+//			// The tab has been deleted, don't use it. Since the tab doesn't exist anymore,
+//			// we log the original info from "selectedTabs[i]"
+//			this._log(logHead, "skipping deleted tab", selectedTabs[i]);
+//			// As a side effect, let's get rid of this deleted tab, so it won't be in the way
+//			// again later. We store the deleted IDs first, then delete them later, because
+//			// we're looking the list of tabs from _tabsStoreAll, so we should not modify
+//			// that list while we traverse it, we'll perform the actual deletes after the loop.
+//			deletedTabIds.push(selectedTabs[i].id);
+//			continue;
+//		}
 
 		retVal.push(tabInfo);
 	}
 
-	for(let i = 0; i < deletedTabIds.length; i++) {
-		this._tabsStoreAll.removeById(deletedTabIds[i]);
-	}
-	this._updateCounts();
+//	for(let i = 0; i < deletedTabIds.length; i++) {
+//		this._tabsStoreAll.removeById(deletedTabIds[i]);
+//	}
+//	this._updateCounts();
 
 	return retVal;
 },
@@ -310,13 +388,17 @@ addTab: function(tab) {
 	this._updateCounts();
 },
 
-removeTab: function(tab) {
-	const logHead = "MultiSelectPanelViewer.removeTab():";
-	this._log(logHead, "removing tab", tab);
-	this._tabsStoreAll.removeById(tab.id);
-	this._tabsStoreInView.removeById(tab.id);
+_removeTabById: function(tabId) {
+	const logHead = "MultiSelectPanelViewer._removeTabById():";
+	this._log(logHead, "removing tab", tabId);
+	this._tabsStoreAll.removeById(tabId);
+	this._tabsStoreInView.removeById(tabId);
 
 	this._updateCounts();
+},
+
+removeTab: function(tab) {
+	this._removeTabById(tab.id);
 },
 
 getTabs: function() {
