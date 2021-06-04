@@ -342,6 +342,14 @@ DONE 2.0
 - BUG: TabsBsTabViewer.js:205 [popup-bstabs-home0] TabsBsTabViewer::_processTabUpdate(tabId = 453): tile not found and not in search mode 
   * Shows up when in multi select mode and showing only selected tabs
 
+- BUG: while in search mode, when changing page in a tab, the new page (that matches the search)
+  doesn't show up in the search results if the old page was not part of the search results
+  * This happens only when "History" is excluded from search results: when you include history,
+    every new page will trigger a new URL in history, which triggers a history event that causes
+	a full re-render, and the original page shows up too
+  * Turned out to be a bit more of a systemic problem, with lack of "add/remove to/from search results"
+    events. Simulating the events for now, we might be able to do better later.
+
 
 DONE 1.3
 

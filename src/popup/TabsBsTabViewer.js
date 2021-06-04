@@ -191,19 +191,61 @@ _tabRemovedCb: function(ev) {
 // Returns "true" if the processing decided to schedule a full re-render, "false"
 // if instead the update could be completed without the full re-render.
 _processTabUpdate: function(tab, scheduledFullRender) {
-	const logHead = "TabsBsTabViewer::_processTabUpdate(tabId = " + tab.id + "): ";
-	this._log(logHead + "entering", tab);
+	const logHead = "TabsBsTabViewer._processTabUpdate(tabId = " + tab.id + "):";
+	this._log(logHead, "entering", tab);
 
 	let tile = this._tilesByTabId[tab.id];
 	if(tile == null) {
+		// If the tab isn't currently part of the visible set, in "list selected" mode
+		// we can just ignore the change
+		if(this.isListSelectedMode()) {
+			this._log(logHead, "tile not found, ignoring in list-selected mode", tab);
+			return false;
+		}
+
+		// If the tab isn't currently part of the visible set, in search mode we need
+		// to wonder whether or not it should become part of the visible set, and if it
+		// should, then we need to trigger a full re-render.
+		// This is the "add to search results" simulated event case, see below for the
+		// "remove from search results" simulated event case...
+		if(this.isSearchActive()) {
+			if(this._searchManager.isTabInSearch(tab)) {
+				this._log(logHead, "tile not found, triggering re-render in search mode", tab);
+				this._queryAndRenderJob.run(this._queryAndRenderDelay);
+				return true;
+			}
+			this._log(logHead, "tile not found, ignoring in search mode", tab);
+			return false;
+		}
+
 		// If we're in search mode or "list selected" mode, this._tilesByTabId[] includes
 		// only tiles for the tabs that are in the search results (or selected), while
 		// _tabUpdatedCb() receives events for all tabs known to this._tabsManager.
-		if(!(this.isSearchActive() || this.isListSelectedMode())) {
-			this._err(logHead + "tile not found and not in search mode", tab, this._tilesByTabId[tab.id]);
-		}
+		// On the other hand, if we're not in one of these two modes, all existing tabs
+		// should be in the tiles, so a missing tile could be a problem.
+		this._err(logHead, "tile not found and not in search mode", tab, this._tilesByTabId[tab.id]);
+
+		// In theory we should trigger a full re-render in this case, to see if the re-rerder fixes
+		// the issue. However, if it doesn't, returning "true" will create a lot of unnecessary
+		// re-rendering, so let's be conservative.
 		return false;
 	}
+
+	this._log(logHead, "tile found", tile);
+
+	if(this.isSearchActive() && !this._searchManager.isTabInSearch(tab)) {
+		// If we are in search mode and found a tile, that means the tab has been in the
+		// search results until now. But isTabInSearch() is telling us the tab is not
+		// part of the search results anymore, so we need to re-render. This is an ugly
+		// way to manage a "removed from search results" event, but we take the same actions
+		// we'd take for a standard "remove" event.
+		// Unfortunately _searchManager stores the current set of search results as an array,
+		// so it's not easy to query directly by tabId, and we need to resort to this roundabout
+		// way to find out if a tab has been added/removed from search results...
+		this._queryAndRenderJob.run(this._queryAndRenderDelay);
+		return true;
+	}
+
 	let oldRenderState = tile.getRenderState();
 
 	// Note that internally TabTileViewer.update() enqueues the heavy processing
@@ -237,12 +279,12 @@ _processTabUpdate: function(tab, scheduledFullRender) {
 	// off, we don't know where the tile used to be, and we need a full re-render.
 	if(renderState.wantsAttention) {
 		if(!oldRenderState.wantsAttention) {
-			this._log(logHead + "wantsAttention transitioned to on");
+			this._log(logHead, "wantsAttention transitioned to on");
 			this._containerViewer.moveToTop(tile);
 		}
 	} else {
 		if(oldRenderState.wantsAttention) {
-			this._log(logHead + "wantsAttention transitioned to off");
+			this._log(logHead, "wantsAttention transitioned to off");
 			// Schedule a full re-render.
 			// We need a full re-render because we don't know how to place the tile
 			// back in its original place. If we did, we could save some cycles here
@@ -310,9 +352,11 @@ _tabUpdatedCb: function(ev) {
 
 	for(let i = 0; i < ev.detail.tabs.length; i++) {
 		// In case "scheduledFullRender" is already true, we don't want it to go back to "false",
-		// that's why we alway "OR" with its previous value
+		// that's why we always "OR" with its previous value
 		scheduledFullRender = this._processTabUpdate(ev.detail.tabs[i], scheduledFullRender) || scheduledFullRender;
 	}
+
+	this._log(logHead + "scheduledFullRender = ", scheduledFullRender);
 
 	// In the case of updates, we don't always schedule a full re-render (see inside
 	// _processTabUpdate()), so we might need to blink explicitly here.

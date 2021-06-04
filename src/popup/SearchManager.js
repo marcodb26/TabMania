@@ -95,6 +95,14 @@ isSearchActive: function() {
 	return (this.isInitialized() && this._searchQuery != null);
 },
 
+isTabInSearch: function(tab) {
+	if(!this.isSearchActive()) {
+		return false;
+	}
+
+	return this._searchQuery.isTabInSearch(tab);
+},
+
 updateQuery: function(value) {
 	if(this._searchQuery == null) {
 		this._searchQuery = Classes.SearchQuery.create();

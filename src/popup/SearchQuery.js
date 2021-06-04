@@ -303,7 +303,7 @@ _evaluate: function(tab, queryNode, stats, modifier) {
 	return false;
 },
 
-isTabInSearch: function(tab, tabsStats) {
+isTabInSearch: function(tab, tabsStats=[]) {
 	const logHead = "SearchQuery::isTabInSearch(): ";
 	if(this._parsedQuery == null) {
 		// The user typed a string of only whitespaces, with no tokens. Arbitrarily,

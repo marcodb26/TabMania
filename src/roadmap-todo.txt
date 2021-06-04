@@ -7,9 +7,6 @@ TODO 2.0
 
 - Test multi select in Incognito bsTab
 
-- BUG: while in search mode, when changing page in a tab, the new page (that matches the search)
-  doesn't show up in the search results if the old page was not part of the search results
-
 - BUG: when dragging a tab from a window to another, chrome.tabs.query fails
   * TabsManager::_queryTabs(): chrome.runtime.lastError = Tabs cannot be queried right now (user may be dragging a tab).
   * Saw it on both background page and popup consoles
@@ -115,6 +112,13 @@ PREP FOR NEXT RELEASE
 
 
 PUNTED TO NEXT RELEASE
+
+- See TabsBsTabViewer._processTabUpdate() and the ugly way we manage the "simulated" events
+  to add/remove to/from search results
+  * We should instead have SearchManager respond to the relevant _tabsManager events and
+    trigger its own events to have real add/remove to/from search results events
+	- And have SearchManager able to maintain the right set of search results in these
+	  cases without requiring a full re-render
 
 - Improve implementation of confirmation popup window for multi select "Close/delete" action
   * Currently we're just using window.confirm(), which blocks the entire Javascript VM
