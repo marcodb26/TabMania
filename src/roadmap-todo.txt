@@ -1,7 +1,5 @@
 TODO 2.0
 
-- Multi-select "Close/delete" action should ask for confirmation
-
 - Disallow background move and deduplicate when creating tabs as a result of
   the multi select action "Move/open"
 - Recently closed tab reopened with CTRL+SHIFT+T should not be opened in a LTW, it
@@ -120,6 +118,12 @@ PREP FOR NEXT RELEASE
 
 
 PUNTED TO NEXT RELEASE
+
+- Improve implementation of confirmation popup window for multi select "Close/delete" action
+  * Currently we're just using window.confirm(), which blocks the entire Javascript VM
+    - On top of that, it's not responsive to the layout of the window, and tends to be
+	  larger than the typical narrow window. Then you try to widen the window, and notice
+	  there's no rendering because the VM is stuck waiting for a response... very ugly
 
 - BUG: after opening the popup, it takes long before the dropdown menus start showing up,
   especially for tabs below the top

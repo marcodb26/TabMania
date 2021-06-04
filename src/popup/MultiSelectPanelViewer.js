@@ -341,10 +341,43 @@ _tabsHighlightedCb: function(ev) {
 	}
 },
 
+_confirmClosing: function(tabGroups) {
+	let tabCount = tabGroups[Classes.TabNormalizer.type.TAB]?.length;
+	let bmCount = tabGroups[Classes.TabNormalizer.type.BOOKMARK]?.length;
+	let historyCount = tabGroups[Classes.TabNormalizer.type.HISTORY]?.length;
+
+	let outerList = [];
+
+	if(tabCount != null) {
+		outerList.push("close " + tabCount + " tab" + ( tabCount > 1 ? "s" : "" ));
+	}
+
+	let innerList = [];
+
+	if(bmCount != null) {
+		innerList.push(bmCount + " bookmark" + ( bmCount > 1 ? "s" : "" ))
+	}
+	if(historyCount != null) {
+		innerList.push(historyCount + " history item" + ( historyCount > 1 ? "s" : "" ))
+	}
+
+	if(innerList.length > 0) {
+		outerList.push("delete " + innerList.join(" and "));
+	}
+
+	let msg = "Are you sure you want to " + outerList.join(" and ") + "?";
+	return window.confirm(msg);
+},
+
 _tabsClosedCb: function(ev) {
 	const logHead = "MultiSelectPanelViewer._tabsClosedCb():";
 
 	let tabGroups = this._groupSelectedTabs();
+
+	if(!this._confirmClosing(tabGroups)) {
+		this._log(logHead, "the user cancelled the operation", tabGroups);
+		return;
+	}
 
 	// Classes.TabNormalizer.type.TAB
 	let tabs = tabGroups[Classes.TabNormalizer.type.TAB];

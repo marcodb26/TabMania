@@ -328,6 +328,7 @@ DONE 2.0
 - Rate-limiting bookmarks refreshing in MultiSelectPanelViewer, as it could be relatively expensive
 
 - Completed implementation of multi select "Close/delete" action
+  * It also asks for confirmation, though that's a very bare implementation
 
 - BUG: multi select actions need to be resilient in case the selection is empty
 
