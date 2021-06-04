@@ -7,11 +7,13 @@ Classes.MultiSelectPanelMenuViewer = Classes.MenuViewer.subclass({
 
 	_useIncognitoStyle: null,
 
-	_exitMenuItem: null,
 	_listMenuItem: null,
+	_exitMenuItem: null,
 
 	_pinMenuItem: null,
-	_unpinMenuItem: null,
+	_moveMenuItem: null,
+	_highlightMenuItem: null,
+	_closeMenuItem: null,
 
 _init: function(useIncognitoStyle=false) {
 	this._useIncognitoStyle = useIncognitoStyle;
@@ -36,15 +38,6 @@ _actionCb: function(notifEventName, ev) {
 	this._eventManager.notifyListeners(notifEventName);
 },
 
-_actionPinCb: function(ev) {
-},
-
-_actionUnpinCb: function(ev) {
-},
-
-_actionPinBookmarksCb: function(ev) {
-},
-
 _addMenuItem: function(labelText, notifEventName) {
 	let options = {
 		labelText,
@@ -61,35 +54,14 @@ _initMenuItems: function() {
 
 	this.appendDivider();
 
+	this._pinMenuItem = this._addMenuItem("Pin selection",
+								Classes.MultiSelectPanelMenuViewer.Events.TABSPINNED);
+	this._moveMenuItem = this._addMenuItem("Move/open selection in new window",
+								Classes.MultiSelectPanelMenuViewer.Events.TABSMOVED);
 	this._highlightMenuItem = this._addMenuItem("Toggle highlight",
 								Classes.MultiSelectPanelMenuViewer.Events.TABSHIGHLIGHTED);
 	this._closeMenuItem = this._addMenuItem("Close/delete selection",
 								Classes.MultiSelectPanelMenuViewer.Events.TABSCLOSED);
-
-
-	let options = {
-		labelText: "Pin selection",
-		actionFn: this._actionPinCb.bind(this),
-	};
-	this._pinMenuItem = Classes.MenuItemViewer.create(options);
-	this.append(this._pinMenuItem);
-
-	options = {
-		labelText: "Unpin selection",
-		actionFn: this._actionUnpinCb.bind(this),
-	};
-	this._unpinMenuItem = Classes.MenuItemViewer.create(options);
-	this.append(this._unpinMenuItem);
-
-	options = {
-		labelText: "Pin bookmarks",
-		actionFn: this._actionPinBookmarksCb.bind(this),
-	};
-	this._pinBookmarksMenuItem = Classes.MenuItemViewer.create(options);
-//	if(this._tab.tm.pinInherited == null) {
-//		this._unpinByBookmarkMenuItem.hide();
-//	}
-	this.append(this._pinBookmarksMenuItem);
 },
 
 setListSelectedMode: function(flag=true) {
@@ -108,3 +80,5 @@ discard: function() {
 Classes.Base.roDef(Classes.MultiSelectPanelMenuViewer, "Events", {});
 Classes.Base.roDef(Classes.MultiSelectPanelMenuViewer.Events, "TABSHIGHLIGHTED", "tmTabsHighlighted");
 Classes.Base.roDef(Classes.MultiSelectPanelMenuViewer.Events, "TABSCLOSED", "tmTabsClosed");
+Classes.Base.roDef(Classes.MultiSelectPanelMenuViewer.Events, "TABSMOVED", "tmTabsMoved");
+Classes.Base.roDef(Classes.MultiSelectPanelMenuViewer.Events, "TABSPINNED", "tmTabsPinned");

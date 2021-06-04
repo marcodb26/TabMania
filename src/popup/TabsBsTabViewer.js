@@ -588,7 +588,12 @@ _TabsBsTabViewer_render: function() {
 		this.addClasses("bg-secondary", "text-light", "border-dark");
 	}
 
-	this._multiSelectPanel = Classes.MultiSelectPanelViewer.create(this._tabsManager, this._historyFinder);
+	let multiSelectOptions = {
+		tabsManager: this._tabsManager,
+		historyFinder: this._historyFinder,
+		incognitoBsTab: this._isIncognito(),
+	};
+	this._multiSelectPanel = Classes.MultiSelectPanelViewer.create(multiSelectOptions);
 	// Add the _multiSelectPanel before the TabsBsTabViewer's body, so the scrollbar of the
 	// TabsBsTabViewer doesn't include the _multiSelectPanel
 	this.addBefore(this._multiSelectPanel);

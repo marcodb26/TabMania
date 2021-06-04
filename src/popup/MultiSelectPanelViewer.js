@@ -13,6 +13,7 @@ Classes.MultiSelectPanelViewer = Classes.Viewer.subclass({
 
 	_tabsManager: null,
 	_historyFinder: null,
+	_incognitoBsTab: null,
 
 	_tabsStoreAll: null,
 	_tabsStoreInView: null,
@@ -35,7 +36,7 @@ Classes.MultiSelectPanelViewer = Classes.Viewer.subclass({
 // what actions to take. The problem is that the _tabsStore* of instances of this class
 // don't always get refreshed as the status of the corresponding tabs changes. Some do
 // (those that are currently "in view"), some don't (those that are not in view).
-_init: function(tabsManager, historyFinder) {
+_init: function({ tabsManager, historyFinder, incognitoBsTab }) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.Viewer._init.call(this);
 
@@ -57,6 +58,7 @@ _init: function(tabsManager, historyFinder) {
 
 	this._tabsManager = tabsManager;
 	this._historyFinder = historyFinder;
+	this._incognitoBsTab = incognitoBsTab;
 
 	this._renderPanel();
 	this.activate(false);
@@ -228,10 +230,15 @@ _renderPanel: function() {
 	this._menuViewer.attachInParentElement(this._menuElem);
 	this._elw.listen(this._menuViewer, Classes.MultiSelectPanelViewer.Events.CLOSED, this._forwardEventCb.bind(this), false);
 	this._elw.listen(this._menuViewer, Classes.MultiSelectPanelViewer.Events.LISTED, this._forwardEventCb.bind(this), false);
+
 	this._elw.listen(this._menuViewer, Classes.MultiSelectPanelMenuViewer.Events.TABSHIGHLIGHTED,
 						this._tabsHighlightedCb.bind(this), false);
 	this._elw.listen(this._menuViewer, Classes.MultiSelectPanelMenuViewer.Events.TABSCLOSED,
 						this._tabsClosedCb.bind(this), false);
+	this._elw.listen(this._menuViewer, Classes.MultiSelectPanelMenuViewer.Events.TABSPINNED,
+						this._tabsPinnedCb.bind(this), false);
+	this._elw.listen(this._menuViewer, Classes.MultiSelectPanelMenuViewer.Events.TABSMOVED,
+						this._tabsMovedCb.bind(this), false);
 
 	this._listCheckboxElem = this.getElementById(listCheckboxId);
 	this._elw.listen(this._listCheckboxElem, "click", this._listCb.bind(this), false);
@@ -374,6 +381,67 @@ _tabsClosedCb: function(ev) {
 
 	// Skip Classes.TabNormalizer.type.RCTAB, as chrome.sessions doesn't have an
 	// API to delete a recently closed tab
+},
+
+_tabsPinnedCb: function(ev) {
+	const logHead = "MultiSelectPanelViewer._tabsPinnedCb():";
+	this._log(logHead, "not implemented");
+},
+
+// This function moves standard tabs, or creates new tabs from bookmarks and history items
+_tabsMovedCb: async function(ev) {
+	const logHead = "MultiSelectPanelViewer._tabsMovedCb():";
+
+	let window = null;
+	let createData = {
+		focused: true,
+		incognito: this._incognitoBsTab,
+	};
+
+	let tabGroups = this._groupSelectedTabs();
+
+	let tabs = tabGroups[Classes.TabNormalizer.type.TAB];
+	if(tabs != null) {
+		tabs.sort(Classes.TabNormalizer.compareTitlesFn);
+
+		createData.tabId = tabs.shift().id,
+		window = await chromeUtils.createWindow(createData);
+
+		if(tabs.length != 0) {
+			let moveProperties = { index: -1, windowId: window.id, };
+			await chromeUtils.wrap(chrome.tabs.move, logHead, tabs.map(tab => tab.id), moveProperties);
+		}
+	}
+
+	let urls = [];
+
+	tabs = tabGroups[Classes.TabNormalizer.type.BOOKMARK];
+	if(tabs != null) {
+		tabs.sort(Classes.TabNormalizer.compareTitlesFn);
+		urls = urls.concat(tabs.map( tab => tab.url));
+	}
+	tabs = tabGroups[Classes.TabNormalizer.type.HISTORY];
+	if(tabs != null) {
+		tabs.sort(Classes.TabNormalizer.compareTitlesFn);
+		urls = urls.concat(tabs.map( tab => tab.url));
+	}
+
+	if(urls.length == 0) {
+		return;
+	}
+
+	if(window == null) {
+		createData.url = urls;
+		window = await chromeUtils.createWindow(createData);
+	} else {
+		// We choose "active: false" to consistently activate the first tab in the
+		// moved set of tabs, not the last one
+		let createProperties = { active: false, windowId: window.id, };
+		for(let i = 0; i < urls.length; i++) {
+			createProperties.url = urls[i];
+			chromeUtils.wrap(chrome.tabs.create, logHead, createProperties);
+		}
+	}
 },
 
 _updateCounts: function() {

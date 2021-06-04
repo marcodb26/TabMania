@@ -331,6 +331,8 @@ DONE 2.0
 
 - BUG: multi select actions need to be resilient in case the selection is empty
 
+- Added multi select action "Move/open selection in new window"
+
 
 DONE 1.3
 

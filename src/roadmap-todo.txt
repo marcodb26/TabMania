@@ -4,8 +4,18 @@ TODO 2.0
 
 - Multi-select "Close/delete" action should support undo
 
+- Disallow background move and deduplicate when creating tabs as a result of
+  the multi select action "Move/open"
+
+- Multi select action "Move/open in new window" should use deduplication-like logic
+  to move existing tabs instead of opening new ones for bookmarks and history
+  * The background page deduplication does its thing, but doesn't move the tabs
+    back to the new window
+
 - BUG: TabsBsTabViewer.js:205 [popup-bstabs-home0] TabsBsTabViewer::_processTabUpdate(tabId = 453): tile not found and not in search mode 
   * Shows up when in multi select mode and showing only selected tabs
+
+- Test multi select in Incognito bsTab
 
 - BUG: while in search mode, when changing page in a tab, the new page (that matches the search)
   doesn't show up in the search results if the old page was not part of the search results
@@ -19,11 +29,8 @@ TODO 2.0
   horizontal scrollbar instead of shrinking to fit the width of the popup view
 
 - Finish multi-select mode
-  * Add actions in multi-select mode
+  * Add "pin" action in multi-select mode
   * Add selection checkbox to group titles to select/unselect all within group
-  * Disable re-rendering on Chrome events while in select mode
-    - Keep everything static while you're selecting
-	  * Or should we update at least titles if the user navigates?
 
 - BUG: selecting a tile calls both MultiSelectPanelViewer.removeTab() and
   MultiSelectPanelViewer.addTab() (it should only call addTab())
@@ -153,6 +160,10 @@ PREP FOR NEXT RELEASE
 
 
 PUNTED TO NEXT RELEASE
+
+- Implement multi-select action "Select highlighted" (?)
+  * To add all highlighted tabs to the current selection
+  * Or should we rely on the user just doing a search for highlighted tabs?
 
 - Can't search for "real tabs" except by negating badges "bookmark", "closed" and "history"
   * It would be best to have a positive search badge to only include "real tabs"
