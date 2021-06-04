@@ -333,6 +333,11 @@ DONE 2.0
 
 - Added multi select action "Move/open selection in new window"
 
+- ContextMenu._searchPopupCb() might need a split between standard and incognito bstab?
+  * Or we let it search only in standard tabs and so be it?
+  * Decided to let the search context menu only create standard tabs, no option to create
+    incognito tabs
+
 
 DONE 1.3
 
