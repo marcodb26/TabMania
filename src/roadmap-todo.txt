@@ -1,5 +1,18 @@
 TODO 2.0
 
+- Add "undo" of LTW using popup with undo button
+  * Include option to temporarily suspend LTW (for one hour?)
+  * Problem: can't open popup via Javascript, the chrome.browserAction.openPopup() function is disallowed in Chrome
+	- https://bugs.chromium.org/p/chromium/issues/detail?id=436489
+	- https://docs.google.com/document/d/19WvnWl4GbpahVwfnapKOBAQS-jCsEqun81Ot8_-jTPg/edit
+
+- Finish multi-select mode
+  * Add "pin" action in multi-select mode
+  * Add selection checkbox to group titles to select/unselect all within group
+
+- BUG: non existing tab still showing in tab list
+  * Did we miss to remove it? Did it ever exist? Not clear
+
 - Disallow background move and deduplicate when creating tabs as a result of
   the multi select action "Move/open"
 - Recently closed tab reopened with CTRL+SHIFT+T should not be opened in a LTW, it
@@ -11,10 +24,6 @@ TODO 2.0
   * TabsManager::_queryTabs(): chrome.runtime.lastError = Tabs cannot be queried right now (user may be dragging a tab).
   * Saw it on both background page and popup consoles
   * Note that this seems to be happening also when the user changes tab, without dragging
-
-- Finish multi-select mode
-  * Add "pin" action in multi-select mode
-  * Add selection checkbox to group titles to select/unselect all within group
 
 - BUG: selecting a tile calls both MultiSelectPanelViewer.removeTab() and
   MultiSelectPanelViewer.addTab() (it should only call addTab())
@@ -112,6 +121,13 @@ PREP FOR NEXT RELEASE
 
 
 PUNTED TO NEXT RELEASE
+
+- Use DuckDuckGo instant answer APIs to get basic data about selected text without using the
+  LOS keyboard shortcut
+  * https://duckduckgo.com/api
+
+- Use Wikipedia APIs to retrieve content summaries about selected text
+  * https://stackoverflow.com/questions/8555320/is-there-a-wikipedia-api-just-for-retrieve-content-summary
 
 - See TabsBsTabViewer._processTabUpdate() and the ugly way we manage the "simulated" events
   to add/remove to/from search results
