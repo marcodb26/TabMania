@@ -3,7 +3,8 @@ Classes.ChromeUtils = Classes.Base.subclass({
 	// Switch between "chromeUtils.bAction" and "chrome.action" depending on whether
 	// you're using manifest v2 or manifest v3.
 	// Note that we're not using "chrome.pageAction", but if we did, we'd want to 
-	// have a "pAction: chrome.action" here as well...
+	// have a "pAction: chrome.action" here instead... ("instead" because in manifest v2
+	// the "browser_action" and "page_action" sections are mutually exclusive).
 
 	bAction: chrome.browserAction,  // manifest v2
 	// bAction: chrome.action,  // manifest v3
@@ -475,11 +476,20 @@ closeTab: function(tabId) {
 
 // In order for this function to work, manifest.json must have permission "*://*/*"
 // (or whatever subset of URLs you want to allow injection into).
-inject: function(tabId, jsFile) {
+inject: function(tabId, jsFile, jsCode) {
 	const logHead = "ChromeUtils::inject(" + tabId + "): ";
 	// See https://developer.chrome.com/docs/extensions/reference/extensionTypes/#type-InjectDetails
 	// for all the options
-	return this.wrapQuiet(chrome.tabs.executeScript, logHead, tabId, { file: jsFile }).catch(
+
+	let injectDetails = {};
+	if(jsFile != null && jsFile != "") {
+		injectDetails.file = jsFile;
+	} else {
+		if(jsCode != null && jsCode != "") {
+			injectDetails.code = jsCode;
+		}
+	}
+	return this.wrapQuiet(chrome.tabs.executeScript, logHead, tabId, injectDetails).catch(
 		function(chromeLastError) {
 			switch(chromeLastError.message) {
 				case Classes.ChromeUtils.Error.INJECT_NOFRAME:
