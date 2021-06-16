@@ -355,7 +355,7 @@ DONE 2.0
   * Needed to get the Viewer corresponding to a DOM element when traversing the DOM
   * Not all Viewer subclasses contribute to the mapping yet
 
-- Add selection checkbox to group titles to select/unselect all within group
+- Added selection checkbox to group titles to select/unselect all within group
   * Groups with zero tabs (visible because they're pinned) don't show the checkbox
 	when in select mode
 
