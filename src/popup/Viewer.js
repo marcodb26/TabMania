@@ -4,6 +4,12 @@
 // so none of the actions defined here can be applied to an instance of this class.
 // Use HtmlViewer for a non-abstract version of this basic class.
 Classes.Viewer = Classes.Base.subclass({
+	// Creating a single WeakMap shared by all instances of Classes.Viewer.
+	// This map is used to retrieve a Viewer given a DOM element. Typically used to
+	// map _rootElem, but it could map any element.
+	// Using a WeakMap so that we don't disrupt the DOM garbage collection.
+	__elemWeakMap: new WeakMap(),
+
 	// Every viewer should have a root element, that can be used to attach the Viewer
 	// as child of other Viewers to create a DOM (attached or not to the main
 	// "window.document" DOM.
@@ -27,11 +33,27 @@ _init: function() {
 	Classes.Base._init.call(this);
 },
 
+// Static function
+// Returns the Viewer associated to an element, if the element is being tracked
+getViewerByElement: function(elem) {
+	return Classes.Viewer.__elemWeakMap.get(elem);
+},
+
+// Creates a mapping between an element (key) and the current Viewer instance (value)
+_mapElement: function(elem) {
+	Classes.Viewer.__elemWeakMap.set(elem, this);
+},
+
 // This function assumes the HTML has a single root element
 _elementGen: function(html) {
 	var tmpElem = document.createElement("div");
 	tmpElem.innerHTML = html;
 	return tmpElem.firstElementChild;
+},
+
+_setRootElem: function(elem) {
+	this._rootElem = elem;
+	this._mapElement(elem);
 },
 
 // Don't use this function as public interface. We have getBodyElement() for public interface.

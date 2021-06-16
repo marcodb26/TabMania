@@ -264,6 +264,16 @@ setSelected: function(flag=true) {
 
 	this._selectElem.checked = flag;
 	this._selectSetSelectedFn(this._tab, this._selectElem.checked);
+
+	let parentViewer = Classes.Viewer.getViewerByElement(this._rootElem.parentElement);
+
+	// The parent viewer, if found, can be a ContainerViewer (the top level of all tiles)
+	// or TilesGroupViewer (the inner nesting). We need to apply multi-select logic only
+	// in the second case (TilesGroupViewer), and we identify it by checking that the
+	// function exists.
+	if(parentViewer != null && parentViewer.computeMultiSelectState != null) {
+		parentViewer.computeMultiSelectState(flag);
+	}
 },
 
 toggleSelected: function(flag) {
@@ -336,7 +346,7 @@ _renderEmptyTile: function(tabId) {
 	</div>
 	`;
 
-	this._rootElem = this._elementGen(rootHtml);
+	this._setRootElem(this._elementGen(rootHtml));
 	this._bodyElem = this.getElementById(bodyId);
 
 	this._selectElem = this.getElementById(selectId);

@@ -40,7 +40,7 @@ _containerViewerRender: function() {
 	</div>
 	`;
 
-	this._rootElem = this._elementGen(bodyHtml);
+	this._setRootElem(this._elementGen(bodyHtml));
 
 	this._renderEmptyContainer();
 },
@@ -188,6 +188,11 @@ _renderHeadingAndBody: function() {
 	this._headingElem = this.getElementById(headingId);
 	//this._log(logHead + "_headingElem = ", this._headingElem, this);
 	this._bodyElem = this.getElementById(bodyId);
+
+	// For a container, we want the parent element of each contained object to allow
+	// referencing back to the container itself. The _rootElem is already referencing back,
+	// but the _rootElem is not the parent of the contained objects for this subclass.
+	this._mapElement(this._bodyElem);
 
 	// Since we've overwritten the original DOM of our parent class, let's reset it
 	// into the new _bodyElem.

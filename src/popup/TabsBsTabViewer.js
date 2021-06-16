@@ -40,6 +40,9 @@ Classes.TabsBsTabViewer = Classes.SearchableBsTabViewer.subclass({
 	// Also used to track if a first rendering cycle has been completed...
 	_tilesByTabId: null,
 
+	// List tracking all the TilesGroupViewer, needed to toggle multi-select mode
+	_tilesGroups: null,
+
 	// When we go through a refresh cycle, we want to reset _tilesByTabId so that we refill
 	// it with only tiles that still exist after the refresh. However, we try to aggressively
 	// reuse the tiles we've created in previous iterations, and for that we want to store
@@ -459,6 +462,10 @@ setSelectMode: function(flag=true) {
 	for(const [tabId, tile] of Object.entries(this._tilesByTabId)) {
 		tile.setSelectMode(flag);
 	}
+
+	for(let i = 0; i < this._tilesGroups.length; i++) {
+		this._tilesGroups[i].setSelectMode(flag);
+	}
 },
 
 toggleSelectMode: function() {
@@ -476,7 +483,7 @@ _tileSelectedCb: function(tab, flag) {
 },
 
 _multiSelectSelectedCb: function(ev) {
-	const logHead = "TabsBsTabViewer::_multiSelectSelectedCb():";
+	const logHead = "TabsBsTabViewer._multiSelectSelectedCb():";
 
 	if(ev.detail.selected) {
 		this._log(logHead, "all selected", ev);
@@ -498,7 +505,9 @@ _multiSelectListedCb: function(ev) {
 },
 
 // If "hint" is "undefined", it won't contribute to the determination of the panel
-// checkbox state
+// checkbox state.
+// Very similar to TilesGroupViewer.computeMultiSelectState(), we might want to find a way
+// to consolidate the two.
 _computeMultiSelectState: function(hint) {
 	let atLeastOneSelected = false;
 
@@ -676,6 +685,7 @@ _prepareForNewCycle: function() {
 	this._cachedTilesUpdateNeededCnt = 0;
 	this._cachedTilesByTabId = this._tilesByTabId;
 	this._tilesByTabId = {};
+	this._tilesGroups = [];
 	this._resetAsyncQueue();
 
 	this._currentSearchResults = null;
@@ -883,8 +893,15 @@ _renderTabsByGroup: function(tabGroups) {
 				// this._renderTabsFlatInner(<newContainerViewer>, tabs, tabGroup);
 				let tilesGroupViewer = Classes.TilesGroupViewer.create(tabGroup, this._expandedGroups,
 																		this._isIncognito());
+				tilesGroupViewer.setSelectMode(this.isSelectMode());
 				this._containerViewer.append(tilesGroupViewer);
 				this._renderTabsFlatInner(tilesGroupViewer, tabs, tabGroup);
+				this._tilesGroups.push(tilesGroupViewer);
+				if(this.isSelectMode()) {
+					// Do this after all tiles have been popuplated inside the tilesGroupViewer
+					// (that is, after this._renderTabsFlatInner())
+					tilesGroupViewer.computeMultiSelectState();
+				}
 			}
 		}.bind(this)
 	);

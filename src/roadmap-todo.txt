@@ -1,14 +1,29 @@
 TODO 2.0
 
-- Add "undo" of LTW using popup with undo button
+- Add "undo" of LTW using real estate on existing popup
+  * Requires background.js sending events to popup when LTW is used
+  * Requires popup to send commands to background.js when "undo" needs to be performed
   * Include option to temporarily suspend LTW (for one hour?)
-  * Problem: can't open popup via Javascript, the chrome.browserAction.openPopup() function is disallowed in Chrome
+  * Not ideal from a UX perspective, but it's the only option possible given
+    chrome.browserAction.openPopup() is not publicly available
 	- https://bugs.chromium.org/p/chromium/issues/detail?id=436489
 	- https://docs.google.com/document/d/19WvnWl4GbpahVwfnapKOBAQS-jCsEqun81Ot8_-jTPg/edit
+  * To slightly improve UX, should we change the color of the browserAction icon when
+    there's an option to undo?
+	- Only for the tab that can receive the undo
 
 - Finish multi-select mode
   * Add "pin" action in multi-select mode
-  * Add selection checkbox to group titles to select/unselect all within group
+
+- BUG: TilesGroupViewer collapses/expands when clicking selection checkbox
+  * For some reason the click event on the checkbox triggers the collapse/expand logic
+    before calling my callback, so event.stopPropagation() has no effect
+
+- BUG: TilesGroupViewer.computeMultiSelectState() gets called too many times
+  when performing a "select/unselect all in group"
+  - Each tile's setSelected() call in TilesGroupViewer._selectClickedCb() calls it,
+    we should suppress those redundant calls to computeMultiSelectState() and call it
+	only once at the end of the loop in _selectClickedCb()
 
 - BUG: non existing tab still showing in tab list
   * Did we miss to remove it? Did it ever exist? Not clear
@@ -121,6 +136,14 @@ PREP FOR NEXT RELEASE
 
 
 PUNTED TO NEXT RELEASE
+
+- Alternative: Add "undo" of LTW using popup in browser tab with undo button
+  * Include option to temporarily suspend LTW (for one hour?)
+  * Better "alternative" compared to the option to do it in the main popup, since the main
+    popup is not necessarily going to be in view when the action is taken
+  * Problem: can't open popup via Javascript, the chrome.browserAction.openPopup() function is disallowed in Chrome
+	- https://bugs.chromium.org/p/chromium/issues/detail?id=436489
+	- https://docs.google.com/document/d/19WvnWl4GbpahVwfnapKOBAQS-jCsEqun81Ot8_-jTPg/edit
 
 - Use DuckDuckGo instant answer APIs to get basic data about selected text without using the
   LOS keyboard shortcut

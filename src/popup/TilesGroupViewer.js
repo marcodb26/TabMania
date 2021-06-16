@@ -6,12 +6,17 @@ Classes.TilesGroupViewer = Classes.CollapsibleContainerViewer.subclass({
 	groupName: null,
 	_expandedGroups: null,
 
+	_selectElem: null,
+	_selectMode: null,
+
 // "incognitoStyle" is optional (default "false")
 _init: function(tabGroup, expandedGroups, incognitoStyle) {
 	this._tabGroup = tabGroup;
 	this._groupName = tabGroup.title;
 	this._expandedGroups = expandedGroups;
 	this._incognitoStyle = optionalWithDefault(incognitoStyle, false);
+
+	this.debug();
 
 	let emptyExtraClasses = [];
 	if(incognitoStyle) {
@@ -34,8 +39,12 @@ _init: function(tabGroup, expandedGroups, incognitoStyle) {
 
 	this._TilesGroupViewer_render();
 
+	// Call setSelectMode() after _TilesGroupViewer_render(), because setSelectMode() needs the
+	// _selectElem to be initialized
+	this.setSelectMode(false);
+
 	// Note that we don't set a listener for this._expandedGroups, because we don't care
-	// to auto-open the accordion if it gets open in the popup of another window...
+	// to auto-open the accordion if it gets opened in the popup of another window...
 },
 
 _TilesGroupViewer_renderHeading: function() {
@@ -73,7 +82,8 @@ _TilesGroupViewer_renderHeading: function() {
 		</p>`;
 	}
 
-	let favIconContainerId = this._id + "-favIcon";
+	const favIconContainerId = this._id + "-favIcon";
+	const selectId = this._id + "-select";
 
 	// Do we need the attribute "width='16px'" in the <img> below, or are the min-width
 	// and max-width settings of "tm-favicon-16" enough?
@@ -83,18 +93,25 @@ _TilesGroupViewer_renderHeading: function() {
 	// and that sets center alignment.
 	let groupHeadingHtml = `
 		<div class="tm-stacked-below" style="width: 95%;">
-			<div class="d-flex">
-				<p class="flex-grow-1 m-0 text-nowrap text-truncate" style="text-align: left;">
+			<div class="d-flex align-items-center">
+				<input id="${selectId}" class="form-check-input mt-0 ms-1 d-none" type="checkbox" value="" style="min-width: 1em;">
+				<div class="flex-grow-1 m-0 ps-2 text-nowrap text-truncate" style="text-align: left;">
 					<span id="${favIconContainerId}" class="pe-2"><!-- The favicon goes here --></span>
 					<span>${this._groupName}</span>
-				</p>
+					${iconBadgeHtml}
+				</div>
 				${pinnedIconHtml}
 			</div>
-			${iconBadgeHtml}
 		</div>
 	`;
 
 	this.setHeadingHtml(groupHeadingHtml);
+
+	this._selectElem = this.getElementById(selectId);
+	this._selectElem.addEventListener("click", this._selectClickedCb.bind(this), false);
+
+	this._headingElem.classList.remove("p-2");
+	this._headingElem.classList.add("p-0", "py-2", "pe-2");
 
 	let favIconContainerElem = this.getElementById(favIconContainerId);
 
@@ -160,6 +177,120 @@ _containerCollapsedCb: function(ev) {
 	// The animation and visualization is done by Bootstrap, we just need to remember
 	// whether it's collapsed or expanded
 	this._storeExpandedGroup(false);
+},
+
+_selectClickedCb: function(ev) {
+	if(!this.isSelectMode()) {
+		// Probably a useless check, when not in select mode, the select checkbox is hidden
+		return;
+	}
+
+	const logHead = "TilesGroupViewer._selectClickedCb():";
+
+	// Don't let the click trigger an action on the accordion (collapse/expand)
+	ev.stopPropagation();
+
+	// We can't use the live "this._selectElem.checked" in this loop, because in
+	// the current (inefficient) implementation, every call to a tile.setSelected()
+	// in turn triggers back a call to this.computeMultiSelectState(), which potentially
+	// changes the value of "this._selectElem.checked"
+	let isChecked = this._selectElem.checked;
+
+	if(isChecked) {
+		this._log(logHead, "all selected", ev);
+	} else {
+		this._log(logHead, "all unselected", ev);
+	}
+
+	this._log(logHead, "working with children", this._bodyElem.children);
+
+	for(let i = 0; i < this._bodyElem.children.length; i++) {
+		let tile = Classes.Viewer.getViewerByElement(this._bodyElem.children[i]);
+		if(tile == null) {
+			this._log(logHead, "no tile found at index", i);
+			continue;
+		}
+
+		this._log(logHead, "processing index", i, tile);
+		tile.setSelected(isChecked);
+	}
+},
+
+isSelectMode: function() {
+	return this._selectMode;
+},
+
+setSelectMode: function(flag=true) {
+	// Use "===" because during initialization this function gets called while this._selectMode = null
+	if(this._selectMode === flag) {
+		// Nothing to do
+		return;
+	}
+
+	this._selectMode = flag;
+
+	// Don't show the checkbox if the group is empty, it's only confusing if selecting
+	// something (the group) doesn't change the count of selected objects. Plus, given
+	// the current logic, if a group is empty, it won't get checked on "select all" from
+	// the multi-select panel, because for the group to be selected, a call to computeMultiSelectState()
+	// must be triggered from a tile, and if there are no tiles, it doesn't get triggered.
+	if(this._tabGroup.tabs.length == 0) {
+		return;
+	}
+
+	this._selectElem.classList[flag ? "remove" : "add"]("d-none");
+
+	// Reset the select checked value to "unselected"
+	this._selectElem.checked = false;
+},
+
+setSelected: function(flag=true, indeterminate=false) {
+	this._selectElem.checked = flag;
+	this._selectElem.indeterminate = indeterminate;
+},
+
+// If "hint" is "undefined", it won't contribute to the determination of the group's
+// checkbox state.
+// Very similar to TabsBsTabViewer._computeMultiSelectState(), we might want to find a way
+// to consolidate the two.
+computeMultiSelectState: function(hint) {
+	const logHead = "TilesGroupViewer.computeMultiSelectState():";
+	let atLeastOneSelected = false;
+
+	this._log(logHead, "working with children", this._bodyElem.children);
+
+	for(let i = 0; i < this._bodyElem.children.length; i++) {
+		let tile = Classes.Viewer.getViewerByElement(this._bodyElem.children[i]);
+		if(tile == null) {
+			this._log(logHead, "no tile found at index", i);
+			continue;
+		}
+		this._log(logHead, "processing index", i, tile);
+
+		if(tile.isSelected()) {
+			atLeastOneSelected = true;
+			if(hint === false) {
+				// We're finding that at least one is selected, and we know from the "hint"
+				// that at least one has just been unselected, no need to continue with the
+				// loop, the multiSelect state is "partially selected" (indetermined)
+				this.setSelected(true, true);
+				return;
+			}
+		} else {
+			if(atLeastOneSelected || hint === true) {
+				// At least one is selected (either because we found it, or because the "hint"
+				// told us that), and now we're finding out that at least one is unselected,
+				// no need to continue with the loop, the multiSelect state is "partially
+				// selected" (indetermined)
+				this.setSelected(true, true);
+				return;
+			}
+		}
+	}
+
+	// If we get here, we didn't hit the "partially selected" case, so the tiles are
+	// either all selected, or all unselected
+	this.setSelected(atLeastOneSelected);
 },
 
 }); // Classes.TilesGroupViewer
