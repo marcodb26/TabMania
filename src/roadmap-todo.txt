@@ -1,5 +1,8 @@
 TODO 2.0
 
+- BUG: when updating custom group color in Settings, only TilesGroupViewer gets
+  updated (header), not the individual tiles inside of it
+
 - Add "undo" of LTW using real estate on existing popup
   * Requires background.js sending events to popup when LTW is used
   * Requires popup to send commands to background.js when "undo" needs to be performed
@@ -14,10 +17,6 @@ TODO 2.0
 
 - Finish multi-select mode
   * Add "pin" action in multi-select mode
-
-- BUG: TilesGroupViewer collapses/expands when clicking selection checkbox
-  * For some reason the click event on the checkbox triggers the collapse/expand logic
-    before calling my callback, so event.stopPropagation() has no effect
 
 - BUG: TilesGroupViewer.computeMultiSelectState() gets called too many times
   when performing a "select/unselect all in group"

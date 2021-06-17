@@ -732,7 +732,9 @@ Encoded with https://www.base64encode.org/
 */
 .tm-callout, .tm-callout:focus {
 	border: 1px solid rgba(0, 0, 0, 0.125);
-	border-left-width: .25rem;
+
+	/* "!important" is needed when this class is used together with .tm-accordion-header */
+	border-left-width: .25rem!important;
 	border-radius: .25rem;
 }
 

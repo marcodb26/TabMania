@@ -359,6 +359,12 @@ DONE 2.0
   * Groups with zero tabs (visible because they're pinned) don't show the checkbox
 	when in select mode
 
+- BUG: TilesGroupViewer collapses/expands when clicking selection checkbox
+  * For some reason the click event on the checkbox triggers the collapse/expand logic
+    before calling my callback, so event.stopPropagation() has no effect
+  * Moved the checkbox outside of the accordion button, which required pushing it from
+    TilesGroupViewer up to the parent class CollapsibleContainer
+
 
 DONE 1.3
 

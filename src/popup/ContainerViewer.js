@@ -98,14 +98,22 @@ Classes.CollapsibleContainerViewer = Classes.ContainerViewer.subclass({
 	_bodyElem: null,
 
 	_headingElem: null,
+	_headingOuterElem: null,
+
+	_selectElem: null,
+	_selectMode: null,
 
 	_options: null,
 
 // "options" is a set of rendering options, currently it includes:
-// - "startExpanded", determines whether the container is created collapsed or expanded, default "false"
-// - "htmlWhenEmpty", see ContainerViewer._init() for this, default ""
+// - "startExpanded", determines whether the container is created collapsed or expanded
+//   (default "false")
+// - "htmlWhenEmpty", see ContainerViewer._init() for this (default "")
 // - "border", a flag describing whether or not the container should have a border
 //   and some margins (default "true")
+// - "incognitoStyle", standard rendering or incognito rendering (default "false")
+// - "selectable", when "true", add a select checkbox to the left of the accordion button
+//   (default "false")
 _init: function(options) {
 //	this.debug();
 
@@ -118,11 +126,16 @@ _init: function(options) {
 	this._options.border = optionalWithDefault(options.border, true);
 	this._options.bodyExtraClasses = [].concat(optionalWithDefault(options.bodyExtraClasses, []));
 	this._options.incognitoStyle = optionalWithDefault(options.incognitoStyle, false);
+	this._options.selectable = optionalWithDefault(options.selectable, false);
 
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.ContainerViewer._init.call(this, this._options.htmlWhenEmpty);
 
 	this._renderHeadingAndBody();
+
+	// Call setSelectMode() after _renderHeadingAndBody(), because setSelectMode() needs the
+	// _selectElem to be initialized
+	this.setSelectMode(false);
 },
 
 _renderHeadingAndBody: function() {
@@ -132,6 +145,7 @@ _renderHeadingAndBody: function() {
 	const headingId = this._id + "-heading";
 	const bodyOuterId = this._id + "-body-outer";
 	const bodyId = this._id + "-body";
+	const selectId = this._id + "-select";
 
 	this._rootElem.classList.add("accordion");
 
@@ -143,6 +157,7 @@ _renderHeadingAndBody: function() {
 		// Strange name for that
 		bodyOuterExtraClasses.push("accordion-collapse");
 	}
+
 	if(this._options.startExpanded) {
 		bodyOuterExtraClasses.push("show");
 	} else {
@@ -153,8 +168,34 @@ _renderHeadingAndBody: function() {
 		headingExtraClasses.push("tm-accordion-button-incognito");
 	}
 
+	// The select checkbox is currently needed only by TilesGroupViewer, but we are
+	// forced to put it in the parent class because it can't be added inside the
+	// accordion button. If you add inside the accordion button, the "click" event
+	// triggered by the checkbox click will cause collapse/expand, which is undesirable.
+	// For whatever reason, the collapse/expand event from the Bootstrap accordion
+	// fires before the "click" event in direct listeners of the checkbox, so doing
+	// event.stopPropagation() has no effect. We tried to register the event listener
+	// in the checkbox (TilesGroupViewer._selectClickedCb()) as bubbling or capturing
+	// (third parameter of addEventListener() set to "true"), but Bootstrap fires the
+	// synthetic collapse/expand event 200ms before we get the "click". We tried to
+	// register to "mouseup" and "pointerup", but event.stopPropagation() in those
+	// has no effect (I wasn't sure Bootstrap listens to those events instead of the
+	// "click" event, given the amount of time that passes between the collapse/expand
+	// event, and when we get "click").
+	// Anyway, rendering the checkbox outside the button makes more sense in general,
+	// though the side effect is that the area above and below the checkbox is not
+	// part of the accordion button, and so it won't trigger a collapse/expand.
+	let selectHtml = "";
+	if(this.isSelectable()) {
+		// Without fixing the font-size to "1rem" (class .fs-6), the checkbox is
+		// disproportionately larger than the checkboxes in each tile (that is,
+		// "1em" is bigger than "1rem" unless forced to "1rem"(?))
+		selectHtml = `<input id="${selectId}" class="form-check-input fs-6 mt-0 ms-1 d-none" type="checkbox" value="" style="min-width: 1em;">`
+	}
+
 	const headingHtml = `
-		<h2 class="accordion-header" id="${headingOuterId}">
+		<h2 class="d-flex align-items-center accordion-header tm-accordion-header" id="${headingOuterId}">
+			${selectHtml}
 			<button id=${headingId} class="accordion-button tm-accordion-button ${headingExtraClasses.join(" ")} p-2"
 						type="button" data-bs-toggle="collapse" data-bs-target="#${bodyOuterId}" aria-expanded="true" aria-controls="${bodyOuterId}">
 			</button>
@@ -186,13 +227,19 @@ _renderHeadingAndBody: function() {
 	// inside the _bodyElem of the container, but right now _bodyElem is still null.
 	this.setHtml(outerHtml);
 	this._headingElem = this.getElementById(headingId);
-	//this._log(logHead + "_headingElem = ", this._headingElem, this);
+	this._headingOuterElem = this.getElementById(headingOuterId);
 	this._bodyElem = this.getElementById(bodyId);
 
 	// For a container, we want the parent element of each contained object to allow
 	// referencing back to the container itself. The _rootElem is already referencing back,
 	// but the _rootElem is not the parent of the contained objects for this subclass.
 	this._mapElement(this._bodyElem);
+
+	if(this.isSelectable()) {
+		this._selectElem = this.getElementById(selectId);
+	} else {
+		this._selectElem = null;
+	}
 
 	// Since we've overwritten the original DOM of our parent class, let's reset it
 	// into the new _bodyElem.
@@ -203,8 +250,16 @@ setHeadingHtml: function(html) {
 	this._headingElem.innerHTML = html;
 },
 
+removeHeadingClasses: function(...args) {
+	this._headingElem.classList.remove(...args);
+},
+
 addHeadingClasses: function(...args) {
 	this._headingElem.classList.add(...args);
+},
+
+addHeadingOuterClasses: function(...args) {
+	this._headingOuterElem.classList.add(...args);
 },
 
 // The signature of the callback is function(event).
@@ -223,6 +278,28 @@ addExpandedStartListener: function(fn) {
 	// the start of the container expand action, but before the animations
 	// have completed
 	this._bodyElem.parentElement.addEventListener("show.bs.collapse", fn);
+},
+
+isSelectable: function() {
+	return this._options.selectable;
+},
+
+setSelectMode: function(flag=true) {
+	if(!this.isSelectable()) {
+		return;
+	}
+
+	// Use "===" because during initialization this function gets called while this._selectMode = null
+	if(this._selectMode === flag) {
+		// Nothing to do
+		return;
+	}
+
+	this._selectMode = flag;
+	this._selectElem.classList[flag ? "remove" : "add"]("d-none");
+
+	// Reset the select checked value to "unselected"
+	this._selectElem.checked = false;
 },
 
 }); // Classes.CollapsibleContainerViewer

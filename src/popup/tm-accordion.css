@@ -1,3 +1,8 @@
+.tm-accordion-header {
+	border: 1px solid rgba(0, 0, 0, 0.125);
+	border-radius: .25rem;
+}
+
 /* Use .tm-accordion-button in the same element where you use .accordion-button, as this
    class resets some of the visual styles (focused, expanded) of .accordion-button
 */
@@ -5,11 +10,10 @@
 .tm-accordion-button:focus {
 	/* Reset the values from .accordion-button:focus, we don't want the blue aura.
 	   See also .tm-callout-* for the extra hoops we need to go through to make the
-	   callout colors stick. Make sure this class is defined before .tm-callout-*,
-	   otherwise those overrides won't work.
+	   callout colors stick.
 	*/
 	box-shadow: initial;
-	border-color: rgba(0, 0, 0, 0.125);
+	border: none;
 }
 
 .tm-accordion-button, .tm-accordion-button:not(.collapsed) {
@@ -20,11 +24,14 @@
 	color: var(--bs-dark);
 	background-color: transparent;
 
-	/* Reset a value from .accordion-item:first-of-type .accordion-button, which defines
-	   the round border only for the top corners of the accordion header, not for the
-	   bottom corners, which we also want to be rounded */
-	border-radius: 0.25rem;
-	border-color: rgba(0, 0, 0, 0.125);
+	/* See the CollapsibleContainer class, we use .tm-accordion-header to define the
+	   borders of the accordion header, not the accordion button, because in some cases
+	   we want to show a select checkbox next to the button, and we can't do that inside
+	   the button (we haven't figured out a way to stop the button from collapsing/expanding
+	   when clicking the checkbox, stopPropagation() has no effect and the Bootstrap event
+	   gets generated before the event on the checkbox)
+	*/
+	border: none;
 }
 
 .tm-accordion-button::after, .tm-accordion-button:not(.collapsed)::after {

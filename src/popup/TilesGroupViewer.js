@@ -6,9 +6,6 @@ Classes.TilesGroupViewer = Classes.CollapsibleContainerViewer.subclass({
 	groupName: null,
 	_expandedGroups: null,
 
-	_selectElem: null,
-	_selectMode: null,
-
 // "incognitoStyle" is optional (default "false")
 _init: function(tabGroup, expandedGroups, incognitoStyle) {
 	this._tabGroup = tabGroup;
@@ -31,6 +28,12 @@ _init: function(tabGroup, expandedGroups, incognitoStyle) {
 		border: false,
 		bodyExtraClasses: [ "tm-indent-right" ],
 		incognitoStyle: this._incognitoStyle,
+		// Don't show the checkbox if the group is empty, it's only confusing if selecting
+		// something (the group) doesn't change the count of selected objects. Plus, given
+		// the current logic, if a group is empty, it won't get checked on "select all" from
+		// the multi-select panel, because for the group to be selected, a call to computeMultiSelectState()
+		// must be triggered from a tile, and if there are no tiles, it doesn't get triggered.
+		selectable: this._tabGroup.tabs.length != 0,
 	};
 
 	// Overriding the parent class' _init(), but calling that original function first
@@ -38,10 +41,6 @@ _init: function(tabGroup, expandedGroups, incognitoStyle) {
 //	const logHead = "TilesGroupViewer::_init(): ";
 
 	this._TilesGroupViewer_render();
-
-	// Call setSelectMode() after _TilesGroupViewer_render(), because setSelectMode() needs the
-	// _selectElem to be initialized
-	this.setSelectMode(false);
 
 	// Note that we don't set a listener for this._expandedGroups, because we don't care
 	// to auto-open the accordion if it gets opened in the popup of another window...
@@ -83,7 +82,6 @@ _TilesGroupViewer_renderHeading: function() {
 	}
 
 	const favIconContainerId = this._id + "-favIcon";
-	const selectId = this._id + "-select";
 
 	// Do we need the attribute "width='16px'" in the <img> below, or are the min-width
 	// and max-width settings of "tm-favicon-16" enough?
@@ -94,7 +92,6 @@ _TilesGroupViewer_renderHeading: function() {
 	let groupHeadingHtml = `
 		<div class="tm-stacked-below" style="width: 95%;">
 			<div class="d-flex align-items-center">
-				<input id="${selectId}" class="form-check-input mt-0 ms-1 d-none" type="checkbox" value="" style="min-width: 1em;">
 				<div class="flex-grow-1 m-0 ps-2 text-nowrap text-truncate" style="text-align: left;">
 					<span id="${favIconContainerId}" class="pe-2"><!-- The favicon goes here --></span>
 					<span>${this._groupName}</span>
@@ -107,11 +104,12 @@ _TilesGroupViewer_renderHeading: function() {
 
 	this.setHeadingHtml(groupHeadingHtml);
 
-	this._selectElem = this.getElementById(selectId);
-	this._selectElem.addEventListener("click", this._selectClickedCb.bind(this), false);
+	// this._selectElem is "null" if the tab group is empty, so we need to use
+	// the optional chaining operator
+	this._selectElem?.addEventListener("click", this._selectClickedCb.bind(this), false);
 
-	this._headingElem.classList.remove("p-2");
-	this._headingElem.classList.add("p-0", "py-2", "pe-2");
+	this.removeHeadingClasses("p-2");
+	this.addHeadingClasses("p-0", "py-2", "pe-2");
 
 	let favIconContainerElem = this.getElementById(favIconContainerId);
 
@@ -135,9 +133,9 @@ _TilesGroupViewer_render: function() {
 
 	if(this._tabGroup.type == Classes.GroupsBuilder.Type.CUSTOM) {
 		let cgm = settingsStore.getCustomGroupsManager();
-		this.addHeadingClasses("tm-customgroup-header", "tm-callout", cgm.getCustomGroupCss(this._groupName));
+		this.addHeadingOuterClasses("tm-customgroup-header", "tm-callout", cgm.getCustomGroupCss(this._groupName));
 	} else {
-		this.addHeadingClasses("tm-customgroup-header");
+		this.addHeadingOuterClasses("tm-customgroup-header");
 	}
 },
 
@@ -187,9 +185,6 @@ _selectClickedCb: function(ev) {
 
 	const logHead = "TilesGroupViewer._selectClickedCb():";
 
-	// Don't let the click trigger an action on the accordion (collapse/expand)
-	ev.stopPropagation();
-
 	// We can't use the live "this._selectElem.checked" in this loop, because in
 	// the current (inefficient) implementation, every call to a tile.setSelected()
 	// in turn triggers back a call to this.computeMultiSelectState(), which potentially
@@ -217,34 +212,14 @@ _selectClickedCb: function(ev) {
 },
 
 isSelectMode: function() {
-	return this._selectMode;
-},
-
-setSelectMode: function(flag=true) {
-	// Use "===" because during initialization this function gets called while this._selectMode = null
-	if(this._selectMode === flag) {
-		// Nothing to do
-		return;
-	}
-
-	this._selectMode = flag;
-
-	// Don't show the checkbox if the group is empty, it's only confusing if selecting
-	// something (the group) doesn't change the count of selected objects. Plus, given
-	// the current logic, if a group is empty, it won't get checked on "select all" from
-	// the multi-select panel, because for the group to be selected, a call to computeMultiSelectState()
-	// must be triggered from a tile, and if there are no tiles, it doesn't get triggered.
-	if(this._tabGroup.tabs.length == 0) {
-		return;
-	}
-
-	this._selectElem.classList[flag ? "remove" : "add"]("d-none");
-
-	// Reset the select checked value to "unselected"
-	this._selectElem.checked = false;
+	return this.isSelectable() && this._selectMode;
 },
 
 setSelected: function(flag=true, indeterminate=false) {
+	if(!this.isSelectable()) {
+		// If there are no tiles, the TilesGroupViewer is not selectable
+		return;
+	}
 	this._selectElem.checked = flag;
 	this._selectElem.indeterminate = indeterminate;
 },
@@ -254,6 +229,11 @@ setSelected: function(flag=true, indeterminate=false) {
 // Very similar to TabsBsTabViewer._computeMultiSelectState(), we might want to find a way
 // to consolidate the two.
 computeMultiSelectState: function(hint) {
+	if(!this.isSelectable()) {
+		// If there are no tiles, the TilesGroupViewer is not selectable
+		return;
+	}
+
 	const logHead = "TilesGroupViewer.computeMultiSelectState():";
 	let atLeastOneSelected = false;
 
