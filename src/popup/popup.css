@@ -731,9 +731,9 @@ Encoded with https://www.base64encode.org/
    override here.
 */
 .tm-callout, .tm-callout:focus {
-    border: 1px solid rgba(0, 0, 0, 0.125);
-    border-left-width: .25rem;
-    border-radius: .25rem;
+	border: 1px solid rgba(0, 0, 0, 0.125);
+	border-left-width: .25rem;
+	border-radius: .25rem;
 }
 
 /* Matching the Bootstrap colors for consistency.
@@ -742,27 +742,27 @@ Encoded with https://www.base64encode.org/
    override here.
 */
 .tm-callout-grey, .tm-callout-grey:focus {
-    border-left-color: var(--bs-gray)!important;
+	border-left-color: var(--bs-gray)!important;
 }
 
 .tm-callout-blue, .tm-callout-blue:focus {
-    border-left-color: var(--bs-blue)!important;
+	border-left-color: var(--bs-blue)!important;
 }
 
 .tm-callout-red, .tm-callout-red:focus {
-    border-left-color: var(--bs-red)!important;
+	border-left-color: var(--bs-red)!important;
 }
 
 .tm-callout-yellow, .tm-callout-yellow:focus {
-    border-left-color: var(--bs-yellow)!important;
+	border-left-color: var(--bs-yellow)!important;
 }
 
 .tm-callout-green, .tm-callout-green:focus {
-    border-left-color: var(--bs-green)!important;
+	border-left-color: var(--bs-green)!important;
 }
 
 .tm-callout-cyan, .tm-callout-cyan:focus {
-    border-left-color: var(--bs-cyan)!important;
+	border-left-color: var(--bs-cyan)!important;
 }
 
 /* Bootstrap's "form-check-input" uses a white dot when a radio item
