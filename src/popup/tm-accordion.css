@@ -6,8 +6,7 @@
 	/* Reset the values from .accordion-button:focus, we don't want the blue aura.
 	   See also .tm-callout-* for the extra hoops we need to go through to make the
 	   callout colors stick. Make sure this class is defined before .tm-callout-*,
-	   otherwise those overrides won't work. .tm-callout-* is also the reason why we
-	   split "border-color" into 4 pieces here...
+	   otherwise those overrides won't work.
 	*/
 	box-shadow: initial;
 	border-color: rgba(0, 0, 0, 0.125);

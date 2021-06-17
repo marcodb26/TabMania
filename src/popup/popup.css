@@ -53,7 +53,7 @@
 
 	font-size: 0.875em;
 	/* From Bootstrap's .form-text */
-	color: #6c757d;
+	color: var(--bs-gray);
 
 	background-color: white;
 	border: 1px solid grey;
@@ -412,7 +412,7 @@
 	width: 100%;
 	margin-top: .25rem;
 	font-size: .875em;
-	color: #dc3545;
+	color: var(--bs-red);
 }
 
 .tm-icon-badge-pos {
@@ -509,7 +509,7 @@ Encoded with https://www.base64encode.org/
 
 .tm-menu-icon:hover::after {
 	/* Same color as .btn-light */
-	background-color: #f8f9fa;
+	background-color: var(--bs-light);
 }
 
 /* When a dropdown menu is open, Bootstrap adds the "show" class to the element
@@ -568,7 +568,7 @@ Encoded with https://www.base64encode.org/
 
 .tm-plus-icon:hover::after {
 	/* Same color as .btn-light */
-	background-color: #f8f9fa;
+	background-color: var(--bs-light);
 }
 
 .tm-plus-icon:active::after {
@@ -614,7 +614,7 @@ Encoded with https://www.base64encode.org/
 
 	opacity: 0.75;
 	/* Same color as Bootstrap's .btn-secondary */
-	background-color: #6c757d;
+	background-color: var(--bs-secondary);
 	border-radius: .25rem;
 
 	content: "";
@@ -656,7 +656,7 @@ Encoded with https://www.base64encode.org/
 
 	opacity: 0.75;
 	/* Same color as Bootstrap's .btn-light */
-	background-color: #f8f9fa;
+	background-color: var(--bs-light);
 	border-radius: .25rem;
 
 	content: "";
@@ -731,7 +731,7 @@ Encoded with https://www.base64encode.org/
    override here.
 */
 .tm-callout, .tm-callout:focus {
-    border: 1px solid #e9ecef;
+    border: 1px solid rgba(0, 0, 0, 0.125);
     border-left-width: .25rem;
     border-radius: .25rem;
 }
@@ -742,27 +742,27 @@ Encoded with https://www.base64encode.org/
    override here.
 */
 .tm-callout-grey, .tm-callout-grey:focus {
-    border-left-color: #6c757d!important;
+    border-left-color: var(--bs-gray)!important;
 }
 
 .tm-callout-blue, .tm-callout-blue:focus {
-    border-left-color: #0d6efd!important;
+    border-left-color: var(--bs-blue)!important;
 }
 
 .tm-callout-red, .tm-callout-red:focus {
-    border-left-color: #dc3545!important;
+    border-left-color: var(--bs-red)!important;
 }
 
 .tm-callout-yellow, .tm-callout-yellow:focus {
-    border-left-color: #ffc107!important;
+    border-left-color: var(--bs-yellow)!important;
 }
 
 .tm-callout-green, .tm-callout-green:focus {
-    border-left-color: #198754!important;
+    border-left-color: var(--bs-green)!important;
 }
 
 .tm-callout-cyan, .tm-callout-cyan:focus {
-    border-left-color: #0dcaf0!important;
+    border-left-color: var(--bs-cyan)!important;
 }
 
 /* Bootstrap's "form-check-input" uses a white dot when a radio item
