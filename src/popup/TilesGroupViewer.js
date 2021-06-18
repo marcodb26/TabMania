@@ -7,11 +7,11 @@ Classes.TilesGroupViewer = Classes.CollapsibleContainerViewer.subclass({
 	_expandedGroups: null,
 
 // "incognitoStyle" is optional (default "false")
-_init: function(tabGroup, expandedGroups, incognitoStyle) {
+_init: function(tabGroup, expandedGroups, incognitoStyle=false) {
 	this._tabGroup = tabGroup;
 	this._groupName = tabGroup.title;
 	this._expandedGroups = expandedGroups;
-	this._incognitoStyle = optionalWithDefault(incognitoStyle, false);
+	this._incognitoStyle = incognitoStyle;
 
 	this.debug();
 

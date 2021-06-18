@@ -201,8 +201,9 @@ _renderPanel: function() {
 	const listCheckboxId = this._id + "-list";
 	const closeId = this._id + "-close";
 
+	// Class .text-dark is needed explicitly because in the incognito BsTab that's not the default.
 	const bodyHtml = `
-	<div class="card tm-cursor-default">
+	<div class="card tm-cursor-default text-dark">
 		<div class="d-flex align-items-center">
 			<input id="${selectId}" class="form-check-input mt-0 ms-1" type="checkbox" value="" style="min-width: 1em;">
 			<div id="${menuId}" class=""></div>
@@ -483,6 +484,10 @@ _updateCounts: function() {
 },
 
 discard: function() {
+	if(this.isActive()) {
+		this.activate(false);
+	}
+
 	this._elw.discard();
 	this._elw = null;
 	this._tabsElw.discard();
@@ -500,10 +505,6 @@ discard: function() {
 	// Don't discard _tabsManager and _historyFinder, this class doesn't own them
 	this._tabsManager = null;
 	this._historyFinder = null;
-
-	if(this.isActive()) {
-		this.activate(false);
-	}
 
 	// Do this after deactivating, because "this.activate(false)" needs to still have
 	// access to "this._rootElem"

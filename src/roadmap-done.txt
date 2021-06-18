@@ -374,6 +374,14 @@ DONE 2.0
     we should suppress those redundant calls to computeMultiSelectState() and call it
 	only once at the end of the loop in _selectClickedCb()
 
+- BUG: In incognito mode, custom group tile shows borders with different color from regular tiles (lighter color)
+
+- BUG: Switching from "merged incognito" to "split incognito" BsTabs causes an exception
+  * TabsBsTabViewer.discard() sequencing issue
+ 
+- BUG: In incognito BsTab, the multi-select panel text and the search icon are invisible
+  due to the light background color
+
 
 DONE 1.3
 

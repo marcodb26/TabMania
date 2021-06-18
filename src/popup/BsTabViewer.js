@@ -298,9 +298,11 @@ _SearchableBsTabViewer_initBodyElem: function() {
 	// but apparently that can't be done for <input>. See https://stackoverflow.com/questions/4574912/css-content-generation-before-or-after-input-elements
 	//
 	// Note that the element with bodyId takes "tm-overflow-auto" to avoid the parent gets it instead.
+	//
+	// Class .text-dark is needed explicitly because in the incognito BsTab that's not the default.
 	const bodyHtml = `
 	<div class="d-flex flex-column h-100">
-		<div id="${searchBoxContainerId}" class="m-1 tm-stacked-below d-none">
+		<div id="${searchBoxContainerId}" class="m-1 tm-stacked-below text-dark d-none">
 			<input type="search" id="${searchBoxId}" incremental class="form-control tm-searchbox" placeholder="Type to start searching">
 			<div class="tm-overlay tm-vertical-center tm-searchbox-icon">${icons.searchBox}</div>
 			<div class="tm-overlay tm-vertical-center tm-searchbox-count">

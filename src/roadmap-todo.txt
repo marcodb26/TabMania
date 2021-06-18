@@ -1,17 +1,5 @@
 TODO 2.0
 
-- Change all loops of TabsBsTabViewer._tilesByTabId to loops by DOM elements for
-  all selection-related activities in TabsBsTabViewer
-  * Right now only the "select/unselect all" loop has been moved to DOM elements
-  * The loop to activate/deactivate select mode, and the loop to
-    TabsBsTabViewer._computeMultiSelectState() don't take advantage of the benefits
-	described in the comments in the code for those two loops
-  * This will also become necessary if we start having multiple levels of grouping
-
-- Change all this isSelectable() / setSelected() logic to be a proper interface attached
-  to multiple classes (TabTileViewer and TilesGroupViewer/CollapsibleContainer)
-  * Right now there's too much cut/paste
-
 - BUG: when updating custom group color in Settings, only TilesGroupViewer gets
   updated (header), not the individual tiles inside of it
 
@@ -129,6 +117,18 @@ PREP FOR NEXT RELEASE
 
 
 PUNTED TO NEXT RELEASE
+
+- Change all loops of TabsBsTabViewer._tilesByTabId to loops by DOM elements for
+  all selection-related activities in TabsBsTabViewer
+  * Right now only the "select/unselect all" loop has been moved to DOM elements
+  * The loop to activate/deactivate select mode, and the loop to
+    TabsBsTabViewer._computeMultiSelectState() don't take advantage of the benefits
+	described in the comments in the code for those two loops
+  * This will also become necessary if we start having multiple levels of grouping
+
+- Change all this isSelectable() / setSelected() logic to be a proper interface attached
+  to multiple classes (TabTileViewer and TilesGroupViewer/CollapsibleContainer)
+  * Right now there's too much cut/paste
 
 - Add "undo" of LTW using real estate on existing popup
   * Requires background.js sending events to popup when LTW is used
