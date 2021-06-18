@@ -382,6 +382,10 @@ DONE 2.0
 - BUG: In incognito BsTab, the multi-select panel text and the search icon are invisible
   due to the light background color
 
+- Tested multi select in Incognito bsTab
+
+- Tested search in new separated bsTabs
+
 
 DONE 1.3
 

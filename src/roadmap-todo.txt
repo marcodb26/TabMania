@@ -3,6 +3,13 @@ TODO 2.0
 - BUG: when updating custom group color in Settings, only TilesGroupViewer gets
   updated (header), not the individual tiles inside of it
 
+- customGroup color doesn't get updated in left-border of tiles (only in group title
+  and in badge)
+  * The problem is that tiles are cached, but customGroup color is not part of the
+    tile rendering state, so we don't notice the change
+	- Need to make the customGroup color part of the rendering state
+	- But then, why does the badge color get updated???
+
 - Finish multi-select mode
   * Add "pin" action in multi-select mode
 
@@ -13,8 +20,6 @@ TODO 2.0
   the multi select action "Move/open"
 - Recently closed tab reopened with CTRL+SHIFT+T should not be opened in a LTW, it
   should get reopened in the same window where it used to be
-
-- Test multi select in Incognito bsTab
 
 - BUG: when dragging a tab from a window to another, chrome.tabs.query fails
   * TabsManager::_queryTabs(): chrome.runtime.lastError = Tabs cannot be queried right now (user may be dragging a tab).
@@ -66,8 +71,6 @@ TODO 2.0
   * How do we do that? We only compare _normTabs, which doesn't include _filteredPinnedBookmarks
     - Who manages diffs for _filteredPinnedBookmarks?
 
-- Test search in new separated bsTabs
-
 - BUG: side color doesn't work for tiles of custom groups in incognito tiles
 
 - Fix "deduplicate links from other tabs" based on the functionality
@@ -87,13 +90,6 @@ TODO 2.0
   * Remove the hostname
     - All tabs now match the custom group
 
-- customGroup color doesn't get updated in left-border of tiles (only in group title
-  and in badge)
-  * The problem is that tiles are cached, but customGroup color is not part of the
-    tile rendering state, so we don't notice the change
-	- Need to make the customGroup color part of the rendering state
-	- But then, why does the badge color get updated???
-
 - BUG: If customGroup has "bg-light" color, the text must use a dark color, otherwise it's
   invisible
 
@@ -101,9 +97,6 @@ TODO 2.0
   URL is already opened in another tab, in which case activate that tab
   * Track the first "onUpdated" if the URL is not available in the "onCreated"
   * Any way to disable this feature by pressing a key while the tab is being created???
-
-- Remove the docked popup, we can always use the docked case for other messages later...
-  (e.g. notifications)
 
 - Validation needed:
   * Do dedup and "move to LTW" (from background page) interfere with the "create new tab" "+" button in the popup?
@@ -117,6 +110,10 @@ PREP FOR NEXT RELEASE
 
 
 PUNTED TO NEXT RELEASE
+
+- Remove the docked popup, we can always use the docked case for other messages later...
+  (e.g. notifications)
+  * Actually we can't, because there's no chrome.browserAction.openPopup()
 
 - Change all loops of TabsBsTabViewer._tilesByTabId to loops by DOM elements for
   all selection-related activities in TabsBsTabViewer
