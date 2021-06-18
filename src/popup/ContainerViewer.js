@@ -193,11 +193,13 @@ _renderHeadingAndBody: function() {
 		selectHtml = `<input id="${selectId}" class="form-check-input fs-6 mt-0 ms-1 d-none" type="checkbox" value="" style="min-width: 1em;">`
 	}
 
+	// See TabTileViewer._renderEmptyTile() for the reasons why we need to add "min-width: 0;"
+	// to the <button> style (hint: fit .d-flex size)
 	const headingHtml = `
 		<h2 class="d-flex align-items-center accordion-header tm-accordion-header" id="${headingOuterId}">
 			${selectHtml}
 			<button id=${headingId} class="accordion-button tm-accordion-button ${headingExtraClasses.join(" ")} p-2"
-						type="button" data-bs-toggle="collapse" data-bs-target="#${bodyOuterId}" aria-expanded="true" aria-controls="${bodyOuterId}">
+						type="button" data-bs-toggle="collapse" data-bs-target="#${bodyOuterId}" aria-expanded="true" aria-controls="${bodyOuterId}" style="min-width: 0;">
 			</button>
 		</h2>
 	`;
