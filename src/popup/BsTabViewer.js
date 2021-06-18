@@ -167,8 +167,8 @@ addBsTabDeactivationEndListener: function(fn) {
 
 // Activate tab
 activate: function() {
-	const logHead = "BsTabViewer::activate(): ";
-	this._log(logHead + "entering");
+	const logHead = "BsTabViewer.activate():";
+	this._log(logHead, "entering");
 	// See https://getbootstrap.com/docs/5.0/components/navs-tabs/
 	let tab = new bootstrap.Tab(this._triggerElem);
 	tab.show();
@@ -276,7 +276,7 @@ _searchBoxProcessData: function(value) {
 },
 
 _SearchableBsTabViewer_initBodyElem: function() {
-	//const logHead = "SearchableBsTabViewer::_SearchableBsTabViewer_setBodyElem(): ";
+	//const logHead = "SearchableBsTabViewer._SearchableBsTabViewer_setBodyElem():";
 
 	// Note that the DOM ID 'this._id + "-body"' has already been used in the parent
 	// class TabViewer to create the outer <div> that's currently _rootElem, so we
@@ -343,8 +343,8 @@ _SearchableBsTabViewer_initBodyElem: function() {
 },
 
 _bsTabActivatedCb: function(ev) {
-	const logHead = "SearchableBsTabViewer::_bsTabActivatedCb(): ";
-	this._log(logHead + "searchable tab activated");
+	const logHead = "SearchableBsTabViewer._bsTabActivatedCb():";
+	this._log(logHead, "searchable tab activated");
 
 	// We're setting the listener very broadly to "window" instead of putting a more
 	// restricted scope, because we want the search to activate regardless of where
@@ -361,8 +361,8 @@ _bsTabActivatedCb: function(ev) {
 },
 
 _bsTabDeactivatedCb: function(ev) {
-	const logHead = "SearchableBsTabViewer::_bsTabDeactivatedCb(): ";
-	this._log(logHead + "searchable tab deactivated");
+	const logHead = "SearchableBsTabViewer._bsTabDeactivatedCb():";
+	this._log(logHead, "searchable tab deactivated");
 
 	// See _activateSearchCbBoundFn above for details on this._activateSearchCbBoundFn here.
 //	window.removeEventListener("keydown", this._activateSearchCbBoundFn, true);
@@ -372,13 +372,13 @@ _bsTabDeactivatedCb: function(ev) {
 // See _activateSearchBox() and _init() for why we split this call out of
 // _activateSearchBox().
 _SearchableBsTabViewer_searchBoxInactiveInner: function() {
-	const logHead = "SearchableBsTabViewer::_SearchableBsTabViewer_searchBoxInactiveInner(): ";
+	const logHead = "SearchableBsTabViewer._SearchableBsTabViewer_searchBoxInactiveInner():";
 	this._searchBoxContainerElem.classList.add("d-none");
 	this._searchBoxElem.value = "";
 	this._searchActive = false;
 
 	// Restore the scrolling position as it was before the user started searching
-	this._log(logHead + "about to call scrollTo(0, " + this._standardViewScrollTop + ")");
+	this._log(logHead, "about to call scrollTo(0,", this._standardViewScrollTop, ")");
 	this._bodyElem.scrollTo(0, this._standardViewScrollTop);
 },
 
@@ -413,7 +413,7 @@ _activateSearchBox: function(active) {
 },
 
 _respondToEnterKey: function(searchBoxText) {
-	this._errorMustSubclass("SearchableBsTabViewer::_respondToEnterKey(): ");
+	this._errorMustSubclass("SearchableBsTabViewer._respondToEnterKey():");
 },
 
 _modifierToString: function(ev) {
@@ -444,11 +444,11 @@ _isPasteKeyboardShortcut(ev, modifier) {
 // - When search is active, use "Enter" to trigger a "click" on the first tile in the
 //   search results.
 _activateSearchCb: function(ev) {
-	const logHead = "SearchableBsTabViewer::_activateSearchCb(key = " + ev.key + "): ";
+	const logHead = "SearchableBsTabViewer._activateSearchCb(key = " + ev.key + "):";
 
 	if(ev.defaultPrevented) {
 		// See https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key
-		this._log(logHead + "defaultPrevented == true, event already processed");
+		this._log(logHead, "defaultPrevented == true, event already processed");
 		return; // Do nothing if the event was already processed
 	}
 
@@ -479,25 +479,25 @@ _activateSearchCb: function(ev) {
 	// On the other hand, it seems that all printable characters should be a single
 	// character in length... let's see if we find exceptions to this rule.
 	if(ev.key.length > 1) {
-		this._log(logHead + "ignoring key");
+		this._log(logHead, "ignoring key");
 		return;
 	}
 
 	let modifier = this._modifierToString(ev);
 	if(modifier != null) {
 		if(this._isPasteKeyboardShortcut(ev, modifier)) {
-			this._log(logHead + "identified 'paste' shortcut");
+			this._log(logHead, "identified 'paste' shortcut");
 			// The user pressed combo is CTRL+V. In this case we just continue processing, as
 			// we want to capture the text being pasted into the searchbox input
 		} else {
 			// If one of these modifiers are pressed, the current keypress won't make
 			// it to the searchbox
-			this._log(logHead + "ignoring key with key modifier " + modifier + " active");
+			this._log(logHead, "ignoring key with key modifier", modifier, "active");
 			return;
 		}
 	}
 
-	this._log(logHead + "starting search");
+	this._log(logHead, "starting search");
 
 	this._activateSearchBox();
 
@@ -507,10 +507,10 @@ _activateSearchCb: function(ev) {
 },
 
 _searchBoxInputListenerCb: function(ev) {
-	const logHead = "SearchableBsTabViewer::_searchBoxInputListenerCb(value: \"" +
-					ev.target.value + "\", " + "time: " + Date.now() + "): ";
+	const logHead = "SearchableBsTabViewer._searchBoxInputListenerCb(value: \"" +
+					ev.target.value + "\", " + "time: " + Date.now() + "):";
 
-	this._log(logHead + "searchbox changed");
+	this._log(logHead, "searchbox changed");
 	if(ev.target.value == "") {
 		// The search box is now empty, need to get out of search mode.
 		// When we enter search mode, the search box is always already populated
@@ -534,8 +534,8 @@ _setSearchBoxCount: function(cnt) {
 // "flag" defaults "true" (start blinking)
 _setSearchBoxCountBlinking: function(flag) {
 	flag = optionalWithDefault(flag, true);
-	const logHead = "SearchableBsTabViewer::_setSearchBoxCountBlinking(" + flag + "): ";
-	this._log(logHead + "entering");
+	const logHead = "SearchableBsTabViewer._setSearchBoxCountBlinking(" + flag + "):";
+	this._log(logHead, "entering");
 	if(flag) {
 		// Leave the old count, but start blinking to indicate there's activity
 		// in progress

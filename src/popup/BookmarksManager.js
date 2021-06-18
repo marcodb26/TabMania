@@ -99,11 +99,11 @@ _init: function() {
 
 	this.resetStats();
 
-	this._loadBookmarksJob = Classes.ScheduledJob.create(this._loadBookmarks.bind(this), "BookmarksManager::loadBookmarks");
+	this._loadBookmarksJob = Classes.ScheduledJob.create(this._loadBookmarks.bind(this), "BookmarksManager.loadBookmarks");
 	this._loadBookmarksJob.debug();
 
 	this._applyOptionsChangeJob = Classes.ScheduledJob.create(this._applyOptionsChange.bind(this),
-									"BookmarksManager::applyOptionsChange");
+									"BookmarksManager.applyOptionsChange");
 	this._applyOptionsChangeJob.debug();
 
 	settingsStore.getAllOptions().addEventListener(Classes.EventManager.Events.UPDATED, this._optionsUpdatedCb.bind(this));
@@ -162,21 +162,21 @@ _compareFolderThenDateAdded: function(a, b) {
 
 // This function assumes there's a single copy of "bmNodeToRemove" in this._pinnedBookmarks
 _removePinnedBookmark: function(bmNodeToRemove) {
-	const logHead = "BookmarksManager::_removePinnedBookmark(" + bmNodeToRemove.bookmarkId + "): ";
+	const logHead = "BookmarksManager._removePinnedBookmark(" + bmNodeToRemove.bookmarkId + "):";
 	let idx = this._pinnedBookmarks.findIndex(node => node.id === bmNodeToRemove.id);
 	if(idx == -1) {
-		this._err(logHead + "node should exist, but not found", bmNodeToRemove);
+		this._err(logHead, "node should exist, but not found", bmNodeToRemove);
 		return;
 	}
 
-	this._log(logHead + "removing node", bmNodeToRemove);
+	this._log(logHead, "removing node", bmNodeToRemove);
 	this._pinnedBookmarks.splice(idx, 1);
 },
 
 // "replace" is a flag indicating if the action is append or replace.
 // "debugName" is only needed to provide more context for log messages.
 _appendOrReplaceNode: function(nodeToAdd, replace, targetList, debugName) {
-	const logHead = "BookmarksManager::_appendOrReplaceNode(" + nodeToAdd.id + "): ";
+	const logHead = "BookmarksManager._appendOrReplaceNode(" + nodeToAdd.id + "):";
 
 	if(!replace) {
 		targetList.push(nodeToAdd);
@@ -185,16 +185,16 @@ _appendOrReplaceNode: function(nodeToAdd, replace, targetList, debugName) {
 
 	let idx = targetList.findIndex(node => node.id === nodeToAdd.id);
 	if(idx == -1) {
-		this._err(logHead + "node should exist, but not found", debugName, nodeToAdd);
+		this._err(logHead, "node should exist, but not found", debugName, nodeToAdd);
 		targetList.push(nodeToAdd);
 	} else {
-		this._log(logHead + "replacing existing", debugName, nodeToAdd);
+		this._log(logHead, "replacing existing", debugName, nodeToAdd);
 		targetList[idx] = nodeToAdd;
 	}
 },
 
 _loadBookmarkTreeNode: function(node) {
-	const logHead = "BookmarksManager::_loadBookmarkTreeNode(): ";
+	const logHead = "BookmarksManager._loadBookmarkTreeNode():";
 
 	// Make sure to do this before calling tabNormalizer.normalize(), we want
 	// original chrome-API-style IDs as keys, since we use these keys to work
@@ -211,7 +211,7 @@ _loadBookmarkTreeNode: function(node) {
 		// Asserting is fine to get a signal of the problem, but we still need to process
 		// the insertion of the node correctly, and that is done by _appendOrReplaceNode().
 		bmAlreadyTracked = true;
-		this._assert(!bmAlreadyTracked, logHead + "unexpected, bookmark/folder node already tracked", node);
+		this._assert(!bmAlreadyTracked, logHead, "unexpected, bookmark/folder node already tracked", node);
 	}
 
 	this._bookmarksDict[node.id] = node;
@@ -220,7 +220,7 @@ _loadBookmarkTreeNode: function(node) {
 		// Per https://developer.chrome.com/docs/extensions/reference/bookmarks/#type-BookmarkTreeNode
 		// folder are identifiable by the absence of "url".
 		
-//		this._err(logHead + "added folder", node);
+//		this._err(logHead, "added folder", node);
 //		this._log.trace(logHead, node, stackTrace());
 		this._appendOrReplaceNode(node, bmAlreadyTracked, this._folders, "folder");
 		return;
@@ -294,8 +294,8 @@ resetStats: function() {
 },
 
 _loadBookmarkTreeNodeList: function(nodes) {
-	const logHead = "BookmarksManager::_loadBookmarkTreeNodeList(): ";
-	this._log(logHead + "received: ", nodes);
+	const logHead = "BookmarksManager._loadBookmarkTreeNodeList():";
+	this._log(logHead, "received: ", nodes);
 
 	this._resetShadowCopy();
 
@@ -341,10 +341,10 @@ _loadBookmarkTreeNodeList: function(nodes) {
 OLD_loadBookmarks: function(sendEvent) {
 	sendEvent = optionalWithDefault(sendEvent, true);
 
-	const logHead = "BookmarksManager::_loadBookmarks(" + sendEvent + "): ";
+	const logHead = "BookmarksManager._loadBookmarks(" + sendEvent + "):";
 	perfProf.mark("bookmarksLoadStart");
 
-	this._log(logHead + "loading bookmarks");
+	this._log(logHead, "loading bookmarks");
 	this._stats.load++;
 	this._bookmarksLoadingPromise = chromeUtils.wrap(chrome.bookmarks.getRecent, logHead, this._maxBookmarkNodesTracked).then(
 		function(nodes) { // onFulfill
@@ -380,8 +380,8 @@ _treeToList: function(rootNode) {
 		children = rootNode.children;
 	}
 
-//	const logHead = "BookmarksManager::_treeToList(" + rootNodeId + "): ";
-//	this._log(logHead + "processing", rootNode);
+//	const logHead = "BookmarksManager._treeToList(" + rootNodeId + "):";
+//	this._log(logHead, "processing", rootNode);
 
 	if(children == null || children.length == 0) {
 		return [];
@@ -412,15 +412,15 @@ _treeToList: function(rootNode) {
 _loadBookmarks: function(sendEvent) {
 	sendEvent = optionalWithDefault(sendEvent, true);
 
-	const logHead = "BookmarksManager::_loadBookmarks(" + sendEvent + "): ";
+	const logHead = "BookmarksManager._loadBookmarks(" + sendEvent + "):";
 	perfProf.mark("bookmarksLoadStart");
 
-	this._log(logHead + "loading bookmarks");
+	this._log(logHead, "loading bookmarks");
 	this._stats.load++;
 	this._bookmarksLoadingPromise = chromeUtils.wrap(chrome.bookmarks.getTree, logHead).then(
 		function(rootNodes) { // onFulfill
 			perfProf.mark("bookmarksLoadEnd");
-			this._log(logHead + "chrome.bookmarks.getTree() returned", rootNodes);
+			this._log(logHead, "chrome.bookmarks.getTree() returned", rootNodes);
 			try {
 				perfProf.mark("bookmarksTreeToListStart");
 				let nodes = this._treeToList(rootNodes);
@@ -470,9 +470,9 @@ _initChromeListeners: function() {
 // We need an event entry point _bookmarkCreatedCb() (instead of using the generic _delayableEventCb())
 // because for bookmark creation we must track "_bookmarksImportInProgress".
 _bookmarkCreatedCb: function(id, bmNode) {
-	const logHead = "BookmarksManager::_bookmarkCreatedCb(" + id + "): ";
+	const logHead = "BookmarksManager._bookmarkCreatedCb(" + id + "):";
 	if(!this.isActive()) {
-		this._log(logHead + "ignoring event while bookmarksManager is not active");
+		this._log(logHead, "ignoring event while bookmarksManager is not active");
 		return;
 	}
 
@@ -495,9 +495,9 @@ _bookmarkCreatedCb: function(id, bmNode) {
 _delayableEventCb: function(eventCb, runAlways, ...args) {
 	// _delayableEventCb is called for Chrome events (args[0] is normally the ID of the
 	// bookmark) and for settingsStore events (args[0] is "ev")
-	const logHead = "BookmarksManager::_delayableEventCb(" + args[0] + "): ";
+	const logHead = "BookmarksManager._delayableEventCb(" + args[0] + "):";
 	if(!this.isActive() && !runAlways) {
-		this._log(logHead + "ignoring event while bookmarksManager is not active");
+		this._log(logHead, "ignoring event while bookmarksManager is not active");
 		return;
 	}
 
@@ -505,7 +505,7 @@ _delayableEventCb: function(eventCb, runAlways, ...args) {
 		// For Chrome events, args[1] is "eventInfo", for settingsStore events it's "undefined"
 		// (assuming out-of-bound index for arrays returns "undefined" instead of triggering
 		// an "out-of-bounds exception".
-		this._log(logHead + "loading in progress, delaying event processing", args[1]);
+		this._log(logHead, "loading in progress, delaying event processing", args[1]);
 		this._bookmarksLoadingPromise.then(
 			function() {
 				eventCb.apply(this, args)
@@ -518,9 +518,9 @@ _delayableEventCb: function(eventCb, runAlways, ...args) {
 },
 
 _applyBookmarkCreateCb: function(id, bmNode) {
-	const logHead = "BookmarksManager::_applyBookmarkCreateCb(" + id + "): ";
+	const logHead = "BookmarksManager._applyBookmarkCreateCb(" + id + "):";
 
-	this._log(logHead + "processing", bmNode);
+	this._log(logHead, "processing", bmNode);
 
 	// A create event is problematic because we don't want our bookmark store to start
 	// growing, we want to continue to have a maximum of this._maxBookmarkNodesTracked
@@ -529,16 +529,16 @@ _applyBookmarkCreateCb: function(id, bmNode) {
 },
 
 _applyBookmarkChangeCb: function(id, changeInfo) {
-	const logHead = "BookmarksManager::_applyBookmarkChangeCb(" + id + "): ";
+	const logHead = "BookmarksManager._applyBookmarkChangeCb(" + id + "):";
 
 	let bm = this._bookmarksDict[id];
 	if(bm == null) {
-		this._log(logHead + "not tracked, ignoring", changeInfo);
+		this._log(logHead, "not tracked, ignoring", changeInfo);
 		this._stats.onChangedUntracked++;
 		return;
 	}
 
-	this._log(logHead + "processing", changeInfo);
+	this._log(logHead, "processing", changeInfo);
 	this._stats.onChanged++;
 
 	bm.title = changeInfo.title;
@@ -552,13 +552,13 @@ _applyBookmarkChangeCb: function(id, changeInfo) {
 },
 
 _applyBookmarkRemoveCb: function(id, removeInfo) {
-	const logHead = "BookmarksManager::_applyBookmarkRemoveCb(" + id + "): ";
+	const logHead = "BookmarksManager._applyBookmarkRemoveCb(" + id + "):";
 
 	// In the case of removal, we might not be tracking a bookmark in bookmarkManager,
 	// but it might still be configured pinned, in which case we still need to remove it
 	this._stats.onRemoved++;
 
-	this._log(logHead + "processing", removeInfo);
+	this._log(logHead, "processing", removeInfo);
 
 	// Per the comment below, this action on settingsStore doesn't really help when a full
 	// subtree is deleted, but we have other ways to keep the pinned bookmarks from growing
@@ -575,16 +575,16 @@ _applyBookmarkRemoveCb: function(id, removeInfo) {
 },
 
 _applyBookmarkMoveCb: function(id, moveInfo) {
-	const logHead = "BookmarksManager::_applyBookmarkMoveCb(" + id + "): ";
+	const logHead = "BookmarksManager._applyBookmarkMoveCb(" + id + "):";
 
 	let bm = this._bookmarksDict[id];
 	if(bm != null) {
-		this._log(logHead + "not tracked, ignoring", moveInfo);
+		this._log(logHead, "not tracked, ignoring", moveInfo);
 		this._stats.onMovedUntracked++;
 		return;
 	}
 
-	this._log(logHead + "processing", moveInfo);
+	this._log(logHead, "processing", moveInfo);
 	this._stats.onMoved++;
 
 	this._assert(bm.parentId == moveInfo.oldParentId);
@@ -612,8 +612,8 @@ _applyBookmarkMoveCb: function(id, moveInfo) {
 },
 
 _bookmarkImportBeganCb: function() {
-	const logHead = "BookmarksManager::_bookmarkImportBeganCb(): ";
-	this._log(logHead + "import started");
+	const logHead = "BookmarksManager._bookmarkImportBeganCb():";
+	this._log(logHead, "import started");
 
 	// Note that we're not checking "this._isActive()" here, because if we get enabled while
 	// an import is underway, we want to know that it's underway...
@@ -634,15 +634,15 @@ _bookmarkImportBeganCb: function() {
 },
 
 _bookmarkImportEndedCb: function() {
-	const logHead = "BookmarksManager::_bookmarkImportBeganCb(): ";
-	this._log(logHead + "import ended");
+	const logHead = "BookmarksManager_bookmarkImportBeganCb():";
+	this._log(logHead, "import ended");
 
 	this._bookmarksImportInProgress = false;
 	this._stats.onImportEnded++;
 
 	// See _bookmarkImportBeganCb() for why we put this check so late in this function
 	if(!this.isActive()) {
-		this._log(logHead + "ignoring event while bookmarksManager is not active");
+		this._log(logHead, "ignoring event while bookmarksManager is not active");
 		return;
 	}
 	// Let's do a full refresh of the search results after a bulk import.
@@ -652,10 +652,10 @@ _bookmarkImportEndedCb: function() {
 },
 
 _optionsUpdatedCb: function(ev) {
-//	const logHead = "BookmarksManager::_optionsUpdatedCb(" + ev.detail.key + "): ";
+//	const logHead = "BookmarksManager._optionsUpdatedCb(" + ev.detail.key + "):";
 //
 //	if(ev.detail.key != "options") {
-//		this._log(logHead + "ignoring key");
+//		this._log(logHead, "ignoring key");
 //		return;
 //	}
 
@@ -672,11 +672,11 @@ _applyOptionsChange: function() {
 },
 
 _applyOptionsUpdateCb: function() {
-	const logHead = "BookmarksManager::_applyOptionsUpdateCb(): ";
+	const logHead = "BookmarksManager._applyOptionsUpdateCb():";
 
 	let bookmarksInSearch = settingsStore.getOptionBookmarksInSearch();
 	if(this.isActive() && !bookmarksInSearch) {
-		this._log(logHead + "property \"bookmarksInSearch\" set to \"false\", stopping bookmarksManager");
+		this._log(logHead, "property \"bookmarksInSearch\" set to \"false\", stopping bookmarksManager");
 		// Need to disable
 		this._bookmarksManagerActive = false;
 		this._resetShadowCopy();
@@ -685,7 +685,7 @@ _applyOptionsUpdateCb: function() {
 	}
 
 	if(!this.isActive() && bookmarksInSearch) {
-		this._log(logHead + "property \"bookmarksInSearch\" set to \"true\", starting bookmarksManager");
+		this._log(logHead, "property \"bookmarksInSearch\" set to \"true\", starting bookmarksManager");
 		// Need to enable
 		this._initBookmarks();
 		// No need to dispatch an event, one will be dispatched by _loadBookmarks()
@@ -694,11 +694,11 @@ _applyOptionsUpdateCb: function() {
 		return;
 	}
 
-	this._log(logHead + "property \"bookmarksInSearch\" unchanged, nothing to do");
+	this._log(logHead, "property \"bookmarksInSearch\" unchanged, nothing to do");
 },
 
 _applyPinnedUpdateCb: function() {
-	const logHead = "BookmarksManager::_applyPinnedUpdateCb(): ";
+	const logHead = "BookmarksManager._applyPinnedUpdateCb():";
 
 	let pinnedBmIdList = settingsStore.getPinnedBookmarks().getAll();
 	let found = [];
@@ -709,7 +709,7 @@ _applyPinnedUpdateCb: function() {
 	for(let i = 0; i < pinnedBmIdList.length; i++) {
 		let bm = this._bookmarksDict[pinnedBmIdList[i]];
 		if(bm == null) {
-			this._log(logHead + "discarding pinned bookmark ID " + pinnedBmIdList[i]);
+			this._log(logHead, "discarding pinned bookmark ID", pinnedBmIdList[i]);
 			// Assuming the number of stale pinned bookmarks is small (that is, not a lot
 			// of pinned bookmarks have been deleted via Chrome while the TabMania popup
 			// was not running), calling settingsStore.unpinBookmark() individually should
@@ -723,7 +723,7 @@ _applyPinnedUpdateCb: function() {
 				// to worry about duplicating it there
 				this._pinnedBookmarks.push(bm);
 				// this._pinnedBookmarkIds will be updated at the end of the two loops
-				this._log(logHead + "pinning bookmark ID " + pinnedBmIdList[i], bm);
+				this._log(logHead, "pinning bookmark ID", pinnedBmIdList[i], bm);
 			}
 		}
 	}
@@ -744,20 +744,20 @@ _applyPinnedUpdateCb: function() {
 	for(let i = 0; i < deleted.length; i++) {
 		let bm = this._bookmarksDict[deleted[i]];
 		if(bm == null) {
-			this._err(logHead + "unexpected, bookmark ID " + deleted[i] + " not found");
+			this._err(logHead, "unexpected, bookmark ID", deleted[i], "not found");
 		} else {
 			if(bm.pinned) {
 				bm.pinned = false;
 				this._removePinnedBookmark(bm);
 				// this._pinnedBookmarkIds will be updated at the end of the two loops
-				this._log(logHead + "unpinning bookmark ID " + deleted[i], bm);
+				this._log(logHead, "unpinning bookmark ID", deleted[i], bm);
 			} else {
 				// The reason this is unexpected is because this._pinnedBookmarkIds thinks
 				// it's pinned, while the bookmark node itself thinks it isn't, which is
 				// an inconsistency that should not happen.
 				// If this inconsistency exists, probably this._pinnedBookmarks is also
 				// inconsistent, let's try to fix it by removing it from there too...
-				this._err(logHead + "unexpected, bookmark ID " + deleted[i] + " already unpinned", bm);
+				this._err(logHead, "unexpected, bookmark ID", deleted[i], "already unpinned", bm);
 				this._removePinnedBookmark(bm);
 			}
 		}
@@ -772,16 +772,16 @@ _applyPinnedUpdateCb: function() {
 find: function(searchQuery) {
 	perfProf.mark("bookmarksSearchStart");
 
-	const logHead = "BookmarksManager::find(): ";
+	const logHead = "BookmarksManager.find():";
 	this._stats.find++;
 	let searchResults = [];
 
 	if(!settingsStore.getOptionBookmarksInSearch()) {
-		this._log(logHead + "bookmarks are disabled in search, nothing to do");
+		this._log(logHead, "bookmarks are disabled in search, nothing to do");
 		// Pretend we searched and found no bookmarks (we have initialized "searchResults"
 		// as an empty array)
 	} else {
-		this._log(logHead + "processing bookmarks");
+		this._log(logHead, "processing bookmarks");
 		searchResults = searchQuery.search(this._bookmarks, logHead, this._maxBookmarkNodesInSearch);
 	}
 
@@ -809,15 +809,15 @@ getBmNode: function(bmNodeId) {
 // "async" to support the async path, then we'll always have to give up the current event
 // cycle at least once when returning to the caller, and that would be a waste.
 getBmPathListAsync: async function(bmNode) {
-	const logHead = "BookmarksManager::getBmPathListAsync(" + bmNode.id + "): ";
+	const logHead = "BookmarksManager.getBmPathListAsync(" + bmNode.id + "):";
 	this._stats.asyncPathQueries++;
 
 	let pathList = [];
 
-//	this._log(logHead + "entering");
+//	this._log(logHead, "entering");
 
 	while(bmNode != null && bmNode.parentId != null) {
-		//this._log(logHead + "current round: " + bmNode.title);
+		//this._log(logHead, "current round:", bmNode.title);
 
 		let parentNode = this.getBmNode(bmNode.parentId);
 		if(parentNode == null) {
@@ -841,15 +841,15 @@ getBmPathListAsync: async function(bmNode) {
 		if(bmNode != null) {
 			// The root ID "0" should have an empty title, but you never know...
 			pathList.push(bmNode.title != null ? bmNode.title : "");
-			//this._log(logHead + "next round: ", bmNode);
+			//this._log(logHead, "next round:", bmNode);
 		} else {
 			// It should never get here, but just in case
-			this._err(logHead + "unexpected, it should not get here");
+			this._err(logHead, "unexpected, it should not get here");
 		}
 	}
 
 	pathList.reverse();
-//	this._log(logHead + "full pathList = ", pathList);
+//	this._log(logHead, "full pathList =", pathList);
 	return pathList;
 },
 
@@ -858,15 +858,15 @@ getBmPathListAsync: async function(bmNode) {
 // "this._maxBookmarkNodesTracked". When that happens, the caller must try
 // the async version of this function instead: BookmarksManager.getBmPathListAsync()
 getBmPathListSync: function(bmNode) {
-	const logHead = "BookmarksManager::getBmPathListSync(" + bmNode.id + "): ";
+	const logHead = "BookmarksManager.getBmPathListSync(" + bmNode.id + "):";
 	this._stats.syncPathQueries++;
 
 	let pathList = [];
 
-//	this._log(logHead + "entering");
+//	this._log(logHead, "entering");
 
 	while(bmNode != null && bmNode.parentId != null) {
-		//this._log(logHead + "current round: " + bmNode.title);
+		//this._log(logHead, "current round:", bmNode.title);
 
 		bmNode = this.getBmNode(bmNode.parentId);
 		if(bmNode == null) {
@@ -876,11 +876,11 @@ getBmPathListSync: function(bmNode) {
 
 		// The root ID "0" should have an empty title, but you never know...
 		pathList.push(bmNode.title != null ? bmNode.title : "");
-		//this._log(logHead + "next round: ", bmNode);
+		//this._log(logHead, "next round:", bmNode);
 	}
 
 	pathList.reverse();
-//	this._log(logHead + "full pathList = ", pathList);
+//	this._log(logHead, "full pathList =", pathList);
 	return pathList;
 },
 
