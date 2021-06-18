@@ -365,6 +365,15 @@ DONE 2.0
   * Moved the checkbox outside of the accordion button, which required pushing it from
     TilesGroupViewer up to the parent class CollapsibleContainer
 
+- BUG: Custom group headings can overflow horizontal popup space (horizontal scrollbar appears)
+  when entering multi-selection mode
+
+- BUG: TilesGroupViewer.computeMultiSelectState() gets called too many times
+  when performing a "select/unselect all in group"
+  - Each tile's setSelected() call in TilesGroupViewer._selectClickedCb() calls it,
+    we should suppress those redundant calls to computeMultiSelectState() and call it
+	only once at the end of the loop in _selectClickedCb()
+
 
 DONE 1.3
 

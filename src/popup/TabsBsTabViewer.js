@@ -459,6 +459,13 @@ setSelectMode: function(flag=true) {
 
 	popupViewer.updateMultiSelectMenuItem();
 
+	// Here we're still going with the old-style iteration of all tiles via
+	// _tilesByTabId, instead of iterating the DOM elements contained in the
+	// _containerViewer. We're doing that because the setSelectMode() of the
+	// TilesGroupViewer doesn't have the logic to recursively call setSelectMode()
+	// on its own tiles, though eventually we might want to change it that way...
+	// that will also allow us to get rid of "this._tilesGroups", since we're storing
+	// the data only for the purpose to run this loop.
 	for(const [tabId, tile] of Object.entries(this._tilesByTabId)) {
 		tile.setSelectMode(flag);
 	}
@@ -472,14 +479,18 @@ toggleSelectMode: function() {
 	this.setSelectMode(!this.isSelectMode());
 },
 
-_tileSelectedCb: function(tab, flag) {
+_tileSelectedCb: function(tab, flag, options) {
 	if(flag) {
 		this._multiSelectPanel.addTab(tab);
 	} else {
 		this._multiSelectPanel.removeTab(tab);
 	}
 
-	this._computeMultiSelectState(flag);
+	// "options.bsTabTriggered" can either be "true" or "undefined", the check
+	// below works correctly for both cases
+	if(!options.bsTabTriggered) {
+		this._computeMultiSelectState(flag);
+	}
 },
 
 _multiSelectSelectedCb: function(ev) {
@@ -491,9 +502,46 @@ _multiSelectSelectedCb: function(ev) {
 		this._log(logHead, "all unselected", ev);
 	}
 
-	for(let tabId in this._tilesByTabId) {
-		this._tilesByTabId[tabId].setSelected(ev.detail.selected);
+	// We used to scan through the _tilesByTabId, but with the new logic to track
+	// mapping between a DOM element and a Viewer, that's not necessary anymore.
+	// The new logic has the advantage that it asks the TilesGroupViewer object
+	// to select/unselect the tiles, which is cheaper than asking the tiles directly,
+	// because when you ask the tile directly, each tile needs to notify the TilesGroupViewer
+	// by calling TilesGroupViewer.computeMultiSelectState().
+	// If instead we ask the TilesGroupViewer to do the tiles selection, it can use
+	// a code path that suppresses the redundant calls to TilesGroupViewer.computeMultiSelectState().
+//	for(let tabId in this._tilesByTabId) {
+//		this._tilesByTabId[tabId].setSelected(ev.detail.selected, { bsTabTriggered: true });
+//	}
+
+	let containerChildren = this._containerViewer.getBodyElement().children;
+	for(let i = 0; i < containerChildren.length; i++) {
+		let tileOrGroup = Classes.Viewer.getViewerByElement(containerChildren[i]);
+		if(tileOrGroup == null) {
+			this._log(logHead, "no selectable viewer found at index", i);
+			continue;
+		}
+
+		if(!tileOrGroup.isSelectable()) {
+			// We'll need to find better terminology to avoid horrific things like
+			// "non-selectable selectable"... what we're saying here is that we have
+			// determined this "tileOrGroup" object implements the "select interface",
+			// but the isSelectable() of the "select interface" is returning "false",
+			// meaning the object has been instantiated/configured to not offer
+			// selectability.
+			this._log(logHead, "non-selectable selectable viewer found at index", i);
+			continue;
+		}
+
+		this._log(logHead, "processing index", i, tileOrGroup);
+		// "bsTabTriggered: true" gets passed back to _tileSelectedCb(), which
+		// in turn uses it to avoid calling _computeMultiSelectState()
+		tileOrGroup.setSelected(ev.detail.selected, { bsTabTriggered: true });
 	}
+
+	// We know they've all been selected/unselected, but let's use the standard
+	// logic to determine the end result
+	this._computeMultiSelectState();
 },
 
 _multiSelectClosedCb: function(ev) {
@@ -511,6 +559,14 @@ _multiSelectListedCb: function(ev) {
 _computeMultiSelectState: function(hint) {
 	let atLeastOneSelected = false;
 
+	// Here we're still using the old-style iteration via _tilesByTabId, instead of
+	// including the TilesGroupViewer in the iteration via DOM elements. Using the
+	// DOM based iteration could be a lot cheaper because the known selection state
+	// of the TilesGroupViewer could save us from having to scan all the contained
+	// tiles. Right now we're effectively scanning the tiles in a TilesGroupViewer
+	// twice, once to compute the selection state of the TilesGroupViewer, then once
+	// again to compute the selection state of the MultiSelectPanelViewer.
+	// We'll eventually want to optimize this and switch to the DOM elements iteration.
 	for(const [tabId, tile] of Object.entries(this._tilesByTabId)) {
 		if(tile.isSelected()) {
 			atLeastOneSelected = true;

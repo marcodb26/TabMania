@@ -185,19 +185,22 @@ _selectClickedCb: function(ev) {
 
 	const logHead = "TilesGroupViewer._selectClickedCb():";
 
-	// We can't use the live "this._selectElem.checked" in this loop, because in
-	// the current (inefficient) implementation, every call to a tile.setSelected()
-	// in turn triggers back a call to this.computeMultiSelectState(), which potentially
-	// changes the value of "this._selectElem.checked"
-	let isChecked = this._selectElem.checked;
-
-	if(isChecked) {
+	if(this._selectElem.checked) {
 		this._log(logHead, "all selected", ev);
 	} else {
 		this._log(logHead, "all unselected", ev);
 	}
 
+	this.setSelected(this._selectElem.checked);
+},
+
+setSelected: function(flag=true, options={}) {
+	const logHead = "TilesGroupViewer.setSelected():";
 	this._log(logHead, "working with children", this._bodyElem.children);
+
+	// "notifyParent: false" makes sure every tile doesn't try to call back
+	// computeMultiSelectState(), too expensive
+	options.notifyParent = false;
 
 	for(let i = 0; i < this._bodyElem.children.length; i++) {
 		let tile = Classes.Viewer.getViewerByElement(this._bodyElem.children[i]);
@@ -207,19 +210,24 @@ _selectClickedCb: function(ev) {
 		}
 
 		this._log(logHead, "processing index", i, tile);
-		tile.setSelected(isChecked);
+		tile.setSelected(flag, options);
 	}
+
+	// Since the tiles have not each called computeMultiSelectState(), let's call
+	// it once here, though we should already know what the result is going to be
+	this.computeMultiSelectState();
 },
 
 isSelectMode: function() {
 	return this.isSelectable() && this._selectMode;
 },
 
-setSelected: function(flag=true, indeterminate=false) {
+_setSelectedInner: function(flag=true, indeterminate=false) {
 	if(!this.isSelectable()) {
 		// If there are no tiles, the TilesGroupViewer is not selectable
 		return;
 	}
+
 	this._selectElem.checked = flag;
 	this._selectElem.indeterminate = indeterminate;
 },
@@ -253,7 +261,7 @@ computeMultiSelectState: function(hint) {
 				// We're finding that at least one is selected, and we know from the "hint"
 				// that at least one has just been unselected, no need to continue with the
 				// loop, the multiSelect state is "partially selected" (indetermined)
-				this.setSelected(true, true);
+				this._setSelectedInner(true, true);
 				return;
 			}
 		} else {
@@ -262,7 +270,7 @@ computeMultiSelectState: function(hint) {
 				// told us that), and now we're finding out that at least one is unselected,
 				// no need to continue with the loop, the multiSelect state is "partially
 				// selected" (indetermined)
-				this.setSelected(true, true);
+				this._setSelectedInner(true, true);
 				return;
 			}
 		}
@@ -270,7 +278,7 @@ computeMultiSelectState: function(hint) {
 
 	// If we get here, we didn't hit the "partially selected" case, so the tiles are
 	// either all selected, or all unselected
-	this.setSelected(atLeastOneSelected);
+	this._setSelectedInner(atLeastOneSelected);
 },
 
 }); // Classes.TilesGroupViewer

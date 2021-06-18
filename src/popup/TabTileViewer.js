@@ -47,7 +47,7 @@ Classes.TabTileViewer = Classes.Viewer.subclass({
 
 	_selectMode: null,
 
-	// "_selectSetSelectedFn" has signature _selectSetSelectedFn(tab, flag)
+	// "_selectSetSelectedFn" has signature _selectSetSelectedFn(tab, flag, options)
 	_selectSetSelectedFn: null,
 	// "_selectModeStartFn" has signature _selectModeStartFn()
 	_selectModeStartFn: null,
@@ -239,6 +239,14 @@ isSelectMode: function() {
 	return this._selectMode;
 },
 
+// We'll eventually need to change all this isSelectable() / setSelected() logic to be
+// a proper interface attached to multiple classes, but for now we're just replicating
+// this function here for consistency with TilesGroupViewer, though it's hardcoded to
+// always return "true"
+isSelectable: function() {
+	return true;
+},
+
 setSelectMode: function(flag=true) {
 	// Use "===" because during initialization this function gets called while this._selectMode = null
 	if(this._selectMode === flag) {
@@ -256,23 +264,31 @@ setSelectMode: function(flag=true) {
 	this._selectElem.checked = false;
 },
 
-setSelected: function(flag=true) {
+// "options" includes:
+// - "notifyParent"
+// - "bsTabTriggered" (set and used back by TabsBsTabViewer, never used here)
+setSelected: function(flag=true, options={}) {
+	let notifyParent = options.notifyParent ?? true;
+
 	if(this._selectElem.checked == flag) {
 		// Already in that state, nothing to do
 		return;
 	}
 
 	this._selectElem.checked = flag;
-	this._selectSetSelectedFn(this._tab, this._selectElem.checked);
 
-	let parentViewer = Classes.Viewer.getViewerByElement(this._rootElem.parentElement);
+	this._selectSetSelectedFn(this._tab, this._selectElem.checked, options);
 
-	// The parent viewer, if found, can be a ContainerViewer (the top level of all tiles)
-	// or TilesGroupViewer (the inner nesting). We need to apply multi-select logic only
-	// in the second case (TilesGroupViewer), and we identify it by checking that the
-	// function exists.
-	if(parentViewer != null && parentViewer.computeMultiSelectState != null) {
-		parentViewer.computeMultiSelectState(flag);
+	if(notifyParent) {
+		let parentViewer = Classes.Viewer.getViewerByElement(this._rootElem.parentElement);
+
+		// The parent viewer, if found, can be a ContainerViewer (the top level of all tiles)
+		// or TilesGroupViewer (the inner nesting). We need to apply multi-select logic only
+		// in the second case (TilesGroupViewer), and we identify it by checking that the
+		// function exists.
+		if(parentViewer != null && parentViewer.computeMultiSelectState != null) {
+			parentViewer.computeMultiSelectState(flag);
+		}
 	}
 },
 
@@ -289,10 +305,11 @@ isSelected: function() {
 	return this._selectElem.checked;
 },
 
-// "setSelectedFn" has signature setSelectedFn(tab, flag). Don't let the TabsBsTabViewer hardcode
-// the "tab" by binding it to this function, let the tile provide the tab instead. The reason is
-// that the tab info can change over time, and the tile can always return the latest, while the
-// bound tab would be fixed at the beginning of time and eventually become stale.
+// "setSelectedFn" has signature setSelectedFn(tab, flag, options), that is "tab" followed by
+// all the arguments of setSelected() (which invokes _setSelectedFn). Don't let the TabsBsTabViewer
+// hardcode the "tab" by binding it to this function, let the tile provide the tab instead. The
+// reason is that the tab info can change over time, and the tile can always return the latest,
+// while the bound tab would be fixed at the beginning of time and eventually become stale.
 // "selectModeStartFn" has signature selectModeStartFn()
 initSelectMode: function(setSelectedFn, selectModeStartFn) {
 	this._selectSetSelectedFn = setSelectedFn;

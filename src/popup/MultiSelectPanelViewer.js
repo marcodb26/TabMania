@@ -544,28 +544,39 @@ isActive: function() {
 	return this._active;
 },
 
+// Returns "true" if a new tab was added to the "in view" list, "false" if an existing
+// tab was updated in the "in view" list.
+// That is, returns "true" if the count of tabs "in view" has changed.
 addTab: function(tab) {
 	const logHead = "MultiSelectPanelViewer.addTab():";
 	this._log(logHead, "adding tab", tab);
 	this._tabsStoreAll.update(tab);
-	this._tabsStoreInView.update(tab);
+	// If update() returns "null", it means the "tab" was not present (just added)
+	let isNewTab = this._tabsStoreInView.update(tab) == null;
 
 	this._updateCounts();
+
+	return isNewTab;
 },
 
+// Returns "true" if the tab was present and was removed from the "in view" list, "false"
+// if the tab was not present in the "in view" list.
+// That is, returns "true" if the count of tabs "in view" has changed.
 _removeTabById: function(tabId, updateCounts=true) {
 	const logHead = "MultiSelectPanelViewer._removeTabById():";
 	this._log(logHead, "removing tab", tabId);
 	this._tabsStoreAll.removeById(tabId);
-	this._tabsStoreInView.removeById(tabId);
+	let tabPresent = this._tabsStoreInView.removeById(tabId) != null;
 
 	if(updateCounts) {
 		this._updateCounts();
 	}
+
+	return tabPresent;
 },
 
 removeTab: function(tab, updateCounts) {
-	this._removeTabById(tab.id);
+	return this._removeTabById(tab.id);
 },
 
 getTabs: function() {

@@ -1,28 +1,22 @@
 TODO 2.0
 
+- Change all loops of TabsBsTabViewer._tilesByTabId to loops by DOM elements for
+  all selection-related activities in TabsBsTabViewer
+  * Right now only the "select/unselect all" loop has been moved to DOM elements
+  * The loop to activate/deactivate select mode, and the loop to
+    TabsBsTabViewer._computeMultiSelectState() don't take advantage of the benefits
+	described in the comments in the code for those two loops
+  * This will also become necessary if we start having multiple levels of grouping
+
+- Change all this isSelectable() / setSelected() logic to be a proper interface attached
+  to multiple classes (TabTileViewer and TilesGroupViewer/CollapsibleContainer)
+  * Right now there's too much cut/paste
+
 - BUG: when updating custom group color in Settings, only TilesGroupViewer gets
   updated (header), not the individual tiles inside of it
 
-- Add "undo" of LTW using real estate on existing popup
-  * Requires background.js sending events to popup when LTW is used
-  * Requires popup to send commands to background.js when "undo" needs to be performed
-  * Include option to temporarily suspend LTW (for one hour?)
-  * Not ideal from a UX perspective, but it's the only option possible given
-    chrome.browserAction.openPopup() is not publicly available
-	- https://bugs.chromium.org/p/chromium/issues/detail?id=436489
-	- https://docs.google.com/document/d/19WvnWl4GbpahVwfnapKOBAQS-jCsEqun81Ot8_-jTPg/edit
-  * To slightly improve UX, should we change the color of the browserAction icon when
-    there's an option to undo?
-	- Only for the tab that can receive the undo
-
 - Finish multi-select mode
   * Add "pin" action in multi-select mode
-
-- BUG: TilesGroupViewer.computeMultiSelectState() gets called too many times
-  when performing a "select/unselect all in group"
-  - Each tile's setSelected() call in TilesGroupViewer._selectClickedCb() calls it,
-    we should suppress those redundant calls to computeMultiSelectState() and call it
-	only once at the end of the loop in _selectClickedCb()
 
 - BUG: non existing tab still showing in tab list
   * Did we miss to remove it? Did it ever exist? Not clear
@@ -135,6 +129,18 @@ PREP FOR NEXT RELEASE
 
 
 PUNTED TO NEXT RELEASE
+
+- Add "undo" of LTW using real estate on existing popup
+  * Requires background.js sending events to popup when LTW is used
+  * Requires popup to send commands to background.js when "undo" needs to be performed
+  * Include option to temporarily suspend LTW (for one hour?)
+  * Not ideal from a UX perspective, but it's the only option possible given
+    chrome.browserAction.openPopup() is not publicly available
+	- https://bugs.chromium.org/p/chromium/issues/detail?id=436489
+	- https://docs.google.com/document/d/19WvnWl4GbpahVwfnapKOBAQS-jCsEqun81Ot8_-jTPg/edit
+  * To slightly improve UX, should we change the color of the browserAction icon when
+    there's an option to undo?
+	- Only for the tab that can receive the undo
 
 - Alternative: Add "undo" of LTW using popup in browser tab with undo button
   * Include option to temporarily suspend LTW (for one hour?)
