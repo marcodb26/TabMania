@@ -121,12 +121,12 @@ _init: function(options) {
 	// the fields you need)
 	options = optionalWithDefault(options, {});
 	this._options = {};
-	this._options.startExpanded = optionalWithDefault(options.startExpanded, false);
-	this._options.htmlWhenEmpty = optionalWithDefault(options.htmlWhenEmpty, "");
-	this._options.border = optionalWithDefault(options.border, true);
-	this._options.bodyExtraClasses = [].concat(optionalWithDefault(options.bodyExtraClasses, []));
-	this._options.incognitoStyle = optionalWithDefault(options.incognitoStyle, false);
-	this._options.selectable = optionalWithDefault(options.selectable, false);
+	this._options.startExpanded = options.startExpanded ?? false;
+	this._options.htmlWhenEmpty = options.htmlWhenEmpty ?? "";
+	this._options.border = options.border ?? true;
+	this._options.bodyExtraClasses = [].concat(options.bodyExtraClasses ?? []);
+	this._options.incognitoStyle = options.incognitoStyle ?? false;
+	this._options.selectable = options.selectable ?? false;
 
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.ContainerViewer._init.call(this, this._options.htmlWhenEmpty);
@@ -150,6 +150,7 @@ _renderHeadingAndBody: function() {
 	this._rootElem.classList.add("accordion");
 
 	let headingExtraClasses = [];
+	let headingOuterExtraClasses = [];
 	let bodyOuterExtraClasses = [];
 
 	if(this._options.border) {
@@ -166,6 +167,7 @@ _renderHeadingAndBody: function() {
 
 	if(this._options.incognitoStyle) {
 		headingExtraClasses.push("tm-accordion-button-incognito");
+		headingOuterExtraClasses.push("border-dark");
 	}
 
 	// The select checkbox is currently needed only by TilesGroupViewer, but we are
@@ -196,7 +198,7 @@ _renderHeadingAndBody: function() {
 	// See TabTileViewer._renderEmptyTile() for the reasons why we need to add "min-width: 0;"
 	// to the <button> style (hint: fit .d-flex size)
 	const headingHtml = `
-		<h2 class="d-flex align-items-center accordion-header tm-accordion-header" id="${headingOuterId}">
+		<h2 class="d-flex align-items-center accordion-header tm-accordion-header ${headingOuterExtraClasses.join(" ")}" id="${headingOuterId}">
 			${selectHtml}
 			<button id=${headingId} class="accordion-button tm-accordion-button ${headingExtraClasses.join(" ")} p-2"
 						type="button" data-bs-toggle="collapse" data-bs-target="#${bodyOuterId}" aria-expanded="true" aria-controls="${bodyOuterId}" style="min-width: 0;">
