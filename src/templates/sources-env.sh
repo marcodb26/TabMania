@@ -5,7 +5,7 @@ declare -r VERSION="2.0"
 
 # List source files in UNPACKED_POPUP_SOURCES relative to src/popup/ (the same way you want them listed in
 # the auto-generated src/popup/popup.html for DEV)
-declare -r UNPACKED_POPUP_SOURCES=(						
+declare -r UNPACKED_POPUP_SOURCES=(
 	"../lib/Base.js" "../lib/TmUtils.js" "../lib/TmConsole.js" "../lib/PersistentDict.js"
 	"../lib/utils.js" "../lib/PerfProfiler.js" "../lib/AsyncQueue.js" "../lib/SerialPromises.js"
 	"../lib/chromeUtils.js" "../lib/TabNormalizer.js"
@@ -26,9 +26,10 @@ declare -r PACKED_POPUP_SOURCES=(
 	"popup.js"
 )
 
-
+# List source files in UNPACKED_POPUP_CSS relative to src/popup/ (the same way you want them listed in
+# the auto-generated src/popup/popup.html for DEV)
 declare -r UNPACKED_POPUP_CSS=(
-	"popup.css" "tm-accordion.css" "tm-throbber.css"
+	"css/colors.css" "css/popup.css" "css/tm-accordion.css" "css/tm-throbber.css"
 )
 
 declare -r PACKED_POPUP_CSS=(

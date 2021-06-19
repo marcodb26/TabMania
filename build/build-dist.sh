@@ -16,7 +16,7 @@ declare -r NPMROOT=`npm root`
 # - Create prod version of `dist/popup.html`
 # - Pull in the bootstrap files
 # - Pull in the day.js files
-# - Minify `src/popup/popup.css` to `dist/popup.css`
+# - Minify `src/popup/css/*.css` to `dist/popup.css`
 # - Run uglifyJs to generate `dist/background.js` and `dist/popup.js`
 
 declare -r SRC="src"

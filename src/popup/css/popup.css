@@ -8,7 +8,7 @@
    should use, and just override the color information
 */
 .tm-nav-link, .tm-nav-link:hover {
-	color: #495057;
+	color: var(--tm-gray-dark);
 }
 
 .tm-align-checkbox {
@@ -56,9 +56,9 @@
 	color: var(--bs-gray);
 
 	background-color: white;
-	border: 1px solid grey;
+	border: 1px solid var(--bs-gray);
 	border-radius: 0.25em;
-	box-shadow: 0 0 10px grey;
+	box-shadow: 0 0 10px var(--bs-gray);
 }
 
 .tm-searchbox-count {
@@ -90,7 +90,7 @@
 	/* Bookmarks always show up in black and white, but we want this icon to
 	   stand out. Choosing a dark color to avoid it "standing out too much".
 	*/
-	color: #a60c29;
+	color: var(--tm-red-dark);
 }
 
 .tm-fa-history {
@@ -104,7 +104,7 @@
 	   show it in dark blue (blue as in "cold"), while recently closed items show it
 	   in red (red as in "hot").
 	*/
-	color: #074297;
+	color: var(--tm-blue-dark);
 }
 
 .tm-fa-recently-closed {
@@ -117,7 +117,7 @@
 	   For now let's use the same color as .tm-fa.bookmark, but later we should
 	   change it.
 	*/
-	color: #a60c29;
+	color: var(--tm-red-dark);
 }
 
 .tm-fa-thumbtack-tile {
@@ -303,24 +303,6 @@
 	min-width: 2em;
 }
 
-/* translateY(50%) vertically centers the circle, provided the parent <div> has 100% height */
-.tm-circle {
-	position: relative;
-	top: 50%;
-	transform: translateY(-50%);
-
-	margin-left: 0.5rem;
-
-	height: 2.5rem;
-	width: 2.5rem;
-	border-radius: 50%;
-	text-align: center;
-	background: white;
-	font-weight: bolder;
-
-	box-shadow: 0 0 5px black;
-}
-
 .tm-round-toggle {
 	border-radius: 50%;
 	/*box-shadow: 0 0 5px black;*/
@@ -450,8 +432,8 @@
 
 .tm-btn:active {
 	/* A color slightly darker than .tm-btn:hover */
-	background-color: #f1f2f3;
-	box-shadow: 0 0 3px #f1f2f3;
+	background-color: var(--tm-white-dark);
+	box-shadow: 0 0 3px var(--tm-white-dark);
 }
 
 .tm-checkbox-btn {
@@ -462,7 +444,7 @@
 /* See https://stackoverflow.com/questions/5275857/highlight-label-if-checkbox-is-checked */
 .btn-check:checked + .tm-checkbox-btn {
 	/* A color slightly darker than .tm-btn:active */
-	background-color: #d7d8d9;
+	background-color: var(--tm-gray-light);
 }
 
 /******** END: .tm-btn and .tm-checkbox-btn ********/
@@ -519,8 +501,8 @@ Encoded with https://www.base64encode.org/
 */
 .tm-menu-icon:active::after, .tm-menu-icon.show::after {
 	/* A color slightly darker than .btn-light */
-	background-color: #f1f2f3;
-	box-shadow: 0 0 3px #f1f2f3;
+	background-color: var(--tm-white-dark);
+	box-shadow: 0 0 3px var(--tm-white-dark);
 }
 
 /******** END: tm-menu-icon ********/
@@ -573,8 +555,8 @@ Encoded with https://www.base64encode.org/
 
 .tm-plus-icon:active::after {
 	/* A color slightly darker than .btn-light */
-	background-color: #f1f2f3;
-	box-shadow: 0 0 3px #f1f2f3;
+	background-color: var(--tm-white-dark);
+	box-shadow: 0 0 3px var(--tm-white-dark);
 }
 
 /******** END: tm-plus-icon ********/
@@ -637,12 +619,12 @@ Encoded with https://www.base64encode.org/
 
 .tm-close-icon:hover::after {
 	/* Same color as .btn-secondary:hover */
-	background-color: #5c636a;
+	background-color: var(--tm-gray-hover);
 }
 
 .tm-close-icon:active::after {
 	/* Same color as .btn-secondary:active */
-	background-color: #5c636a;
+	background-color: var(--tm-gray-hover);
 	box-shadow: 0 0 3px black;
 }
 
@@ -680,12 +662,12 @@ Encoded with https://www.base64encode.org/
 
 .tm-close-icon-light:hover::after {
 	/* Same color as btn-light:hover */
-	background-color: #f9fafb;
+	background-color: var(--tm-white-hover);
 }
 
 .tm-close-icon-light:active::after {
 	/* Same color as btn-light:active */
-	background-color: #f9fafb;
+	background-color: var(--tm-white-hover);
 	box-shadow: 0 0 3px white;
 }
 
@@ -731,7 +713,7 @@ Encoded with https://www.base64encode.org/
    override here.
 */
 .tm-callout, .tm-callout:focus {
-	border: 1px solid rgba(0, 0, 0, 0.125);
+	border: 1px solid var(--tm-gray-border);
 
 	/* "!important" is needed when this class is used together with .tm-accordion-header */
 	border-left-width: .25rem!important;
@@ -890,16 +872,16 @@ Encoded with https://www.base64encode.org/
 	}
 
 	::-webkit-scrollbar-thumb {
-		background-color: #c1c1c1; /* RGB 193, 193, 193 */
+		background-color: var(--tm-scrollbar-light);
 		border-radius: 3px;
 	}
 
 	::-webkit-scrollbar-thumb:hover {
-		background: #a8a8a8; /* RGB 168, 168, 168 */
+		background: var(--tm-scrollbar);
 	}
 
 	::-webkit-scrollbar-thumb:active {
-		background: #787878; /* RGB 120, 120, 120 */
+		background: var(--tm-scrollbar-dark);
 	}
 }
 

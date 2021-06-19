@@ -386,6 +386,9 @@ DONE 2.0
 
 - Tested search in new separated bsTabs
 
+- Moved CSS files to separate folder popup/css, and cleaned up colors in use by taking
+  advantage of CSS variables instead of hardcoding them in all CSS definitions
+
 
 DONE 1.3
 

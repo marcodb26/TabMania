@@ -1,0 +1,45 @@
+/* Put our CSS *after* the Bootstrap CSS, to make sure we get priority for any rules overlap
+   See: https://stackoverflow.com/questions/15670631/does-the-order-of-classes-listed-on-an-item-affect-the-css
+*/
+
+/* This file should come first, as it includes variables that are going to be used everywhere else */
+
+:root {
+	/* We're using Bootstrap colors (https://getbootstrap.com/docs/5.0/customize/css-variables/)
+	   for many things, but we need some extra colors in our palette, defined here
+	*/
+
+	/* The same color used by .btn-light:hover, which unfortunately doesn't seem to
+	   be defined as a color variable in Bootstrap.
+	   .btn-light uses --bs-light, while .btn-light:hover uses a slightly lighter white.
+	*/
+	--tm-white-hover: #f9fafb;
+
+	/* A bit darker than --bs-light */
+	--tm-white-dark: #f1f2f3;
+
+	/* A color slightly darker than --tm-white-dark */
+	--tm-gray-light: #d7d8d9;
+
+	/* Border color used by .card (border), .toast(border) and .accordion-button (border)
+	   in Bootstrap
+	*/
+	--tm-gray-border: rgba(0, 0, 0, 0.125);
+
+	/* The same color used by .btn-secondary:hover, which unfortunately doesn't seem to
+	   be defined as a color variable in Bootstrap.
+	   .btn-secondary uses --bs-gray (--bs-secondary is an alias for it), while
+	   .btn-secondart:hover uses a slightly lighter gray.
+	*/
+	--tm-gray-hover: #5c636a;
+
+	/* A bit lighter than --bs-gray-dark, but much darker than --tm-gray-light */
+	--tm-gray-dark: #495057;
+
+	--tm-red-dark: #a60c29;
+	--tm-blue-dark: #074297;
+
+	--tm-scrollbar-light: #c1c1c1; /* RGB 193, 193, 193 */
+	--tm-scrollbar: #a8a8a8; /* RGB 168, 168, 168 */
+	--tm-scrollbar-dark: #787878; /* RGB 120, 120, 120 */
+}
