@@ -1,5 +1,9 @@
 TODO 2.0
 
+- "This site can't be reached / mail.yahoo.com took too long to respond."
+  * When this error occurs, the tab title changes to the URL
+    - Can we persist showing the last known title while the page is in this error state?
+
 - BUG: when updating custom group color in Settings, only TilesGroupViewer gets
   updated (header), not the individual tiles inside of it
 
