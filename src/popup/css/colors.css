@@ -36,10 +36,78 @@
 	/* A bit lighter than --bs-gray-dark, but much darker than --tm-gray-light */
 	--tm-gray-dark: #495057;
 
+	/* Re-map Bootstrap colors, in case we want to change them later */
+	--tm-white: var(--bs-white);
+	--tm-light: var(--bs-light);
+	--tm-dark: var(--bs-dark);
+	--tm-gray: var(--bs-gray);
+	--tm-blue: var(--bs-blue);
+	--tm-red: var(--bs-red);
+	--tm-yellow: var(--bs-yellow);
+	--tm-green: var(--bs-green);
+	--tm-cyan: var(--bs-cyan);
+
 	--tm-red-dark: #a60c29;
 	--tm-blue-dark: #074297;
 
 	--tm-scrollbar-light: #c1c1c1; /* RGB 193, 193, 193 */
 	--tm-scrollbar: #a8a8a8; /* RGB 168, 168, 168 */
 	--tm-scrollbar-dark: #787878; /* RGB 120, 120, 120 */
+
+	--tm-incognito: #35363a;
+	--tm-incognito-light: #3c4043;
+	--tm-incognito-white: #dadce0;
+	--tm-incognito-text: #e8eaed;
+}
+
+.tm-bg-dark {
+	background-color: var(--tm-dark);
+}
+
+.tm-bg-gray {
+	background-color: var(--tm-gray);
+}
+
+.tm-bg-blue {
+	background-color: var(--tm-blue);
+}
+
+.tm-bg-red {
+	background-color: var(--tm-red);
+}
+
+.tm-bg-yellow {
+	background-color: var(--tm-yellow);
+}
+
+.tm-bg-green {
+	background-color: var(--tm-green);
+}
+
+.tm-bg-cyan {
+	background-color: var(--tm-cyan);
+}
+
+.tm-bg-incognito {
+	background-color: var(--tm-incognito);
+}
+
+.tm-bg-incognito-light {
+	background-color: var(--tm-incognito-light);
+}
+
+.tm-bg-incognito-white {
+	background-color: var(--tm-incognito-white);
+}
+
+.tm-text-white {
+	color: var(--tm-white);
+}
+
+.tm-text-incognito {
+	color: var(--tm-incognito-text);
+}
+
+.tm-text-incognito-dark {
+	color: var(--tm-incognito);
 }

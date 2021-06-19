@@ -387,24 +387,73 @@ _renderEmptyTile: function(tabId) {
 	this._menuElem.parentElement.addEventListener("transitionend", this._hoverTransitionEndCb.bind(this));
 },
 
-_colorToBgCss: {
+_colorToCss: {
 	// "none" is the color we'll show when no color is set
-	none: "bg-light",
-	grey: "bg-secondary",
-	blue: "bg-primary",
-	red: "bg-danger",
-	yellow: "bg-warning",
-	green: "bg-success",
-	cyan: "bg-info",
+	none: {
+		bg: "tm-bg-dark",
+		text: "tm-text-white",
+	},
+	grey: {
+		bg: "tm-bg-gray",
+		text: "tm-text-white",
+	},
+	blue: {
+		bg: "tm-bg-blue",
+		text: "tm-text-white",
+	},
+	red: {
+		bg: "tm-bg-red",
+		text: "tm-text-white",
+	},
+	yellow: {
+		bg: "tm-bg-yellow",
+		text: "tm-text-white",
+	},
+	green: {
+		bg: "tm-bg-green",
+		text: "tm-text-white",
+	},
+	cyan: {
+		bg: "tm-bg-cyan",
+		text: "tm-text-white",
+	},
+},
+
+// Put only the differences from "_colorToCss", don't repeat colors that have
+// the same mapping in both
+_colorToCssIncognito: {
+	// "none" is the color we'll show when no color is set
+	none: {
+		bg: "tm-bg-incognito-white",
+		text: "tm-text-incognito-dark",
+	},
+},
+
+_getCssByColor: function(color) {
+	let retVal = null;
+
+	if(this._renderState.incognito) {
+		retVal = this._colorToCssIncognito[color];
+	}
+
+	if(retVal != null) {
+		return retVal;
+	}
+
+	// We get here if the _renderState is not incognito, or if the _renderState
+	// is incognito but _colorToCssIncognito doesn't have an override for "color",
+	// in which case also we want to use the standard map
+	return this._colorToCss[color];
 },
 
 // "secondary" is a flag (default "false") that determines the color
 // of the badge
 _badgeHtml: function(txt, bgColor) {
+	// When "bgColor" is set to "null", we want that to be equivalent to "none"
+	let badgeColorDict = this._getCssByColor(bgColor ?? "none");
+
 	let extraClasses = [];
-	// "bg-dark" is not in the list of _colorToBgCss, so when the input parameter
-	// "bgColor" is set to "null", we'll pick "bg-dark".
-	extraClasses.push(optionalWithDefault(this._colorToBgCss[bgColor], "bg-dark"))
+	extraClasses.push(badgeColorDict.bg, badgeColorDict.text);
 
 	if(txt.length > 20) {
 		// If a badge is too long, the rendering of the tile gets very messed up.

@@ -1,5 +1,14 @@
 TODO 2.0
 
+- BUG: If customGroup has "bg-light" color, the text must use a dark color, otherwise it's
+  invisible
+- BUG: the left-most color in the custom group definition is the color "None", and it should
+  imply no callout is displayed, and the standard badge colors are used
+- BUG: choosing custom group color "grey" results in invisible badge background in
+  incognito mode
+- Use "incognito colors" for incognito tiles
+- CSS: Use remapped color variables for callout border colors
+
 - "This site can't be reached / mail.yahoo.com took too long to respond."
   * When this error occurs, the tab title changes to the URL
     - Can we persist showing the last known title while the page is in this error state?
@@ -93,9 +102,6 @@ TODO 2.0
   * Add a hostname
   * Remove the hostname
     - All tabs now match the custom group
-
-- BUG: If customGroup has "bg-light" color, the text must use a dark color, otherwise it's
-  invisible
 
 - When opening a new tab with a URL, intercept the tab creation and determine if the
   URL is already opened in another tab, in which case activate that tab

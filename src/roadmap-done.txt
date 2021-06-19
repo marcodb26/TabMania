@@ -389,6 +389,16 @@ DONE 2.0
 - Moved CSS files to separate folder popup/css, and cleaned up colors in use by taking
   advantage of CSS variables instead of hardcoding them in all CSS definitions
 
+- Remapped Bootstrap colors for custom group badges, to simplify tuning their colors later
+
+- Added exact "incognito colors" to colors.css
+
+- Added background and text color classes to colors.css
+
+- Using new background and text color classes to render tile badges
+  * Using a reversed color (based on "incognito colors") for standard badges in incognito tiles
+  * Other badge colors are the same for both standard and incognito tiles
+
 
 DONE 1.3
 
