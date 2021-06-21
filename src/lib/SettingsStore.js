@@ -165,7 +165,7 @@ setCustomGroupProp: function(name, prop, value) {
 _colorToCalloutCss: {
 	// "none" is the color we'll show when no color is set
 	none: "",
-	grey: "tm-callout-gray",
+	gray: "tm-callout-gray",
 	blue: "tm-callout-blue",
 	red: "tm-callout-red",
 	yellow: "tm-callout-yellow",
@@ -178,7 +178,15 @@ getCustomGroupCssByColor: function(color) {
 },
 
 getCustomGroupColor: function(groupName) {
-	return this.getCustomGroupProp(groupName, "color") ?? "none";
+	let color = this.getCustomGroupProp(groupName, "color") ?? "none";
+	if(color == "grey") {
+		// Some basic backward compatibility logic since we switched from "grey" to "gray".
+		// This change happened before we released v2.0, and we had maybe 8 users at that
+		// time, so we can probably remove this logic soon after v2.0.
+		color = "gray";
+		this.setCustomGroupProp(groupName, "color", color);
+	}
+	return color;
 },
 
 getCustomGroupCss: function(groupName) {

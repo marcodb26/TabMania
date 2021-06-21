@@ -397,7 +397,7 @@ _colorToCss: {
 		bg: "tm-bg-dark",
 		text: "tm-text-white",
 	},
-	grey: {
+	gray: {
 		bg: "tm-bg-gray",
 		text: "tm-text-white",
 	},
@@ -479,7 +479,7 @@ _addBadgesHtml: function(visibleBadgesHtml, badgesList, secondary) {
 //	this._log(logHead, badgesList);
 	badgesList.forEach(
 		function(badge) {
-			visibleBadgesHtml.push(this._badgeHtml(badge, secondary ? "grey" : null));
+			visibleBadgesHtml.push(this._badgeHtml(badge, secondary ? "gray" : null));
 		}.bind(this)
 	);
 },

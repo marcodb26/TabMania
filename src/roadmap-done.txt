@@ -133,7 +133,7 @@ DONE 2.0
 - Created "Incognito" bstab, optional, tracked via localStore configuration
   * Still need to add settings bsTab configuration for it
 
-- BUG: accordion callout becomes grey when accordion button focused/clicked
+- BUG: accordion callout becomes gray when accordion button focused/clicked
 
 - BUG: dropdown of bookmark tiles display as dark in incognito mode, they should show like close-icon
 
@@ -409,6 +409,10 @@ DONE 2.0
   imply no callout is displayed, and the standard badge colors are used
 
 - CSS: Use remapped color (--tm-[color]) variables for callout border colors
+
+- Switching from "grey" to "gray" for custom groups color label
+  * For consistency with our CSS color variables and classes
+  * Included backward compatibility logic just in case
 
 
 DONE 1.3

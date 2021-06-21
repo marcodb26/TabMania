@@ -209,7 +209,7 @@ _init: function(groupName, htmlTitle) {
 
 	this._groupName = groupName;
 	if(groupName != "") {
-		this.setCardColor(settingsStore.getCustomGroupsManager().getCustomGroupProp(groupName, "color"));
+		this.setCardColor(settingsStore.getCustomGroupsManager().getCustomGroupColor(groupName));
 	}
 	this._renderCustomGroupSettings();
 
@@ -334,6 +334,9 @@ _renameCustomGroup: function(newName) {
 // We need these small wrappers because groups can change names, so we can't
 // bind a fixed name in the event callbacks
 _getProp: function(prop) {
+	if(prop == "color") {
+		return settingsStore.getCustomGroupsManager().getCustomGroupColor(this._groupName);
+	}
 	return settingsStore.getCustomGroupsManager().getCustomGroupProp(this._groupName, prop);
 },
 

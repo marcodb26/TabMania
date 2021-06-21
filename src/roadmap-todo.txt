@@ -1,6 +1,6 @@
 TODO 2.0
 
-- BUG: choosing custom group color "grey" results in invisible badge background in
+- BUG: choosing custom group color "gray" results in invisible badge background in
   incognito mode
 - Use "incognito colors" for incognito tiles
 

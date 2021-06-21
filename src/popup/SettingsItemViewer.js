@@ -542,7 +542,7 @@ _setAttributesHtml: function(extraAttrs) {
 _colorData: {
 	// "none" is the color we'll show when no color is set
 	none: [ "bg-light", "tm-check-reversed" ],
-	grey: [ "bg-secondary", "" ],
+	gray: [ "bg-secondary", "" ],
 	blue: [ "bg-primary", "" ],
 	red: [ "bg-danger", "" ],
 	yellow: [ "bg-warning", "" ],
