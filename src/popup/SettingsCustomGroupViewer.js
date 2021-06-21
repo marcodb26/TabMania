@@ -36,7 +36,7 @@ _init: function(titleHtml, canClose) {
 	}
 
 	const rootHtml = `
-	<div class="tm-callout tm-settings-card tm-hover tm-stacked-below">
+	<div class="card py-1 tm-settings-card tm-hover tm-stacked-below">
 		<div id="${titleId}" class="ms-2 fw-bold">${titleHtml}</div>
 		<div id="${bodyId}"></div>
 		${closeHtml}
@@ -55,22 +55,27 @@ _init: function(titleHtml, canClose) {
 },
 
 setCardColor: function(color) {
-	const logHead = "SettingsCardViewer::setCardColor(" + color + "): ";
+	// We can't use "color='none'" as an optional argument, because the optional
+	// argument works only when "color === undefined", but the caller passes "null"
+	// explicitly instead
+	color = color ?? "none";
+	const logHead = "SettingsCardViewer.setCardColor():";
 	if(this._cardColor == color) {
 		// Nothing to do
-		this._log(logHead + "nothing to do");
+		this._log(logHead, "nothing to do", color, this._cardColor);
 		return;
 	}
 
 	let cgm = settingsStore.getCustomGroupsManager();
-	if(this._cardColor != null) {
-		this._log(logHead + "removing old color " + this._cardColor);
-		this.removeClasses(cgm.getCustomGroupCssByColor(this._cardColor));
+
+	if(this._cardColor != null && this._cardColor != "none") {
+		this._log(logHead, "removing old color ", this._cardColor);
+		this.removeClasses("tm-callout", cgm.getCustomGroupCssByColor(this._cardColor));
 	}
 
-	if(color != null) {
-		this._log(logHead + "adding color");
-		this.addClasses(cgm.getCustomGroupCssByColor(color));
+	if(color != "none") {
+		this._log(logHead, "adding color", color);
+		this.addClasses("tm-callout", cgm.getCustomGroupCssByColor(color));
 	}
 
 	this._cardColor = color;

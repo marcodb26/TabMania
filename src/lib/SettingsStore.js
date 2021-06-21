@@ -164,8 +164,8 @@ setCustomGroupProp: function(name, prop, value) {
 
 _colorToCalloutCss: {
 	// "none" is the color we'll show when no color is set
-	none: "tm-callout-none",
-	grey: "tm-callout-grey",
+	none: "",
+	grey: "tm-callout-gray",
 	blue: "tm-callout-blue",
 	red: "tm-callout-red",
 	yellow: "tm-callout-yellow",
@@ -178,7 +178,7 @@ getCustomGroupCssByColor: function(color) {
 },
 
 getCustomGroupColor: function(groupName) {
-	return optionalWithDefault(this.getCustomGroupProp(groupName, "color"), "none");
+	return this.getCustomGroupProp(groupName, "color") ?? "none";
 },
 
 getCustomGroupCss: function(groupName) {

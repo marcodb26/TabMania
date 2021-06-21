@@ -399,6 +399,17 @@ DONE 2.0
   * Using a reversed color (based on "incognito colors") for standard badges in incognito tiles
   * Other badge colors are the same for both standard and incognito tiles
 
+- BUG: when updating custom group color in Settings, only TilesGroupViewer gets
+  updated (header), not the individual tiles inside of it
+  * The problem was that we continued to add new callout color CSS classes without ever
+    removing the old ones already there, and CSS precedence rules would decide which
+	color to render
+
+- BUG: the left-most color in the custom group definition is the color "None", and it should
+  imply no callout is displayed, and the standard badge colors are used
+
+- CSS: Use remapped color (--tm-[color]) variables for callout border colors
+
 
 DONE 1.3
 

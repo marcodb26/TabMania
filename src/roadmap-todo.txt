@@ -1,27 +1,12 @@
 TODO 2.0
 
-- BUG: If customGroup has "bg-light" color, the text must use a dark color, otherwise it's
-  invisible
-- BUG: the left-most color in the custom group definition is the color "None", and it should
-  imply no callout is displayed, and the standard badge colors are used
 - BUG: choosing custom group color "grey" results in invisible badge background in
   incognito mode
 - Use "incognito colors" for incognito tiles
-- CSS: Use remapped color variables for callout border colors
 
 - "This site can't be reached / mail.yahoo.com took too long to respond."
   * When this error occurs, the tab title changes to the URL
     - Can we persist showing the last known title while the page is in this error state?
-
-- BUG: when updating custom group color in Settings, only TilesGroupViewer gets
-  updated (header), not the individual tiles inside of it
-
-- customGroup color doesn't get updated in left-border of tiles (only in group title
-  and in badge)
-  * The problem is that tiles are cached, but customGroup color is not part of the
-    tile rendering state, so we don't notice the change
-	- Need to make the customGroup color part of the rendering state
-	- But then, why does the badge color get updated???
 
 - Finish multi-select mode
   * Add "pin" action in multi-select mode

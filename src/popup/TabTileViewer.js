@@ -13,6 +13,10 @@ Classes.TabTileViewer = Classes.Viewer.subclass({
 	// "_renderState" includes: title, url, imgUrl, etc.
 	_renderState: null,
 
+	// We need to track the tile callout color to simplify removal of old callout
+	// color CSS classes
+	_tileColor: null,
+
 	// Since we take some async rendering actions, and in some cases these actions can be
 	// cancelled, we need to track if the actions have completed, otherwise when caching
 	// we might be caching an unrendered icon that thinks it's rendered...
@@ -529,6 +533,36 @@ _processMenuViewer: function() {
 	}
 },
 
+_setTileColor: function(color) {
+	const logHead = "TabTileViewer._setTileColor():";
+
+	// Just making sure the caller never passes "null", as that would require
+	// replacing it with "none"
+	this._assert(color != null, logHead);
+
+	if(this._tileColor == color) {
+		// Nothing to do
+		this._log(logHead, "nothing to do", color, this._tileColor);
+		return;
+	}
+
+	let cgm = settingsStore.getCustomGroupsManager();
+
+	if(this._tileColor != null && this._tileColor != "none") {
+		// _tileColor can be "null" when it's still not initialized, that is, before
+		// the first time this function gets called
+		this._log(logHead, "removing old color", this._tileColor);
+		this.removeClasses("tm-callout", cgm.getCustomGroupCssByColor(this._tileColor));
+	}
+
+	if(color != "none") {
+		this._log(logHead, "adding color", color);
+		this.addClasses("tm-callout", cgm.getCustomGroupCssByColor(color));
+	}
+
+	this._tileColor = color;
+},
+
 _renderBodyInner: function() {
 	const logHead = "TabTileViewer::_renderBodyInner(): ";
 	let visibleBadgesHtml = [];
@@ -568,7 +602,7 @@ _renderBodyInner: function() {
 
 	if(this._renderState.customGroupName != null) {
 		let cgm = settingsStore.getCustomGroupsManager();
-		this.addClasses("tm-callout", cgm.getCustomGroupCssByColor(this._renderState.customGroupColor));
+		this._setTileColor(this._renderState.customGroupColor);
 		visibleBadgesHtml.push(this._badgeHtml(this._renderState.customGroupName,
 												this._renderState.customGroupColor));
 	}

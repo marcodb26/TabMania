@@ -131,12 +131,21 @@ _TilesGroupViewer_render: function() {
 	this.addExpandedStartListener(this._containerExpandedCb.bind(this));
 	this.addCollapsedStartListener(this._containerCollapsedCb.bind(this));
 
+	let headingOuterClasses = [ "tm-customgroup-header" ];
+
 	if(this._tabGroup.type == Classes.GroupsBuilder.Type.CUSTOM) {
 		let cgm = settingsStore.getCustomGroupsManager();
-		this.addHeadingOuterClasses("tm-customgroup-header", "tm-callout", cgm.getCustomGroupCss(this._groupName));
-	} else {
-		this.addHeadingOuterClasses("tm-customgroup-header");
+		let colorCss = cgm.getCustomGroupCss(this._groupName);
+		// When "color" is "none", "colorCss" is an empty string. Unfortunately
+		// when an argument is an empty string, Element.classList.add() returns a
+		// "DOMException: Failed to execute 'add' on 'DOMTokenList': The token
+		// provided must not be empty.".
+		// So we must explicitly avoid that case
+		if(colorCss != "") {
+			headingOuterClasses.push("tm-callout", colorCss);
+		}
 	}
+	this.addHeadingOuterClasses(...headingOuterClasses);
 },
 
 // This function tracks whether a specific group key is currently expanded or collapsed.

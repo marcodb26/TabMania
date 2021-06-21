@@ -725,28 +725,28 @@ Encoded with https://www.base64encode.org/
    See .tm-accordion-button:focus for the reasons why we need the ":focus"
    override here.
 */
-.tm-callout-grey, .tm-callout-grey:focus {
-	border-left-color: var(--bs-gray)!important;
+.tm-callout-gray, .tm-callout-gray:focus {
+	border-left-color: var(--tm-gray)!important;
 }
 
 .tm-callout-blue, .tm-callout-blue:focus {
-	border-left-color: var(--bs-blue)!important;
+	border-left-color: var(--tm-blue)!important;
 }
 
 .tm-callout-red, .tm-callout-red:focus {
-	border-left-color: var(--bs-red)!important;
+	border-left-color: var(--tm-red)!important;
 }
 
 .tm-callout-yellow, .tm-callout-yellow:focus {
-	border-left-color: var(--bs-yellow)!important;
+	border-left-color: var(--tm-yellow)!important;
 }
 
 .tm-callout-green, .tm-callout-green:focus {
-	border-left-color: var(--bs-green)!important;
+	border-left-color: var(--tm-green)!important;
 }
 
 .tm-callout-cyan, .tm-callout-cyan:focus {
-	border-left-color: var(--bs-cyan)!important;
+	border-left-color: var(--tm-cyan)!important;
 }
 
 /* Bootstrap's "form-check-input" uses a white dot when a radio item
