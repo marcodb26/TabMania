@@ -48,15 +48,19 @@ _init: function(tabGroup, expandedGroups, incognitoStyle=false) {
 
 _TilesGroupViewer_renderHeading: function() {
 	let lightIconClass = "text-secondary";
+	let badgeBgClass = "bg-dark";
+	let badgeTextClass = ""; // Use the default from class .badge
 
 	if(this._incognitoStyle) {
 		lightIconClass = "text-white-50";
+		badgeBgClass = "tm-bg-incognito-white";
+		badgeTextClass = "tm-text-incognito-dark";
 	}
 
 	let iconBadgeHtml = `
 		<div class="tm-overlay tm-full-size">
 			<div class="tm-icon-badge-pos small">
-				<span class="badge tm-icon-badge bg-dark">${this._tabGroup.tabs.length}</span>
+				<span class="badge tm-icon-badge ${badgeTextClass} ${badgeBgClass}">${this._tabGroup.tabs.length}</span>
 			</div>
 		</div>
 	`;
@@ -124,7 +128,7 @@ _TilesGroupViewer_renderHeading: function() {
 
 _TilesGroupViewer_render: function() {
 	if(this._incognitoStyle) {
-		this.addClasses("bg-secondary", "text-light", "border-dark");
+		this.addClasses("tm-bg-incognito", "tm-text-incognito", "border-dark");
 	}
 
 	this._TilesGroupViewer_renderHeading();

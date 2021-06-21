@@ -414,6 +414,12 @@ DONE 2.0
   * For consistency with our CSS color variables and classes
   * Included backward compatibility logic just in case
 
+- Using "incognito colors" for incognito tiles
+  * Addresses the issue with custom group color "gray" resulting in invisible custom group badge
+    background and callout color in incognito mode
+  * With these darker colors, the visiblity of some favIcons improves somewhat
+    - Especially the Chrome default favIcon (the small stylized gray globe)
+
 
 DONE 1.3
 

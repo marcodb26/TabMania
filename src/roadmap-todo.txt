@@ -1,15 +1,14 @@
 TODO 2.0
 
-- BUG: choosing custom group color "gray" results in invisible badge background in
-  incognito mode
-- Use "incognito colors" for incognito tiles
-
 - "This site can't be reached / mail.yahoo.com took too long to respond."
   * When this error occurs, the tab title changes to the URL
     - Can we persist showing the last known title while the page is in this error state?
 
 - Finish multi-select mode
   * Add "pin" action in multi-select mode
+
+- Remove "multi-highlight" menu item in multi-select
+  * Not very useful, "highlight" in Chrome only allows actions within a Chrome window
 
 - BUG: non existing tab still showing in tab list
   * Did we miss to remove it? Did it ever exist? Not clear
@@ -68,8 +67,6 @@ TODO 2.0
 - popup/TabsManager.js must generate updates also when pinned bookmarks get updated
   * How do we do that? We only compare _normTabs, which doesn't include _filteredPinnedBookmarks
     - Who manages diffs for _filteredPinnedBookmarks?
-
-- BUG: side color doesn't work for tiles of custom groups in incognito tiles
 
 - Fix "deduplicate links from other tabs" based on the functionality
   implemented in the popup TabsManager.js

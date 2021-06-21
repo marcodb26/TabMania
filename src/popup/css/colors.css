@@ -92,6 +92,7 @@
 	background-color: var(--tm-incognito);
 }
 
+/* Lighter than .tm-bg-incognito, but still very dark */
 .tm-bg-incognito-light {
 	background-color: var(--tm-incognito-light);
 }

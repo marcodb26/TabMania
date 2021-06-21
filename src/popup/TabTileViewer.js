@@ -577,7 +577,7 @@ _renderBodyInner: function() {
 	let favIconParentClasses = [];
 
 	if(this._renderState.incognito) {
-		this.addClasses("bg-secondary", "text-light", "border-dark");
+		this.addClasses("tm-bg-incognito", "tm-text-incognito", "border-dark");
 		// Bootstrap "text-muted" only works for light backgrounds
 		textMutedClass = "text-white-50";
 		lightIconClass = "text-white-50";
