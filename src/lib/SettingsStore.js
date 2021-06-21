@@ -75,6 +75,11 @@ _parseRegex: function(matchList) {
 		}.bind(this)
 	)
 
+	if(trimmedList.length == 0) {
+		// No content
+		return null;
+	}
+
 	let fullExpr = trimmedList.join("|")
 	this._log(logHead + "after split: " , fullExpr);
 

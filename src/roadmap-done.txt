@@ -420,6 +420,12 @@ DONE 2.0
   * With these darker colors, the visiblity of some favIcons improves somewhat
     - Especially the Chrome default favIcon (the small stylized gray globe)
 
+- BUG: empty hostname in custom group attracts all tabs
+  * Create a custom group
+  * Add a hostname
+  * Remove the hostname
+    - All tabs now match the custom group
+
 
 DONE 1.3
 

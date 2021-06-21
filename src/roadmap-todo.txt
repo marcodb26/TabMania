@@ -79,12 +79,6 @@ TODO 2.0
   * We should make sure each class (TabsManager and TabsBsTabViewer) only reacts for the
     properties they care about
 
-- BUG: empty hostname in custom group attracts all tabs
-  * Create a custom group
-  * Add a hostname
-  * Remove the hostname
-    - All tabs now match the custom group
-
 - When opening a new tab with a URL, intercept the tab creation and determine if the
   URL is already opened in another tab, in which case activate that tab
   * Track the first "onUpdated" if the URL is not available in the "onCreated"
