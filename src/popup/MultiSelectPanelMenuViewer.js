@@ -12,7 +12,6 @@ Classes.MultiSelectPanelMenuViewer = Classes.MenuViewer.subclass({
 
 	_pinMenuItem: null,
 	_moveMenuItem: null,
-	_highlightMenuItem: null,
 	_closeMenuItem: null,
 
 _init: function(useIncognitoStyle=false) {
@@ -54,12 +53,10 @@ _initMenuItems: function() {
 
 	this.appendDivider();
 
-	this._pinMenuItem = this._addMenuItem("Pin selection",
+	this._pinMenuItem = this._addMenuItem("Pin/unpin selection",
 								Classes.MultiSelectPanelMenuViewer.Events.TABSPINNED);
 	this._moveMenuItem = this._addMenuItem("Move/open selection in new window",
 								Classes.MultiSelectPanelMenuViewer.Events.TABSMOVED);
-	this._highlightMenuItem = this._addMenuItem("Toggle highlight",
-								Classes.MultiSelectPanelMenuViewer.Events.TABSHIGHLIGHTED);
 	this._closeMenuItem = this._addMenuItem("Close/delete selection",
 								Classes.MultiSelectPanelMenuViewer.Events.TABSCLOSED);
 },
@@ -78,14 +75,12 @@ discard: function() {
 enableActions: function(flag=true) {
 	this._pinMenuItem.enable(flag);
 	this._moveMenuItem.enable(flag);
-	this._highlightMenuItem.enable(flag);
 	this._closeMenuItem.enable(flag);
 },
 
 }); // Classes.MultiSelectPanelMenuViewer
 
 Classes.Base.roDef(Classes.MultiSelectPanelMenuViewer, "Events", {});
-Classes.Base.roDef(Classes.MultiSelectPanelMenuViewer.Events, "TABSHIGHLIGHTED", "tmTabsHighlighted");
 Classes.Base.roDef(Classes.MultiSelectPanelMenuViewer.Events, "TABSCLOSED", "tmTabsClosed");
 Classes.Base.roDef(Classes.MultiSelectPanelMenuViewer.Events, "TABSMOVED", "tmTabsMoved");
 Classes.Base.roDef(Classes.MultiSelectPanelMenuViewer.Events, "TABSPINNED", "tmTabsPinned");

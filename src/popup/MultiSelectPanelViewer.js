@@ -234,12 +234,10 @@ _renderPanel: function() {
 	this._elw.listen(this._menuViewer, Classes.MultiSelectPanelViewer.Events.CLOSED, this._forwardEventCb.bind(this), false);
 	this._elw.listen(this._menuViewer, Classes.MultiSelectPanelViewer.Events.LISTED, this._forwardEventCb.bind(this), false);
 
-	this._elw.listen(this._menuViewer, Classes.MultiSelectPanelMenuViewer.Events.TABSHIGHLIGHTED,
-						this._tabsHighlightedCb.bind(this), false);
-	this._elw.listen(this._menuViewer, Classes.MultiSelectPanelMenuViewer.Events.TABSCLOSED,
-						this._tabsClosedCb.bind(this), false);
 	this._elw.listen(this._menuViewer, Classes.MultiSelectPanelMenuViewer.Events.TABSPINNED,
 						this._tabsPinnedCb.bind(this), false);
+	this._elw.listen(this._menuViewer, Classes.MultiSelectPanelMenuViewer.Events.TABSCLOSED,
+						this._tabsClosedCb.bind(this), false);
 	this._elw.listen(this._menuViewer, Classes.MultiSelectPanelMenuViewer.Events.TABSMOVED,
 						this._tabsMovedCb.bind(this), false);
 
@@ -295,52 +293,51 @@ _groupSelectedTabs: function() {
 	return retVal;
 },
 
-_tabsHighlightedCb: function(ev) {
-	const logHead = "MultiSelectPanelViewer._tabsHighlightedCb():";
+_tabsPinnedCb: function(ev) {
+	const logHead = "MultiSelectPanelViewer._tabsPinnedCb():";
 
-	let anyHighlighted = false;
-	let anyInactive = false;
+	let anyPinned = false;
 
-	let tabs = this._groupSelectedTabs()[Classes.TabNormalizer.type.TAB];
+	let tabGroups = this._groupSelectedTabs();
+	let tabs = tabGroups[Classes.TabNormalizer.type.TAB] ?? [];
+	let bookmarks = tabGroups[Classes.TabNormalizer.type.BOOKMARK] ?? [];
 
-	if(tabs == null) {
-		// No tabs selected, nothing to do
+	// Exclude Classes.TabNormalizer.type.RCTAB and HISTORY, can't pin them
+	if(tabs.length == 0 && bookmarks.length == 0) {
+		this._log(logHead, "empty selection, nothing to do", tabGroups);
 		return;
 	}
 
-	for(let i = 0; i < tabs.length; i++) {
-		if(!tabs[i].active) {
-			anyInactive = true;
-			if(tabs[i].highlighted) {
-				anyHighlighted = true;
-			}
+	for(let i = 0; i < tabs.length && !anyPinned; i++) {
+		if(tabs[i].pinned) {
+			anyPinned = true;
 		}
 	}
 
-	let needHighlight = false;
-
-	if(!anyInactive) {
-		// The selection is made of only active tabs. Active tabs are always highlighted,
-		// and removing highlight of an active tab will only work if there are other
-		// highlighted tabs in the same window. We'll try...
-		needHighlight = false;
-	} else {
-		// Follow the same behavior of the multi-select checkbox: if any of the non-active
-		// tabs is already highlighted, pick the "remove highlight" action, while if they're
-		// all not highlighted, pick the "set highlight" action
-		needHighlight = !anyHighlighted;
+	for(let i = 0; i < bookmarks.length && !anyPinned; i++) {
+		if(bookmarks[i].pinned) {
+			anyPinned = true;
+		}
 	}
-	this._log(logHead, "highlighting", needHighlight, tabs);
+
+	// Follow the same behavior of the multi-select checkbox: if any tabs/bookmarks
+	// are already pinned, pick the "remove pin" action, while if they're all not
+	// pinned, pick the "set pin" action
+	this._log(logHead, anyPinned ? "unpinning" : "pinning", tabs, bookmarks);
 
 	for(let i = 0; i < tabs.length; i++) {
-		// We chose to use chrome.tabs.update() instead of chrome.tabs.highlight() for a number
-		// of reasons:
-		// 1. chrome.tabs.highlight() can only add, not remove, highlight
-		// 2. chrome.tabs.highlight() works with tab indices, not with tab IDs.
-		//    That's unfortunate, because this._tabsStoreAll doesn't track tab index changes,
-		//    so here we would need to get the latest tab index for each tab, otherwise we might end
-		//    up highlighting the wrong tab...
-		chromeUtils.wrap(chrome.tabs.update, logHead, tabs[i].id, { highlighted: needHighlight });
+		chromeUtils.wrap(chrome.tabs.update, logHead, tabs[i].id, { pinned: !anyPinned });
+	}
+
+	if(bookmarks.length == 0) {
+		return;
+	}
+
+	let bmIds = bookmarks.map(bm => bm.bookmarkId);
+	if(anyPinned) {
+		settingsStore.unpinManyBookmarks(bmIds);
+	} else {
+		settingsStore.pinManyBookmarks(bmIds);
 	}
 },
 
@@ -377,7 +374,7 @@ _tabsClosedCb: function(ev) {
 
 	let tabGroups = this._groupSelectedTabs();
 
-	// Exclude Skip Classes.TabNormalizer.type.RCTAB, can't delete them
+	// Exclude Classes.TabNormalizer.type.RCTAB, can't delete them
 	if(tabGroups[Classes.TabNormalizer.type.TAB] == null &&
 	   tabGroups[Classes.TabNormalizer.type.BOOKMARK] == null &&
 	   tabGroups[Classes.TabNormalizer.type.HISTORY] == null) {
@@ -427,11 +424,6 @@ _tabsClosedCb: function(ev) {
 	// API to delete a recently closed tab
 },
 
-_tabsPinnedCb: function(ev) {
-	const logHead = "MultiSelectPanelViewer._tabsPinnedCb():";
-	this._log(logHead, "not implemented");
-},
-
 // This function moves standard tabs, or creates new tabs from bookmarks and history items
 _tabsMovedCb: async function(ev) {
 	const logHead = "MultiSelectPanelViewer._tabsMovedCb():";
@@ -462,12 +454,12 @@ _tabsMovedCb: async function(ev) {
 	tabs = tabGroups[Classes.TabNormalizer.type.BOOKMARK];
 	if(tabs != null) {
 		tabs.sort(Classes.TabNormalizer.compareTitlesFn);
-		urls = urls.concat(tabs.map( tab => tab.url));
+		urls = urls.concat(tabs.map(tab => tab.url));
 	}
 	tabs = tabGroups[Classes.TabNormalizer.type.HISTORY];
 	if(tabs != null) {
 		tabs.sort(Classes.TabNormalizer.compareTitlesFn);
-		urls = urls.concat(tabs.map( tab => tab.url));
+		urls = urls.concat(tabs.map(tab => tab.url));
 	}
 
 	if(urls.length == 0) {

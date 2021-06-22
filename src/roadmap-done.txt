@@ -438,6 +438,16 @@ DONE 2.0
 
 - BUG: pinning a tab doesn't trigger a re-sort
 
+- Added persistentSet.addMany() and persistentDict.delMany()
+  * Generate a single notification for the set of elements added/deleted, instead of one
+    per element
+
+- Added "pin" action in multi-select mode
+  * Multi-select mode should now be complete for v2.0
+
+- Removed "multi-highlight" action in multi-select mode
+  * Not very useful, "highlight" in Chrome only allows actions within a Chrome window
+
 
 DONE 1.3
 

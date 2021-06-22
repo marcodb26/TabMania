@@ -530,8 +530,16 @@ pinBookmark: function(bmId) {
 	return this._pinnedBookmarks.add(bmId);
 },
 
+pinManyBookmarks: function(bmIdList) {
+	return this._pinnedBookmarks.addMany(bmIdList);
+},
+
 unpinBookmark: function(bmId) {
 	return this._pinnedBookmarks.del(bmId);
+},
+
+unpinManyBookmarks: function(bmIdList) {
+	return this._pinnedBookmarks.delMany(bmIdList);
 },
 
 getCustomGroupsManager: function() {

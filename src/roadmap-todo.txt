@@ -4,12 +4,6 @@ TODO 2.0
   * When this error occurs, the tab title changes to the URL
     - Can we persist showing the last known title while the page is in this error state?
 
-- Finish multi-select mode
-  * Add "pin" action in multi-select mode
-
-- Remove "multi-highlight" menu item in multi-select
-  * Not very useful, "highlight" in Chrome only allows actions within a Chrome window
-
 - BUG: non existing tab still showing in tab list
   * Did we miss to remove it? Did it ever exist? Not clear
 
@@ -28,8 +22,6 @@ TODO 2.0
   * And unselecting calls addTab() then removeTab()
 
 - BUG: Yahoo Mail seems to enter an infinite "Loading" state at random (reload?)
-
-- BUG: pinning a tab doesn't trigger a re-sort
 
 - BUG: gmail showed up twice even though there was only one tab
   * One tab showed "SC1" (shortcut), the other didn't
