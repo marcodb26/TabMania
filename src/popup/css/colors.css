@@ -47,6 +47,9 @@
 	--tm-green: var(--bs-green);
 	--tm-cyan: var(--bs-cyan);
 
+	--tm-pink: #ffc0cb; /* Same as CSS "pink" in Chrome, --bs-pink is too dark */
+	--tm-purple: #800080; /* Same as CSS "purple" in Chrome */
+
 	--tm-red-dark: #a60c29;
 	--tm-blue-dark: #074297;
 
@@ -60,55 +63,70 @@
 	--tm-incognito-text: #e8eaed;
 }
 
+/* Without "!important", the bg colors of radio checkboxes are ignored when the
+   radio checkbox is selected (e.g. in the color picker for custom groups)
+*/
 .tm-bg-dark {
-	background-color: var(--tm-dark);
+	background-color: var(--tm-dark)!important;
 }
 
 .tm-bg-gray {
-	background-color: var(--tm-gray);
+	background-color: var(--tm-gray)!important;
 }
 
 .tm-bg-blue {
-	background-color: var(--tm-blue);
+	background-color: var(--tm-blue)!important;
 }
 
 .tm-bg-red {
-	background-color: var(--tm-red);
+	background-color: var(--tm-red)!important;
 }
 
 .tm-bg-yellow {
-	background-color: var(--tm-yellow);
+	background-color: var(--tm-yellow)!important;
 }
 
 .tm-bg-green {
-	background-color: var(--tm-green);
+	background-color: var(--tm-green)!important;
+}
+
+.tm-bg-pink {
+	background-color: var(--tm-pink)!important;
+}
+
+.tm-bg-purple {
+	background-color: var(--tm-purple)!important;
 }
 
 .tm-bg-cyan {
-	background-color: var(--tm-cyan);
+	background-color: var(--tm-cyan)!important;
 }
 
 .tm-bg-incognito {
-	background-color: var(--tm-incognito);
+	background-color: var(--tm-incognito)!important;
 }
 
 /* Lighter than .tm-bg-incognito, but still very dark */
 .tm-bg-incognito-light {
-	background-color: var(--tm-incognito-light);
+	background-color: var(--tm-incognito-light)!important;
 }
 
 .tm-bg-incognito-white {
-	background-color: var(--tm-incognito-white);
+	background-color: var(--tm-incognito-white)!important;
 }
 
 .tm-text-white {
-	color: var(--tm-white);
+	color: var(--tm-white)!important;
+}
+
+.tm-text-dark {
+	color: var(--tm-dark)!important;
 }
 
 .tm-text-incognito {
-	color: var(--tm-incognito-text);
+	color: var(--tm-incognito-text)!important;
 }
 
 .tm-text-incognito-dark {
-	color: var(--tm-incognito);
+	color: var(--tm-incognito)!important;
 }

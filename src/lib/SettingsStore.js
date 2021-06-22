@@ -175,7 +175,9 @@ _colorToCalloutCss: {
 	red: "tm-callout-red",
 	yellow: "tm-callout-yellow",
 	green: "tm-callout-green",
-	cyan: "tm-callout-cyan"
+	pink: "tm-callout-pink",
+	purple: "tm-callout-purple",
+	cyan: "tm-callout-cyan",
 },
 
 getCustomGroupCssByColor: function(color) {

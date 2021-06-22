@@ -71,7 +71,7 @@ function testSettings() {
 		matchList: "crunchbase.com\nowler.com"
 	});
 	settingsStore.getCustomGroupsManager().setCustomGroup("Wikipedia", {
-		color: "cyan",
+		color: "purple",
 		matchList: "wikipedia.org"
 	});
 	settingsStore.getCustomGroupsManager().setCustomGroup("News", {

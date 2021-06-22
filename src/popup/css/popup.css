@@ -749,6 +749,14 @@ Encoded with https://www.base64encode.org/
 	border-left-color: var(--tm-cyan)!important;
 }
 
+.tm-callout-pink, .tm-callout-pink:focus {
+	border-left-color: var(--tm-pink)!important;
+}
+
+.tm-callout-purple, .tm-callout-purple:focus {
+	border-left-color: var(--tm-purple)!important;
+}
+
 /* Bootstrap's "form-check-input" uses a white dot when a radio item
    is checked. That breaks when the background color of the radio item
    is really light or white. This class covers that case (SVG sourced

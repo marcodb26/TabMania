@@ -417,9 +417,17 @@ _colorToCss: {
 		bg: "tm-bg-green",
 		text: "tm-text-white",
 	},
+	pink: {
+		bg: "tm-bg-pink",
+		text: "tm-text-dark",
+	},
+	purple: {
+		bg: "tm-bg-purple",
+		text: "tm-text-white",
+	},
 	cyan: {
 		bg: "tm-bg-cyan",
-		text: "tm-text-white",
+		text: "tm-text-dark",
 	},
 },
 
@@ -429,6 +437,14 @@ _colorToCssIncognito: {
 	// "none" is the color we'll show when no color is set
 	none: {
 		bg: "tm-bg-incognito-white",
+		text: "tm-text-incognito-dark",
+	},
+	pink: {
+		bg: "tm-bg-pink",
+		text: "tm-text-incognito-dark",
+	},
+	cyan: {
+		bg: "tm-bg-cyan",
 		text: "tm-text-incognito-dark",
 	},
 },

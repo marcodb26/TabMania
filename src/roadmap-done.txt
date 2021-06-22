@@ -426,6 +426,10 @@ DONE 2.0
   * Remove the hostname
     - All tabs now match the custom group
 
+- Added custom group colors "pink" and "purple" to match color set from Chrome's tab groups
+  * Though the actual color hues are not identical
+  * Also switched "cyan" text to dark color to increase contrast
+
 
 DONE 1.3
 

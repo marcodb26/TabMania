@@ -542,12 +542,14 @@ _setAttributesHtml: function(extraAttrs) {
 _colorData: {
 	// "none" is the color we'll show when no color is set
 	none: [ "bg-light", "tm-check-reversed" ],
-	gray: [ "bg-secondary", "" ],
-	blue: [ "bg-primary", "" ],
-	red: [ "bg-danger", "" ],
-	yellow: [ "bg-warning", "" ],
-	green: [ "bg-success", "" ],
-	cyan: [ "bg-info", "" ]
+	gray: [ "tm-bg-gray", "" ],
+	blue: [ "tm-bg-blue", "" ],
+	red: [ "tm-bg-red", "" ],
+	yellow: [ "tm-bg-yellow", "" ],
+	green: [ "tm-bg-green", "" ],
+	pink: [ "tm-bg-pink", "" ],
+	purple: [ "tm-bg-purple", "" ],
+	cyan: [ "tm-bg-cyan", "" ]
 },
 
 _colorNameToCss: function(colorName) {
