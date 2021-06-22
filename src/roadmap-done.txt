@@ -442,7 +442,7 @@ DONE 2.0
   * Generate a single notification for the set of elements added/deleted, instead of one
     per element
 
-- Added "pin" action in multi-select mode
+- Added "pin/unpin" action in multi-select mode
   * Multi-select mode should now be complete for v2.0
 
 - Removed "multi-highlight" action in multi-select mode
