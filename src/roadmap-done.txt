@@ -436,6 +436,8 @@ DONE 2.0
   shows a confirmation dialog with an incomplete sentence
   * Decided to leave the action early without any user feedback in this case
 
+- BUG: pinning a tab doesn't trigger a re-sort
+
 
 DONE 1.3
 

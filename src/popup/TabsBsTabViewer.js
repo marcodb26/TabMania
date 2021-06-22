@@ -305,7 +305,7 @@ _processTabUpdate: function(tab, scheduledFullRender) {
 		this._queryAndRenderJob.run(this._queryAndRenderDelay);
 		return true;
 	}
-	// Case 2.5: title change. when we show all tabs, we only care about sortTitle changes,
+	// Case 2.5: title change. When we show all tabs, we only care about sortTitle changes,
 	// but when we're in search mode, we also care about title changes, because a title change
 	// could trigger a tab to stop being part of a search results set
 	if(this.isSearchActive()) {
@@ -328,6 +328,13 @@ _processTabUpdate: function(tab, scheduledFullRender) {
 
 	// Case 4: custom group change
 	if(oldRenderState.customGroupName != renderState.customGroupName) {
+		this._queryAndRenderJob.run(this._queryAndRenderDelay);
+		return true;
+	}
+
+	// Case 5: pinning change. Pinned tabs show above unpinned tabs, so a pin change
+	// requires a resorting of the tabs
+	if(oldRenderState.pinned != renderState.pinned) {
 		this._queryAndRenderJob.run(this._queryAndRenderDelay);
 		return true;
 	}
@@ -359,7 +366,7 @@ _tabUpdatedCb: function(ev) {
 		scheduledFullRender = this._processTabUpdate(ev.detail.tabs[i], scheduledFullRender) || scheduledFullRender;
 	}
 
-	this._log(logHead + "scheduledFullRender = ", scheduledFullRender);
+	this._log(logHead + "scheduledFullRender =", scheduledFullRender);
 
 	// In the case of updates, we don't always schedule a full re-render (see inside
 	// _processTabUpdate()), so we might need to blink explicitly here.
