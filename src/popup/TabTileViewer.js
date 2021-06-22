@@ -67,7 +67,7 @@ _init: function(tab, tabGroup, asyncQueue, forceIncognitoStyle=false) {
 	this.debug();
 
 	this._renderBodyCompleted = false;
-	this._touchHoverSerialPromises = Classes.SerialPromises.createAs(this._id + "::_touchHoverSerialPromises");
+	this._touchHoverSerialPromises = Classes.SerialPromises.createAs(this._id + "._touchHoverSerialPromises");
 	this._tab = tab;
 	this._asyncQueue = asyncQueue;
 	this._forceIncognitoStyle = forceIncognitoStyle;
@@ -94,10 +94,10 @@ _pointerOverCb: function(ev) {
 	// user to click on it. Hover with a mouse can be by chance, but the simulated
 	// "mouseover" attached to a touch screen or a pen is triggered by a very deliberate
 	// action that implies an interest to see the menu.
-	const logHead = "TabTileViewer::_pointerOverCb(): ";
+	const logHead = "TabTileViewer._pointerOverCb():";
 
 	if(this._menuViewer == null) {
-		this._log(logHead + "no _menuViewer, can't proceed", ev);
+		this._log(logHead, "no _menuViewer, can't proceed", ev);
 		return;
 	}
 
@@ -116,14 +116,14 @@ _pointerOverCb: function(ev) {
 			// (otherwise it would get called in order after the reset of _pointerUpCancelRecentlyFired).
 			// This is why it's best to work with the reset, rather than try to compute the
 			// time delta here.
-			this._log(logHead + "suppressing auto-opening dropdown " +
-								(performance.now() - this._pointerUpCancelRecentlyFired) +
+			this._log(logHead, "suppressing auto-opening dropdown",
+								performance.now() - this._pointerUpCancelRecentlyFired,
 								"ms after 'pointerup'/'pointercancel' event");
 			this._pointerUpCancelRecentlyFired = 0;
 			return Promise.resolve();
 		}
 
-		this._log(logHead + "opening menu", ev);
+		this._log(logHead, "opening menu", ev);
 		this._menuViewer.open();
 		return Promise.resolve();
 	}.bind(this);
@@ -173,8 +173,8 @@ _pointerUpCancelCb: function(ev) {
 		return;
 	}
 
-	const logHead = "TabTileViewer::_pointerUpCancelCb(): ";
-	this._log(logHead + "entering");
+	const logHead = "TabTileViewer._pointerUpCancelCb():";
+	this._log(logHead, "entering");
 	this._pointerUpCancelRecentlyFired = performance.now();
 	delay(500).then(function() { this._pointerUpCancelRecentlyFired = 0; } );
 },
@@ -188,7 +188,7 @@ _pointerUpCancelCb: function(ev) {
 // the CSS "visibility" style, and determines that if visibility has transitioned to "hidden",
 // then this._menuViewer.close() must be called.
 _hoverTransitionEndCb: function(ev) {
-	const logHead = "TabTileViewer::_hoverTransitionEndCb(): ";
+	const logHead = "TabTileViewer._hoverTransitionEndCb():";
 
 	if(ev.propertyName != "visibility") {
 		// Bootstrap has other animations on the dropdown toggle, let's make sure
@@ -201,9 +201,9 @@ _hoverTransitionEndCb: function(ev) {
 	// so it's not a huge performance drain
 	this._overlayVisible = window.getComputedStyle(ev.target).visibility !== "hidden";
 //	perfProf.mark("getComputedStyleEnd");
-//	perfProf.measure("TabTileViewer::getComputedStyle", "getComputedStyleStart", "getComputedStyleEnd");
+//	perfProf.measure("TabTileViewer.getComputedStyle", "getComputedStyleStart", "getComputedStyleEnd");
 
-	this._log(logHead + "entering, this._overlayVisible:", this._overlayVisible, ev);
+	this._log(logHead, "entering, this._overlayVisible:", this._overlayVisible, ev);
 
 	if(!this._overlayVisible) {
 		// If there was a past instance of "pointerover" still waiting to take action, cancel it.
@@ -211,7 +211,7 @@ _hoverTransitionEndCb: function(ev) {
 		// any harm to leave this action outside of the following check.
 		this._touchHoverSerialPromises.reset();
 		if(this._menuViewer == null) {
-			this._log(logHead + "no _menuViewer, can't proceed");
+			this._log(logHead, "no _menuViewer, can't proceed");
 		} else {
 			this._menuViewer.close();
 		}
@@ -491,7 +491,7 @@ _badgeHtml: function(txt, bgColor) {
 },
 
 _addBadgesHtml: function(visibleBadgesHtml, badgesList, secondary) {
-//	const logHead = "TabTileViewer::_addBadgesHtml(" + this._tab.id + "): ";
+//	const logHead = "TabTileViewer._addBadgesHtml(" + this._tab.id + "):";
 //	this._log(logHead, badgesList);
 	badgesList.forEach(
 		function(badge) {
@@ -513,8 +513,8 @@ _renderMenuInner: function() {
 			break;
 		default:
 			// A recently closed tab should not get here...
-			const logHead = "TabTileViewer::_renderMenuInner(tile " + this._id + "): ";
-			this._err(logHead + "unknown tmType", this._renderState.tmType);
+			const logHead = "TabTileViewer._renderMenuInner(tile " + this._id + "):";
+			this._err(logHead, "unknown tmType", this._renderState.tmType);
 			return;
 	}
 
@@ -523,7 +523,7 @@ _renderMenuInner: function() {
 },
 
 _renderMenu: function() {
-	const logHead = "TabTileViewer::_renderMenu(tile " + this._id + "): ";
+	const logHead = "TabTileViewer._renderMenu(tile " + this._id + "):";
 	this._asyncQueue.enqueue(this._renderMenuInner.bind(this), logHead,
 			// Use low priority queue for the menu, as it's not immediately visible
 			Classes.AsyncQueue.priority.LOW); 
@@ -534,7 +534,7 @@ _updateMenu: function() {
 		return;
 	}
 	this._asyncQueue.enqueue(this._menuViewer.update.bind(this._menuViewer, this._tab),
-			"TabTileViewer::_updateMenu(tile " + this._id + ")",
+			"TabTileViewer._updateMenu(tile " + this._id + ")",
 			// Use low priority queue for the menu, as it's not immediately visible
 			Classes.AsyncQueue.priority.LOW); 
 },
@@ -580,7 +580,7 @@ _setTileColor: function(color) {
 },
 
 _renderBodyInner: function() {
-	const logHead = "TabTileViewer::_renderBodyInner(): ";
+	const logHead = "TabTileViewer._renderBodyInner():";
 	let visibleBadgesHtml = [];
 	let titleExtraClasses = [];
 
@@ -611,7 +611,7 @@ _renderBodyInner: function() {
 			break;
 		default:
 			if(this._renderState.audio != null) {
-				this._err(logHead + "unknown this._renderState.audio = ", this._renderState.audio);
+				this._err(logHead, "unknown this._renderState.audio =", this._renderState.audio);
 			}
 			break;
 	}
@@ -649,7 +649,7 @@ _renderBodyInner: function() {
 				// Don't add any visual clue if the tab is fully loaded
 				break;
 			default:
-				this._err(logHead + "unknown this._renderState.status = ", this._renderState.status);
+				this._err(logHead, "unknown this._renderState.status =", this._renderState.status);
 				break;
 		}
 	}
@@ -673,7 +673,7 @@ _renderBodyInner: function() {
 			// No extra visual clue for standard tabs
 			break;
 		default:
-			this._err(logHead + "unknown this._renderState.tmType = ", this._renderState.tmType);
+			this._err(logHead, "unknown this._renderState.tmType =", this._renderState.tmType);
 			break;
 	}
 
@@ -770,7 +770,7 @@ _renderBodyInner: function() {
 // Returns a Promise that can be then() with a function(metaTags), where
 // "metaTags" is a dictionary of "name|property => value".
 _getTabMetaTags: function() {
-	const logHead = "TabTileViewer::_getTabMetaTags(" + this._tab.id + "): ";
+	const logHead = "TabTileViewer._getTabMetaTags(" + this._tab.id + "):";
 
 	// The following check is slightly inaccurate, we don't have restrictions
 	// accessing "chrome-extension://[this-extension]", only other extensions,
@@ -779,13 +779,13 @@ _getTabMetaTags: function() {
 	// About "chrome-error:", we can use extra permissions to access it, but
 	// not sure why we should.
 	if(["chrome:", "chrome-extension:", "chrome-error:"].includes(this._tab.tm.protocol)) {
-		this._log(logHead + "can't access URL with protocol \"" +
+		this._log(logHead, "can't access URL with protocol \"" +
 						this._tab.tm.protocol + "\"", this._tab.url);
 		return Promise.resolve(null);
 	}
 
 	if(this._tab.status == "unloaded" || this._tab.discarded) {
-		//this._log(logHead + "can't access URL of unloaded tab");
+		//this._log(logHead, "can't access URL of unloaded tab");
 		return Promise.resolve(null);
 	}
 
@@ -806,16 +806,16 @@ _getTabMetaTags: function() {
 			//this._log(logHead, result);
 			if(result.length == 1) {
 				if(result[0] == null) {
-					this._err(logHead + "the injected script failed to generate a return value", result);
+					this._err(logHead, "the injected script failed to generate a return value", result);
 					return null;
 				}
 				return result[0].parsed;
 			}
-			this._err(logHead + "unknown format for result = ", result);
+			this._err(logHead, "unknown format for result =", result);
 			return null;
 		}.bind(this),
 		function(chromeLastError) { // onRejected
-			this._err(logHead + "unknown error: " + chromeLastError.message, this._tab);
+			this._err(logHead, "unknown error:", chromeLastError.message, this._tab);
 			return chromeLastError;
 		}.bind(this)
 	);
@@ -870,7 +870,7 @@ _onTileClickCb: function(ev) {
 },
 
 _onTileCloseCb: function(ev) {
-	const logHead = "TabTileViewer::_onTileCloseCb(" + this._tab.id + "): ";
+	const logHead = "TabTileViewer._onTileCloseCb(" + this._tab.id + "):";
 
 	let removeFn = chrome.tabs.remove;
 	let fnParam = this._tab.id;
@@ -894,13 +894,13 @@ _onTileCloseCb: function(ev) {
 		default:
 			// Note that we don't have a "close" button for rcTabs, so
 			// we don't need to check for Classes.TabNormalizer.type.RCTAB
-			this._err(logHead + "unknown tab type", this_tab.tm.type);
+			this._err(logHead, "unknown tab type", this_tab.tm.type);
 			break;
 	}
 
 	chromeUtils.wrap(removeFn, logHead, fnParam).then(
 		function() {
-			this._log(logHead + completionMsg, fnParam);
+			this._log(logHead, completionMsg, fnParam);
 		}.bind(this)
 	);
 
@@ -1065,7 +1065,7 @@ _isRenderCompleted: function() {
 // described only the state of the tile, not the state of its menu. Its menu might have
 // changed, but we'd still return "false" because we can't easily track that.
 update: function(tab, tabGroup, queuePriority) {
-	const logHead = "TabTileViewer::update(): ";
+	const logHead = "TabTileViewer.update():";
 	if(tab == null) {
 		// Events like Classes.TabsManager.Events.ACTIVATED trigger a tile
 		// update, but there's no "tab" info to perform the actual update... what
@@ -1082,9 +1082,9 @@ update: function(tab, tabGroup, queuePriority) {
 		// all different types of tabs (tabs, rctabs, bmnodes, hitems). Since we always reuse
 		// a tile only to represent the same tab.id, the tab's type should remain constant,
 		// as no tab.id ever changes its type
-		this._assert(this._tab.id == tab.id, logHead + `tab.id changed from ${this._tab.id} to ${tab.id}`);
-		this._assert(this._tab.tm.type == tab.tm.type, logHead +
-						`type changed from ${this._tab.tm.type} to ${tab.tm.type} for tab ${this._tab.tm.extId}`);
+		this._assert(this._tab.id == tab.id, logHead, "tab.id changed from", this._tab.id, "to", tab.id);
+		this._assert(this._tab.tm.type == tab.tm.type, logHead,
+						"type changed from", this._tab.tm.type, "to", tab.tm.type, "for tab", this._tab.tm.extId);
 		this._tab = tab;
 	}
 
@@ -1097,7 +1097,7 @@ update: function(tab, tabGroup, queuePriority) {
 
 // The log below is useful when testing chrome.tabs events updates
 //	if(this._tab.id > 1952) {
-//		this._log(logHead + "rendering state:", this._renderState);
+//		this._log(logHead, "rendering state:", this._renderState);
 //	}
 
 	if(!this._renderBodyCompleted) {

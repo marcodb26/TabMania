@@ -163,7 +163,7 @@ _TilesGroupViewer_render: function() {
 // state when "collapse all" is done.
 _storeExpandedGroup: function(expanded) {
 	expanded = optionalWithDefault(expanded, true);
-	//const logHead = "TilesGroupViewer::_storeExpandedGroup(" + this._groupName + ", " + expanded + "): ";
+	//const logHead = "TilesGroupViewer._storeExpandedGroup(" + this._groupName + ", " + expanded + "):";
 
 	if(expanded) {
 		this._expandedGroups.add(this._groupName);
@@ -173,8 +173,8 @@ _storeExpandedGroup: function(expanded) {
 },
 
 _containerExpandedCb: function(ev) {
-	const logHead = "TilesGroupViewer::_containerExpandedCb(" + this._groupName + ", " + ev.target.id + "): ";
-	this._log(logHead + "container expanded", ev);
+	const logHead = "TilesGroupViewer._containerExpandedCb(" + this._groupName + ", " + ev.target.id + "):";
+	this._log(logHead, "container expanded", ev);
 
 	// The animation and visualization is done by Bootstrap, we just need to remember
 	// whether it's collapsed or expanded
@@ -182,8 +182,8 @@ _containerExpandedCb: function(ev) {
 },
 
 _containerCollapsedCb: function(ev) {
-	const logHead = "TilesGroupViewer::_containerCollapsedCb(" + this._groupName + ", " + ev.target.id + "): ";
-	this._log(logHead + "container collapsed", ev);
+	const logHead = "TilesGroupViewer._containerCollapsedCb(" + this._groupName + ", " + ev.target.id + "):";
+	this._log(logHead, "container collapsed", ev);
 
 	// The animation and visualization is done by Bootstrap, we just need to remember
 	// whether it's collapsed or expanded

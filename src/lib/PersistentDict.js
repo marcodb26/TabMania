@@ -26,14 +26,14 @@ Classes.PersistentDict = Classes.AsyncBase.subclass({
 	_initialized: null,
 
 // "storageObj" is either chrome.storage.local (default) or chrome.storage.sync
-_init: function(storageObj) {
+_init: function(storageObj=chrome.storage.local) {
 	this.debug();
 
 	// Set these properties before calling the parent _init(), because the
 	// parent _init() will trigger _asyncInit(), and when _asyncInit() runs,
 	// it needs to have these values available
 //	this._keyInStorage = keyInStorage;
-	this._storageObj = optionalWithDefault(storageObj, chrome.storage.local);
+	this._storageObj = storageObj;
 
 	this._eventManager = Classes.EventManager.create();
 	this._eventManager.attachRegistrationFunctions(this);
@@ -50,16 +50,16 @@ _asyncInit: function() {
 
 	let thisPromise = chromeUtils.storageGet(this._id, this._storageObj).then(
 		function(results) {
-			const logHead = "PersistentDict::_initDict().cb: ";
+			const logHead = "PersistentDict._initDict().cb:";
 
 			// Start empty
 			this._dict = {};
 
 			if(this._id in results) {
 				this._dict = results[this._id];
-				this._log(logHead + "initializing this._dict to ", this._dict);
+				this._log(logHead, "initializing this._dict to", this._dict);
 			} else {
-				this._log(logHead + "key " + this._id + " not found, initializing empty");
+				this._log(logHead, "key", this._id, "not found, initializing empty");
 			}
 		}.bind(this)
 	);
@@ -80,33 +80,33 @@ _asyncInit: function() {
 //},
 
 _onStorageChangedCb: function(changes, areaName) {
-	const logHead = "PersistentDict::_onStorageChangedCb(" + areaName + "): ";
+	const logHead = "PersistentDict._onStorageChangedCb(" + areaName + "):";
 
 	if(!this.isInitialized()) {
-		this._log(logHead + "still initializing, ignoring event");
+		this._log(logHead, "still initializing, ignoring event");
 		return;
 	}
 
 	if(chromeUtils.storageObjByAreaName(areaName) != this._storageObj) {
-		this._log(logHead + "not my storage object, ignoring event");
+		this._log(logHead, "not my storage object, ignoring event");
 		return;
 	}
 
 	if(!(this._id in changes)) {
-		this._log(logHead + "not my storage key, ignoring event", changes);
+		this._log(logHead, "not my storage key, ignoring event", changes);
 		return;
 	}
 
 	if(tmUtils.isEqual(this._dict, changes[this._id].newValue)) {
 		// We need to make this check because when we change a value, we receive
 		// a notification locally anyway (and we don't want to).
-		this._log(logHead + "the object has not changed, ignoring event", changes);
+		this._log(logHead, "the object has not changed, ignoring event", changes);
 		return;
 	}
 
-	this._log(logHead + "setting to ", changes[this._id]);
+	this._log(logHead, "setting to", changes[this._id]);
 	// If the key has been removed, we want to reinitialize _dict to {}
-	this._dict = optionalWithDefault(changes[this._id].newValue, {});
+	this._dict = changes[this._id].newValue ?? {};
 
 	// Since we don't call _persist() in this case, we need to explicitly
 	// dispatch the notification
@@ -168,7 +168,7 @@ set: function(key, value=null) {
 // to test for a "key" that's not in the dictionary. Alternatively you
 // can use has() below.
 get: function(key) {
-	let logHead = "PersistentDict.get():";
+	const logHead = "PersistentDict.get():";
 	// Let's assert this for safety, just in case
 	this._assert(this.isInitialized(), logHead, "still waiting for initialization");
 
@@ -180,10 +180,8 @@ get: function(key) {
 // and set() in any combination (they're strictly case sensitive), but at
 // least you can restrict the keys that can be added (useful for the titles
 // of custom groups)
-has: function(key, ignoreCase) {
-	ignoreCase = optionalWithDefault(ignoreCase, false);
-
-	let logHead = "PersistentDict.has():";
+has: function(key, ignoreCase=false) {
+	const logHead = "PersistentDict.has():";
 	// Let's assert this for safety, just in case
 	this._assert(this.isInitialized(), logHead, "still waiting for initialization");
 
@@ -204,26 +202,26 @@ has: function(key, ignoreCase) {
 // Rename by moving the object under a new key and deleting the old key.
 // "key" must exist, and "newKey" must not exist.
 rename: function(key, newKey) {
-	let logHead = "PersistentDict::rename(" + key + ", " + newKey + "): ";
+	const logHead = "PersistentDict.rename(" + key + ", " + newKey + "):";
 	// Let's assert this for safety, just in case
-	this._assert(this.isInitialized(), logHead + "still waiting for initialization");
+	this._assert(this.isInitialized(), logHead, "still waiting for initialization");
 
 	if(!(key in this._dict)) {
 		// No change
-		this._log(logHead + "original key not in _dict, nothing to do");
+		this._log(logHead, "original key not in _dict, nothing to do");
 		return Promise.resolve();
 	}
 
 	if(newKey in this._dict) {
 		// Can't overwrite an existing key
-		this._err(logHead + "new key already in _dict, can't overwrite");
+		this._err(logHead, "new key already in _dict, can't overwrite");
 		return Promise.reject();
 	}
 
 	this._dict[newKey] = this._dict[key];
 	delete this._dict[key];
 
-	this._log(logHead + "completed", this._dict);
+	this._log(logHead, "completed", this._dict);
 
 	return this._persist();
 },
@@ -241,9 +239,9 @@ _delInner: function(key) {
 },
 
 del: function(key) {
-	let logHead = "PersistentDict::del(): ";
+	const logHead = "PersistentDict.del():";
 	// Let's assert this for safety, just in case
-	this._assert(this.isInitialized(), logHead + "still waiting for initialization");
+	this._assert(this.isInitialized(), logHead, "still waiting for initialization");
 
 	if(this._delInner(key)) {
 		return this._persist();
@@ -269,13 +267,13 @@ delMany: function(keyList) {
 },
 
 setAll: function(dict) {
-	let logHead = "PersistentDict::setAll(): ";
+	const logHead = "PersistentDict.setAll():";
 	// Let's assert this for safety, just in case
-	this._assert(this.isInitialized(), logHead + "still waiting for initialization");
+	this._assert(this.isInitialized(), logHead, "still waiting for initialization");
 
 	if(tmUtils.isEqual(this._dict, dict)) {
 		// See set() for why we make this check
-		this._log(logHead + "the object has not changed, ignoring call", dict, this._dict);
+		this._log(logHead, "the object has not changed, ignoring call", dict, this._dict);
 		return Promise.resolve();
 	}
 
@@ -287,9 +285,9 @@ setAll: function(dict) {
 },
 
 getAll: function() {
-	let logHead = "PersistentDict::getAll(): ";
+	const logHead = "PersistentDict.getAll():";
 	// Let's assert this for safety, just in case
-	this._assert(this.isInitialized(), logHead + "still waiting for initialization");
+	this._assert(this.isInitialized(), logHead, "still waiting for initialization");
 
 	//this._err("getAll(): this._dict = ", this._dict);
 
@@ -313,9 +311,9 @@ getAll: function() {
 
 // Override parent class, in case of a Set, we just want to return an array of keys
 getAllKeys: function() {
-	let logHead = "PersistentSet::getAllKeys(): ";
+	const logHead = "PersistentSet.getAllKeys():";
 	// Let's assert this for safety, just in case
-	this._assert(this.isInitialized(), logHead + "still waiting for initialization");
+	this._assert(this.isInitialized(), logHead, "still waiting for initialization");
 
 	return Object.keys(this._dict);
 },
@@ -367,7 +365,7 @@ getAll: function() {
 },
 
 setAll: function(keys) {
-	let logHead = "PersistentSet::setAll(): ";
+	//const logHead = "PersistentSet.setAll():";
 
 	// Internally, PersistentDict.setAll() checks if the dictionary has changed. It's
 	// a bit expensive to have to create the whole "dict" just to let PersistentDict.setAll()

@@ -46,8 +46,8 @@ _asyncInit: function() {
 
 _onUpdatedCb: function(ev) {
 	let key = ev.detail.target.getId();
-	const logHead = "CustomGroupsManager::_onUpdatedCb(" + key + "): ";
-	this._log(logHead + "processing update");
+	const logHead = "CustomGroupsManager._onUpdatedCb():";
+	this._log(logHead, "processing update", key);
 
 	this._buildCustomGroups();
 
@@ -56,7 +56,7 @@ _onUpdatedCb: function(ev) {
 
 // Each line of the string "matchList" is a simplified-regex (or an empty line)
 _parseRegex: function(matchList) {
-	const logHead = "CustomGroupsManager::_parseRegex(" + matchList + "): ";
+	const logHead = "CustomGroupsManager._parseRegex():";
 
 	if(matchList == null) {
 		return null;
@@ -81,25 +81,25 @@ _parseRegex: function(matchList) {
 	}
 
 	let fullExpr = trimmedList.join("|")
-	this._log(logHead + "after split: " , fullExpr);
+	this._log(logHead, "after split:", matchList, fullExpr);
 
 	try {
 		return new RegExp(fullExpr);
 	} catch(e) {
-		this._err(logHead + "unable to parse regex", e);
+		this._err(logHead, "unable to parse regex", e, matchList);
 		return null;
 	}
 },
 
 _buildCustomGroups: function() {
-	const logHead = "CustomGroupsManager::_buildCustomGroups(): ";
+	const logHead = "CustomGroupsManager._buildCustomGroups():";
 	this._parsedCustomGroups = {};
 
 	let groupTitles = this.getCustomGroupNames();
 	groupTitles.forEach(
 		function(title) {
 			this._parsedCustomGroups[title] = this.getCustomGroup(title);
-			this._log(logHead + "processing group \"" + title + "\": ", this._parsedCustomGroups[title]);
+			this._log(logHead, "processing group \"" + title + "\":", this._parsedCustomGroups[title]);
 			// We could have done this in the variable initialization itself, but let's start
 			// behaving as if we're parsing this from a file...
 			this._parsedCustomGroups[title].parsedRegex = this._parseRegex(this._parsedCustomGroups[title].matchList);
@@ -155,13 +155,13 @@ getCustomGroupProp: function(name, prop) {
 },
 
 setCustomGroupProp: function(name, prop, value) {
-	const logHead = "CustomGroupsManager::setCustomGroupProp(" + name + ", " + prop + "): ";
+	const logHead = "CustomGroupsManager.setCustomGroupProp():";
 	if(!this._customGroupsStore.has(name)) {
-		this._err(logHead + "custom group not found");
+		this._err(logHead, "custom group not found", name);
 		return Promise.reject();
 	}
 
-	this._log(logHead + "setting value: ", value);
+	this._log(logHead, "setting value:", name, prop, value);
 	let groupInfo = this.getCustomGroup(name);
 	groupInfo[prop] = value;
 	return this.setCustomGroup(name, groupInfo);
@@ -339,8 +339,8 @@ _getBooleanOption: function(prop, defaultValue=false) {
 	// know what type of values are stored for each key, and this._getOption() must
 	// remain generic too).
 	// The real reason why we need this conversion is because in some cases we use
-	// optionalWithDefault() and optionalWithDefault() turns "undefined" to a default,
-	// while it doesn't turn "false" to a default.
+	// default values in the argument list of a function, and default values turn
+	// "undefined" to a default, but they don't turn "false" to a default.
 	let retVal = this._getOption(prop);
 	if(retVal == null) {
 		return defaultValue;

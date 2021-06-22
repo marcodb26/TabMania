@@ -96,7 +96,8 @@ _setShortcutMenuItems: function() {
 },
 
 _updateShortcutMenuItems: function() {
-	const logHead = "TabTileMenuViewer::_updateShortcutMenuItems(" + this._tab.id + "): ";
+	//const logHead = "TabTileMenuViewer._updateShortcutMenuItems(" + this._tab.id + "):";
+
 	// Here we need to unlink the existing shortcut menu items from the menu,
 	// then we can overwrite this._shortcutMenuItems and re-run _setShortcutMenuItems().
 	// Inefficient, but easy to implement.
@@ -231,43 +232,43 @@ _actionActivateCb: function(ev) {
 },
 
 _actionPinToggleCb: function(ev) {
-	const logHead = "TabTileMenuViewer::_actionPinToggleCb(" + this._tab.id + "): ";
+	const logHead = "TabTileMenuViewer._actionPinToggleCb(" + this._tab.id + "):";
 	chromeUtils.wrap(chrome.tabs.update, logHead,
 					this._tab.id, { pinned: !this._tab.pinned } ).then(
 		function() {
-			this._log(logHead + "completed");
+			this._log(logHead, "completed");
 		}.bind(this)
 	);
 },
 
 _actionUnpinByBookmarkCb: function(ev) {
-	const logHead = "TabTileMenuViewer::_actionUnpinByBookmarkCb(" + this._tab.id + "): ";
+	const logHead = "TabTileMenuViewer._actionUnpinByBookmarkCb():";
 	settingsStore.unpinBookmark(this._tab.tm.pinInherited.id);
-	this._log(logHead + "completed");
+	this._log(logHead, "completed for bm", this._tab.id);
 },
 
 _actionMuteToggleCb: function(ev) {
-	const logHead = "TabTileMenuViewer::_actionMuteToggleCb(" + this._tab.id + "): ";
+	const logHead = "TabTileMenuViewer._actionMuteToggleCb(" + this._tab.id + "):";
 	chromeUtils.wrap(chrome.tabs.update, logHead,
 					this._tab.id, { muted: !this._tab.mutedInfo.muted } ).then(
 		function() {
-			this._log(logHead + "completed");
+			this._log(logHead, "completed");
 		}.bind(this)
 	);
 },
 
 _actionHighlightToggleCb: function(ev) {
-	const logHead = "TabTileMenuViewer::_actionHighlightToggleCb(" + this._tab.id + "): ";
+	const logHead = "TabTileMenuViewer._actionHighlightToggleCb(" + this._tab.id + "):";
 	chromeUtils.wrap(chrome.tabs.update, logHead,
 					this._tab.id, { highlighted: !this._tab.highlighted } ).then(
 		function() {
-			this._log(logHead + "completed");
+			this._log(logHead, "completed");
 		}.bind(this)
 	);
 },
 
 _actionPlayToggleCb: function(ev) {
-	const logHead = "TabTileMenuViewer::_actionPlayToggleCb(" + this._tab.id + "): ";
+	const logHead = "TabTileMenuViewer._actionPlayToggleCb(" + this._tab.id + "):";
 	chromeUtils.inject(this._tab.id, "content-gen/inject-togglePlay.js").then(
 		function(result) { // onFulfilled
 			if(result == null) {
@@ -278,30 +279,30 @@ _actionPlayToggleCb: function(ev) {
 			this._log(logHead, result);
 			if(result.length == 1) {
 				if(result[0] == null) {
-					this._err(logHead + "the injected script failed to generate a return value", result);
+					this._err(logHead, "the injected script failed to generate a return value", result);
 					return null;
 				}
 				return result[0];
 			}
-			this._err(logHead + "unknown format for result = ", result);
+			this._err(logHead, "unknown format for result =", result);
 			return null;
 		}.bind(this),
 		function(chromeLastError) { // onRejected
-			this._err(logHead + "unknown error: " + chromeLastError.message, this._tab);
+			this._err(logHead, "unknown error:", chromeLastError.message, this._tab);
 			return chromeLastError;
 		}.bind(this)
 	);
 },
 
 _actionMoveToLeastTabbedCb: function(ev) {
-	const logHead = "TabTileMenuViewer::_actionMoveToLeastTabbedCb(" + this._tab.id + "): ";
+	const logHead = "TabTileMenuViewer._actionMoveToLeastTabbedCb(" + this._tab.id + "):";
 	// We're moving it in the background, no reason to activate it
 	chromeUtils.moveTabToLeastTabbedWindow(this._tab, false).then(
 		function(result) {
 			if(result != null) {
-				this._log(logHead + "completed");
+				this._log(logHead, "completed");
 			} else {
-				this._log(logHead + "no action taken");
+				this._log(logHead, "no action taken");
 			}
 		}.bind(this)
 	);
@@ -312,16 +313,16 @@ _actionSuspendCb: function(ev) {
 },
 
 _actionCloseCb: function(ev) {
-	const logHead = "TabTileMenuViewer::_actionCloseCb(" + this._tab.id + "): ";
+	const logHead = "TabTileMenuViewer._actionCloseCb(" + this._tab.id + "):";
 	chromeUtils.wrap(chrome.tabs.remove, logHead, this._tab.id).then(
 		function() {
-			this._log(logHead + "completed");
+			this._log(logHead, "completed");
 		}.bind(this)
 	);
 },
 
 _actionSetCandidateCb: function(key, ev) {
-	const logHead = "TabTileMenuViewer::_actionSetCandidateCb(" + this._tab.id + ", " + key + "): ";
+	const logHead = "TabTileMenuViewer._actionSetCandidateCb(" + this._tab.id + ", " + key + "):";
 
 	// We should probably also get the "coordinates" the first candidate in
 	// order to take its place
@@ -329,7 +330,7 @@ _actionSetCandidateCb: function(key, ev) {
 	let candidateTabs = sm.getShortcutInfo(key).candidateTabs;
 	this._assert(candidateTabs != null);
 
-	this._log(logHead + "entering, first candidate is: ", candidateTabs[0]);
+	this._log(logHead, "entering, first candidate is:", candidateTabs[0]);
 	chromeUtils.wrap(chrome.tabs.move, logHead, this._tab.id,
 					{ index: candidateTabs[0].index, windowId: candidateTabs[0].windowId });
 },
@@ -476,27 +477,27 @@ _actionBookmarkManagerCb: function(ev) {
 },
 
 _actionPinToggleCb: function(ev) {
-	const logHead = "BookmarkTileMenuViewer::_actionPinToggleCb(" + this._bm.id + "): ";
+	const logHead = "BookmarkTileMenuViewer._actionPinToggleCb(" + this._bm.id + "):";
 
 	if(this._bm.pinned) {
-		this._log(logHead + "unpinning");
+		this._log(logHead, "unpinning");
 		// Note that we need to use the "bookmarkId" field, not the "id" field, to
 		// call settingsStore.pinBookmark()
 		settingsStore.unpinBookmark(this._bm.bookmarkId);
 	} else {
-		this._log(logHead + "pinning");
+		this._log(logHead, "pinning");
 		settingsStore.pinBookmark(this._bm.bookmarkId);
 	}
 },
 
 _actionDeleteCb: function(ev) {
-	const logHead = "BookmarkTileMenuViewer::_actionDeleteCb(" + this._bm.id + "): ";
+	const logHead = "BookmarkTileMenuViewer._actionDeleteCb(" + this._bm.id + "):";
 	// Note that we need to use "_bm.bookmarkId", not "_bm.id", because we've modified
 	// "_bm.id", and if we used it, Chrome would respond with:
-	// ChromeUtils::wrap().cb: BookmarkTileMenuViewer::_actionDeleteCb(b945): chrome.runtime.lastError = Bookmark id is invalid.
+	// ChromeUtils.wrap().cb: BookmarkTileMenuViewer._actionDeleteCb(b945): chrome.runtime.lastError = Bookmark id is invalid.
 	chromeUtils.wrap(chrome.bookmarks.remove, logHead, this._bm.bookmarkId).then(
 		function() {
-			this._log(logHead + "completed");
+			this._log(logHead, "completed");
 		}.bind(this)
 	);
 },
@@ -588,10 +589,10 @@ _actionActivateCb: function(ev) {
 },
 
 _actionDeleteCb: function(ev) {
-	const logHead = "HistoryTileMenuViewer::_actionDeleteCb(" + this._item.url + "): ";
+	const logHead = "HistoryTileMenuViewer._actionDeleteCb(" + this._item.url + "):";
 	chromeUtils.wrap(chrome.history.deleteUrl, logHead, { url: this._item.url }).then(
 		function() {
-			this._log(logHead + "completed");
+			this._log(logHead, "completed");
 		}.bind(this)
 	);
 },
