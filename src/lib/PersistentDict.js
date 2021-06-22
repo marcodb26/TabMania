@@ -128,37 +128,49 @@ _persist: function() {
 	return chromeUtils.storageSet(items, this._storageObj);
 },
 
-// If "value" is "undefined", it gets turned to "null" for storage
-set: function(key, value) {
-	value = optionalWithDefault(value, null);
-
-	let logHead = "PersistentDict::set(" + key + ", \"" + value + "\"): ";
-	// Let's assert this for safety, just in case
-	this._assert(this.isInitialized(), logHead + "still waiting for initialization");
-
+// Returns "true" if something has changed (new key, or new value for existing key),
+// and "false" if the "key" already has value "value"
+_setInner: function(key, value=null) {
 	// We first need to check if the value has changed, because if a listener to our
 	// _eventManager decides to set the value back here after listening to our own
 	// event, we might end up in an infinite loop, and we definitely don't want that...
+	// Note that since "value" is forced to "null" when "undefined", a missing key
+	// ("undefined" on the dictionary result) will always be interpreted as a change.
 	if(tmUtils.isEqual(this._dict[key], value)) {
 		// No change
-		this._log(logHead + "the key has not changed, ignoring call");
-//		this._log.trace(stackTrace());
-		return Promise.resolve();
+		return false;
 	}
 
 	// A "key" in the _dict can be set to another dictionary (e.g., SettingsStore._customGroups),
 	// so the problems described in setAll() and getAll() exist also in set() and get().
 	this._dict[key] = tmUtils.deepCopy(value);
-	return this._persist();
+	return true;
+},
+
+// If "value" is "undefined", it gets turned to "null" for storage
+set: function(key, value=null) {
+	const logHead = "PersistentDict.set():";
+	// Let's assert this for safety, just in case
+	this._assert(this.isInitialized(), logHead, "still waiting for initialization", key, value);
+
+	if(this._setInner(key, value)) {
+		// If the value has changed (or a new key has been added), we need to persist
+		// and notify listeners
+		return this._persist();
+	}
+
+	// If the value has not changed, we don't persist/notify
+	this._log(logHead, "the key has not changed, ignoring call", key, value);
+	return Promise.resolve();
 },
 
 // Since set() turns "undefined" to "null", you can use "undefined" here
 // to test for a "key" that's not in the dictionary. Alternatively you
 // can use has() below.
 get: function(key) {
-	let logHead = "PersistentDict::get(): ";
+	let logHead = "PersistentDict.get():";
 	// Let's assert this for safety, just in case
-	this._assert(this.isInitialized(), logHead + "still waiting for initialization");
+	this._assert(this.isInitialized(), logHead, "still waiting for initialization");
 
 	return tmUtils.deepCopy(this._dict[key]);
 },
@@ -171,9 +183,9 @@ get: function(key) {
 has: function(key, ignoreCase) {
 	ignoreCase = optionalWithDefault(ignoreCase, false);
 
-	let logHead = "PersistentDict::has(): ";
+	let logHead = "PersistentDict.has():";
 	// Let's assert this for safety, just in case
-	this._assert(this.isInitialized(), logHead + "still waiting for initialization");
+	this._assert(this.isInitialized(), logHead, "still waiting for initialization");
 
 	if(!ignoreCase) {
 		return (key in this._dict);
@@ -216,18 +228,44 @@ rename: function(key, newKey) {
 	return this._persist();
 },
 
+// Returns "true" if something has changed (key found and deleted), and
+// "false" if the "key" was not found
+_delInner: function(key) {
+	if(!(key in this._dict)) {
+		// No change
+		return false;
+	}
+
+	delete this._dict[key];
+	return true;
+},
+
 del: function(key) {
 	let logHead = "PersistentDict::del(): ";
 	// Let's assert this for safety, just in case
 	this._assert(this.isInitialized(), logHead + "still waiting for initialization");
 
-	if(!(key in this._dict)) {
-		// No change
-		return Promise.resolve();
+	if(this._delInner(key)) {
+		return this._persist();
 	}
 
-	delete this._dict[key];
-	return this._persist();
+	return Promise.resolve();
+},
+
+delMany: function(keyList) {
+	// Make all the changes then call _persist() only once, if needed
+	let anyChanges = false;
+	for(let i = 0; i < keyList.length; i++) {
+		if(this._delInner(keyList[i])) {
+			anyChanges = true;
+		}
+	}
+
+	if(anyChanges) {
+		return this._persist();
+	}
+
+	return Promise.resolve();
 },
 
 setAll: function(dict) {
@@ -305,6 +343,22 @@ Classes.PersistentSet = Classes.PersistentDict.subclass({
 // PersistentSet seems more accurate than "setting" to a set.
 add: function(key) {
 	return this.set(key);
+},
+
+addMany: function(keyList) {
+	// Make all the changes then call _persist() only once, if needed
+	let anyChanges = false;
+	for(let i = 0; i < keyList.length; i++) {
+		if(this._setInner(keyList[i])) {
+			anyChanges = true;
+		}
+	}
+
+	if(anyChanges) {
+		return this._persist();
+	}
+
+	return Promise.resolve();
 },
 
 // Override parent class, in case of a Set, we just want to return an array of keys
