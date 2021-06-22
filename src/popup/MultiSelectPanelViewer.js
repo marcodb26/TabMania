@@ -377,6 +377,14 @@ _tabsClosedCb: function(ev) {
 
 	let tabGroups = this._groupSelectedTabs();
 
+	// Exclude Skip Classes.TabNormalizer.type.RCTAB, can't delete them
+	if(tabGroups[Classes.TabNormalizer.type.TAB] == null &&
+	   tabGroups[Classes.TabNormalizer.type.BOOKMARK] == null &&
+	   tabGroups[Classes.TabNormalizer.type.HISTORY] == null) {
+		this._log(logHead, "empty selection, nothing to do", tabGroups);
+		return;
+	}
+
 	if(!this._confirmClosing(tabGroups)) {
 		this._log(logHead, "the user cancelled the operation", tabGroups);
 		return;

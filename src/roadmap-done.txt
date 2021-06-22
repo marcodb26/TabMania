@@ -432,6 +432,10 @@ DONE 2.0
 
 - Disable multi-select menu actions when zero tiles are selected
 
+- BUG: when only Recently Closed tabs are selected, the multi-select action "Close/delete"
+  shows a confirmation dialog with an incomplete sentence
+  * Decided to leave the action early without any user feedback in this case
+
 
 DONE 1.3
 
