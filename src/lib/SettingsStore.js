@@ -332,8 +332,7 @@ _getOption: function(prop) {
 },
 
 // "defaultValue" is optional, defaults to "false"
-_getBooleanOption: function(prop, defaultValue) {
-	defaultValue = optionalWithDefault(defaultValue, false);
+_getBooleanOption: function(prop, defaultValue=false) {
 	// When a PersistentDict is empty, it returns "undefined" for every key you
 	// ask. We must turn that "undefined" to "false" here, since this is the lowest
 	// layer that understands "showTabId" should be a boolean (PersistentDict doesn't

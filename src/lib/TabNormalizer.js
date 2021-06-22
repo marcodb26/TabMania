@@ -160,7 +160,7 @@ _cleanupChromeBookmarksManagerTitle: function(title, url) {
 },
 
 _cleanupTitle: function(title, url) {
-	const logHead = "TabNormalizer._cleanupTitle(" + url + "): ";
+	//const logHead = "TabNormalizer._cleanupTitle(" + url + "):";
 
 	if(url == null) {
 		return title;
@@ -178,8 +178,8 @@ _cleanupTitle: function(title, url) {
 updateUrl: function(tab) {
 	// Sometimes "tab.url" is empty, because "tab.pendingUrl" is still loading.
 	// But in some cases, tab.url is empty, and tab.pendingUrl doesn't even exist,
-	// so we use optionalWithDefault() to cover that last corner case.
-	let url = optionalWithDefault((tab.url != "") ? tab.url : tab.pendingUrl, "");
+	// so we use "??" to cover that last corner case.
+	let url = ((tab.url != "") ? tab.url : tab.pendingUrl) ?? "";
 
 	let [ protocol, hostname ] = this.getProtocolHostname(url);
 
@@ -260,12 +260,8 @@ _updateFavIcon: function(tab) {
 },
 
 formatExtendedId: function(tab, type) {
-	if(tab.tm != null) {
-		type = optionalWithDefault(type, tab.tm.type);
-	}
-	// Even if "tab.tm != null", tab.tm.type could still be undefined, and the next
-	// iteration of optionalWithDefault() will correct that
-	type = optionalWithDefault(type, Classes.TabNormalizer.type.TAB);
+	// "tab.tm" could be "null. Even if "tab.tm != null", tab.tm.type could still be undefined
+	type = type ?? (tab?.tm.type ?? Classes.TabNormalizer.type.TAB);
 
 	switch(type) {
 		case Classes.TabNormalizer.type.TAB:
@@ -290,8 +286,8 @@ formatExtendedId: function(tab, type) {
 			return "h[" + tab.historyId + "]";
 
 		default:
-			const logHead = "TabNormalizer::formatExtendedId(): ";
-			this._err(logHead + "unknown type", type, tab);
+			const logHead = "TabNormalizer.formatExtendedId():";
+			this._err(logHead, "unknown type", type, tab);
 			break;
 	}
 
@@ -299,7 +295,7 @@ formatExtendedId: function(tab, type) {
 },
 
 _addNormalizedShortcutBadges: function(tab, secondary) {
-	//const logHead = "TabNormalizer::_addNormalizedShortcutBadges(" + tab.tm.hostname + "): ";
+	//const logHead = "TabNormalizer._addNormalizedShortcutBadges(" + tab.tm.hostname + "):";
 
 	let sm = settingsStore.getShortcutsManager();
 	let scKeys = sm.getShortcutKeysForTab(tab, !secondary);
@@ -321,10 +317,10 @@ _addNormalizedShortcutBadges: function(tab, secondary) {
 },
 
 addShortcutBadges: function(tab) {
-	const logHead = "TabNormalizer::addShortcutBadges(): ";
+	const logHead = "TabNormalizer.addShortcutBadges():";
 
 	if(tab.tm.type != Classes.TabNormalizer.type.TAB) {
-		this._err(logHead + "this function can only be called for standard tabs");
+		this._err(logHead, "this function can only be called for standard tabs");
 		// Bookmarks don't need shortcut badges because they can't be invoked
 		// via custom shortcuts (though the URL in a custom shortcut could match
 		// the URL of a bookmark, they're slightly different things, let's not mix
@@ -333,7 +329,7 @@ addShortcutBadges: function(tab) {
 	}
 
 	if(tab.tm.primaryShortcutBadges.length != 0 || tab.tm.secondaryShortcutBadges.length != 0) {
-		this._err(logHead + "this function can only be called once after normalize()");
+		this._err(logHead, "this function can only be called once after normalize()");
 		// Shortcut badges need to be updated visually in "tab.tm.primary/secondaryShortcutBadges",
 		// and lowercase to aid search in "searchBadges". The current logic could easily replace
 		// "tab.tm.primary/secondaryShortcutBadges", but it can't easily replace pieces of
@@ -352,9 +348,7 @@ addShortcutBadges: function(tab) {
 // case insensitive search.
 // "visible" determines whether the search badge will be visible or hidden,
 // see normalize() for details.
-_addNormalizedVisualBadge: function(tab, badge, visible) {
-	visible = optionalWithDefault(visible, true);
-
+_addNormalizedVisualBadge: function(tab, badge, visible=true) {
 	if(visible) {
 		tab.tm.visualBadges.push(badge);
 	}
@@ -576,6 +570,8 @@ _initBookmarkAsTab: function(tab) {
 },
 
 updateBookmarkFolder: function(tab) {
+	const logHead = "TabNormalizer.updateBookmarkFolder():";
+
 	let folder = bookmarksManager.getBmFolderSync(tab);
 	if(folder != null) {
 		// Best effort, we only try the sync version, we don't want to wait for
@@ -583,7 +579,7 @@ updateBookmarkFolder: function(tab) {
 		tab.tm.folder = folder;
 		tab.tm.lowerCaseFolder = folder.toLowerCase();
 	} else {
-		this._log(logHead + "folder not available for", tab);
+		this._log(logHead, "folder not available for", tab);
 		tab.tm.folder = "";
 		tab.tm.lowerCaseFolder = "";
 	}
@@ -641,17 +637,16 @@ _initRecentlyClosedAsTab: function(tab) {
 //
 // By default, this function sets all that's needed about a tab, including shortcut badges.
 // You can choose to leave shortcut badges out by setting "options.addShortcutBadges" to "false"
-// (default "true"). See TabsManager::_queryTabs() for a use case for that.
+// (default "true"). See TabsManager._queryTabs() for a use case for that.
 //
 // "options.oldTab" allows the normalization to take into account a past state of the
 // tab, which can be used in one case (setting tm.sortingTitle)
-normalize: function(tab, options) {
-	options = optionalWithDefault(options, {});
-	let addShortcutBadges = optionalWithDefault(options.addShortcutBadges, true);
-	let type = optionalWithDefault(options.type, Classes.TabNormalizer.type.TAB);
+normalize: function(tab, options={}) {
+	let addShortcutBadges = options.addShortcutBadges ?? true;
+	let type = options.type ?? Classes.TabNormalizer.type.TAB;
 	let oldTab = options.oldTab;
 
-	const logHead = "TabNormalizer::normalize(): ";
+	const logHead = "TabNormalizer.normalize():";
 
 	// We need a "switch()" both at the beginning and at the end of this function.
 	// At the beginning, we need to make sure all fields used by the logic in the
@@ -678,7 +673,7 @@ normalize: function(tab, options) {
 				this._initHistoryItemAsTab(tab);
 				break;
 			default:
-				this._err(logHead + "unknown type", type);
+				this._err(logHead, "unknown type", type);
 				break;
 		}
 	} else {
@@ -790,7 +785,7 @@ normalize: function(tab, options) {
 			this._updateHistoryBadges(tab);
 			break;
 		default:
-			this._err(logHead + "unknown type", type);
+			this._err(logHead, "unknown type", type);
 			break;
 	}
 },
