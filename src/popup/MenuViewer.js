@@ -18,15 +18,14 @@ Classes.MenuViewer = Classes.Viewer.subclass({
 //   can contain HTML, not only text
 // - "btnClasses", you can use it for example for the CSS class to use for the button coloring,
 //   and it default to "btn-secondary"
-_init: function(options) {
+_init: function(options={}) {
 	// Don't store "options" as-is, create a copy (and while you're doing it, initialize all
 	// the fields you need)
-	options = optionalWithDefault(options, {});
 	this._options = {};
-	this._options.label = optionalWithDefault(options.label, "");
-	this._options.showToggle = optionalWithDefault(options.showToggle, true);
-	this._options.btnClasses = optionalWithDefault(options.btnClasses, [ "btn", "btn-secondary" ]);
-	this._options.menuExtraClasses = optionalWithDefault(options.menuExtraClasses, []);
+	this._options.label = options.label ?? "";
+	this._options.showToggle = options.showToggle ?? true;
+	this._options.btnClasses = options.btnClasses ?? [ "btn", "btn-secondary" ];
+	this._options.menuExtraClasses = options.menuExtraClasses ?? [];
 
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.Viewer._init.call(this);
@@ -143,7 +142,7 @@ Classes.MenuItemViewer = Classes.Viewer.subclass({
 // it using setText()). They should be mutually exclusive, if both are non-null/non-empty the
 // logic below prioritizes "options.label".
 // "options.actionFn" is optional, you can set it later with setAction().
-_init: function(options) {
+_init: function(options={}) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.Viewer._init.call(this);
 
@@ -151,12 +150,11 @@ _init: function(options) {
 
 	// Don't store "options" as-is, create a copy (and while you're doing it, initialize all
 	// the fields you need)
-	options = optionalWithDefault(options, {});
 	this._options = {};
-	this._options.label = optionalWithDefault(options.label, "");
-	this._options.labelText = optionalWithDefault(options.labelText, "");
-	this._options.actionFn = optionalWithDefault(options.actionFn, null);
-	this._options.extraClasses = optionalWithDefault(options.extraClasses, []);
+	this._options.label = options.label ?? "";
+	this._options.labelText = options.labelText ?? "";
+	this._options.actionFn = options.actionFn ?? null;
+	this._options.extraClasses = options.extraClasses ?? [];
 
 	this._renderMenuItem();
 

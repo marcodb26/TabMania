@@ -40,7 +40,7 @@ Object.defineProperty(window, "backgroundServiceWorker", {
 });
 
 function isBg() {
-	return optionalWithDefault(window.backgroundServiceWorker, false);
+	return window.backgroundServiceWorker ?? false;
 }
 
 // See https://stackoverflow.com/questions/66406672/chrome-extension-mv3-modularize-service-worker-js-file

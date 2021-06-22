@@ -244,8 +244,7 @@ isInViewport: function() {
 },
 
 // "elem" is optional, if not specified we use the root element
-runAnimation: function(animClass, elem) {
-	elem = optionalWithDefault(elem, this._rootElem);
+runAnimation: function(animClass, elem=this._rootElem) {
 	let resolveFn = null;
 
 	let retVal = new Promise(
@@ -300,14 +299,13 @@ Classes.ButtonViewer = Classes.HtmlViewer.subclass({
 	_buttonElem: null,
 	_options: null,
 
-_init: function(options) {
+_init: function(options={}) {
 	// Don't store "options" as-is, create a copy (and while you're doing it, initialize all
 	// the fields you need)
-	options = optionalWithDefault(options, {});
 	this._options = {};
-	this._options.labelHtml = optionalWithDefault(options.labelHtml, "");
-	this._options.fullWidth = optionalWithDefault(options.fullWidth, false);
-	this._options.btnExtraClasses = optionalWithDefault(options.btnExtraClasses, []);
+	this._options.labelHtml = options.labelHtml ?? "";
+	this._options.fullWidth = options.fullWidth ?? false;
+	this._options.btnExtraClasses = options.btnExtraClasses ?? [];
 
 	const logHead = "ButtonViewer::_init(): ";
 
@@ -363,14 +361,13 @@ Classes.ImageViewer = Classes.HtmlViewer.subclass({
 
 	_options: null,
 
-_init: function(options) {
+_init: function(options={}) {
 	// Don't store "options" as-is, create a copy (and while you're doing it, initialize all
 	// the fields you need)
-	options = optionalWithDefault(options, {});
 	this._options = {};
-	this._options.src = optionalWithDefault(options.src, "");
-	this._options.srcBackup = optionalWithDefault(options.srcBackup, "");
-	this._options.extraClasses = optionalWithDefault(options.extraClasses, []);
+	this._options.src = options.src ?? "";
+	this._options.srcBackup = options.srcBackup ?? "";
+	this._options.extraClasses = options.extraClasses ?? [];
 
 	// If the network is known to be offline, let's not even bother using options.src,
 	// and just use options.srcBackup instead, without waiting for a network error to

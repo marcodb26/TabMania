@@ -72,9 +72,7 @@ _nextCharIsEscapable: function(queryString, escapedCharsList) {
 // represent token delimiters. Specify a non-default "escapedCharsList" if you need
 // to escape a different set of token delimiters (e.g. for quoted strings or unquoted
 // regex strings).
-_consumeEscapedCharacter: function(queryString, escapedCharsList) {
-	escapedCharsList = optionalWithDefault(escapedCharsList, this._escapedCharsList);
-
+_consumeEscapedCharacter: function(queryString, escapedCharsList=this._escapedCharsList) {
 	if(queryString.length == 0 || !this._nextCharIsEscapable(queryString, escapedCharsList)) {
 		// "\" at the end of the string or not escaping a delimiter, consume as-is
 		return [ queryString, "\\" ];
@@ -252,8 +250,7 @@ _genTokenByType: function(token, tokenType) {
 	return null;
 },
 
-tokenize: function(queryString, tokenList, topLevel) {
-	topLevel = optionalWithDefault(topLevel, true);
+tokenize: function(queryString, tokenList, topLevel=true) {
 	const logHead = "SearchTokenizer::tokenize(\"" + queryString + "\", topLevel: " + topLevel + "): ";
 
 	this._errors = [];
@@ -380,7 +377,7 @@ tokenize: function(queryString, tokenList, topLevel) {
 },
 
 // "quoteChar" is optional, and only used when tokenType = Classes.SearchTokenizer.type.QUOTEDTEXT
-getEscapedCharsList: function(tokenType, quoteChar) {
+getEscapedCharsList: function(tokenType, quoteChar="\"") {
 	switch(tokenType) {
 		case Classes.SearchTokenizer.type.TEXT:
 			return this._escapedCharsList;
@@ -389,7 +386,7 @@ getEscapedCharsList: function(tokenType, quoteChar) {
 			return [ " " ];
 
 		case Classes.SearchTokenizer.type.QUOTEDTEXT:
-			return [ optionalWithDefault(quoteChar, "\"") ];
+			return [ quoteChar ];
 
 		case Classes.SearchTokenizer.type.SUBTREE:
 		case Classes.SearchTokenizer.type.BINARYOP:

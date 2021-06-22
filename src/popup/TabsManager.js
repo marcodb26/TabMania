@@ -50,8 +50,8 @@ _init: function({ standardTabs, incognitoTabs }) {
 	this._queryCycleNo = 0;
 
 	this._options = {};
-	this._options.standardTabs = optionalWithDefault(standardTabs, true);
-	this._options.incognitoTabs = optionalWithDefault(incognitoTabs, true);
+	this._options.standardTabs = standardTabs ?? true;
+	this._options.incognitoTabs = incognitoTabs ?? true;
 
 	this._resetStats();
 

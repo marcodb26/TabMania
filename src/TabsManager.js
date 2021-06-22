@@ -20,7 +20,7 @@ Classes.TabsManager = Classes.Base.subclass({
 
 	_activeTabId: null,
 	// We need to know if the current windowId is chrome.windows.WINDOW_ID_NONE only
-	// because of the special case in _goBack()
+	// because of the special case in goBack()
 	_isActiveWindowIdNone: null,
 
 	// Keep track of the tabs count as tabs are opened and closed, and visualize it
@@ -474,8 +474,8 @@ _onTabCreatedCb: function(tab) {
 },
 
 _onTabRemovedCb: function(tabId, removeInfo) {
-	const logHead = "TabsManager::_onTabRemovedCb(tabId: " + tabId + ", time: " + Date.now() + "): ";
-	this._log(logHead + "removeInfo: ", removeInfo);
+	const logHead = "TabsManager._onTabRemovedCb(tabId: " + tabId + ", time: " + Date.now() + "):";
+	this._log(logHead, "removeInfo:", removeInfo);
 
 	// When a tab is removed, many other tabs in the same window have their "index" affected,
 	// though from a shortcuts perspective the relative position of each tab remains the same,
@@ -569,8 +569,8 @@ _cleanUpStacks: function(tabId) {
 },
 
 _onTabActivatedCb: function(activeInfo) {
-	const logHead = "TabsManager::_onTabActivatedCb(time: " + Date.now() + "): ";
-	this._log(logHead + "activeInfo: ", activeInfo);
+	const logHead = "TabsManager._onTabActivatedCb(time: " + Date.now() + "):";
+	this._log(logHead, "activeInfo:", activeInfo);
 	this._printBackTabs(logHead);
 
 	// No actions to take on behalf of shortcutsManager when a tab is activated
@@ -579,7 +579,7 @@ _onTabActivatedCb: function(activeInfo) {
 	this._activeTabId = activeInfo.tabId;
 
 	// _activeTabId can be null upon initialization, but also upon calls to
-	// _goBack() (see comments inside that function).
+	// goBack() (see comments inside that function).
 	if(oldActiveTabId != null) {
 		if(this._backTabs.peek() != oldActiveTabId) {
 			this._backTabs.push(oldActiveTabId);
@@ -619,10 +619,9 @@ _onTabActivatedCb: function(activeInfo) {
 
 // "simulated" is just a debugging paameter to recognize a real invocation from
 // the event, vs. a simulated invocation from _windowFocusLossCb()
-_onWindowFocusChangeCb: function(windowId, simulated) {
-	simulated = optionalWithDefault(simulated, "real");
-	const logHead = "TabsManager::_onWindowFocusChangeCb(" + simulated + "): ";
-	this._log(logHead + "windowId: " + windowId);
+_onWindowFocusChangeCb: function(windowId, simulated="real") {
+	const logHead = "TabsManager._onWindowFocusChangeCb(" + simulated + "):";
+	this._log(logHead, "windowId:", windowId);
 
 	// No actions to take on behalf of shortcutsManager when the window's focus changes
 
@@ -636,9 +635,9 @@ _onWindowFocusChangeCb: function(windowId, simulated) {
 			// of focus correctly, then you put in focus a DevTools window, and
 			// Chrome thinks it's lost focus at that point (but in a way, it actually
 			// got it back from a different application)
-			this._log(logHead + "duplicated event");
+			this._log(logHead, "duplicated event");
 		} else {
-			this._log(logHead + "all Chrome windows have lost focus");
+			this._log(logHead, "all Chrome windows have lost focus");
 			this._isActiveWindowIdNone = true;
 		}
 		return;
@@ -650,8 +649,8 @@ _onWindowFocusChangeCb: function(windowId, simulated) {
 
 	this._setActiveTabId().then(
 		function(oldActiveTabId, newActiveTabId) {
-			const logHead = "TabsManager::_onWindowFocusChangeCb().then(" + oldActiveTabId + ", " + newActiveTabId + "): ";
-			this._log(logHead + "entering");
+			const logHead = "TabsManager._onWindowFocusChangeCb().then(" + oldActiveTabId + ", " + newActiveTabId + "):";
+			this._log(logHead, "entering");
 			// If the _activeTabId has not changed, don't push anything to _backTabs().
 			// This can happen when transitioning through a chrome.windows.WINDOW_ID_NONE,
 			// then going back to the same previous window/tab again
@@ -667,7 +666,7 @@ _onWindowFocusChangeCb: function(windowId, simulated) {
 					// In our current tests we've seen _onTabActivatedCb() setting it first, but
 					// the race could be won by either one, so we need to put this defensive check
 					// in both places.
-					this._log(logHead + "tabId " + oldActiveTabId + " already at the top of _backTabs, nothing to do");
+					this._log(logHead, "tabId", oldActiveTabId, "already at the top of _backTabs, nothing to do");
 				}
 			}
 			// See _onTabActivatedCb() for an explanation about _cleanUpStacks().
@@ -706,9 +705,8 @@ _setActiveTabId: function() {
 	);
 },
 
-_printBackTabs: function(logHead) {
-	logHead = optionalWithDefault(logHead, "TabsManager::_printBackTabs(): ");
-	this._log(logHead + "backTabs is:", this._backTabs.get());
+_printBackTabs: function(logHead="TabsManager._printBackTabs():") {
+	this._log(logHead, "backTabs is:", this._backTabs.get());
 },
 
 // This call is just a wrapper of chromeUtils.closeTab() with some validation, but the validation
@@ -720,7 +718,7 @@ _closeOldActiveTab: function(oldActiveTabId) {
 
 	// This call cannot make the assumption that one can't switch from a tab back to the same tab.
 	// The only case when that can happen is when you're going back and there are no more tabs
-	// to go back to. See comment in _goFwd().
+	// to go back to. See comment in goFwd().
 	if(this._activeTabId == oldActiveTabId) {
 		this._log(logHead + "previous and current tab ID are the same");
 	}
@@ -734,16 +732,14 @@ _notifyPopup: function() {
 	//					{ activeTabId: this._activeTabId, recent: this._backTabs.peek(10) });
 },
 
-goBack: function(closeCurrentTab) {
-	closeCurrentTab = optionalWithDefault(closeCurrentTab, false);
-
-	const logHead = "TabsManager::_goBack(" + closeCurrentTab + "): ";
+goBack: function(closeCurrentTab=false) {
+	const logHead = "TabsManager.goBack(" + closeCurrentTab + "):";
 	this._printBackTabs(logHead);
 
 	//this._log(logHead + "before the change, this._activeTabId = " + this._activeTabId);
 
 	if(this._isActiveWindowIdNone) {
-		// If we were currently in chrome.windows.WINDOW_ID_NONE, the user expects _goBack()
+		// If we were currently in chrome.windows.WINDOW_ID_NONE, the user expects goBack()
 		// to actually go back to what we know as the current active tab (since transitions
 		// to chrome.windows.WINDOW_ID_NONE don't update _activeTabId).
 		//
@@ -780,10 +776,8 @@ goBack: function(closeCurrentTab) {
 	this._printBackTabs(logHead);
 },
 
-goFwd: function(closeCurrentTab) {
-	closeCurrentTab = optionalWithDefault(closeCurrentTab, false);
-
-	const logHead = "TabsManager::_goFwd(" + closeCurrentTab + "): ";
+goFwd: function(closeCurrentTab=false) {
+	const logHead = "TabsManager.goFwd(" + closeCurrentTab + "):";
 	//this._printBackTabs();
 	// This function doesn't need a special case for chrome.windows.WINDOW_ID_NONE
 
@@ -791,13 +785,13 @@ goFwd: function(closeCurrentTab) {
 	const nextTabId = this._fwdTabs.pop();
 
 	if(nextTabId != null) {
-		// Unike in _goBack(), here we don't want to erase _activeTabId, because the normal
+		// Unike in goBack(), here we don't want to erase _activeTabId, because the normal
 		// logic will store it in _backTabs, which is what we want
 		this._log(logHead + "switching forward to tab " + nextTabId);
 		chromeUtils.activateTabByTabId(nextTabId);
 
-		// Note that this behavior is different from the behavior of _goBack().
-		// In _goBack() we close the old active tab even if there's no older tab
+		// Note that this behavior is different from the behavior of goBack().
+		// In goBack() we close the old active tab even if there's no older tab
 		// to go back too (possibly closing Chrome completely this way), while
 		// instead here we close the old active tab only if there is a new tab
 		// to go to, because it would look odd to close the tab and end up in
