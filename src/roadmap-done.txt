@@ -448,6 +448,10 @@ DONE 2.0
 - Removed "multi-highlight" action in multi-select mode
   * Not very useful, "highlight" in Chrome only allows actions within a Chrome window
 
+- Removed the docked popup, we can always use the docked case for other messages later...
+  (e.g. notifications)
+  * Actually we can't, because there's no chrome.browserAction.openPopup()
+
 
 DONE 1.3
 

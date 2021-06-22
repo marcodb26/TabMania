@@ -12,7 +12,6 @@ Classes.PopupMenuViewer = Classes.MenuViewer.subclass({
 	// Track here all the menu item viewers
 	_bsTabMenuItems: null,
 	_multiSelectMenuItem: null,
-	_dockToggleMenuItem: null,
 
 	_enterMultiSelectText: "Enter select mode",
 	_exitMultiSelectText: "Exit select mode",
@@ -49,11 +48,6 @@ _localStoreUpdatedCb: function(ev) {
 
 	this._activeBsTabId = activeBsTabId;
 	this._selectBsTabMenuItem(activeBsTabId);
-},
-
-_setDockToggleText: function() {
-	const dockToggleText = (popupDocker.isPopupDocked() ? "Undock" : "Dock") + " popup";
-	this._dockToggleMenuItem.setHtml(dockToggleText);
 },
 
 addBsTabMenuItem: function(bsTabLabel, menuText, startHidden=false) {
@@ -165,15 +159,6 @@ _initMenuItems: function() {
 	this._multiSelectMenuItem = Classes.MenuItemViewer.create({ actionFn: this._actionToggleSelectModeCb.bind(this) });
 	this.updateMultiSelectMenuItem(this._activeBsTabId);
 	this.append(this._multiSelectMenuItem);
-
-	this._dockToggleMenuItem = Classes.MenuItemViewer.create({ actionFn: this._actionDockToggleCb.bind(this) });
-	this._setDockToggleText();
-	this.append(this._dockToggleMenuItem);
-},
-
-// We'll probably never need to call this function, no popup survives a change in docking state...
-_updateMenuItems: function() {
-	this._setDockToggleText();
 },
 
 _actionActivateBsTab: function(bsTabId, ev) {
@@ -186,12 +171,8 @@ _actionToggleSelectModeCb: function(ev) {
 	this._popupViewer.getBsTabById(this._activeBsTabId).toggleSelectMode();
 },
 
-_actionDockToggleCb: function(ev) {
-	popupDocker.dockToggle();
-},
-
 update: function() {
-	this._updateMenuItems();
+	// Nothing to do for this class
 },
 
 }); // Classes.PopupMenuViewer

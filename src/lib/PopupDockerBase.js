@@ -27,7 +27,7 @@ getPopupUrl: function(undocked) {
 	if(undocked) {
 		urlSearch = "?undocked";
 	}
-		
+
 	return chrome.runtime.getURL(isProd() ? ("popup.html" + urlSearch) : ("popup/popup.html" + urlSearch));
 },
 

@@ -1,8 +1,7 @@
 TODO 2.0
 
-- "This site can't be reached / mail.yahoo.com took too long to respond."
-  * When this error occurs, the tab title changes to the URL
-    - Can we persist showing the last known title while the page is in this error state?
+- BUG: action "suspend" on a tab duplicates the tab in the view
+  * Happened when applied to the only incognito tab available
 
 - BUG: non existing tab still showing in tab list
   * Did we miss to remove it? Did it ever exist? Not clear
@@ -89,9 +88,19 @@ PREP FOR NEXT RELEASE
 
 PUNTED TO NEXT RELEASE
 
-- Remove the docked popup, we can always use the docked case for other messages later...
-  (e.g. notifications)
-  * Actually we can't, because there's no chrome.browserAction.openPopup()
+- When clicking on the "shortcut text" in the shortcut settings, we open the Chrome page for
+  extension shortcuts settings in a new window with every click
+  * We should first try to find if the page is already opened instead, and reuse it
+  * This might disrupt the docked popup (we didn't want anything to happen to the
+    window where the popup is opened, that's why we chose the "always new window"
+	behavior)
+    - But nowadays the undocked is the better version, and it doesn't suffer this problem
+	- Maybe we can at least choose the better behavior only when undocked, and revert
+	  to "always open new in new window, never reuse" when docked
+
+- "This site can't be reached / mail.yahoo.com took too long to respond."
+  * When this error occurs, the tab title changes to the URL
+    - Can we persist showing the last known title while the page is in this error state?
 
 - Change all loops of TabsBsTabViewer._tilesByTabId to loops by DOM elements for
   all selection-related activities in TabsBsTabViewer
@@ -431,7 +440,6 @@ PUNTED TO NEXT RELEASE
     started, the tabs should not change size for the duration of that session
 
 - Add tab count badge to "Home" bstab
-  * Maybe only when it's undocked? It's redundant when docked
 
 - Add in settings total count of tabs and bookmarks
   * Don’t exclude folders when counting bookmarks, too expensive
@@ -541,9 +549,8 @@ PUNTED TO NEXT RELEASE
 	  generate more results, not less
 
 - To improve on the update of custom shortcuts text, we could trigger an update to the
-  custom shortcuts text badge every time the user focuses on the TabMania popup (for
-  undocked, need to find the equivalent for docked), since in order to change the shortcuts
-  the user needs to go to the extension page
+  custom shortcuts text badge every time the user focuses on the TabMania popup, since
+  in order to change the shortcuts the user needs to go to the extension page
   * To make it less frequent, we could monitor that the previous tab in focus before the
     popup was the extensions/shortcuts tab
 	- But the user could have closed it, or could have navigated through other tabs,
@@ -552,16 +559,6 @@ PUNTED TO NEXT RELEASE
     - Event initiated from background.js, since background.js knows
 
 - Option to find URLs open in multiple tabs (deduplicate)
-
-- When clicking on the "shortcut text" in the shortcut settings, we open the Chrome page for
-  extension shortcuts settings in a new window with every click
-  * We should first try to find if the page is already opened instead, and reuse it
-  * This might disrupt the docked popup (we didn't want anything to happen to the
-    window where the popup is opened, that's why we chose the "always new window"
-	behavior)
-    - But nowadays the undocked is the better version, and it doesn't suffer this problem
-	- Maybe we can at least choose the better behavior only when undocked, and revert
-	  to "always open new in new window, never reuse" when docked
 
 - Menu action to re-sync bookmark title if a corresponding tab is open and its title doesn’t match(?)
 
@@ -669,10 +666,6 @@ PUNTED TO NEXT RELEASE
     "TabsStore" class or the "ShortcutManager" class?
 	- Yes to both (see TabsManager)
 
-- BUG: when closing and reopening docked popup, the scroll goes back to the top, we should
-  remember the scrolling position when the popup was closed
-  * Or should "go back to top" be expected to be the right behavior?
-
 - Create new window event to attach more bstabs later (the event fires when the basic skeleton is
   ready to accept bstabs insertion), so we can cut the “global” tab from first release but keep
   its insertion functional without touching popuptabs
@@ -684,23 +677,6 @@ PUNTED TO NEXT RELEASE
 
 - Keyboard navigation through tiles
 
-- Boot-up performance: can we make the tiles appear faster?
-  * Are the 4 shortcuts in 4 different chrome.storage.sync variables causing a delay?
-  * Should we decouple the rendering that depends on settings from the rendering that
-    doesn't to speed up settings-independent rendering in parallel with loading settings?
-	- It looks like "window.onLoad" takes longer than loading settings (and they happen
-	  in parallel), so we can't get any value from this, since we must wait for
-	  "window.onLoad"
-  * Render tile menus only when users click on it, or when they hover long enough on
-    the tile to show the menu dropdown toggle?
-	- https://davidwalsh.name/css-animation-callback
-	- To trigger creation of a menu when the dropdown toggle shows up (delayed by CSS rules),
-      instead of creating the menu immediately when the tile is being rendered
-	- Probably not as useful now that we have async rendering of tiles body, but
-	  it might still help by reducing the cost of these async tasks (and therefore
-	  freeing up cycles to do something else that currently would be waiting)
-  * This is now mitigated by the availability of an undocked popup
-
 - Undocked popup always on top of other windows
   * Currently Chrome doesn't have such an API
 
@@ -711,12 +687,6 @@ PUNTED TO NEXT RELEASE
 - Contact this guy to review my extension
   * https://www.computerworld.com/article/3535189/chrome-tab-switcher.html
 
-- Find a notification to update in real-time when the user changes isAllowedIncognitoAccess()
-  * This notification doesn't seem to exist today
-  * Should we poll?
-  * Probably not really needed, when the user makes the incognito change, the popup gets automatically
-    closed by Chrome (even if undocked!)
-
 - When a tab has a load error (which prevents injection of inject-getMeta.js)
   display a special error icon to identify the tab failed to load (e.g. because
   of network down) (search "network down" in the code to find the place where
@@ -725,14 +695,6 @@ PUNTED TO NEXT RELEASE
 - Implement TileMenuViewer._updateShortcutMenuItems()
   * Or do we really care, given that most of the times we need to rebuild the
     entire set of tabs from scratch
-
-- BUG: for docked popup, between the scrollbar on the right and the extension border you
-  can see a bit of background, you shouldn't see it
-  * See for example the screenshot used to publish the extension
-  * Tried to set the <body> color to black, and that tiny strip next to the scrollbar
-    is still transparent
-	- It seems to be an issue with the scrollbar itself, not sure how to fix it, maybe
-	  it will go away when we replace/remove the scrollbar
 
 - BUG: When opening the undocked popup, the tiles rendering always happens twice: first
   because we opened it and queried for all tabs, second because we received a notification
