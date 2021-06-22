@@ -202,6 +202,8 @@ _renderPanel: function() {
 	const closeId = this._id + "-close";
 
 	// Class .text-dark is needed explicitly because in the incognito BsTab that's not the default.
+	// Note that we're initializing <span> of cntAllId to "-1" on purpose, to initialize properly
+	// the state of the action menu items. See _updateCounts() for details.
 	const bodyHtml = `
 	<div class="card tm-cursor-default text-dark">
 		<div class="d-flex align-items-center">
@@ -211,7 +213,7 @@ _renderPanel: function() {
 				<input type="checkbox" class="btn-check" id="${listCheckboxId}" autocomplete="off">
 				<label class="tm-btn tm-checkbox-btn me-2 tm-xxs-hide" for="${listCheckboxId}">${icons.list}</label>
 			</div>
-			<div class="flex-fill me-2 fst-italic fw-light"><span id="${cntAllId}">0</span><span class="tm-xxs-hide"> total</span> (<span id="${cntInViewId}">0</span><span class="tm-xxs-hide"> in view</span>)</div>
+			<div class="flex-fill me-2 fst-italic fw-light"><span id="${cntAllId}">-1</span><span class="tm-xxs-hide"> total</span> (<span id="${cntInViewId}">-1</span><span class="tm-xxs-hide"> in view</span>)</div>
 			<div>
 				${icons.closeHtml(closeId, [ "ps-0" ], [ "tm-close-icon", "align-middle" ])}
 			</div>
@@ -479,8 +481,30 @@ _tabsMovedCb: async function(ev) {
 },
 
 _updateCounts: function() {
-	this._cntAllElem.textContent = this._tabsStoreAll.getCount();
+	const logHead = "MultiSelectPanelViewer._updateCounts():";
+
+	let oldCount = this._cntAllElem.textContent;
+	let newCount = this._tabsStoreAll.getCount();
+
+	this._cntAllElem.textContent = newCount;
 	this._cntInViewElem.textContent = this._tabsStoreInView.getCount();
+
+	// "oldCount != 0" includes the case of "oldCount == -1" as set in _renderPanel(),
+	// that is, the case this function gets called as part of the _init sequence.
+	// We need to initialize to "-1" otherwise the logic below won't apply at initialization.
+	// We could use any number except "0". It would be cleaner to initialize the <span>
+	// with empty strings (""), but the empty string turns into the number "0" when
+	// converted in Javascript, so '"" != 0' is "false" in Javascript. See https://stackoverflow.com/questions/462663/implied-string-comparison-0-but-1-1
+	// The article suggests strict comparison, but we need the string conversion for all
+	// the other numbers...
+	if(newCount == 0 && oldCount != 0) {
+		this._log(logHead, "disabling actions");
+		this._menuViewer.enableActions(false);
+	}
+	if(newCount != 0 && oldCount == 0) {
+		this._log(logHead, "enabling actions");
+		this._menuViewer.enableActions(true);
+	}
 },
 
 discard: function() {

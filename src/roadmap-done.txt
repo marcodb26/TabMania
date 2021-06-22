@@ -430,6 +430,8 @@ DONE 2.0
   * Though the actual color hues are not identical
   * Also switched "cyan" text to dark color to increase contrast
 
+- Disable multi-select menu actions when zero tiles are selected
+
 
 DONE 1.3
 

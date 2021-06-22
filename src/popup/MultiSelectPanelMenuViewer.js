@@ -75,6 +75,13 @@ discard: function() {
 	Classes.MenuViewer.discard.call(this);
 },
 
+enableActions: function(flag=true) {
+	this._pinMenuItem.enable(flag);
+	this._moveMenuItem.enable(flag);
+	this._highlightMenuItem.enable(flag);
+	this._closeMenuItem.enable(flag);
+},
+
 }); // Classes.MultiSelectPanelMenuViewer
 
 Classes.Base.roDef(Classes.MultiSelectPanelMenuViewer, "Events", {});
