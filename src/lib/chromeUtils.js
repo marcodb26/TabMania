@@ -256,7 +256,7 @@ discardTab: async function(tab) {
 		// If neighborTabs.length == 0, that means the tab is alone in the window, so we
 		// can't activate any other tab
 		if(neighborTabs.length != 0) {
-			await this.activateTab(neighborTabs[0]);
+			await this.activateTab(neighborTabs[0], false);
 		}
 	}
 
@@ -297,11 +297,16 @@ activateTabByTabId: function(tabId) {
 	return Promise.all([ activatePromise, focusPromise ]);
 },
 
-activateTab: function(tab) {
+activateTab: function(tab, focusWindow=true) {
 	const logHead = "ChromeUtils::activateTab(): ";
 
 	// https://developer.chrome.com/docs/extensions/reference/tabs/#method-update
 	let activatePromise = this.wrap(chrome.tabs.update, logHead, tab.id, { active: true });
+
+	if(!focusWindow) {
+		return activatePromise;
+	}
+
 	let focusPromise = this.wrap(chrome.windows.update, logHead, tab.windowId, { focused: true });
 	return Promise.all([ activatePromise, focusPromise ]);
 },
