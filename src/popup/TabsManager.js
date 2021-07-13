@@ -443,10 +443,12 @@ _tabActivatedHighlightedMovedAttachedCb: function(eventId, tabId, activeHighligh
 		if(this._normTabs.getById(tabId) == null) {
 			// When a tab moves, other tabs move in the same window, but no event is generated
 			// by Chrome for them (similar problem for the onAttached event, as it affects many
-			// tabs in the old and new window). This logic assumes that if we don't know about
-			// a tab, we don't know about any other tab in the same window. This assumption is
-			// ok as long as the only reason a tab is missing is because we're not tracking it,
-			// since incognito tabs and standard tabs run in separate windows.
+			// tabs in the old and new window).
+
+//			// This logic assumes that if we don't know about
+//			// a tab, we don't know about any other tab in the same window. This assumption is
+//			// ok as long as the only reason a tab is missing is because we're not tracking it,
+//			// since incognito tabs and standard tabs run in separate windows.
 			this._log(logHead + "tab not found, ignoring event", activeHighlightMoveAttachInfo);
 			return;
 		}
