@@ -4,9 +4,7 @@ Classes.SettingsContainerViewer = Classes.CollapsibleContainerViewer.subclass({
 
 // "containerTitle" must not be HTML.
 // "startExpanded" is optional, defaults to "true".
-_init: function(containerTitle, startExpanded) {
-	startExpanded = optionalWithDefault(startExpanded, true);
-
+_init: function(containerTitle, startExpanded=true) {
 	let containerOptions = {
 		startExpanded: startExpanded,
 		border: false
@@ -210,16 +208,16 @@ _init: function(settingsTabViewerObj) {
 },
 
 updateShortcutText: function() {
-	const logHead = "SettingsCustomShortcutViewer::updateShortcutText(): ";
+	const logHead = "SettingsCustomShortcutViewer::updateShortcutText():";
 	chromeUtils.wrap(chrome.commands.getAll, logHead).then(
 		function(commands) {
-			this._log(logHead + "received", commands);
+			this._log(logHead, "received", commands);
 			commands.forEach(
 				function(cmd) {
 					if(this._shortcutViewers[cmd.name] != null) {
 						this._shortcutViewers[cmd.name].setShortcutText(cmd.shortcut);
 					} else {
-						this._log(logHead + "ignoring command \"" + cmd.name + "\"");
+						this._log(logHead, "ignoring command \"", cmd.name, "\"");
 					}
 				}.bind(this)
 			);
@@ -228,8 +226,8 @@ updateShortcutText: function() {
 },
 
 _containerExpandedCb: function(ev) {
-	const logHead = "SettingsCustomShortcutViewer::_containerExpandedCb(" + ev.target.id + "): ";
-	this._log(logHead + "container expanded", ev);
+	const logHead = "SettingsCustomShortcutViewer::_containerExpandedCb():";
+	this._log(logHead, "container expanded:", ev.target.id, ev);
 
 	this.updateShortcutText();
 },
@@ -260,11 +258,11 @@ _init: function({ labelHtml }) {
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.BsTabViewer._init.apply(this, arguments);
 
-	const logHead = "SettingsBsTabViewer::_init(): ";
+	const logHead = "SettingsBsTabViewer::_init():";
 	this.debug();
 
 	this._manifest = chrome.runtime.getManifest();
-	this._log(logHead + "the manifest object:", this._manifest);
+	this._log(logHead, "the manifest object:", this._manifest);
 
 	this._msgClient = Classes.MsgClient.create();
 
@@ -287,11 +285,11 @@ _init: function({ labelHtml }) {
 loadUrlThroughBackground: function(url) {
 	this._msgClient.sendRequest("launchUrl", { url: url }).then(
 		function(response) {
-			const logHead = "SettingsBsTabViewer::loadUrlThroughBackground().response(): ";
+			const logHead = "SettingsBsTabViewer::loadUrlThroughBackground().response():";
 			if(response.status == "success") {
-				this._log(logHead + "received ", response);
+				this._log(logHead, "received", response);
 			} else {
-				this._err(logHead + "response failed: ", response);
+				this._err(logHead, "response failed:", response);
 			}
 		}.bind(this)
 	);
@@ -312,7 +310,7 @@ _setBody: function() {
 },
 
 _renderTitle: function() {
-	// const logHead = "SettingsBsTabViewer::_renderTitle(): ";
+	// const logHead = "SettingsBsTabViewer::_renderTitle():";
 	let version = this._safeText(this._manifest.version);
 	if(!isProd()) {
 		version += "-DEV";
@@ -328,7 +326,7 @@ _renderTitle: function() {
 },
 
 _renderIncognitoInfo: function(container) {
-	const logHead = "SettingsBsTabViewer::_renderIncognitoInfo(): ";
+	// const logHead = "SettingsBsTabViewer::_renderIncognitoInfo():";
 	const linkId = this._id + "-extSettingsLink";
 
 	const extensionId = chromeUtils.getExtensionId();
@@ -373,9 +371,7 @@ _renderIncognitoInfo: function(container) {
 // main settings container.
 // "groupTitle" must not be HTML.
 // "startExpanded" is optional, defaults to "true".
-_createOptionsGroup: function(groupTitle, startExpanded) {
-	startExpanded = optionalWithDefault(startExpanded, true);
-
+_createOptionsGroup: function(groupTitle, startExpanded=true) {
 	let group = Classes.CollapsibleContainerViewer.create({
 		startExpanded: startExpanded,
 		border: true
@@ -560,7 +556,7 @@ _renderSettings: function() {
 },
 
 _addCustomGroups: function(namesList) {
-	const logHead = "SettingsBsTabViewer::_addCustomGroups(): ";
+	const logHead = "SettingsBsTabViewer::_addCustomGroups():";
 	this._log(logHead, namesList);
 	namesList.forEach(
 		function(name) {
@@ -572,7 +568,7 @@ _addCustomGroups: function(namesList) {
 },
 
 _delCustomGroups: function(namesList) {
-	const logHead = "SettingsBsTabViewer::_delCustomGroups(): ";
+	const logHead = "SettingsBsTabViewer::_delCustomGroups():";
 	this._log(logHead, namesList);
 	let promisesList = [];
 
@@ -602,14 +598,14 @@ _delCustomGroups: function(namesList) {
 },
 
 _updatedCb: function(ev) {
-	const logHead = "SettingsBsTabViewer::_updatedCb(" + ev.detail.key + "): ";
+	const logHead = "SettingsBsTabViewer::_updatedCb():";
 
 	if(ev.detail.key != "customGroups") {
-		this._log(logHead + "ignoring key");
+		this._log(logHead, "ignoring key", ev.detail.key);
 		return;
 	}
 
-	this._log(logHead + "processing change", ev.detail);
+	this._log(logHead, "key", ev.detail.key, "processing change", ev.detail);
 
 	// We can't use tmUtils.arrayDiff() because we need a specialized comparison function
 	// below (newNames[nn].localeCompare(oldNames[on])), which can't be configured when
@@ -660,8 +656,8 @@ _updatedCb: function(ev) {
 },
 
 _bsTabActivatedCb: function(ev) {
-	const logHead = "SettingsBsTabViewer::_bsTabActivatedCb(" + ev.target.id + "): ";
-	this._log(logHead + "tab activated", ev);
+	const logHead = "SettingsBsTabViewer::_bsTabActivatedCb():";
+	this._log(logHead, "tab activated", ev.target.id, ev);
 
 	this._shortcutsContainer.updateShortcutText();
 },
