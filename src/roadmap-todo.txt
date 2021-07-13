@@ -1,7 +1,15 @@
 TODO 2.0
 
-- BUG: action "suspend" on a tab duplicates the tab in the view
-  * Happened when applied to the only incognito tab available
+- BUG: action "suspend" (chrome.tabs.discard()) replaces the tab with a new tab,
+  but without the correct sequence of events
+  * No "remove" event for the old tab
+  * No "create" event for the new tab
+  * If the window has other tabs, discardTab() activates another tab, and the activation
+    triggers a full refresh, so users don't notice the duplication
+  * If the window has no other tabs, we don't explicitly activate another tab, but
+    we get an activation event for the new tab, which we discard because it doesn't
+	exist yet
+	- The AAA website disappears from tiles, though a search finds two copies
 
 - BUG: non existing tab still showing in tab list
   * Did we miss to remove it? Did it ever exist? Not clear
@@ -15,6 +23,7 @@ TODO 2.0
   * TabsManager::_queryTabs(): chrome.runtime.lastError = Tabs cannot be queried right now (user may be dragging a tab).
   * Saw it on both background page and popup consoles
   * Note that this seems to be happening also when the user changes tab, without dragging
+  * Bug fixed in M92 and maybe merged in M91: https://bugs.chromium.org/p/chromium/issues/detail?id=1213925
 
 - BUG: selecting a tile calls both MultiSelectPanelViewer.removeTab() and
   MultiSelectPanelViewer.addTab() (it should only call addTab())

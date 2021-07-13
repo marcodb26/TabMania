@@ -452,6 +452,10 @@ DONE 2.0
   * We can always use the docked case for other messages later... (e.g. notifications)
   * Actually we can't, because there's no chrome.browserAction.openPopup()
 
+- BUG: suspending a tab from memory focuses the window where the tab is located
+  * The user didn't request to focus that window, even though we activate a new tab
+    in the window for the "discard" action to work properly
+
 
 DONE 1.3
 
