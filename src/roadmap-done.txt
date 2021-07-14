@@ -464,7 +464,7 @@ DONE 2.0
     each individual sub-config (with-opener, no-opener, empty tab)
 
 - Cleaned up labels and settingsStore function names for "new tabs in LTW" and "dedup new tabs"
-
+  * Changing labels is not a problems, we haven't released this code yet
 
 DONE 1.3
 
