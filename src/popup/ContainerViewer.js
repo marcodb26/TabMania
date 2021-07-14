@@ -114,6 +114,8 @@ Classes.CollapsibleContainerViewer = Classes.ContainerViewer.subclass({
 // - "incognitoStyle", standard rendering or incognito rendering (default "false")
 // - "selectable", when "true", add a select checkbox to the left of the accordion button
 //   (default "false")
+// - "selectStyle", one of Classes.CollapsibleContainerViewer.Select.BOX or SWITCH, applicable
+//   only when "selectable" is "true"
 _init: function(options) {
 //	this.debug();
 
@@ -127,6 +129,7 @@ _init: function(options) {
 	this._options.bodyExtraClasses = [].concat(options.bodyExtraClasses ?? []);
 	this._options.incognitoStyle = options.incognitoStyle ?? false;
 	this._options.selectable = options.selectable ?? false;
+	this._options.selectStyle = options.selectStyle ?? Classes.CollapsibleContainerViewer.Select.BOX;
 
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.ContainerViewer._init.call(this, this._options.htmlWhenEmpty);
@@ -136,6 +139,48 @@ _init: function(options) {
 	// Call setSelectMode() after _renderHeadingAndBody(), because setSelectMode() needs the
 	// _selectElem to be initialized
 	this.setSelectMode(false);
+},
+
+_renderSelectHtml: function(selectId) {
+	if(!this.isSelectable()) {
+		return "";
+	}
+
+	// The select checkbox is currently needed only by TilesGroupViewer, but we are
+	// forced to put it in the parent class because it can't be added inside the
+	// accordion button. If you add inside the accordion button, the "click" event
+	// triggered by the checkbox click will cause collapse/expand, which is undesirable.
+	// For whatever reason, the collapse/expand event from the Bootstrap accordion
+	// fires before the "click" event in direct listeners of the checkbox, so doing
+	// event.stopPropagation() has no effect. We tried to register the event listener
+	// in the checkbox (TilesGroupViewer._selectClickedCb()) as bubbling or capturing
+	// (third parameter of addEventListener() set to "true"), but Bootstrap fires the
+	// synthetic collapse/expand event 200ms before we get the "click". We tried to
+	// register to "mouseup" and "pointerup", but event.stopPropagation() in those
+	// has no effect (I wasn't sure Bootstrap listens to those events instead of the
+	// "click" event, given the amount of time that passes between the collapse/expand
+	// event, and when we get "click").
+	// Anyway, rendering the checkbox outside the button makes more sense in general,
+	// though the side effect is that the area above and below the checkbox is not
+	// part of the accordion button, and so it won't trigger a collapse/expand.
+
+	// Normally you'd want the wrapping element to include class .form-check, but
+	// the Bootstrap documentation says .form-check needs to be omitted if no label
+	// is assigned to the checkbox, and in this case the checkbox has no label.
+	// https://getbootstrap.com/docs/5.0/forms/checks-radios/#without-labels
+	let parentClasses = [];
+	if(this._options.selectStyle == Classes.CollapsibleContainerViewer.Select.SWITCH) {
+		parentClasses.push("form-switch");
+	}
+
+	// Without fixing the font-size to "1rem" (class .fs-6), the checkbox is
+	// disproportionately larger than the checkboxes in each tile (that is,
+	// "1em" is bigger than "1rem" unless forced to "1rem"(?))
+	return `<div class="ms-1 mt-0 d-none">
+		<div class="${parentClasses.join(" ")}">
+			<input id="${selectId}" class="form-check-input fs-6" type="checkbox" value="" style="min-width: 1em;">
+		</div>
+	</div>`;
 },
 
 _renderHeadingAndBody: function() {
@@ -170,40 +215,23 @@ _renderHeadingAndBody: function() {
 		headingOuterExtraClasses.push("border-dark");
 	}
 
-	// The select checkbox is currently needed only by TilesGroupViewer, but we are
-	// forced to put it in the parent class because it can't be added inside the
-	// accordion button. If you add inside the accordion button, the "click" event
-	// triggered by the checkbox click will cause collapse/expand, which is undesirable.
-	// For whatever reason, the collapse/expand event from the Bootstrap accordion
-	// fires before the "click" event in direct listeners of the checkbox, so doing
-	// event.stopPropagation() has no effect. We tried to register the event listener
-	// in the checkbox (TilesGroupViewer._selectClickedCb()) as bubbling or capturing
-	// (third parameter of addEventListener() set to "true"), but Bootstrap fires the
-	// synthetic collapse/expand event 200ms before we get the "click". We tried to
-	// register to "mouseup" and "pointerup", but event.stopPropagation() in those
-	// has no effect (I wasn't sure Bootstrap listens to those events instead of the
-	// "click" event, given the amount of time that passes between the collapse/expand
-	// event, and when we get "click").
-	// Anyway, rendering the checkbox outside the button makes more sense in general,
-	// though the side effect is that the area above and below the checkbox is not
-	// part of the accordion button, and so it won't trigger a collapse/expand.
-	let selectHtml = "";
 	if(this.isSelectable()) {
-		// Without fixing the font-size to "1rem" (class .fs-6), the checkbox is
-		// disproportionately larger than the checkboxes in each tile (that is,
-		// "1em" is bigger than "1rem" unless forced to "1rem"(?))
-		selectHtml = `<input id="${selectId}" class="form-check-input fs-6 mt-0 ms-1 d-none" type="checkbox" value="" style="min-width: 1em;">`
+		headingExtraClasses.push("p-0", "py-2", "pe-2");
+	} else {
+		headingExtraClasses.push("p-2");
 	}
+
+	let selectHtml = this._renderSelectHtml(selectId);
 
 	// See TabTileViewer._renderEmptyTile() for the reasons why we need to add "min-width: 0;"
 	// to the <button> style (hint: fit .d-flex size)
 	const headingHtml = `
-		<h2 class="d-flex align-items-center accordion-header tm-accordion-header ${headingOuterExtraClasses.join(" ")}" id="${headingOuterId}">
+		<div class="d-flex align-items-center accordion-header tm-accordion-header ${headingOuterExtraClasses.join(" ")}" id="${headingOuterId}">
 			${selectHtml}
-			<button id=${headingId} class="accordion-button tm-accordion-button ${headingExtraClasses.join(" ")} p-2"
+			<button id=${headingId} class="accordion-button tm-accordion-button ${headingExtraClasses.join(" ")}"
 						type="button" data-bs-toggle="collapse" data-bs-target="#${bodyOuterId}" aria-expanded="true" aria-controls="${bodyOuterId}" style="min-width: 0;">
 			</button>
-		</h2>
+		</div>
 	`;
 
 	// The body of an accordion should be:
@@ -300,10 +328,14 @@ setSelectMode: function(flag=true) {
 	}
 
 	this._selectMode = flag;
-	this._selectElem.classList[flag ? "remove" : "add"]("d-none");
+	this._selectElem.parentElement.parentElement.classList[flag ? "remove" : "add"]("d-none");
 
 	// Reset the select checked value to "unselected"
 	this._selectElem.checked = false;
 },
 
 }); // Classes.CollapsibleContainerViewer
+
+Classes.Base.roDef(Classes.CollapsibleContainerViewer, "Select", {});
+Classes.Base.roDef(Classes.CollapsibleContainerViewer.Select, "BOX", "box");
+Classes.Base.roDef(Classes.CollapsibleContainerViewer.Select, "SWITCH", "switch");

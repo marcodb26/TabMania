@@ -456,6 +456,15 @@ DONE 2.0
   * The user didn't request to focus that window, even though we activate a new tab
     in the window for the "discard" action to work properly
 
+- Improved CollapsibleContainerViewer to support checkboxes rendered as switches
+  * Needed to add switch-style checkboxes to settings groups
+
+- Added wrapper configuration for "new tabs in LTW" and "dedup new tabs"
+  * Users can simply disable the whole feature, instead of having to deal with
+    each individual sub-config (with-opener, no-opener, empty tab)
+
+- Cleaned up labels and settingsStore function names for "new tabs in LTW" and "dedup new tabs"
+
 
 DONE 1.3
 

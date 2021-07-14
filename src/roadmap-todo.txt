@@ -1,5 +1,7 @@
 TODO 2.0
 
+- Implement "bookmarks in incognito search", or remove option from settings
+
 - BUG: action "suspend" (chrome.tabs.discard()) replaces the tab with a new tab,
   but without the correct sequence of events
   * No "remove" event for the old tab

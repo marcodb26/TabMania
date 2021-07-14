@@ -246,19 +246,23 @@ _windowFocusLossCb: function() {
 },
 
 _isTabDedupActive: function(tab) {
+	if(!settingsStore.getOptionNewTabDedup()) {
+		return false;
+	}
+
 	if(tab.openerTabId == null) {
-		if(!settingsStore.getOptionNewTabNoOpenerDedup()) {
+		if(!settingsStore.getOptionNewTabDedupNoOpener()) {
 			// Configured to not dedup new tabs opened with no opener
 			return false;
 		}
 	} else {
 		if(tab.pendingUrl == "chrome://newtab/") {
-			if(!settingsStore.getOptionNewEmptyTabDedup()) {
+			if(!settingsStore.getOptionNewTabDedupEmpty()) {
 				// Configured to not dedup new empty tabs
 				return false;
 			}
 		} else {
-			if(!settingsStore.getOptionNewTabWithOpenerDedup()) {
+			if(!settingsStore.getOptionNewTabDedupWithOpener()) {
 				// Configured to not dedup new tabs opened with an opener (that is, opened from
 				// another tab).
 				// Note that this check happens after the check for tab.active, so we won't
@@ -334,19 +338,23 @@ _findExistingUrlMatchTab: async function(tab) {
 // tab is already in the least tabbed window). Otherwise returns the window ID of the
 // window this tab should be moved to.
 _getLtwIdForMove: async function(tab) {
+	if(!settingsStore.getOptionNewTabToLtw()) {
+		return null;
+	}
+
 	if(tab.openerTabId == null) {
-		if(!settingsStore.getOptionNewTabNoOpenerInLTW()) {
+		if(!settingsStore.getOptionNewTabToLtwNoOpener()) {
 			// Configured to not move new tabs opened with no opener
 			return null;
 		}
 	} else {
 		if(tab.pendingUrl == "chrome://newtab/") {
-			if(!settingsStore.getOptionNewEmptyTabInLTW()) {
+			if(!settingsStore.getOptionNewTabToLtwEmpty()) {
 				// Configured to not move new empty tabs
 				return null;
 			}
 		} else {
-			if(!settingsStore.getOptionNewTabWithOpenerInLTW()) {
+			if(!settingsStore.getOptionNewTabToLtwWithOpener()) {
 				// Configured to not move new tabs opened with an opener (that is, opened from
 				// another tab).
 				// Note that this check happens after the check for tab.active, so we won't

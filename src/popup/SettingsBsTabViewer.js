@@ -14,7 +14,7 @@ _init: function(containerTitle, startExpanded=true) {
 	Classes.CollapsibleContainerViewer._init.call(this, containerOptions);
 	this.debug();
 
-	this.setHeadingHtml(`<div class="fw-bold">${containerTitle}</div>`);
+	this.setHeadingHtml(`<div class="fw-bold tm-accordion-header-align">${containerTitle}</div>`);
 	this.addClasses("tm-settings-container");
 	this.addBodyClasses("pt-1", "pb-1");
 },
@@ -369,76 +369,87 @@ _renderIncognitoInfo: function(container) {
 
 // Returns a container for the group of options, already attached to the
 // main settings container.
-// "groupTitle" must not be HTML.
+// "label" must not be HTML.
 // "startExpanded" is optional, defaults to "true".
-_createOptionsGroup: function(groupTitle, startExpanded=true) {
-	let group = Classes.CollapsibleContainerViewer.create({
-		startExpanded: startExpanded,
-		border: true
+// "selectOptions" is the getFn, setFn and updateKey in case select mode is needed.
+_createOptionsGroup: function(label, startExpanded=true, selectOptions={}) {
+	let group = Classes.SettingsItemsGroupViewer.create({
+		label,
+		startExpanded,
+		selectable: (selectOptions.getFn != null),
+		getFn: selectOptions.getFn,
+		setFn: selectOptions.setFn,
+		updateKey: selectOptions.updateKey,
 	});
-	group.setHeadingHtml(`<div class="fw-bold">${groupTitle}</div>`);
-	group.addClasses("ms-2", "tm-settings-container");
-	group.addBodyClasses("pt-1", "pb-1");
+
 	this._generalSettingsContainer.append(group);
 
 	return group;
 },
 
 _renderDedupOptions: function() {
-	let dedupGroup = this._createOptionsGroup("Deduplicate new tabs");
+	let dedupGroup = this._createOptionsGroup("Deduplicate new tabs", false, {
+		setFn: settingsStore.setOptionNewTabDedup.bind(settingsStore),
+		getFn: settingsStore.getOptionNewTabDedup.bind(settingsStore),
+		updateKey: "options",
+	});
 
-	let newEmptyTabDedup = Classes.SettingsCheckboxItemViewer.create({
-		setFn: settingsStore.setOptionNewEmptyTabDedup.bind(settingsStore),
-		getFn: settingsStore.getOptionNewEmptyTabDedup.bind(settingsStore),
+	let newTabDedupEmpty = Classes.SettingsCheckboxItemViewer.create({
+		setFn: settingsStore.setOptionNewTabDedupEmpty.bind(settingsStore),
+		getFn: settingsStore.getOptionNewTabDedupEmpty.bind(settingsStore),
 		label: "Chrome new tabs",
 		updateKey: "options",
 	});
-	dedupGroup.append(newEmptyTabDedup);
+	dedupGroup.append(newTabDedupEmpty);
 
-	let newTabWithOpenerDedup = Classes.SettingsCheckboxItemViewer.create({
-		setFn: settingsStore.setOptionNewTabWithOpenerDedup.bind(settingsStore),
-		getFn: settingsStore.getOptionNewTabWithOpenerDedup.bind(settingsStore),
+	let newTabDedupWithOpener = Classes.SettingsCheckboxItemViewer.create({
+		setFn: settingsStore.setOptionNewTabDedupWithOpener.bind(settingsStore),
+		getFn: settingsStore.getOptionNewTabDedupWithOpener.bind(settingsStore),
 		label: "Links from other tabs",
 		updateKey: "options",
 	});
-	dedupGroup.append(newTabWithOpenerDedup);
+	dedupGroup.append(newTabDedupWithOpener);
 
-	let newTabNoOpenerDedup = Classes.SettingsCheckboxItemViewer.create({
-		setFn: settingsStore.setOptionNewTabNoOpenerDedup.bind(settingsStore),
-		getFn: settingsStore.getOptionNewTabNoOpenerDedup.bind(settingsStore),
+	let newTabDedupNoOpener = Classes.SettingsCheckboxItemViewer.create({
+		setFn: settingsStore.setOptionNewTabDedupNoOpener.bind(settingsStore),
+		getFn: settingsStore.getOptionNewTabDedupNoOpener.bind(settingsStore),
 		label: "Links from other applications",
 		updateKey: "options",
 	});
-	dedupGroup.append(newTabNoOpenerDedup);
+	dedupGroup.append(newTabDedupNoOpener);
 },
 
 // LTW = Least Tabbed Window
 _renderLTWOptions: function() {
-	let ltwGroup = this._createOptionsGroup("Move new tabs to least tabbed window");
+	let ltwGroup = this._createOptionsGroup("Move new tabs to least tabbed window", false, {
+		setFn: settingsStore.setOptionNewTabToLtw.bind(settingsStore),
+		getFn: settingsStore.getOptionNewTabToLtw.bind(settingsStore),
+		updateKey: "options",
+	});
 
 	let newEmptyTabInLTW = Classes.SettingsCheckboxItemViewer.create({
-		setFn: settingsStore.setOptionNewEmptyTabInLTW.bind(settingsStore),
-		getFn: settingsStore.getOptionNewEmptyTabInLTW.bind(settingsStore),
+		setFn: settingsStore.setOptionNewTabToLtwEmpty.bind(settingsStore),
+		getFn: settingsStore.getOptionNewTabToLtwEmpty.bind(settingsStore),
 		label: "Chrome new tabs",
 		updateKey: "options",
 	});
 	ltwGroup.append(newEmptyTabInLTW);
 
-	let newTabWithOpenerInLTW = Classes.SettingsCheckboxItemViewer.create({
-		setFn: settingsStore.setOptionNewTabWithOpenerInLTW.bind(settingsStore),
-		getFn: settingsStore.getOptionNewTabWithOpenerInLTW.bind(settingsStore),
+	let newTabToLtwWithOpener = Classes.SettingsCheckboxItemViewer.create({
+		setFn: settingsStore.setOptionNewTabToLtwWithOpener.bind(settingsStore),
+		getFn: settingsStore.getOptionNewTabToLtwWithOpener.bind(settingsStore),
 		label: "Links from other tabs",
 		updateKey: "options",
 	});
-	ltwGroup.append(newTabWithOpenerInLTW);
+	ltwGroup.append(newTabToLtwWithOpener);
 
-	let newTabNoOpenerInLTW = Classes.SettingsCheckboxItemViewer.create({
-		setFn: settingsStore.setOptionNewTabNoOpenerInLTW.bind(settingsStore),
-		getFn: settingsStore.getOptionNewTabNoOpenerInLTW.bind(settingsStore),
+	let newTabToLtwNoOpener = Classes.SettingsCheckboxItemViewer.create({
+		setFn: settingsStore.setOptionNewTabToLtwNoOpener.bind(settingsStore),
+		getFn: settingsStore.getOptionNewTabToLtwNoOpener.bind(settingsStore),
 		label: "Links from other applications",
 		updateKey: "options",
 	});
-	ltwGroup.append(newTabNoOpenerInLTW);
+	ltwGroup.append(newTabToLtwNoOpener);
 },
 
 _renderSearchOptions: function() {

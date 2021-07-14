@@ -112,9 +112,6 @@ _TilesGroupViewer_renderHeading: function() {
 	// the optional chaining operator
 	this._selectElem?.addEventListener("click", this._selectClickedCb.bind(this), false);
 
-	this.removeHeadingClasses("p-2");
-	this.addHeadingClasses("p-0", "py-2", "pe-2");
-
 	let favIconContainerElem = this.getElementById(favIconContainerId);
 
 	let favIconOptions = {

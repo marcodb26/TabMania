@@ -233,13 +233,17 @@ Classes.SettingsStore = Classes.AsyncBase.subclass({
 	// - "devMode": enable/disable developer options (like the UI for "showTabId")
 	// - "showTabId": show the extended tab ID in the tiles
 	// - "advancedMenu": include advanced options in the tile dropdown menu
-	// - "newTabNoOpenerInLTW": (LTW = Least Tabbed Window)
-	// - "newTabWithOpenerInLTW": (LTW = Least Tabbed Window)
-	// - "newEmptyTabInLTW": tabs created with Chrome's "+" move to least tabbed window
-	// - "newTabNoOpenerDedup": attempt to reuse existing tab instead of creating a new tab
-	//   if the full URL (including fragment) matches
-	// - "newTabWithOpenerDedup"
-	// - "newEmptyTabDedup"
+	// - New tabs in LTW options (LTW = Least Tabbed Window)
+	//   * "newTabToLtw": main option, all others are ineffective when this one is "false"
+	//   * "newTabToLtwNoOpener":
+	//   * "newTabToLtwWithOpener":
+	//   * "newTabToLtwEmpty": tabs created with Chrome's "+" move to least tabbed window
+	// - Dedup new tabs options
+	//   * "newTabDedup": main option, all others are ineffective when this one is "false"
+	//   * "newTabDedupNoOpener": attempt to reuse existing tab instead of creating a new tab
+	//     if the full URL (including fragment) matches
+	//   * "newTabDedupWithOpener"
+	//   * "newTabDedupEmpty"
 	// - "startupOpenPopup": auto-open popup at Chrome startup (only if popup undocked)
 	// - "incognitoBsTab": use a separate bsTab for incognito tabs (requires incognito to
 	//   be enabled for the TabMania extension)
@@ -427,58 +431,76 @@ setOptionSearchUrl: function(value) {
 	return this._setOption("searchUrl", value);
 },
 
-getOptionNewTabNoOpenerInLTW: function() {
+getOptionNewTabToLtw: function() {
 	// Default "false"
-	return this._getBooleanOption("newTabNoOpenerInLTW", false);
+	return this._getBooleanOption("newTabToLtw", false);
 },
 
-setOptionNewTabNoOpenerInLTW: function(value) {
-	return this._setOption("newTabNoOpenerInLTW", value);
+setOptionNewTabToLtw: function(value) {
+	return this._setOption("newTabToLtw", value);
 },
 
-getOptionNewTabWithOpenerInLTW: function() {
+getOptionNewTabToLtwNoOpener: function() {
+	// Default "true"
+	return this._getBooleanOption("newTabToLtwNoOpener", true);
+},
+
+setOptionNewTabToLtwNoOpener: function(value) {
+	return this._setOption("newTabToLtwNoOpener", value);
+},
+
+getOptionNewTabToLtwWithOpener: function() {
 	// Default "false"
-	return this._getBooleanOption("newTabWithOpenerInLTW");
+	return this._getBooleanOption("newTabToLtwWithOpener");
 },
 
-setOptionNewTabWithOpenerInLTW: function(value) {
-	return this._setOption("newTabWithOpenerInLTW", value);
+setOptionNewTabToLtwWithOpener: function(value) {
+	return this._setOption("newTabToLtwWithOpener", value);
 },
 
-getOptionNewEmptyTabInLTW: function() {
+getOptionNewTabToLtwEmpty: function() {
+	// Default "true"
+	return this._getBooleanOption("newTabToLtwEmpty", true);
+},
+
+setOptionNewTabToLtwEmpty: function(value) {
+	return this._setOption("newTabToLtwEmpty", value);
+},
+
+getOptionNewTabDedup: function() {
 	// Default "false"
-	return this._getBooleanOption("newEmptyTabInLTW", false);
+	return this._getBooleanOption("newTabDedup", false);
 },
 
-setOptionNewEmptyTabInLTW: function(value) {
-	return this._setOption("newEmptyTabInLTW", value);
+setOptionNewTabDedup: function(value) {
+	return this._setOption("newTabDedup", value);
 },
 
-getOptionNewTabNoOpenerDedup: function() {
-	// Default "false"
-	return this._getBooleanOption("newTabNoOpenerDedup", false);
+getOptionNewTabDedupNoOpener: function() {
+	// Default "true"
+	return this._getBooleanOption("newTabDedupNoOpener", true);
 },
 
-setOptionNewTabNoOpenerDedup: function(value) {
-	return this._setOption("newTabNoOpenerDedup", value);
+setOptionNewTabDedupNoOpener: function(value) {
+	return this._setOption("newTabDedupNoOpener", value);
 },
 
-getOptionNewTabWithOpenerDedup: function() {
-	// Default "false"
-	return this._getBooleanOption("newTabWithOpenerDedup", false);
+getOptionNewTabDedupWithOpener: function() {
+	// Default "true"
+	return this._getBooleanOption("newTabDedupWithOpener", true);
 },
 
-setOptionNewTabWithOpenerDedup: function(value) {
-	return this._setOption("newTabWithOpenerDedup", value);
+setOptionNewTabDedupWithOpener: function(value) {
+	return this._setOption("newTabDedupWithOpener", value);
 },
 
-getOptionNewEmptyTabDedup: function() {
-	// Default "false"
-	return this._getBooleanOption("newEmptyTabDedup", false);
+getOptionNewTabDedupEmpty: function() {
+	// Default "true"
+	return this._getBooleanOption("newTabDedupEmpty", true);
 },
 
-setOptionNewEmptyTabDedup: function(value) {
-	return this._setOption("newEmptyTabDedup", value);
+setOptionNewTabDedupEmpty: function(value) {
+	return this._setOption("newTabDedupEmpty", value);
 },
 
 getOptionStartupOpenPopup: function() {
