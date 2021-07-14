@@ -92,16 +92,15 @@ setEnabled: function(flag) {
 },
 
 // Use this to update the value if syncing from a remote update
-setValue: function(value) {
-	value = optionalWithDefault(value, "");
-	const logHead = "SettingsItemViewer::setValue(\"" + value + "\"): ";
+setValue: function(value="") {
+	const logHead = "SettingsItemViewer::setValue(\"" + value + "\"):";
 	if(this._inputElem == null) {
 		// See comment above _startListeners()
-		this._log(logHead + "_inputElem not ready, nothing to do");
+		this._log(logHead, "_inputElem not ready, nothing to do");
 		return;
 	}
 
-	this._log(logHead + "setting value");
+	this._log(logHead, "setting value");
 	this._inputElem.value = value;
 },
 
@@ -419,13 +418,12 @@ _onInputChangedCb: function(ev) {
 },
 
 // Override from parent class
-setValue: function(value) {
+setValue: function(value=false) {
 	if(this._inputElem == null) {
 		// See comment above SettingsItemViewer::_startListeners()
 		return;
 	}
 
-	value = optionalWithDefault(value, false);
 	this._inputElem.checked = value;
 },
 
