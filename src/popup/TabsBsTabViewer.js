@@ -62,8 +62,8 @@ Classes.TabsBsTabViewer = Classes.SearchableBsTabViewer.subclass({
 _init: function({ labelHtml, standardTabs, incognitoTabs }) {
 	this._options = {};
 	this._options.labelHtml = labelHtml
-	this._options.standardTabs = optionalWithDefault(standardTabs, true);
-	this._options.incognitoTabs = optionalWithDefault(incognitoTabs, true);
+	this._options.standardTabs = standardTabs ?? true;
+	this._options.incognitoTabs = incognitoTabs ?? true;
 
 	// Overriding the parent class' _init(), but calling that original function first
 	Classes.SearchableBsTabViewer._init.call(this, { labelHtml: this._options.labelHtml });
@@ -165,9 +165,9 @@ _registerTabsManagerCallbacks: function() {
 
 _tabCreatedCb: function(ev) {
 	let tab = ev.detail.tab;
-	const logHead = "TabsBsTabViewer::_tabCreatedCb(tabId = " + tab.id + "): ";
+	const logHead = "TabsBsTabViewer::_tabCreatedCb(tabId = " + tab.id + "):";
 
-	this._log(logHead + "entering", ev.detail);
+	this._log(logHead, "entering", ev.detail);
 	// Since there's a new tab, we need to do a full query again, and potentially trigger
 	// an update to the list of tabs we're tracking (since this tab ID could not possibly
 	// already be in that list).
@@ -185,9 +185,9 @@ _tabCreatedCb: function(ev) {
 },
 
 _tabRemovedCb: function(ev) {
-	const logHead = "TabsBsTabViewer::_tabRemovedCb(tabId = " + ev.detail.tab.id + "): ";
+	const logHead = "TabsBsTabViewer::_tabRemovedCb(tabId = " + ev.detail.tab.id + "):";
 
-	this._log(logHead + "entering", ev.detail);
+	this._log(logHead, "entering", ev.detail);
 	this._queryAndRenderJob.run(this._queryAndRenderDelay);
 },
 
@@ -348,15 +348,15 @@ _tabUpdatedCb: function(ev) {
 		tabId = ev.detail.tabs[0].id;
 	}
 
-	const logHead = "TabsBsTabViewer::_tabUpdatedCb(tabId = " + tabId + "): ";
+	const logHead = "TabsBsTabViewer::_tabUpdatedCb(tabId = " + tabId + "):";
 
 	if(ev.detail.tabs.length > this._maxUpdatedTabs) {
-		this._log(logHead + "many changes, just doing full refresh", ev.detail);
+		this._log(logHead, "many changes, just doing full refresh", ev.detail);
 		this._queryAndRenderJob.run(this._queryAndRenderDelay);
 		return;
 	}
 
-	this._log(logHead + "entering", ev.detail);
+	this._log(logHead, "entering", ev.detail);
 
 	let scheduledFullRender = false;
 
@@ -366,7 +366,7 @@ _tabUpdatedCb: function(ev) {
 		scheduledFullRender = this._processTabUpdate(ev.detail.tabs[i], scheduledFullRender) || scheduledFullRender;
 	}
 
-	this._log(logHead + "scheduledFullRender =", scheduledFullRender);
+	this._log(logHead, "scheduledFullRender =", scheduledFullRender);
 
 	// In the case of updates, we don't always schedule a full re-render (see inside
 	// _processTabUpdate()), so we might need to blink explicitly here.
@@ -376,9 +376,9 @@ _tabUpdatedCb: function(ev) {
 },
 
 _bookmarkUpdatedCb: function(ev) {
-	const logHead = "TabsBsTabViewer::_bookmarkUpdatedCb(): ";
+	const logHead = "TabsBsTabViewer::_bookmarkUpdatedCb():";
 
-	this._log(logHead + "entering", ev.detail);
+	this._log(logHead, "entering", ev.detail);
 	// Most bookmarksManager updates are needed only during searches, but if there
 	// is at least one pinned bookmark, all bookmark updates need to monitored
 	// also during non-search tile rendering...
@@ -679,8 +679,8 @@ _disableContextMenuOnTouchEnd: function() {
 
 	let monitorContextMenuCb = function(ev) {
 		if(touchEndRecentlyFired) {
-			const logHead = "TabsBsTabViewer::monitorContextMenuCb(): ";
-			this._log(logHead + "suppressing 'contextmenu' event after 'touchend' event");
+			const logHead = "TabsBsTabViewer::monitorContextMenuCb():";
+			this._log(logHead, "suppressing 'contextmenu' event after 'touchend' event");
 			ev.preventDefault();
 		}
 	}.bind(this);
@@ -756,13 +756,13 @@ _prepareForNewCycle: function() {
 
 // TBD, Chrome tabGrops APIs are generally available, but only for manifest v3
 _getAllTabGroups: function() {
-	const logHead = "TabsBsTabViewer::_getAllTabGroups(): ";
+	const logHead = "TabsBsTabViewer::_getAllTabGroups():";
 	return chromeUtils.wrap(chrome.tabGroups.query, logHead, {});
 },
 
 // TBD, Chrome tabGrops APIs are generally available, but only for manifest v3
 _processTabGroupsCb: function(tabGroups) {
-	const logHead = "TabsBsTabViewer::_processTabGroupsCb(): ";
+	const logHead = "TabsBsTabViewer::_processTabGroupsCb():";
 	this._log(logHead, tabGroups);
 },
 
@@ -889,7 +889,7 @@ _getCachedTile: function(tab, tabGroup) {
 },
 
 _renderTile: function(containerViewer, tabGroup, tab) {
-	//const logHead = "TabsBsTabViewer::_renderTile(): ";
+	//const logHead = "TabsBsTabViewer::_renderTile():";
 	let tile = this._getCachedTile(tab, tabGroup);
 
 	if(tile == null) {
@@ -929,12 +929,12 @@ _renderTile: function(containerViewer, tabGroup, tab) {
 // "tabGroup" is optional. If specified, it will be used by the tile to pick a
 // default tile favicon if the tab itself doesn't have one.
 _renderTabsFlatInner: function(containerViewer, tabs, tabGroup) {
-	const logHead = "TabsBsTabViewer::_renderTabsFlatInner(): ";
+	const logHead = "TabsBsTabViewer::_renderTabsFlatInner():";
 
 	tabs.forEach(
 		safeFnWrapper(this._renderTile.bind(this, containerViewer, tabGroup), null,
 			function(e, tab) {
-				this._err(logHead + "iterating through tabs, at tabId " + 
+				this._err(logHead, "iterating through tabs, at tabId", 
 							(tab != null ? tab.tm.extId : "undefined obj"), tab, e);
 			}.bind(this)
 		)
@@ -942,7 +942,7 @@ _renderTabsFlatInner: function(containerViewer, tabs, tabGroup) {
 },
 
 _renderTabsByGroup: function(tabGroups) {
-	const logHead = "TabsBsTabViewer::_renderTabsByGroup(): ";
+	const logHead = "TabsBsTabViewer::_renderTabsByGroup():";
 
 	tabGroups.forEach(
 		function(tabGroup) {
@@ -1082,7 +1082,7 @@ getTabInfo: function(tabId) {
 // well as in the "click" handler (see TabTileViewer), and there was no cleaner way
 // to make this code available in both
 activateTab: function(tab, incognito=false) {
-	const logHead = "Classes.TabsBsTabViewer.activateTab(): ";
+	const logHead = "Classes.TabsBsTabViewer.activateTab():";
 	if(tab.tm.type == Classes.TabNormalizer.type.TAB) {
 		chromeUtils.activateTab(tab);
 		return;
@@ -1218,15 +1218,15 @@ _searchBoxProcessData: function(value) {
 },
 
 _respondToEnterKey: function(searchBoxText) {
-	const logHead = "TabsBsTabViewer::_respondToEnterKey(" + searchBoxText + "): ";
+	const logHead = "TabsBsTabViewer::_respondToEnterKey(" + searchBoxText + "):";
 
 	if(this._currentSearchResults == null) {
-		this._log(logHead + "no search results, nothing to do");
+		this._log(logHead, "no search results, nothing to do");
 		return;
 	}
 
-	this._log(logHead + "activating tab Id " + this._currentSearchResults[0].id +
-					" (" + this._currentSearchResults[0].tm.type + ")");
+	this._log(logHead, "activating tab Id", this._currentSearchResults[0].id,
+					"(", this._currentSearchResults[0].tm.type, ")");
 	Classes.TabsBsTabViewer.activateTab(this._currentSearchResults[0], this._isIncognito());
 },
 
