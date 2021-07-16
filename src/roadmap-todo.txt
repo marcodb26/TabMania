@@ -13,8 +13,6 @@ TODO 2.0
 - Recently closed tab reopened with CTRL+SHIFT+T should not be opened in a LTW, it
   should get reopened in the same window where it used to be
 
-- Implement "bookmarks in incognito search", or remove option from settings
-
 - BUG: action "suspend" (chrome.tabs.discard()) replaces the tab with a new tab,
   but without the correct sequence of events
   * No "remove" event for the old tab

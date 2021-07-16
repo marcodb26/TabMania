@@ -494,7 +494,6 @@ _renderIncognitoOptions: function() {
 	});
 	incognitoGroup.append(splitIncognitoBsTab);
 
-	// TBD TBD NOT IMPLEMENTED
 	let bookmarksInIncognitoSearch = Classes.SettingsCheckboxItemViewer.create({
 		setFn: settingsStore.setOptionBookmarksInIncognitoSearch.bind(settingsStore),
 		getFn: settingsStore.getOptionBookmarksInIncognitoSearch.bind(settingsStore),
