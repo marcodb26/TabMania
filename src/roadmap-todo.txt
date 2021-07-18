@@ -1,5 +1,14 @@
 TODO 2.0
 
+- BUG: Uncaught (in promise) TypeError: Cannot read property 'search' of null
+    at Object.find (BookmarksManager.js:785)
+    at Object.queryTabs (SearchManager.js:62)
+    at Object._queryTabsSearchMode (TabsBsTabViewer.js:788)
+    at Object._queryAndRenderTabs (TabsBsTabViewer.js:809)
+    at Object.<anonymous> (ScheduledJob.js:79)
+  * Seems to be happening if starting a search while a re-render is in progress
+  * Seems to be fixing itself...
+
 - Fix "deduplicate links from other tabs" based on the functionality
   implemented in the popup TabsManager.js
 

@@ -156,21 +156,32 @@ _refreshHistory: function(urls, removeAll) {
 
 	let removed = 0;
 
-	let selectedTabs = this._tabsStoreAll.get();
+	// Create a shallow copy of the array, so we can edit the original array without
+	// causing trouble to the iteration in this function
+	let selectedTabs = [].concat(this._tabsStoreAll.get());
+
+	this._log(logHead, "selectedTabs:", selectedTabs);
+
 	for(let i = 0; i < selectedTabs.length; i++) {
 		let tab = selectedTabs[i];
-		if(tab.tm.type != Classes.TabNormalizer.type.HISTORY) {
+		// When a URL is removed from history, it's also removed from recent tabs.
+		// If we didn't do this, a selected recent tab would remain active even
+		// when it's been removed.
+		if(![ Classes.TabNormalizer.type.HISTORY, Classes.TabNormalizer.type.RCTAB ].includes(tab.tm.type)) {
+			//this._log(logHead, "skipping (other type)", tab);
 			continue;
 		}
 
 		if(removeAll || urls.includes(tab.url)) {
+			//this._log(logHead, "removing", tab);
 			this.removeTab(tab, false);
 			removed++;
-			continue;
+		} else {
+			//this._log(logHead, "keeping", tab);
 		}
 	}
 
-	this._log(logHead, "removed", removed);
+	this._log(logHead, "removed", removed, "of", selectedTabs.length);
 
 	this._updateCounts();
 },

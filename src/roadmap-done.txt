@@ -471,6 +471,12 @@ DONE 2.0
 - BUG: sometimes tile group color sticks to tile when custom group membership is
   removed (e.g. with a redirect from a URL with membership to a URL without)
 
+- BUG: multi-select a browsing history item and its corresponding recently closed item,
+  then delete. The recently closed item remains in the selection, but Chrome actually
+  deletes it as a side effect of deleting the browsing history item
+  * Fix: in general, the browsing history notifications should be used to get rid of
+    recently closed items as well
+
 
 DONE 1.3
 

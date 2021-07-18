@@ -139,6 +139,8 @@ hasById: function(searchTabId) {
 },
 
 // get() returns the "_list", getDict() returns the "_dict"
+// Note that this function returns the original array, if you need to iterate and edit,
+// you should create a shallow copy of the array in the caller.
 get: function() {
 	// We can use Object.values() instead of tracking a separate "_list", but if the instance
 	// needs to perform more calls to get() (to iterate) than calls to update(), then using
