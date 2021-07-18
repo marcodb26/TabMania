@@ -466,6 +466,9 @@ DONE 2.0
 - Cleaned up labels and settingsStore function names for "new tabs in LTW" and "dedup new tabs"
   * Changing labels is not a problems, we haven't released this code yet
 
+- Moved "Search" settings above Deduplicate/LTW settings
+
+
 DONE 1.3
 
 - Updated NPM from v.7.5.4 to v.7.7.5

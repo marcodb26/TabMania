@@ -510,9 +510,9 @@ _renderSettings: function() {
 	this._generalSettingsContainer = Classes.SettingsContainerViewer.create("General settings");
 	this.append(this._generalSettingsContainer);
 
+	this._renderSearchOptions();
 	this._renderDedupOptions();
 	this._renderLTWOptions();
-	this._renderSearchOptions();
 	this._renderIncognitoOptions();
 
 	if(settingsStore.getOptionDevMode()) {
