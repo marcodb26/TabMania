@@ -68,11 +68,6 @@ TODO 2.0
 	// of the pattern "logHead + '<string>'" is definitely higher than the overhead of
 	// the pattern "logHead, '<string>'".
 
-- Some customGroup changes affect TabsManager (different search badges on a tile), some
-  other affect only rendering (different color for a custom group)
-  * We should make sure each class (TabsManager and TabsBsTabViewer) only reacts for the
-    properties they care about
-
 - Validation needed:
   * Do dedup and "move to LTW" (from background page) interfere with the "create new tab" "+" button in the popup?
 
@@ -85,6 +80,11 @@ PREP FOR NEXT RELEASE
 
 
 PUNTED TO NEXT RELEASE
+
+- Some customGroup changes affect TabsManager (different search badges on a tile), some
+  other affect only rendering (different color for a custom group)
+  * We should make sure each class (TabsManager and TabsBsTabViewer) only reacts for the
+    properties they care about
 
 - BUG: can't use tile contextMenu while wantsAttention is active
   * The tile closes the context menu again every time there's a title update
