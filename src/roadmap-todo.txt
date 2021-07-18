@@ -1,14 +1,5 @@
 TODO 2.0
 
-- BUG: Uncaught (in promise) TypeError: Cannot read property 'search' of null
-    at Object.find (BookmarksManager.js:785)
-    at Object.queryTabs (SearchManager.js:62)
-    at Object._queryTabsSearchMode (TabsBsTabViewer.js:788)
-    at Object._queryAndRenderTabs (TabsBsTabViewer.js:809)
-    at Object.<anonymous> (ScheduledJob.js:79)
-  * Seems to be happening if starting a search while a re-render is in progress
-  * Seems to be fixing itself...
-
 - Fix "deduplicate links from other tabs" based on the functionality
   implemented in the popup TabsManager.js
 
@@ -22,49 +13,9 @@ TODO 2.0
 - Recently closed tab reopened with CTRL+SHIFT+T should not be opened in a LTW, it
   should get reopened in the same window where it used to be
 
-- BUG: action "suspend" (chrome.tabs.discard()) replaces the tab with a new tab,
-  but without the correct sequence of events
-  * No "remove" event for the old tab
-  * No "create" event for the new tab
-  * If the window has other tabs, discardTab() activates another tab, and the activation
-    triggers a full refresh, so users don't notice the duplication
-  * If the window has no other tabs, we don't explicitly activate another tab, but
-    we get an activation event for the new tab, which we discard because it doesn't
-	exist yet
-	- The AAA website disappears from tiles, though a search finds two copies
-  * One possible workaround is to never discard the activation event, even for unknown
-    tabs
-	- That's ok if the standard/incognito tabs are tracked in the same bsTab, but if
-	  they're not, every activation on standard tabs will trigger a full refresh on
-	  the incognito bsTab, sounds expensive...
-	  * See TabsManager._tabActivatedHighlightedMovedAttachedCb()
-	    - Just need to remove the "return" statement in the first check, if we want
-		  the workaround
-	  * The activation event only has the tabId, not any other info about the tab
-		- Maybe we need to query all other bsTabs about the tab to find out?
-		- Or query Chrome directly? (though it's async)
-
-- BUG: non existing tab still showing in tab list
-  * Did we miss to remove it? Did it ever exist? Not clear
-
-- BUG: when dragging a tab from a window to another, chrome.tabs.query fails
-  * TabsManager::_queryTabs(): chrome.runtime.lastError = Tabs cannot be queried right now (user may be dragging a tab).
-  * Saw it on both background page and popup consoles
-  * Note that this seems to be happening also when the user changes tab, without dragging
-  * Bug fixed in M92 and maybe merged in M91: https://bugs.chromium.org/p/chromium/issues/detail?id=1213925
-
-- BUG: gmail showed up twice even though there was only one tab
-  * One tab showed "SC1" (shortcut), the other didn't
-  * One tab was loaded, the other was unloaded
-  * Both tabs showed the pin
-  * Closing the unloaded tab triggered both tabs to disappear
-  * Happened after a PC resumed from hibernation
-
 - BUG: selecting a tile calls both MultiSelectPanelViewer.removeTab() and
   MultiSelectPanelViewer.addTab() (it should only call addTab())
   * And unselecting calls addTab() then removeTab()
-
-- BUG: Yahoo Mail seems to enter an infinite "Loading" state at random (reload?)
 
 - Check memory footprint of background page
   * Make sure there are no memory leaks
@@ -89,6 +40,55 @@ PREP FOR NEXT RELEASE
 
 
 PUNTED TO NEXT RELEASE
+
+- BUG: when dragging a tab from a window to another, chrome.tabs.query fails
+  * TabsManager::_queryTabs(): chrome.runtime.lastError = Tabs cannot be queried right now (user may be dragging a tab).
+  * Saw it on both background page and popup consoles
+  * Note that this seems to be happening also when the user changes tab, without dragging
+  * Bug fixed in M92 and maybe merged in M91: https://bugs.chromium.org/p/chromium/issues/detail?id=1213925
+
+- BUG: gmail showed up twice even though there was only one tab
+  * One tab showed "SC1" (shortcut), the other didn't
+  * One tab was loaded, the other was unloaded
+  * Both tabs showed the pin
+  * Closing the unloaded tab triggered both tabs to disappear
+  * Happened after a PC resumed from hibernation
+
+- BUG: action "suspend" (chrome.tabs.discard()) replaces the tab with a new tab,
+  but without the correct sequence of events
+  * No "remove" event for the old tab
+  * No "create" event for the new tab
+  * If the window has other tabs, discardTab() activates another tab, and the activation
+    triggers a full refresh, so users don't notice the duplication
+  * If the window has no other tabs, we don't explicitly activate another tab, but
+    we get an activation event for the new tab, which we discard because it doesn't
+	exist yet
+	- The AAA website disappears from tiles, though a search finds two copies
+  * One possible workaround is to never discard the activation event, even for unknown
+    tabs
+	- That's ok if the standard/incognito tabs are tracked in the same bsTab, but if
+	  they're not, every activation on standard tabs will trigger a full refresh on
+	  the incognito bsTab, sounds expensive...
+	  * See TabsManager._tabActivatedHighlightedMovedAttachedCb()
+	    - Just need to remove the "return" statement in the first check, if we want
+		  the workaround
+	  * The activation event only has the tabId, not any other info about the tab
+		- Maybe we need to query all other bsTabs about the tab to find out?
+		- Or query Chrome directly? (though it's async)
+- Might be the cause for other bug:
+	- BUG: non existing tab still showing in tab list
+	  * Did we miss to remove it? Did it ever exist? Not clear
+
+- BUG: Yahoo Mail seems to enter an infinite "Loading" state at random (reload?)
+
+- BUG: Uncaught (in promise) TypeError: Cannot read property 'search' of null
+    at Object.find (BookmarksManager.js:785)
+    at Object.queryTabs (SearchManager.js:62)
+    at Object._queryTabsSearchMode (TabsBsTabViewer.js:788)
+    at Object._queryAndRenderTabs (TabsBsTabViewer.js:809)
+    at Object.<anonymous> (ScheduledJob.js:79)
+  * Seems to be happening if starting a search while a re-render is in progress
+  * Seems to be fixing itself...
 
 - Some customGroup changes affect TabsManager (different search badges on a tile), some
   other affect only rendering (different color for a custom group)
