@@ -552,8 +552,8 @@ _processMenuViewer: function() {
 _setTileColor: function(color) {
 	const logHead = "TabTileViewer._setTileColor():";
 
-	// Just making sure the caller never passes "null", as that would require
-	// replacing it with "none"
+	// Just making sure the caller never passes "null", the caller should replace
+	// "null" with "none" before calling this function
 	this._assert(color != null, logHead);
 
 	if(this._tileColor == color) {
@@ -618,10 +618,15 @@ _renderBodyInner: function() {
 
 	if(this._renderState.customGroupName != null) {
 		let cgm = settingsStore.getCustomGroupsManager();
-		this._setTileColor(this._renderState.customGroupColor);
 		visibleBadgesHtml.push(this._badgeHtml(this._renderState.customGroupName,
 												this._renderState.customGroupColor));
 	}
+	// If customGroupName == null, we still need to apply the customGroupColor.
+	// It's likely "none", but there could be a transition from non-none to none
+	// that requires processing.
+	// Since we need to apply customGroupColor also when customGroupName != null,
+	// let's just apply unconditionally outside of the "if" statement above.
+	this._setTileColor(this._renderState.customGroupColor);
 
 	this._addBadgesHtml(visibleBadgesHtml, this._renderState.primaryShortcutBadges);
 	this._addBadgesHtml(visibleBadgesHtml, this._renderState.secondaryShortcutBadges, true);
@@ -1014,7 +1019,7 @@ _createRenderState: function(tab, tabGroup) {
 		renderState.customGroupColor = cgm.getCustomGroupColor(tab.tm.customGroupName);
 	} else {
 		renderState.customGroupName = null;
-		renderState.customGroupColor = null;
+		renderState.customGroupColor = "none";
 	}
 
 	renderState.primaryShortcutBadges = tmUtils.deepCopy(tab.tm.primaryShortcutBadges);

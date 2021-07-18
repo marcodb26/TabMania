@@ -468,6 +468,9 @@ DONE 2.0
 
 - Moved "Search" settings above Deduplicate/LTW settings
 
+- BUG: sometimes tile group color sticks to tile when custom group membership is
+  removed (e.g. with a redirect from a URL with membership to a URL without)
+
 
 DONE 1.3
 
