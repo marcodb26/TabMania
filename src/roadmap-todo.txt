@@ -1,5 +1,14 @@
 TODO 2.0
 
+PREP FOR NEXT RELEASE
+
+- Remove all injection code in preparation for release (again)
+
+- Disable Base._assert() for production code
+
+
+LEFTOVERS FROM 2.0
+
 - Fix "deduplicate links from other tabs" based on the functionality
   implemented in the popup TabsManager.js
 
@@ -30,13 +39,6 @@ TODO 2.0
 
 - Validation needed:
   * Do dedup and "move to LTW" (from background page) interfere with the "create new tab" "+" button in the popup?
-
-
-PREP FOR NEXT RELEASE
-
-- Remove all injection code in preparation for release (again)
-
-- Disable Base._assert() for production code
 
 
 PUNTED TO NEXT RELEASE

@@ -2,12 +2,12 @@
 
 TabMania organizes all your browser tabs across all your windows, and offers an integrated search
 experience across tabs, bookmarks and browsing history. TabMania makes windows disappear, so you can
-focus on just your tabs, wherever they might be on your system, or even if they're still just
-bookmarks. Find a lost tab; group tabs in ways that are meaningful to you, not by window; pin
-your most important bookmarks so if the tab is not already open, you can open it in no time; use
-keyboard shortcuts to navigate back to a previous tab from anywhere in the system; attach specific
-tabs to keyboard shortcuts so they're always one keypress away from view, regardless of how many
-tabs in how many windows you might have open.
+focus on just your tabs, wherever they might be on your system. Find a lost tab; group tabs in ways
+that are meaningful to you, not by window; pin your most important bookmarks so if the tab is not
+already open, you can open it in no time; search and cleanup your browsing history; use keyboard
+shortcuts to navigate back to a previous tab from anywhere in the system; attach specific tabs to
+keyboard shortcuts so they're always one keypress away from view, regardless of how many tabs in
+how many windows you might have open.
 
 ## Home view
 The home view is where most of the action is. The home view is where all your browser tabs are listed
