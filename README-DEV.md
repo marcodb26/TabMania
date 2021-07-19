@@ -53,6 +53,10 @@ page, some only on the popups) to monitor the state of the extension, or make ch
   * Chrome inspect pages is a DevTool, and shows info for developers, so for each page you'll also
   see iFrames or other embedded things
 
+## Some definitions
+* *standard tabs* and *incognito tabs* are the two classes of tabs
+* *search mode* and *full mode* are two modes of operation (search on or off) on each class of tabs
+
 ## Extended tab ID
 If you're an extension developer working with Chrome APIs, you know that Chrome assigns a tab ID to
 every tab you have opened. The tab ID is a unique number. It may come in handy to also know the

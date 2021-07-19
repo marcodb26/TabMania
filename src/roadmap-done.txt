@@ -28,8 +28,8 @@ DONE 2.0
   * User configurable
 	- For now not distinguishing between tabs from other applications, tabs from other tabs,
 	  and new tabs
-  * We're matching the full URL (including fragment), we never switch an existing
-    tab to a different fragment
+  * We're matching the full URL (including fragment), we never switch to an existing
+    tab with a different fragment
   * It works only for new tabs opened from other applications or new empty tabs
     - For new tabs opened from other tabs, the URL field gets set only on the first "onUpdated",
 	  not at "onCreated"
@@ -183,7 +183,7 @@ DONE 2.0
 - Implemented hide/show for "Incognito" bsTab when "split incognito" configuration changes
 
 - Restructured PopupMenuViewer class to get bsTab menu items as a side effect of creating bsTabs
-  * Instead of having to explicitly define each bsTab explicitly (once again) in the initialization
+  * Instead of having to explicitly define each bsTab (once again) in the initialization
     of PopupMenuViewer
 
 - Added "Incognito" to popup menu, with logic to show/hide depending on "split incognito"
@@ -246,7 +246,7 @@ DONE 2.0
 
 - Initial work on multi-select
   * Added checkbox and one way to enter "multi-select mode"
-  * Selections are persisted across transitions through search, to allow users to accumulate
+  * Selections are persisted across transitions through searches, to allow users to accumulate
     a selection over time
 
 - Cleaned up rendering of bsTabs bodies, now using .d-flex .flex-column layout to organize multiple
@@ -254,8 +254,8 @@ DONE 2.0
   * The vertical scrollbar is finally under control...
   * Needed now otherwise we can't add another heading panel to support multi-select
 
-- Minor cleanup: renamed attachToElement() and appendToElement() (as attachInParentElement() and
-  appendInParentElement()) to match prependInParentElement()
+- Minor cleanup in Viewer class: renamed attachToElement() and appendToElement() (as
+  attachInParentElement() and appendInParentElement()) to match prependInParentElement()
 
 - Initial work on the MultiSelectPanelViewer to track actions on tiles multi-selection
   * Including one way to exit "multi-select" mode
@@ -420,7 +420,7 @@ DONE 2.0
   * With these darker colors, the visiblity of some favIcons improves somewhat
     - Especially the Chrome default favIcon (the small stylized gray globe)
 
-- BUG: empty hostname in custom group attracts all tabs
+- BUG: Emptying hostname data in custom group definition causes the group to attracts all tabs
   * Create a custom group
   * Add a hostname
   * Remove the hostname
@@ -428,7 +428,7 @@ DONE 2.0
 
 - Added custom group colors "pink" and "purple" to match color set from Chrome's tab groups
   * Though the actual color hues are not identical
-  * Also switched "cyan" text to dark color to increase contrast
+  * Also switched text of "cyan" badges to dark color to increase contrast
 
 - Disable multi-select menu actions when zero tiles are selected
 

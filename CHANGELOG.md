@@ -10,6 +10,124 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Fixed
 
 
+# [2.0.0] - 2021-07-19
+## Added
+- Added option to track Incognito tabs in a separate view
+  * Search applies only to Incognito tabs, and optionally to bookmarks
+  * Search of recently closed tabs and browsing history applicable only in the standard tabs view
+  * Pressig the "+" button while in Incognito-only view triggers a Launch/Search in a new Incognito tab
+  * Opening a bookmark from the Incognito-only view opens the bookmark in a new Incognito tab
+  * Search-related keyboard shortcuts only operate on standard tabs, not on Incognito tabs
+  * When switching from standard+incognito in same view to separate views, we need to respawn
+	the class managing the standard view with minor loss of state (scrollbar position, active
+	search, multi-select state)
+- New features: "move new tabs to Least Tabbed Window (LTW)" and "new tab deduplication"
+  * Intercept new tabs creation and apply "least tabbed window" logic and deduplication logic
+	- User configurable (tabs from other applications, tabs from other tabs, and new empty tabs)
+	- Excludes `chrome-extension:` tabs, tabs opened in the background (e.g. CTRL+click), popups
+  * Both disabled by default
+  * For deduplication we match the full URL (including fragment), and if we find a match on an
+    existing tab, activate the existing tab
+    - We never switch to an existing tab with a different fragment
+  * Deduplication works only for new tabs opened from other applications or new empty tabs
+    - For new tabs opened from other tabs, the URL field gets set only on the first `onUpdated`,
+	  not at `onCreated` (we'll add logic to support this in a later release)
+- Support for tiles multi-selection
+  * Includes "select/unselect all" behavior for groups, with "indetermined" checkbox state when
+	a group is partially selected
+	* Groups with no items don't show the selection checkbox
+  * Selections are persisted across transitions through searches, to allow users to accumulate
+    a selection over time
+	- This requires showing count of selected tiles in view separately from total count of
+	  selected items
+	- And requires an option to display all selected items (to validate current full selection)
+  * Some actions apply only to some classes of items, items in other classes will be ignored
+    and not cause any errors
+  * If Incognito tabs are tracked in a separate view, multi-selection applies only across items
+	within one view
+- Configurable option to auto-start undocked popup when starting Chrome (default `false`)
+- Added default label for special cases of hostname-based groups
+  * `[ Pages on this device ]` for protocol `file:` (no hostname)
+  * `[ New tabs ]` for `chrome://newtab/`
+  * `[ No hostname ]` in general when a hostname is missing (instead of the empty name in v1.3)
+- Added custom HTML attribute `data-tab-id` to each tile to simplify debugging by supporting easily
+  mapping each tile to a tab ID when inspecting the HTML
+- Initial implementation of `Viewer.getViewerByElement()`, to support mapping of DOM elements
+  to `Viewer` objects
+- Added support for help strings in settings checkboxes (Classes.SettingsCheckboxItemViewer)
+- Added automation for creation of GitHub releases (`npm run github-release`)
+- Added a `gcChecker` class to validate objects are getting garbage-collected properly
+- New explicit `discard()` method for classes that might suffer leaks without explicit actions
+- Added a `EventListenersWrapper` helper class to simplify unregistering an instance from all
+  the events it was listening to (to simplify the implementation of `discard()`)
+- Added `persistentSet.addMany()` and `persistentDict.delMany()` (to generate a single notification)
+- Added job name to all instances of `ScheduledJob`
+
+## Changed
+- Removed support for docked popup, now the popup is always undocked
+- Updated uglify-js from v.3.13.2 to v.3.13.4
+- Updated NPM from v.7.7.5 to v.7.10.0
+- Improved sequence of LTW open tab: first set back active tab in old window, then move
+- Split `chrome.tabs` events processing from tiles rendering
+  * The new `TabsManager` offers a more uniform set of events downstream, and the new tiles
+    rendering logic uses those events instead of the native chrome.tabs events
+  * Also cleaned up relationship between pinned bookmarks and tabs inheriting pins from pinned
+    bookmarks (the filtering is now just a rendering feature)
+- For tab updates, full re-rendering is now triggered only under specific conditions
+  * In v1.3 it was unconditional
+  * No performance profiling yet after refactoring
+- Improved debuggability of `tmUtils.isEqual()`
+- Using new throbber animation for tabs in `loading` state, better aligned with the animation used by
+  Chrome itself while tabs reload
+- `NormalizedTabs.js` code cleanup
+  * Split into `TabNormalizer` and `TabsStore` classes (removed all the ugly static functions)
+  * Cleaned up `normalizeTab()` initialization to cleanly support multiple calls on the same tab
+  * Added option to separate normalization from adding shortcut badges
+  * `TabsStore` improves tab lookup performance over NormalizedTabs by avoiding linear searches every
+    time (using a combo dict+list now)
+- Keep tiles in a stable position while a tab is loading
+  * Prevent temporary title changes while in `loading` state from moving a tile up and down
+- Cleaned up the rendering of settings containers and settings options
+- Now using `localStore.isAllowedIncognitoAccess()` instead of `chrome.extension.isAllowedIncognitoAccess()`
+  in `SettingsBsTabViewer._renderIncognitoInfo()` (avoid the extra async wait)
+- Started using new pattern for `this._log()`, avoiding string concatenation
+- Restructured `PopupMenuViewer` class to get bsTab menu items as a side effect of creating bsTabs
+- Cleaned up `ChromeUtils` to support "incognito or not" for all methods offered (including queries)
+- Cleaned up rendering of bsTabs bodies, now using `.d-flex .flex-column` layout to organize multiple
+  headers on top of a scrollable tiles container
+- Improved `CollapsibleContainerViewer` to support checkboxes rendered as switches
+- Minor cleanup in `Viewer` class, renamed `attachToElement()` and `appendToElement()` (as
+  `attachInParentElement()` and `appendInParentElement()`) to match `prependInParentElement()`
+- Reorganized CSS files and moved to separate folder
+  * And started taking advantage of CSS variables where appropriate
+- Added custom group colors "pink" and "purple" to match color set from Chrome's tab groups
+  * Though the actual color hues are not identical
+  * Also switched text of "cyan" badges to dark color to increase contrast
+- Switched from "grey" to "gray" for custom groups color label
+
+## Fixed
+- Activating a bookmark or history item fails to reuse an existing tab if the URL has a fragment
+- `SearchQuery.search()` must not change `tab.tm` to include `searchStats` and `unoptimizedSearchStats`
+  * Experienced as: `generateDiffEvents()` shows 177 tabs changed when changing active tab of a window
+    from TabMania in search mode
+- In search mode, some tabs from `_tabUpdatedCb()` don't have a tile, and we need to validate if a
+  tile actually exists
+- The `wantsAttention` flag was interfering with the `tmUtils.isEqual()` function
+  * `tmUtils.isEqual()` can't treat [ `wantsAttention` missing ] == [ `wantsAttention` set to `false` ]
+  * Experienced as: the extension's tab sometimes has `wantsAttention`, sometimes doesn't, and shows
+    up as changed when you make any other tab active
+- Discovered a massive Chrome memory leak on popup reload
+  * Worked around by removing a background page event listener on popup unload
+- `chromeUtils.createTab()` ignores existing empty tabs
+- When updating custom group color in Settings, only `TilesGroupViewer` gets updated (group header), not
+  the individual tiles inside of it
+- The left-most color in the custom group definition is the color "None", which should imply no callout
+  is displayed, and the standard badge colors are used
+- Emptying hostname data in custom group definition causes the group to attracts all tabs
+- Pinning a tab doesn't trigger a re-sort of the tiles in view
+- Suspending a tab from memory focuses the window where the tab is located
+
+
 # [1.3.0] - 2021-04-18
 ## Added
 - Added "Wants attention" feature
