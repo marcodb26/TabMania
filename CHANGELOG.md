@@ -12,10 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 # [2.0.0] - 2021-07-19
 ## Added
-- Added option to track Incognito tabs in a separate view
+- Added option to track Incognito tabs in a separate view; when Incognito tabs are in a separate view:
   * Search applies only to Incognito tabs, and optionally to bookmarks
   * Search of recently closed tabs and browsing history applicable only in the standard tabs view
-  * Pressig the "+" button while in Incognito-only view triggers a Launch/Search in a new Incognito tab
+  * Pressig the `+` button while in Incognito-only view triggers a Launch/Search in a new Incognito tab
   * Opening a bookmark from the Incognito-only view opens the bookmark in a new Incognito tab
   * Search-related keyboard shortcuts only operate on standard tabs, not on Incognito tabs
   * When switching from standard+incognito in same view to separate views, we need to respawn
