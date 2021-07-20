@@ -9,6 +9,13 @@ PREP FOR NEXT RELEASE
 
 LEFTOVERS FROM 2.0
 
+- "Back" shortcut doesn't seem to work when using CTRL+SHIFT+T to restore a closed
+  tab, at least not when the LTW logic moves the tab to a different window
+  * Need to test, but that's what I saw once
+    - Other condition: minimize the window where the tab got moved (right after it
+	  happened), use another app (in my case, OneNote), then use the "back" shortcut,
+	  you end up directly to the tab before the CTRL+SHIFT+T
+
 - Fix "deduplicate links from other tabs" based on the functionality
   implemented in the popup TabsManager.js
 

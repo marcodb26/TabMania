@@ -10,13 +10,13 @@ keyboard shortcuts so they're always one keypress away from view, regardless of 
 how many windows you might have open.
 
 ## Home view
-The home view is where most of the action is. The home view is where all your browser tabs are listed
-alphabetically by title. Browser tabs loaded with URLs from the same location (hostname) are automatically
-grouped together. You can change this default grouping behavior by configuring _custom groups_
-(see _Custom groups_ below for more details).
+The _Home_ view is where all your browser tabs are listed alphabetically by title. Browser tabs
+loaded with URLs from the same location (same hostname) are automatically grouped together.
+You can change this default grouping behavior by configuring _custom groups_
+(see __Custom groups__ below for more details).
 
-Pinned tabs, bookmarks and groups are listed first, before all other unpinned tabs (see __Pinned tabs,
-bookmarks and groups__ below for more details).
+In the _Home_ view, pinned tabs, pinned bookmarks and pinned groups are listed first, before all
+other unpinned tabs (see __Pinned tabs, bookmarks and groups__ below for more details).
 The tab of the home view blinks red every time there's a change in the list of tiles for your browser
 tabs (new tab, new URL, new title, settings change impacting tiles grouping, etc.).
 
@@ -69,7 +69,7 @@ new message is received on the site. Unfortunately these indications are complet
 too many tabs on a window and their titles are all but invisible, or when the window is hidden from view.
 TabMania monitors changes in tab titles, and when it notices this pattern on a tab, it pushes its tile
 to the top of the TabMania popup, and pulses its favicon. The title change also naturally triggers blinking
-of the TabMania popup _Home_ tab. Never again miss one of these title-based notifications!
+of the TabMania popup _Home_ view. Never again miss one of these title-based notifications!
 
 ## Custom groups
 Custom groups are a convenient way to keep related tabs grouped together. In the _Custom groups setting_
@@ -165,19 +165,21 @@ pinning show their thumbtuck icon in grey.
 ## Incognito tabs
 When you install TabMania, initially TabMania doesn't have access to Incognito tabs. To track
 Incognito tabs with TabMania, you first need to change the TabMania's _Chrome extension settings_
-to grant TabMania access to Incognito tabs (a link to the _Chrome extension settings_ is available
-in TabMania's _Settings_ page for your convenience).
+to grant TabMania access to Incognito tabs (for your convenience, a link to the _Chrome extension
+settings_ is available in TabMania's _Settings_ page).
 Once you've granted TabMania access to your Incognito tabs, you can configure TabMania to merge
 the Incognito tabs within the _Home_ (standard tabs) view, or to track the Incognito tabs in their
 own separate _Incognito_ view. If you choose to track Incognito tabs separately, the _Home_ and
 _Incognito_ views behave very similarly, except:
 - Your _Home_ view searches won't include any Incognito tabs in the search results, and your
   _Incognito_ view searches won't include any standard tabs in the search results
-- Searches in _Incognito_ view query only Incognito tabs and optionally bookmarks,
-  recently closed tabs and browsing history can only be queried in the _Home_ view
+- Searches in _Incognito_ view query only Incognito tabs and optionally bookmarks
+  * Recently closed tabs and browsing history can only be queried in the _Home_ view
 - Opening a bookmark from the _Incognito_ view opens the bookmark in an Incognito tab
-- While in _Incognito_ view, clicking the TabMania `+` button creates Incognito tabs
+- While in _Incognito_ view, clicking the TabMania `+` button creates new Incognito tabs
 - Search-related keyboard shortcuts only operate on standard tabs, not on Incognito tabs.
+Also note that multi-select actions apply only to the selection in the _Home_ view or in
+the _Incognito_ view, never in both simultaneously.
 
 ## The button toolbar
 ### The "open new tab" button
@@ -322,3 +324,14 @@ only if the current tab is in a window that has at least two more tabs than the 
 window (no point in moving a tab if it doesn't rebalance anything). If TabMania decides the
 tab is ok in the window where it's currently hosted, it will blink its popup's badge to indicate
 that.
+
+## Managing new tabs
+When you click a URL fron any application other than Chrome itself (say, open a link from your email
+client), Chrome creates a new rightmost tab in the Chrome window you most recently used. And if you
+click the same link again, Chrome dutifully opens yet another tab in that same window. TabMania
+offers two options to alter that default behavior: _Deduplicate new tabs_ and _Move new tabs to
+the least tabbed window_. These features are disabled by default, but you can enable them in the
+_Settings_ view. You can configure to enable these features only for tabs created from other applications,
+for tabs created within Chrome when following a link, or from new empty tabs. Regardless of configuration,
+TabMania always excludes tabs with schema `chrome-extension:`, tabs opened in the background (e.g. by
+using CTRL+click), and popups.

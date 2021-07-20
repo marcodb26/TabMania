@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Fixed
 
 
-# [2.0.0] - 2021-07-19
+# [2.0.0] - 2021-07-20
 ## Added
 - Added option to track Incognito tabs in a separate view; when Incognito tabs are in a separate view:
   * Search applies only to Incognito tabs, and optionally to bookmarks

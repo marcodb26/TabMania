@@ -86,6 +86,10 @@ Extended browsing history item IDs are not searchable (browsing history items ca
 for title and URL matches), but when visualized they can still provide a hint of context about the
 browsing history item.
 
+### How can I find the tab ID of a tile when the _Extended tab ID_ option is disabled?
+The current tab ID of each tile is added as a data attribute `data-tab-id` in the HTML of each tile.
+Just use the Chrome developer tools to inspect the DOM to find the `data-tab-id` attributes.
+
 # Environment
 TabMania's package.json `scripts` section assumes bash as the shell. If you're on Windows, take the
 path of your git-bash from git and run `npm config set script-shell "C:\\Program Files\\Git\\git-bash.exe"`
