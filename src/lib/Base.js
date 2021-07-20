@@ -463,7 +463,7 @@ unlisten: function(obj, ...listenerArgs) {
 		// unlinked from the EventManager owner instance. This check protects against
 		// out of order calls during discard().
 		// If the "obj" is derived from Base class, "getId()" exists, otherwise it doesn't.
-		this._log(logHead, "obj", obj.getId?.() ?? "[not derived from Base]", "missing _unlistenFnName =",
+		this._log(logHead, "obj", obj?.getId() ?? "[not derived from Base]", "missing _unlistenFnName =",
 					this._unlistenFnName, arguments);
 		return;
 	}
