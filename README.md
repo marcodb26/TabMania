@@ -180,7 +180,7 @@ _Incognito_ views behave very similarly, except:
 - Search-related keyboard shortcuts only operate on standard tabs, not on Incognito tabs.
 
 Also note that multi-select actions apply only to the selection in the _Home_ view or in
-the _Incognito_ view, never in both simultaneously.
+the _Incognito_ view, never to both simultaneously.
 
 ## The button toolbar
 ### The "open new tab" button
@@ -333,6 +333,6 @@ click the same link again, Chrome dutifully opens yet another tab in that same w
 offers two options to alter that default behavior: _Deduplicate new tabs_ and _Move new tabs to
 the least tabbed window_. These features are disabled by default, but you can enable them in the
 _Settings_ view. You can configure to enable these features only for tabs created from other applications,
-for tabs created within Chrome when following a link, or from new empty tabs. Regardless of configuration,
+for tabs created within Chrome when following a link, or for new empty tabs. Regardless of configuration,
 TabMania always excludes tabs with schema `chrome-extension:`, tabs opened in the background (e.g. by
-using CTRL+click), and popups.
+using `CTRL+click`), and popups.
