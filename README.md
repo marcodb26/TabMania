@@ -114,7 +114,7 @@ of operators to influence the way search happens. You can read all the details a
 
 ### Searching beyond open tabs
 TabMania supports searching among _bookmarks_, _recently closed_ tabs and _browsing history_ items.
-Go to the _Settings_ page, and under _General settings_ choose which class you want included and
+Go to the _Settings_ view, and under _General settings_ choose which class you want included and
 which excluded. Do it at any time, even mid-search, to filter in or out extra pages. TabMania restricts
 _bookmarks_ and _browsing history_ to a maximum of 500 items each during a search. _Recently closed_
 tabs are capped by Chrome at a maximum of 25 top level items (either closed tabs or closed windows).
@@ -166,7 +166,7 @@ pinning show their thumbtuck icon in grey.
 When you install TabMania, initially TabMania doesn't have access to Incognito tabs. To track
 Incognito tabs with TabMania, you first need to change the TabMania's _Chrome extension settings_
 to grant TabMania access to Incognito tabs (for your convenience, a link to the _Chrome extension
-settings_ is available in TabMania's _Settings_ page).
+settings_ is available in TabMania's _Settings_ view).
 Once you've granted TabMania access to your Incognito tabs, you can configure TabMania to merge
 the Incognito tabs within the _Home_ (standard tabs) view, or to track the Incognito tabs in their
 own separate _Incognito_ view. If you choose to track Incognito tabs separately, the _Home_ and
@@ -209,7 +209,7 @@ by visiting the TabMania's shortcuts box inside chrome://extensions/shortcuts. T
 can be reached via the _Settings_ menu, in the _Shortcuts settings_ section, by clicking on the
 shortcut key combination badge under a shortcut title. Note that if you update your shortcuts in
 the chrome://extensions/shortcuts page, you might need to close and reopen the _Shortcuts settings_
-section of the _Settings_ page for the changes to be updated (unfortunately Chrome APIs don't
+section of the _Settings_ view for the changes to be updated (unfortunately Chrome APIs don't
 offer notifications back to extensions for changes you make to chrome://extensions/shortcuts).
 
 Most of the shortcuts defined by TabMania are designed to be used in `Global` scope. You can decide
