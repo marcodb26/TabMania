@@ -128,9 +128,12 @@ cp "${NPMROOT}/dayjs/plugin/relativeTime.js" "${TGT}/lib/relativeTime.js"
 
 # Minify CSS
 echo "Minifying CSS files"
+# csso-cli doesn't support more than one input file in its command line, so we need
+# to combine the files before passing them to csso-cli: https://github.com/css/csso-cli/issues/9
+#
 # The syntax "<array>[@]/#/<prefix>" prefixes all elements of the array (<array>[@]) with
 # the specified prefix (the last "/" below is part of the prefix).
-"${NPMBIN}/csso" "${UNPACKED_POPUP_CSS[@]/#/${SRC}/popup/}" --output "${TGT}/popup.css"
+cat "${UNPACKED_POPUP_CSS[@]/#/${SRC}/popup/}" | "${NPMBIN}/csso" --output "${TGT}/popup.css"
 
 
 # uglifyJs business starts here
