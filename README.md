@@ -162,10 +162,27 @@ hostname-based or custom) inherits pinning if at least one of its members is a p
 Objects that are explicitly pinned show their thumbtuck icon in black, while objects that inherit
 pinning show their thumbtuck icon in grey.
 
+## Incognito tabs
+When you install TabMania, initially TabMania doesn't have access to Incognito tabs. To track
+Incognito tabs with TabMania, you first need to change the TabMania's _Chrome extension settings_
+to grant TabMania access to Incognito tabs (a link to the _Chrome extension settings_ is available
+in TabMania's _Settings_ page for your convenience).
+Once you've granted TabMania access to your Incognito tabs, you can configure TabMania to merge
+the Incognito tabs within the _Home_ (standard tabs) view, or to track the Incognito tabs in their
+own separate _Incognito_ view. If you choose to track Incognito tabs separately, the _Home_ and
+_Incognito_ views behave very similarly, except:
+- Your _Home_ view searches won't include any Incognito tabs in the search results, and your
+  _Incognito_ view searches won't include any standard tabs in the search results
+- Searches in _Incognito_ view query only Incognito tabs and optionally bookmarks,
+  recently closed tabs and browsing history can only be queried in the _Home_ view
+- Opening a bookmark from the _Incognito_ view opens the bookmark in an Incognito tab
+- While in _Incognito_ view, clicking the TabMania `+` button creates Incognito tabs
+- Search-related keyboard shortcuts only operate on standard tabs, not on Incognito tabs.
+
 ## The button toolbar
 ### The "open new tab" button
 Why would I want to open a new tab from TabMania when I can so easily create a new tab on Chrome
-itself (`CTRL+T`, or the "+" button on Chrome)? Here are a few reasons:
+itself (`CTRL+T`, or the `+` button on Chrome)? Here are a few reasons:
 - TabMania tries to recycle lost and forgotten "new tabs" you might have opened in the past and
   then forgot there without using them
 - When the previous trick fails (congratulations, you never waste a new tab!), TabMania opens the
@@ -173,9 +190,9 @@ itself (`CTRL+T`, or the "+" button on Chrome)? Here are a few reasons:
   know when you have a window with a hundred tiny claustrophobic tabs, and another window with
   just two... well, you're likely going to be on the busy window, but TabMania will open your
   new tab in the empty one
-- If you're on the undocked TabMania popup searching for a tab you thought you had opened, your
-  standard Chrome windows will be far, just use the "+" button on the TabMania popup!
-  * To make things easier, if you have an active search, pressing the "+" button will activate
+- If you're on the TabMania popup searching for a tab you thought you had opened, your
+  standard Chrome windows will be far, just use the `+` button on the TabMania popup!
+  * To make things easier, if you have an active search, pressing the `+` button will activate
     a _launch/search_ response, similar to the behavior of the "Clipboard launch/search" shortcut,
 	and based on its configured search engine (See __"Clipboard launch/search" shortcut__ below
 	for more information). Of course it will use the text from the searchbox instead of the data
@@ -305,14 +322,3 @@ only if the current tab is in a window that has at least two more tabs than the 
 window (no point in moving a tab if it doesn't rebalance anything). If TabMania decides the
 tab is ok in the window where it's currently hosted, it will blink its popup's badge to indicate
 that.
-
-## Docking/undocking popup
-By default the TabMania popup opens in its own undocked window. This allows you to change its size
-and to put it in a place on your desktop where it can be always available for you. There's also an
-option to dock the popup, though the docked popup has certain disadvantages over the undocked popup,
-as Chrome tends to close it off under certain conditions, plus it's always covering your tab contents.
-The docking state is local to one device, so you can keep TabMania docked on just one device, while
-it remains undocked on all other devices.
-
-Unfortunately the standard Chrome shortcut to open the popup works only in `Chrome` scope (can't be
-configured for `Global` scope), so a Chrome window must be in focus.
