@@ -248,7 +248,7 @@ files are loaded (unless you want them to get built into `dist/popup.js`).
   * To update use `npm update bootstrap`
   * Call `npm run build-dev` when upgrading bootstrap again
 
-- Installed uglify-js v.3.13.4 (was v.3.13.2)
+- Installed uglify-js v.3.13.10 (was v.3.13.4)
   > `npm install uglify-js --save-dev`
   > `npm update uglify-js --save-dev`
 

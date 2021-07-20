@@ -66,6 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Changed
 - Removed support for docked popup, now the popup is always undocked
 - Updated uglify-js from v.3.13.2 to v.3.13.4
+  * Then updated again to v.3.13.10 to get support for optional chaining (added in v3.13.6 and v3.13.7)
 - Updated NPM from v.7.7.5 to v.7.10.0
 - Improved sequence of LTW open tab: first set back active tab in old window, then move
 - Split `chrome.tabs` events processing from tiles rendering
