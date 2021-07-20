@@ -178,6 +178,7 @@ _Incognito_ views behave very similarly, except:
 - Opening a bookmark from the _Incognito_ view opens the bookmark in an Incognito tab
 - While in _Incognito_ view, clicking the TabMania `+` button creates new Incognito tabs
 - Search-related keyboard shortcuts only operate on standard tabs, not on Incognito tabs.
+
 Also note that multi-select actions apply only to the selection in the _Home_ view or in
 the _Incognito_ view, never in both simultaneously.
 
