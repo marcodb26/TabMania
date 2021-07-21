@@ -1,13 +1,4 @@
-TODO 2.0
-
-PREP FOR NEXT RELEASE
-
-- Remove all injection code in preparation for release (again)
-
-- Disable Base._assert() for production code
-
-
-LEFTOVERS FROM 2.0
+TODO 2.1
 
 - "Back" shortcut doesn't seem to work when using CTRL+SHIFT+T to restore a closed
   tab, at least not when the LTW logic moves the tab to a different window
@@ -46,6 +37,13 @@ LEFTOVERS FROM 2.0
 
 - Validation needed:
   * Do dedup and "move to LTW" (from background page) interfere with the "create new tab" "+" button in the popup?
+
+
+PREP FOR NEXT RELEASE
+
+- Remove all injection code in preparation for release (again)
+
+- Disable Base._assert() for production code
 
 
 PUNTED TO NEXT RELEASE
