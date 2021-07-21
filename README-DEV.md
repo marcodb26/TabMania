@@ -190,7 +190,7 @@ files are loaded (unless you want them to get built into `dist/popup.js`).
 
 * Use `git fetch` to get the new tag to your clone repo
 
-* Edit `/src/templates/sources-dev.sh` and update `VERSION` variable to the next expected release version
+* Edit `/src/templates/sources-env.sh` and update `VERSION` variable to the next expected release version
 
 * Edit `package.json` and update `version` to the next expected release version
 
