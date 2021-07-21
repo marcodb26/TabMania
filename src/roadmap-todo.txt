@@ -1,6 +1,21 @@
 TODO 2.1
 
-- "Back" shortcut doesn't seem to work when using CTRL+SHIFT+T to restore a closed
+- BUG: The Bootstrap update to v.5.0.2 caused the same error we saw in v.5.0.0-beta3
+  * The menu buttons don't open their menu when you click on them
+    - Both the tiles menu and the popup menu are affected
+	  * Though the tiles menu does open if you use the touch-hold gesture on the tile
+	    (but that logic is very different from a click)
+	- Likely something we need to fix now, can't stay at v.5.0.0-beta2 forever...
+
+- BUG: The Bootstrap update to v.5.0.2 caused accordion group headers (custom groups)
+  to have extra spacing above and below, compared to standard tiles
+  * Or maybe it's extra spacing between the border of the accordion header tile and
+    the border of the entire accordion body (which I believe we had removed...)
+
+- BUG: The Bootstrap update to v.5.0.2 caused the blue text in the bsTabs text to be back
+  * Only for the bsTabs that are not active
+
+- BUG: "Back" shortcut doesn't seem to work when using CTRL+SHIFT+T to restore a closed
   tab, at least not when the LTW logic moves the tab to a different window
   * Need to test, but that's what I saw once
     - Other condition: minimize the window where the tab got moved (right after it

@@ -208,11 +208,12 @@ files are loaded (unless you want them to get built into `dist/popup.js`).
 * Find out if any NPM packages need updates using `npm outdated`
   - Then update them with `npm update` and update `CHANGELOG.md` accordingly
   - List current versions in the __Environment__ section below
+  - For some packages you might need to run `npm run build-dev` after updating
 
 # Environment
 - Google developer console: https://chrome.google.com/webstore/devconsole
 
-- Upgraded GIT to v.2.31.1.windows.1 (was v.2.30.1.windows.1)
+- Upgraded GIT to v.2.32.0.windows.2 (was v.2.31.1.windows.1)
   * To upgrade:
     > `git update-git-for-windows`
   * Repo at: https://github.com/marcodb26/TabMania.git
@@ -221,7 +222,11 @@ files are loaded (unless you want them to get built into `dist/popup.js`).
   * To see commits history
 	- https://github.com/marcodb26/TabMania/commits
 
-- Upgraded NPM to v.7.10.0
+- Node is at v.16.5.0 (was v.15.12.2)
+  * Updated to latest version from https://nodejs.org/en/download/current/
+    - Picked 64-bit .msi for Windows
+
+- Upgraded NPM to v.7.20.0 (was v.7.10.0)
   * To upgrade:
     - Run PowerShell as Administrator
       > `Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force`
@@ -231,10 +236,6 @@ files are loaded (unless you want them to get built into `dist/popup.js`).
     - Edited package.json to make project private
 	  * Add line after `description`:
 		> `"private": true,`
-
-- Node is at v15.12.2 (was v10.8.0) (on old PC)
-  * Updated to latest version from https://nodejs.org/en/download/current/
-    - Picked 64-bit .msi for Windows
 
 - Changed shell for NPM
   * Original: `"C:\\WINDOWS\\system32\\cmd.exe"`
