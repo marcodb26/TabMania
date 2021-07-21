@@ -186,6 +186,7 @@ files are loaded (unless you want them to get built into `dist/popup.js`).
 
 * Post the new version on the Google developer console at https://chrome.google.com/webstore/devconsole
   * Use the same tagged link to the README.md
+  * The ZIP file to upload is located at `/past-releases/vX.Y/TabMania v[X.Y].zip`
 
 * Use `git fetch` to get the new tag to your clone repo
 
