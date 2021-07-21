@@ -244,7 +244,7 @@ files are loaded (unless you want them to get built into `dist/popup.js`).
   * Use `npm config list` to check
   * UPDATE: this makes `npx` fail on Windows...
 
-- Installed Bootstrap
+- Installed Bootstrap v.5.0.2 (was v.5.0.0-beta2)
   > `npm install bootstrap@5.0.0-beta1`
   * To update use `npm update bootstrap`
   * Call `npm run build-dev` when upgrading bootstrap again
@@ -265,8 +265,9 @@ files are loaded (unless you want them to get built into `dist/popup.js`).
   available
   * Needed by `npm run dist`
 
-- Installed day.js v1.10.4 (replacement for moment.js)
+- Installed day.js v.1.10.6 (was v.1.10.4) (replacement for moment.js)
   > `npm install dayjs --save`
+  > `npm update dayjs`
 
 - Installed [github-release-cli](https://www.npmjs.com/package/github-release-cli) v2.0.0
   > `npm install github-release-cli --save-dev`

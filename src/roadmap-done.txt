@@ -1,5 +1,8 @@
 DONE 2.1
 
+- Updated Bootstrap from v.5.0.0-beta2 to v.5.0.2
+
+- Updated day.js from v.1.10.4 to v.1.10.6
 
 
 DONE 2.0
@@ -8,7 +11,8 @@ DONE 2.0
 
 - Added automation for creation of GitHub releases (`npm run github-release`)
 
-- Updated uglify-js from v.3.13.2 to v.3.13.4
+- Updated uglify-js from v.3.13.2 to v.3.13.4, then again to v.3.13.10
+  * To get support for optional chaining
 
 - Added job name to all instances of ScheduledJob
 
